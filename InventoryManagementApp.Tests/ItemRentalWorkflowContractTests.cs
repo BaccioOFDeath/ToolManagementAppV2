@@ -85,6 +85,23 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void IncrementalItemViewOptionFailuresClearRowsAndShowFeedback()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemsViewModel.cs");
+
+            Assert.Contains("private async Task ClearItemsAfterViewOptionFailureAsync(string optionName, Exception ex)", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogError(ex, \"Failed to apply incremental item {OptionName}\", optionName);", source, StringComparison.Ordinal);
+            Assert.Contains("Items.Reset();", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedItem = null;", source, StringComparison.Ordinal);
+            Assert.Contains("Failed to apply item {optionName}: {ex.Message} Visible item rows were cleared until reload succeeds.", source, StringComparison.Ordinal);
+            Assert.Contains("await ClearItemsAfterViewOptionFailureAsync(\"filter\", ex).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("await ClearItemsAfterViewOptionFailureAsync(\"sort\", ex).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("await ClearItemsAfterViewOptionFailureAsync(\"page size\", ex).ConfigureAwait(false);", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogDebug(\"Sort application canceled\");", source, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogDebug(\"Page size application canceled\");", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void IncrementalItemEditAndCreateDialogFailuresShowOperatorFeedback()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemsViewModel.cs");
