@@ -217,6 +217,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogDebug("Incremental load canceled");
             }
+            catch (Exception ex)
+            {
+                await ClearItemsAfterLoadMoreFailureAsync(ex).ConfigureAwait(false);
+            }
         }
 
         private Task StartFilterAsync()
@@ -312,6 +316,17 @@ namespace InventoryManagementApp.ViewModels
                 SelectedItem = null;
             }).ConfigureAwait(false);
             await _dialogService.ShowInfoAsync($"Failed to apply item {optionName}: {ex.Message} Visible item rows were cleared until reload succeeds.", "Error").ConfigureAwait(false);
+        }
+
+        private async Task ClearItemsAfterLoadMoreFailureAsync(Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load more incremental item rows");
+            await InvokeOnUiThreadAsync(() =>
+            {
+                Items.Reset();
+                SelectedItem = null;
+            }).ConfigureAwait(false);
+            await _dialogService.ShowInfoAsync($"Failed to load more items: {ex.Message} Visible item rows were cleared until reload succeeds.", "Error").ConfigureAwait(false);
         }
 
         private async Task<bool> RefreshItemsAfterMutationFailureAsync(int? preferredItemId, CancellationToken cancellationToken)
