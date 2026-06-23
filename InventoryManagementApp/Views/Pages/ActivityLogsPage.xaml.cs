@@ -35,11 +35,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ActivityGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is DataGridRow row && !row.IsSelected)
-            {
-                row.IsSelected = true;
-                row.Focus();
-            }
+            GridContextMenuSelection.SelectRow(sender, e);
         }
 
         private async void RefreshLogs_Click(object sender, RoutedEventArgs e)
@@ -54,7 +50,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Activity Logs", () =>
             {
-                if (ActivityGrid.SelectedItem is not ActivityLog log)
+                var log = GetSelectedActivityLogForAction();
+                if (log == null)
                 {
                     WpfMessageBox.Show("Select an activity row first.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -75,7 +72,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Activity Logs", () =>
             {
-                if (ActivityGrid.SelectedItem is not ActivityLog log)
+                var log = GetSelectedActivityLogForAction();
+                if (log == null)
                 {
                     WpfMessageBox.Show("Select an activity row first.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -127,7 +125,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Activity Logs", () =>
             {
-                if (ActivityGrid.SelectedItem is not ActivityLog log)
+                var log = GetSelectedActivityLogForAction();
+                if (log == null)
                 {
                     WpfMessageBox.Show("Select an activity row first.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -153,6 +152,16 @@ namespace InventoryManagementApp.Views.Pages
                     "Activity Logs",
                     "Review the filtered audit trail, destination routing, and operator handoff before printing.");
             });
+        }
+
+        private ActivityLog? GetSelectedActivityLogForAction()
+        {
+            if (ActivityGrid.SelectedItem is ActivityLog gridLog)
+                return gridLog;
+
+            return DataContext is ActivityLogsViewModel vm
+                ? vm.SelectedLog
+                : null;
         }
 
         private static string FormatLogDetail(ActivityLog log)

@@ -153,8 +153,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
+                ClearCustomerDirectoryAfterLoadFailure();
                 if (_dialogService != null)
-                    await _dialogService.ShowInfoAsync($"Failed to load customers: {ex.Message}", "Customer Load Failed");
+                    await _dialogService.ShowInfoAsync($"Failed to load customers: {ex.Message} Customer rows were cleared until reload succeeds.", "Customer Load Failed");
             }
         }
 
@@ -236,9 +237,17 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
+                ClearCustomerDirectoryAfterLoadFailure();
                 if (_dialogService != null)
-                    await _dialogService.ShowInfoAsync($"Failed to search customers: {ex.Message}", "Customer Search Failed");
+                    await _dialogService.ShowInfoAsync($"Failed to search customers: {ex.Message} Customer rows were cleared until reload succeeds.", "Customer Search Failed");
             }
+        }
+
+        private void ClearCustomerDirectoryAfterLoadFailure()
+        {
+            Customers.Clear();
+            SelectedCustomer = null;
+            OnPropertyChanged(nameof(CustomerResultsSummary));
         }
 
         private void ClearNewCustomerFields()

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using InventoryManagementApp.ViewModels;
@@ -31,16 +30,15 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ReportGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var row = FindParent<DataGridRow>(e.OriginalSource as DependencyObject);
-            if (row != null && !row.IsSelected)
-                row.IsSelected = true;
+            GridContextMenuSelection.SelectRow(sender, e);
         }
 
         private void CopySelectedRow_Click(object sender, RoutedEventArgs e)
         {
             UiActionGuard.Run(this, "Reports", () =>
             {
-                if (ReportGrid.SelectedItem is not ReportLine line)
+                var line = GetSelectedReportLineForAction();
+                if (line == null)
                 {
                     WpfMessageBox.Show("Select a report row first.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -54,7 +52,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Reports", () =>
             {
-                if (DataContext is not ReportsViewModel vm || vm.ReportLines.Count == 0)
+                if (DataContext is not ReportsViewModel vm || !vm.CanPrintCurrentReport)
                 {
                     WpfMessageBox.Show("Run a report before printing.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -70,12 +68,8 @@ namespace InventoryManagementApp.Views.Pages
 
         private void OpenSelectedDestination()
         {
-            var line = ReportGrid.SelectedItem as ReportLine;
-            var key = line?.DestinationKey;
-            if (string.IsNullOrWhiteSpace(key) && DataContext is ReportsViewModel vm)
-                key = vm.SelectedLineDestinationKey;
-
-            if (string.IsNullOrWhiteSpace(key))
+            var line = GetSelectedReportLineForAction();
+            if (line == null || string.IsNullOrWhiteSpace(line.DestinationKey))
             {
                 WpfMessageBox.Show("Run a report and select a row first.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -87,7 +81,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            switch (key)
+            switch (line.DestinationKey)
             {
                 case "ActivityLogs":
                     main.OpenActivityLogsCommand.Execute(null);
@@ -120,6 +114,16 @@ namespace InventoryManagementApp.Views.Pages
                     main.OpenDashboardCommand.Execute(null);
                     break;
             }
+        }
+
+        private ReportLine? GetSelectedReportLineForAction()
+        {
+            if (ReportGrid.SelectedItem is ReportLine gridLine)
+                return gridLine;
+
+            return DataContext is ReportsViewModel vm
+                ? vm.SelectedReportLine
+                : null;
         }
 
         private static string FormatHandoff(ReportLine line)
@@ -194,20 +198,6 @@ namespace InventoryManagementApp.Views.Pages
                 BorderThickness = new Thickness(0, 0, 0, 0.5),
                 Padding = new Thickness(3, 2, 3, 2)
             });
-        }
-
-        private static T? FindParent<T>(DependencyObject? child) where T : DependencyObject
-        {
-            while (child != null)
-            {
-                if (child is T parent)
-                    return parent;
-                child = child is Popup popup
-                    ? popup.PlacementTarget
-                    : System.Windows.Media.VisualTreeHelper.GetParent(child);
-            }
-
-            return null;
         }
     }
 }

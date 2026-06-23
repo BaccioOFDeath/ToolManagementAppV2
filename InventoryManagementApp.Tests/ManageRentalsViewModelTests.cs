@@ -31,12 +31,74 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(1, vm.Rentals[0].RentalID);
         }
 
+        [Fact]
+        public async Task CheckInCommand_PromptsBeforeReturningRental()
+        {
+            var rentals = new List<RentalModel>
+            {
+                new RentalModel
+                {
+                    RentalID = 7,
+                    ItemNumber = "T7",
+                    CustomerName = "SD European",
+                    RentalDate = DateTime.Today.AddDays(-1),
+                    DueDate = DateTime.Today.AddDays(2),
+                    Status = "Rented"
+                }
+            };
+            var rentalService = new StubRentalService(rentals);
+            var dialogService = new StubDialogService();
+            var vm = new ManageRentalsViewModel(rentalService, dialogService);
+
+            await vm.LoadRentalsAsync();
+            vm.SelectedRental = vm.Rentals[0];
+            await vm.CheckInCommand.ExecuteAsync(null);
+
+            Assert.Equal(1, dialogService.ConfirmCalls);
+            Assert.Equal("Confirm Rental Return", dialogService.LastConfirmTitle);
+            Assert.Contains("T7", dialogService.LastConfirmMessage);
+            Assert.Contains("SD European", dialogService.LastConfirmMessage);
+            Assert.Equal(1, rentalService.ReturnCalls);
+        }
+
+        [Fact]
+        public async Task CheckInCommand_DoesNotReturnWhenPromptIsCancelled()
+        {
+            var rentals = new List<RentalModel>
+            {
+                new RentalModel
+                {
+                    RentalID = 8,
+                    ItemNumber = "T8",
+                    CustomerName = "SD European",
+                    RentalDate = DateTime.Today.AddDays(-1),
+                    DueDate = DateTime.Today.AddDays(2),
+                    Status = "Rented"
+                }
+            };
+            var rentalService = new StubRentalService(rentals);
+            var dialogService = new StubDialogService { ConfirmResult = false };
+            var vm = new ManageRentalsViewModel(rentalService, dialogService);
+
+            await vm.LoadRentalsAsync();
+            vm.SelectedRental = vm.Rentals[0];
+            await vm.CheckInCommand.ExecuteAsync(null);
+
+            Assert.Equal(1, dialogService.ConfirmCalls);
+            Assert.Equal(0, rentalService.ReturnCalls);
+        }
+
         private sealed class StubRentalService : IRentalService
         {
             private readonly List<RentalModel> _rentals;
+            public int ReturnCalls { get; private set; }
             public StubRentalService(List<RentalModel> rentals) => _rentals = rentals;
             public Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate) => Task.CompletedTask;
-            public Task ReturnItemAsync(int rentalID, DateTime returnDate) => Task.CompletedTask;
+            public Task ReturnItemAsync(int rentalID, DateTime returnDate)
+            {
+                ReturnCalls++;
+                return Task.CompletedTask;
+            }
             public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.CompletedTask;
             public Task DeleteRentalAsync(int rentalID) => Task.CompletedTask;
             public Task<List<RentalModel>> GetActiveRentalsAsync() => Task.FromResult(new List<RentalModel>());
@@ -50,10 +112,20 @@ namespace InventoryManagementApp.Tests
 
         private sealed class StubDialogService : IDialogService
         {
+            public bool ConfirmResult { get; set; } = true;
+            public int ConfirmCalls { get; private set; }
+            public string? LastConfirmTitle { get; private set; }
+            public string? LastConfirmMessage { get; private set; }
             public void ShowInfo(string message, string title) { }
             public Task ShowInfoAsync(string message, string title) => Task.CompletedTask;
-            public bool ShowConfirmation(string message, string title) => true;
-            public Task<bool> ShowConfirmationAsync(string message, string title) => Task.FromResult(true);
+            public bool ShowConfirmation(string message, string title)
+            {
+                ConfirmCalls++;
+                LastConfirmTitle = title;
+                LastConfirmMessage = message;
+                return ConfirmResult;
+            }
+            public Task<bool> ShowConfirmationAsync(string message, string title) => Task.FromResult(ShowConfirmation(message, title));
             public ItemModel? ShowEditItemDialog(ItemModel item) => null;
             public Task<ItemModel?> ShowEditItemDialogAsync(ItemModel item) => Task.FromResult<ItemModel?>(null);
             public void ShowItemDetails(ItemModel item) { }

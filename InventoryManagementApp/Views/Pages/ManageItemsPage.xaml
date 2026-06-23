@@ -150,6 +150,7 @@
                               AutoGenerateColumns="False"
                               EnableColumnVirtualization="True"
                               Style="{StaticResource VirtualizedDataGridStyle}">
+                        <DataGrid.RowHeight>56</DataGrid.RowHeight>
                         <DataGrid.Resources>
                             <helpers:BindingProxy x:Key="VmProxy" Data="{Binding}"/>
                         </DataGrid.Resources>
@@ -157,8 +158,6 @@
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                 <EventSetter Event="PreviewMouseRightButtonDown"
                                              Handler="DataGridRow_PreviewMouseRightButtonDown"/>
-                                <EventSetter Event="Loaded" Handler="DataGridRow_Loaded"/>
-                                <EventSetter Event="Unloaded" Handler="DataGridRow_Unloaded"/>
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
@@ -166,7 +165,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border Width="48" Height="48" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,2">
-                                            <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}" Stretch="UniformToFill" ClipToBounds="True"/>
+                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}" Stretch="UniformToFill" ClipToBounds="True"/>
                                         </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

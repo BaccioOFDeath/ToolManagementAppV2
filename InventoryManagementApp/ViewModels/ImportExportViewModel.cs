@@ -195,6 +195,12 @@ namespace InventoryManagementApp.ViewModels
             ClearImportExportLogsCommand.NotifyCanExecuteChanged();
         }
 
+        async Task CancelFileSelectionAsync(string message, string title)
+        {
+            AddLog(message);
+            await _dialogService.ShowInfoAsync(message, title);
+        }
+
         async Task ImportItemsAsync(CancellationToken cancellationToken)
         {
             // Build combined file filter for all supported formats
@@ -205,7 +211,12 @@ namespace InventoryManagementApp.ViewModels
             var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
             
             var path = _fileDialogService.OpenFile(combinedFilter, AppContext.BaseDirectory);
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                await CancelFileSelectionAsync($"{plural} import file selection was cancelled.", $"Import {plural}");
+                return;
+            }
             
             try
             {
@@ -225,7 +236,12 @@ namespace InventoryManagementApp.ViewModels
                         properties,
                         new[] { nameof(ItemImportDto.ItemNumber), nameof(ItemImportDto.Name) });
                     if (map == null)
+                    {
+                        var message = $"{plural} import mapping was cancelled.";
+                        AddLog(message);
+                        await _dialogService.ShowInfoAsync(message, $"Import {plural}");
                         return;
+                    }
                     
                     if (!map.TryGetValue(nameof(ItemImportDto.ItemNumber), out var itemNumberHeader) || string.IsNullOrWhiteSpace(itemNumberHeader))
                     {
@@ -288,7 +304,12 @@ namespace InventoryManagementApp.ViewModels
             var combinedFilter = string.Join("|", filters);
             
             var path = _fileDialogService.SaveFile(combinedFilter);
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                var plural = LabelProvider.Instance.ItemLabelPlural;
+                await CancelFileSelectionAsync($"{plural} export destination selection was cancelled.", $"Export {plural}");
+                return;
+            }
             
             try
             {
@@ -301,22 +322,29 @@ namespace InventoryManagementApp.ViewModels
                 {
                     var errorMessage = $"No exporter found for file type: {extension}";
                     AddLog(errorMessage);
+                    await _dialogService.ShowInfoAsync(errorMessage, $"Export {plural}");
                     return;
                 }
                 
                 await _itemService.ExportItemsAsync(path, exporter, cancellationToken);
-                AddLog($"Successfully exported {plural} to {path} ({exporter.FormatName} format).");
+                var successMessage = $"Successfully exported {plural} to {path} ({exporter.FormatName} format).";
+                AddLog(successMessage);
+                await _dialogService.ShowInfoAsync(successMessage, $"Export {plural}");
             }
             catch (OperationCanceledException)
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
-                AddLog($"{plural} export was cancelled.");
+                var message = $"{plural} export was cancelled.";
+                AddLog(message);
+                await _dialogService.ShowInfoAsync(message, $"Export {plural}");
             }
             catch (Exception ex)
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 _logger.LogError(ex, "Failed to export {ItemLabelPlural} to {Path}", plural, path);
-                AddLog($"Failed to export {plural} to {path}: {ex.Message}");
+                var failureMessage = $"Failed to export {plural} to {path}: {ex.Message}";
+                AddLog(failureMessage);
+                await _dialogService.ShowInfoAsync(failureMessage, $"Export {plural}");
             }
         }
 
@@ -330,7 +358,11 @@ namespace InventoryManagementApp.ViewModels
             var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
             
             var path = _fileDialogService.OpenFile(combinedFilter, AppContext.BaseDirectory);
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                await CancelFileSelectionAsync("Customer import file selection was cancelled.", "Import Customers");
+                return;
+            }
             
             try
             {
@@ -343,11 +375,20 @@ namespace InventoryManagementApp.ViewModels
                     var properties = typeof(CustomerImportDto).GetProperties().Select(p => p.Name);
                     var map = _dialogService.ShowImportMapping(headers, properties);
                     if (map == null)
+                    {
+                        const string message = "Customer import mapping was cancelled.";
+                        AddLog(message);
+                        await _dialogService.ShowInfoAsync(message, "Import Customers");
                         return;
+                    }
                     var result = await _customerService.ImportCustomersFromCsvAsync(path, map, cancellationToken);
-                    AddLog($"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.");
+                    var successMessage = $"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.";
+                    AddLog(successMessage);
+                    if (result.SkippedRows.Any())
+                        successMessage += $" {result.SkippedRows.Count} skipped row{(result.SkippedRows.Count == 1 ? "" : "s")} were recorded in the run log.";
                     foreach (var msg in result.SkippedRows)
                         AddLog($"Skipped {msg}");
+                    await _dialogService.ShowInfoAsync(successMessage, "Import Customers");
                 }
                 else
                 {
@@ -362,17 +403,23 @@ namespace InventoryManagementApp.ViewModels
                     }
                     
                     var importedCount = await _customerService.ImportCustomersAsync(path, importer, cancellationToken);
-                    AddLog($"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).");
+                    var successMessage = $"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).";
+                    AddLog(successMessage);
+                    await _dialogService.ShowInfoAsync(successMessage, "Import Customers");
                 }
             }
             catch (OperationCanceledException)
             {
-                AddLog("Customer import was cancelled.");
+                const string message = "Customer import was cancelled.";
+                AddLog(message);
+                await _dialogService.ShowInfoAsync(message, "Import Customers");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to import customers from {Path}", path);
-                AddLog($"Failed to import customers from {path}: {ex.Message}");
+                var failureMessage = $"Failed to import customers from {path}: {ex.Message}";
+                AddLog(failureMessage);
+                await _dialogService.ShowInfoAsync(failureMessage, "Import Customers");
             }
         }
 
@@ -383,7 +430,11 @@ namespace InventoryManagementApp.ViewModels
             var combinedFilter = string.Join("|", filters);
             
             var path = _fileDialogService.SaveFile(combinedFilter);
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                await CancelFileSelectionAsync("Customer export destination selection was cancelled.", "Export Customers");
+                return;
+            }
             
             try
             {
@@ -395,20 +446,27 @@ namespace InventoryManagementApp.ViewModels
                 {
                     var errorMessage = $"No exporter found for file type: {extension}";
                     AddLog(errorMessage);
+                    await _dialogService.ShowInfoAsync(errorMessage, "Export Customers");
                     return;
                 }
                 
                 await _customerService.ExportCustomersAsync(path, exporter, cancellationToken);
-                AddLog($"Successfully exported customers to {path} ({exporter.FormatName} format).");
+                var successMessage = $"Successfully exported customers to {path} ({exporter.FormatName} format).";
+                AddLog(successMessage);
+                await _dialogService.ShowInfoAsync(successMessage, "Export Customers");
             }
             catch (OperationCanceledException)
             {
-                AddLog("Customer export was cancelled.");
+                const string message = "Customer export was cancelled.";
+                AddLog(message);
+                await _dialogService.ShowInfoAsync(message, "Export Customers");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to export customers to {Path}", path);
-                AddLog($"Failed to export customers to {path}: {ex.Message}");
+                var failureMessage = $"Failed to export customers to {path}: {ex.Message}";
+                AddLog(failureMessage);
+                await _dialogService.ShowInfoAsync(failureMessage, "Export Customers");
             }
         }
 
@@ -422,24 +480,39 @@ namespace InventoryManagementApp.ViewModels
         /// <returns>A <see cref="Task"/> representing the asynchronous backup operation.</returns>
         async Task BackupDatabaseAsync(CancellationToken cancellationToken)
         {
-            var initialDirectory = _rentalConfigService == null
-                ? null
-                : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
-            var path = _fileDialogService.SaveFile("SQLite Database|*.db", initialDirectory);
-            if (string.IsNullOrWhiteSpace(path)) return;
+            string? path = null;
+
             try
             {
+                var initialDirectory = _rentalConfigService == null
+                    ? null
+                    : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
+                path = _fileDialogService.SaveFile("SQLite Database|*.db", initialDirectory);
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    await CancelFileSelectionAsync("Database backup destination selection was cancelled.", "Database Backup");
+                    return;
+                }
+
                 await _databaseService.BackupDatabaseAsync(path, cancellationToken);
-                AddLog($"Successfully backed up database to {path}.");
+                var successMessage = $"Successfully backed up database to {path}.";
+                AddLog(successMessage);
+                await _dialogService.ShowInfoAsync(successMessage, "Database Backup");
             }
             catch (OperationCanceledException)
             {
-                AddLog("Database backup was cancelled.");
+                const string message = "Database backup was cancelled.";
+                AddLog(message);
+                await _dialogService.ShowInfoAsync(message, "Database Backup");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to backup database to {Path}", path);
-                AddLog($"Failed to backup database to {path}: {ex.Message}");
+                var failureMessage = string.IsNullOrWhiteSpace(path)
+                    ? $"Failed to start database backup: {ex.Message}"
+                    : $"Failed to backup database to {path}: {ex.Message}";
+                AddLog(failureMessage);
+                await _dialogService.ShowInfoAsync(failureMessage, "Database Backup");
             }
         }
     }

@@ -116,6 +116,7 @@
                               CanUserAddRows="False"
                               SelectionMode="Single"
                               Style="{StaticResource VirtualizedDataGridStyle}"
+                              RowHeight="44"
                               MouseDoubleClick="CommonItemsGrid_MouseDoubleClick"
                               PreviewMouseRightButtonDown="DashboardGrid_PreviewMouseRightButtonDown">
                         <DataGrid.Columns>
@@ -123,10 +124,10 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
-                                            <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                    Stretch="UniformToFill">
                                                 <Image.ToolTip>
-                                                    <Image Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                    <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                            MaxWidth="180" MaxHeight="180" Stretch="Uniform"/>
                                                 </Image.ToolTip>
                                             </Image>
@@ -223,9 +224,25 @@
                               CanUserAddRows="False"
                               SelectionMode="Single"
                               Style="{StaticResource VirtualizedDataGridStyle}"
+                              RowHeight="44"
                               MouseDoubleClick="CheckedOutItemsGrid_MouseDoubleClick"
                               PreviewMouseRightButtonDown="DashboardGrid_PreviewMouseRightButtonDown">
                         <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Image" Width="58">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
+                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                   Stretch="UniformToFill">
+                                                <Image.ToolTip>
+                                                    <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                           MaxWidth="180" MaxHeight="180" Stretch="Uniform"/>
+                                                </Image.ToolTip>
+                                            </Image>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="92"/>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
                             <DataGridTextColumn Header="Holder" Binding="{Binding CheckedOutBy}" Width="112"/>

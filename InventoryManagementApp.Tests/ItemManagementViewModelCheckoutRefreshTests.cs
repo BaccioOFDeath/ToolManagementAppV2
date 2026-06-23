@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
@@ -117,6 +118,68 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(99, checkedOutRow.ItemID);
             Assert.Equal("Checked out from storage", checkedOutRow.Name);
             Assert.True(searchRow.IsCheckedOut);
+        }
+
+        [Fact]
+        public async Task SearchCommand_RefreshesCheckedOutListWhenSearchTermIsActive()
+        {
+            var searchResult = new ItemModel
+            {
+                ItemID = 10,
+                ItemNumber = "T10",
+                Name = "Search match",
+                IsCheckedOut = true
+            };
+            var checkedOut = new ItemModel
+            {
+                ItemID = 10,
+                ItemNumber = "T10",
+                Name = "Checked out match",
+                IsCheckedOut = true,
+                CheckedOutBy = "admin",
+                CheckedOutTime = new DateTime(2026, 6, 21, 21, 52, 0)
+            };
+
+            var itemService = new Mock<IItemService>();
+            itemService
+                .Setup(s => s.SearchItemsAsync(
+                    "bmw m52",
+                    It.IsAny<ItemPage>(),
+                    SortField.Name,
+                    SortDirection.Ascending,
+                    false,
+                    It.IsAny<CancellationToken>()))
+                .Returns(ToAsyncEnumerable(new[] { searchResult }));
+            itemService
+                .Setup(s => s.GetCheckedOutItemsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<ItemModel> { checkedOut });
+
+            var vm = new ItemManagementViewModel(
+                itemService.Object,
+                Mock.Of<ICustomerService>(),
+                Mock.Of<IRentalService>(),
+                Mock.Of<IDialogService>(),
+                Mock.Of<ISettingsService>(),
+                NullLogger<ItemManagementViewModel>.Instance)
+            {
+                SearchTerm = "bmw m52"
+            };
+
+            await vm.SearchCommand.ExecuteAsync(null);
+
+            Assert.Single(vm.SearchResults);
+            var checkedOutRow = Assert.Single(vm.CheckedOutItems);
+            Assert.Equal("T10", checkedOutRow.ItemNumber);
+            Assert.Equal("admin", checkedOutRow.CheckedOutBy);
+        }
+
+        private static async IAsyncEnumerable<ItemModel> ToAsyncEnumerable(IEnumerable<ItemModel> items)
+        {
+            foreach (var item in items)
+            {
+                await Task.Yield();
+                yield return item;
+            }
         }
     }
 }

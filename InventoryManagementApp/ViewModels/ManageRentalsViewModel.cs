@@ -227,14 +227,15 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 _allRentals = await _rentalService.GetAllRentalsAsync();
-                await LoadPendingRequestsAsync();
+                await LoadPendingRequestsAsync(notifyOnFailure: true);
                 RefreshActiveRentals();
                 ApplyFilter(selectedRentalId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load rentals");
-                await _dialogService.ShowInfoAsync($"Failed to load rentals: {ex.Message}", "Error");
+                ClearRentalStateAfterLoadFailure();
+                await _dialogService.ShowInfoAsync($"Failed to load rentals: {ex.Message} Rental rows were cleared until reload succeeds.", "Error");
             }
             finally
             {
@@ -242,7 +243,19 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        async Task LoadPendingRequestsAsync()
+        void ClearRentalStateAfterLoadFailure()
+        {
+            _allRentals.Clear();
+            Rentals.Clear();
+            ActiveRentals.Clear();
+            SelectedRental = null;
+            OnPropertyChanged(nameof(SearchSummary));
+            OnPropertyChanged(nameof(CheckedOutSummary));
+            OnPropertyChanged(nameof(SelectedRequestHolderLine));
+            OnPropertyChanged(nameof(SelectedRequestNextAction));
+        }
+
+        async Task LoadPendingRequestsAsync(bool notifyOnFailure = false)
         {
             if (_reservationService == null)
             {
@@ -263,6 +276,9 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to load open reservations for rentals page");
                 PendingRequests.Clear();
+                SelectedRequest = null;
+                if (notifyOnFailure)
+                    await _dialogService.ShowInfoAsync($"Failed to load open requests: {ex.Message} The open request queue has been cleared until it can be refreshed.", "Open Requests");
             }
             finally
             {
@@ -333,6 +349,10 @@ namespace InventoryManagementApp.ViewModels
                 return;
 
             var returnedRental = SelectedRental;
+            var confirmed = await _dialogService.ShowConfirmAsync("Confirm Rental Return", BuildReturnConfirmationMessage(returnedRental));
+            if (!confirmed)
+                return;
+
             try
             {
                 IsLoading = true;
@@ -347,12 +367,27 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to check in rental {RentalID}", returnedRental.RentalID);
-                await _dialogService.ShowInfoAsync($"Failed to check in rental: {ex.Message}", "Error");
+                await RefreshRentalDeskAfterOperationFailureAsync(returnedRental.RentalID);
+                await _dialogService.ShowInfoAsync($"Failed to check in rental: {ex.Message} The rental desk has been refreshed so current rental actions match the latest saved state.", "Error");
             }
             finally
             {
                 IsLoading = false;
             }
+        }
+
+        static string BuildReturnConfirmationMessage(RentalModel rental)
+        {
+            var message = new StringBuilder();
+            message.AppendLine($"Return rental #{rental.RentalID}?");
+            message.AppendLine();
+            message.AppendLine($"Item: {ValueOrNotRecorded(rental.ItemNumber)}");
+            message.AppendLine($"Customer: {ValueOrNotRecorded(rental.CustomerName)}");
+            message.AppendLine($"Due back: {FormatDate(rental.DueDate)}");
+            message.AppendLine($"Return date: {DateTime.Today:yyyy-MM-dd}");
+            message.AppendLine();
+            message.AppendLine("Confirm only after the item and any documents have been received.");
+            return message.ToString();
         }
 
         async Task NotifyWaitingRequestsAsync(int itemId, string itemNumber)
@@ -378,11 +413,13 @@ namespace InventoryManagementApp.ViewModels
         {
             if (SelectedRental == null)
                 return;
+
+            var rentalToExtend = SelectedRental;
             try
             {
                 IsLoading = true;
-                var newDueDate = SelectedRental.DueDate.AddDays(7);
-                await _rentalService.ExtendRentalAsync(SelectedRental.RentalID, newDueDate);
+                var newDueDate = rentalToExtend.DueDate.AddDays(7);
+                await _rentalService.ExtendRentalAsync(rentalToExtend.RentalID, newDueDate);
                 await LoadRentalsAsync();
             }
             catch (UnauthorizedAccessException)
@@ -391,12 +428,28 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to extend rental {RentalID}", SelectedRental.RentalID);
-                await _dialogService.ShowInfoAsync($"Failed to extend rental: {ex.Message}", "Error");
+                _logger.LogError(ex, "Failed to extend rental {RentalID}", rentalToExtend.RentalID);
+                await RefreshRentalDeskAfterOperationFailureAsync(rentalToExtend.RentalID);
+                await _dialogService.ShowInfoAsync($"Failed to extend rental: {ex.Message} The rental desk has been refreshed so current rental actions match the latest saved state.", "Error");
             }
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        async Task RefreshRentalDeskAfterOperationFailureAsync(int rentalId)
+        {
+            try
+            {
+                _allRentals = await _rentalService.GetAllRentalsAsync();
+                await LoadPendingRequestsAsync();
+                RefreshActiveRentals();
+                ApplyFilter(rentalId);
+            }
+            catch (Exception refreshEx)
+            {
+                _logger.LogError(refreshEx, "Failed to refresh rentals after operation failure for rental {RentalID}", rentalId);
             }
         }
 
@@ -506,7 +559,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to place request for rental {RentalID}", rental.RentalID);
-                await _dialogService.ShowInfoAsync($"Failed to place request: {ex.Message}", "Error");
+                await LoadPendingRequestsAsync();
+                await _dialogService.ShowInfoAsync($"Failed to place request: {ex.Message} The open request queue has been refreshed in case the request was saved before the failure.", "Error");
             }
         }
 
@@ -561,7 +615,8 @@ namespace InventoryManagementApp.ViewModels
                 var updated = await _reservationService.ConfirmReservationAsync(requestId);
                 if (!updated)
                 {
-                    await _dialogService.ShowInfoAsync("The selected request could not be confirmed. It may have been removed or changed by another user.", "Confirm Request");
+                    await LoadPendingRequestsAsync();
+                    await _dialogService.ShowInfoAsync("The selected request could not be confirmed. It may have been removed or changed by another user. The open request queue has been refreshed.", "Confirm Request");
                     return;
                 }
 
@@ -571,7 +626,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to confirm request {ReservationID}", requestId);
-                await _dialogService.ShowInfoAsync($"Failed to confirm request: {ex.Message}", "Error");
+                await LoadPendingRequestsAsync();
+                await _dialogService.ShowInfoAsync($"Failed to confirm request: {ex.Message} The open request queue has been refreshed in case the request status changed before the failure.", "Error");
             }
             finally
             {
@@ -595,7 +651,8 @@ namespace InventoryManagementApp.ViewModels
                 var updated = await _reservationService.CancelReservationAsync(request.ReservationID);
                 if (!updated)
                 {
-                    await _dialogService.ShowInfoAsync("The selected request could not be cancelled. It may have been removed or changed by another user.", "Cancel Request");
+                    await LoadPendingRequestsAsync();
+                    await _dialogService.ShowInfoAsync("The selected request could not be cancelled. It may have been removed or changed by another user. The open request queue has been refreshed.", "Cancel Request");
                     return;
                 }
 
@@ -605,7 +662,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to cancel request {ReservationID}", request.ReservationID);
-                await _dialogService.ShowInfoAsync($"Failed to cancel request: {ex.Message}", "Error");
+                await LoadPendingRequestsAsync();
+                await _dialogService.ShowInfoAsync($"Failed to cancel request: {ex.Message} The open request queue has been refreshed in case the request status changed before the failure.", "Error");
             }
             finally
             {
@@ -889,8 +947,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to delete rental {RentalID}", rentalToDelete?.RentalID);
-                await _dialogService.ShowInfoAsync($"Failed to delete rental: {ex.Message}", "Error");
+                _logger.LogError(ex, "Failed to delete rental {RentalID}", rentalToDelete.RentalID);
+                await RefreshRentalDeskAfterOperationFailureAsync(rentalToDelete.RentalID);
+                await _dialogService.ShowInfoAsync($"Failed to delete rental: {ex.Message} The rental desk has been refreshed so current rental actions match the latest saved state.", "Error");
             }
             finally
             {

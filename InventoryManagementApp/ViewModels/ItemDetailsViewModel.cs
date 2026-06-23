@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Services.Printing;
 using InventoryManagementApp.Services.Reservations;
 
 namespace InventoryManagementApp.ViewModels
@@ -147,41 +148,114 @@ namespace InventoryManagementApp.ViewModels
 
         async Task ToggleCheckOutAsync()
         {
-            var result = await _itemService.ToggleItemCheckOutStatusAsync(ItemModel.ItemID).ConfigureAwait(false);
-            if (!result)
-                return;
-
-            var checkedOut = !ItemModel.IsCheckedOut;
-            ItemModel.IsCheckedOut = checkedOut;
-            ItemModel.QuantityOnHand += checkedOut ? -1 : 1;
-
-            var refreshed = await _itemService.GetItemByIDAsync(ItemModel.ItemID).ConfigureAwait(false);
-            if (refreshed != null)
+            try
             {
-                CopyItem(ItemModel, refreshed);
-            }
+                var result = await _itemService.ToggleItemCheckOutStatusAsync(ItemModel.ItemID).ConfigureAwait(false);
+                if (!result)
+                {
+                    await RefreshItemStateAsync().ConfigureAwait(false);
+                    await _dialogService.ShowInfoAsync("Check-out status could not be updated. The item may have been changed by another user; the details have been refreshed.", "Check-out Status").ConfigureAwait(false);
+                    return;
+                }
 
-            RefreshState();
+                var checkedOut = !ItemModel.IsCheckedOut;
+                ItemModel.IsCheckedOut = checkedOut;
+                ItemModel.QuantityOnHand += checkedOut ? -1 : 1;
+
+                await RefreshItemStateAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await RefreshItemStateAsync().ConfigureAwait(false);
+                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message} The item details have been refreshed in case the check-out status changed before the failure.", "Error").ConfigureAwait(false);
+            }
         }
 
         async Task RentOutAsync()
         {
-            var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
-            var result = _dialogService.ShowRentItemDialog(ItemModel, customers);
-            if (result == null)
+            try
+            {
+                var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
+                var result = _dialogService.ShowRentItemDialog(ItemModel, customers);
+                if (result == null)
+                    return;
+
+                var (customer, dueDate) = result.Value;
+                await _rentalService.RentItemAsync(ItemModel.ItemID, customer.CustomerID, DateTime.Today, dueDate).ConfigureAwait(false);
+                await PromptToPrintRentalHandoffAsync(customer, dueDate).ConfigureAwait(false);
+
+                await RefreshItemStateAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await RefreshItemStateAsync().ConfigureAwait(false);
+                await _dialogService.ShowInfoAsync($"Failed to rent item: {ex.Message} The item details have been refreshed in case the rental was saved before the failure.", "Error").ConfigureAwait(false);
+            }
+        }
+
+        async Task PromptToPrintRentalHandoffAsync(CustomerModel customer, DateTime dueDate)
+        {
+            var print = await _dialogService.ShowConfirmAsync(
+                "Print Rental Handoff",
+                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection and the customer rental copy now?").ConfigureAwait(false);
+            if (!print)
                 return;
 
-            var (customer, dueDate) = result.Value;
-            await _rentalService.RentItemAsync(ItemModel.ItemID, customer.CustomerID, DateTime.Today, dueDate).ConfigureAwait(false);
+            var rental = await FindNewActiveRentalAsync(customer, dueDate).ConfigureAwait(false)
+                ?? BuildRentalHandoffFallback(customer, dueDate);
+            var printService = new RentalPrintingService("Equipment Rentals", "", "");
+            var rentalTitle = rental.RentalID > 0 ? rental.RentalID.ToString() : ItemModel.ItemNumber;
 
-            var refreshed = await _itemService.GetItemByIDAsync(ItemModel.ItemID).ConfigureAwait(false);
-            if (refreshed != null)
-            {
-                CopyItem(ItemModel, refreshed);
-            }
-
-            RefreshState();
+            _dialogService.ShowPrintPreview(
+                printService.GeneratePickingSlip(rental),
+                $"Picking Slip - Rental {rentalTitle}",
+                "Shelf picking slip");
+            _dialogService.ShowPrintPreview(
+                printService.GenerateInvoice(rental, dailyRate: 25.00m, lateFee: 0),
+                $"Invoice - Rental {rentalTitle}",
+                "Customer rental copy");
         }
+
+        async Task<RentalModel?> FindNewActiveRentalAsync(CustomerModel customer, DateTime dueDate)
+        {
+            try
+            {
+                var activeRentals = await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false);
+                return activeRentals
+                    .Where(r => r.ItemID == ItemModel.ItemID
+                        && r.CustomerID == customer.CustomerID
+                        && r.DueDate.Date == dueDate.Date
+                        && string.Equals(r.Status, "Rented", StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(r => r.RentalID)
+                    .FirstOrDefault();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        RentalModel BuildRentalHandoffFallback(CustomerModel customer, DateTime dueDate)
+        {
+            return new RentalModel
+            {
+                ItemID = ItemModel.ItemID,
+                CustomerID = customer.CustomerID,
+                RentalDate = DateTime.Today,
+                DueDate = dueDate,
+                Status = "Rented",
+                ItemNumber = ItemModel.ItemNumber,
+                ItemLocation = ItemModel.Location,
+                CustomerName = customer.Company,
+                CustomerContact = customer.Contact,
+                CustomerEmail = customer.Email,
+                CustomerPhone = string.IsNullOrWhiteSpace(customer.Phone) ? customer.Mobile : customer.Phone,
+                CustomerMobile = customer.Mobile,
+                CustomerAddress = customer.Address
+            };
+        }
+
+        static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
 
         async Task OpenRentalHistoryAsync()
         {
@@ -334,6 +408,17 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(RequestStatusText));
             OnPropertyChanged(nameof(ConditionSummary));
             OnPropertyChanged(nameof(NextActionText));
+        }
+
+        async Task RefreshItemStateAsync()
+        {
+            var refreshed = await _itemService.GetItemByIDAsync(ItemModel.ItemID).ConfigureAwait(false);
+            if (refreshed != null)
+            {
+                CopyItem(ItemModel, refreshed);
+            }
+
+            RefreshState();
         }
 
         static string FormatElapsed(TimeSpan elapsed)

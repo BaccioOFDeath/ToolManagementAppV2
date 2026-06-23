@@ -1,0 +1,43 @@
+using System;
+using System.IO;
+using Xunit;
+
+namespace InventoryManagementApp.Tests
+{
+    public class KitManagementWorkflowContractTests
+    {
+        [Fact]
+        public void KitLoadFailuresClearStaleRowsSelectionAndItems()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
+
+            Assert.Contains("ClearKitStateAfterLoadFailure();\n                await _dialogService.ShowErrorAsync(\"Error loading kits\", $\"{ex.Message} Kit rows were cleared until reload succeeds.\");", source, StringComparison.Ordinal);
+            Assert.Contains("private void ClearKitStateAfterLoadFailure()", source, StringComparison.Ordinal);
+            Assert.Contains("Kits.Clear();\n            FilteredKits.Clear();\n            SelectedKit = null;\n            SelectedKitItem = null;\n            KitItems.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("RefreshKitItemSummaries();\n            OnPropertyChanged(nameof(KitResultsSummary));\n            OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));\n            PrintKitListCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
+            Assert.Contains("private bool CanEditOrDelete() => SelectedKit != null;", source, StringComparison.Ordinal);
+            Assert.Contains("private bool CanEditOrRemoveKitItem() => SelectedKitItem != null;", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("catch (Exception ex)\n            {\n                await _dialogService.ShowErrorAsync(\"Error loading kits\", ex.Message);\n            }", source, StringComparison.Ordinal);
+        }
+
+        private static string ReadRepoFile(params string[] parts)
+        {
+            var directory = AppContext.BaseDirectory;
+
+            while (!string.IsNullOrEmpty(directory))
+            {
+                var candidate = Path.Combine(directory, Path.Combine(parts));
+                if (File.Exists(candidate))
+                    return File.ReadAllText(candidate);
+
+                var parent = Directory.GetParent(directory);
+                if (parent is null)
+                    break;
+
+                directory = parent.FullName;
+            }
+
+            throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
+        }
+    }
+}

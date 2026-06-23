@@ -190,9 +190,40 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync("Error loading reservations", ex.Message);
+                Reservations.Clear();
+                FilteredReservations.Clear();
+                SelectedReservation = null;
+                OnPropertyChanged(nameof(ReservationResultsSummary));
+                await _dialogService.ShowErrorAsync("Error loading reservations", $"{ex.Message} The reservation list has been cleared until reload succeeds.");
             }
         }
+
+        private async Task<bool> RefreshReservationsAfterOperationFailureAsync(int? preferredReservationId = null)
+        {
+            try
+            {
+                var reservations = await _reservationService.GetAllReservationsAsync();
+                Reservations.Clear();
+                foreach (var reservation in reservations)
+                {
+                    Reservations.Add(reservation);
+                }
+                ApplyFilter(preferredReservationId);
+                return true;
+            }
+            catch
+            {
+                Reservations.Clear();
+                FilteredReservations.Clear();
+                SelectedReservation = null;
+                OnPropertyChanged(nameof(ReservationResultsSummary));
+                return false;
+            }
+        }
+
+        private static string AppendReservationRefreshMessage(string message, bool refreshed) => refreshed
+            ? $"{message} The reservation list has been refreshed in case saved state changed before the failure."
+            : $"{message} The reservation list could not be refreshed, so visible reservation rows were cleared until reload succeeds.";
 
         private async Task AddReservationAsync()
         {
@@ -233,7 +264,8 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error creating reservation", ex.Message);
+                    var refreshed = await RefreshReservationsAfterOperationFailureAsync(newReservation.ReservationID > 0 ? newReservation.ReservationID : null);
+                    await _dialogService.ShowErrorAsync("Error creating reservation", AppendReservationRefreshMessage(ex.Message, refreshed));
                 }
             }
         }
@@ -258,7 +290,8 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error updating reservation", ex.Message);
+                    var refreshed = await RefreshReservationsAfterOperationFailureAsync(clone.ReservationID);
+                    await _dialogService.ShowErrorAsync("Error updating reservation", AppendReservationRefreshMessage(ex.Message, refreshed));
                 }
             }
         }
@@ -283,7 +316,8 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error deleting reservation", ex.Message);
+                    var refreshed = await RefreshReservationsAfterOperationFailureAsync(reservation.ReservationID);
+                    await _dialogService.ShowErrorAsync("Error deleting reservation", AppendReservationRefreshMessage(ex.Message, refreshed));
                 }
             }
         }
@@ -292,9 +326,9 @@ namespace InventoryManagementApp.ViewModels
         {
             if (SelectedReservation == null) return;
 
+            var reservationId = SelectedReservation.ReservationID;
             try
             {
-                var reservationId = SelectedReservation.ReservationID;
                 await _reservationService.ConfirmReservationAsync(reservationId);
                 SelectedReservation.Status = "Confirmed";
                 ApplyFilter(reservationId);
@@ -302,7 +336,8 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync("Error confirming reservation", ex.Message);
+                var refreshed = await RefreshReservationsAfterOperationFailureAsync(reservationId);
+                await _dialogService.ShowErrorAsync("Error confirming reservation", AppendReservationRefreshMessage(ex.Message, refreshed));
             }
         }
 
@@ -326,7 +361,8 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error cancelling reservation", ex.Message);
+                    var refreshed = await RefreshReservationsAfterOperationFailureAsync(reservation.ReservationID);
+                    await _dialogService.ShowErrorAsync("Error cancelling reservation", AppendReservationRefreshMessage(ex.Message, refreshed));
                 }
             }
         }
@@ -341,9 +377,9 @@ namespace InventoryManagementApp.ViewModels
 
             if (!string.IsNullOrWhiteSpace(rentalIdText) && int.TryParse(rentalIdText, out var rentalId))
             {
+                var reservationId = SelectedReservation.ReservationID;
                 try
                 {
-                    var reservationId = SelectedReservation.ReservationID;
                     await _reservationService.FulfillReservationAsync(reservationId, rentalId);
                     SelectedReservation.Status = "Fulfilled";
                     SelectedReservation.RentalID = rentalId;
@@ -352,7 +388,8 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error fulfilling reservation", ex.Message);
+                    var refreshed = await RefreshReservationsAfterOperationFailureAsync(reservationId);
+                    await _dialogService.ShowErrorAsync("Error fulfilling reservation", AppendReservationRefreshMessage(ex.Message, refreshed));
                 }
             }
         }

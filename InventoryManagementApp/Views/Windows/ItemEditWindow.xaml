@@ -150,7 +150,7 @@
 
                                 <Border Width="170" Height="150" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,0,10" HorizontalAlignment="Left">
                                     <Image Stretch="Uniform"
-                                           Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                                           Source="{Binding ItemModel, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                                 </Border>
 
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,12">

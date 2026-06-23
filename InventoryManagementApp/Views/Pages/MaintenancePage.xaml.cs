@@ -31,11 +31,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void MaintenanceRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is DataGridRow row && !row.IsSelected)
-            {
-                row.IsSelected = true;
-                e.Handled = true;
-            }
+            GridContextMenuSelection.SelectRow(sender, e);
         }
     }
 }

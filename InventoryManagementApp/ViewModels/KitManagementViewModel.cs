@@ -188,8 +188,22 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync("Error loading kits", ex.Message);
+                ClearKitStateAfterLoadFailure();
+                await _dialogService.ShowErrorAsync("Error loading kits", $"{ex.Message} Kit rows were cleared until reload succeeds.");
             }
+        }
+
+        private void ClearKitStateAfterLoadFailure()
+        {
+            Kits.Clear();
+            FilteredKits.Clear();
+            SelectedKit = null;
+            SelectedKitItem = null;
+            KitItems.Clear();
+            RefreshKitItemSummaries();
+            OnPropertyChanged(nameof(KitResultsSummary));
+            OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));
+            PrintKitListCommand.NotifyCanExecuteChanged();
         }
 
         private async Task LoadKitItemsAsync(int kitID)

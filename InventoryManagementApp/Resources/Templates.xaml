@@ -61,7 +61,7 @@
                                Margin="4"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
-                               Source="{Binding ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                               Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                     </Border>
                     <Grid Grid.Row="1" Margin="0,5,0,0">
                         <Grid.RowDefinitions>

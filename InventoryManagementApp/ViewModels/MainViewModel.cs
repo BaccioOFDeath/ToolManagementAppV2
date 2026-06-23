@@ -563,7 +563,8 @@ namespace InventoryManagementApp.ViewModels
                         _activityLogService,
                         OpenManageItemsCommand,
                         OpenRentalsCommand,
-                        OpenImportExportCommand);
+                        OpenImportExportCommand,
+                        dialogService: _dialogService);
                     var page = new DashboardPage { DataContext = vm, Title = "Dashboard" };
                     CurrentPage = page;
                     _pageLoadCts = new CancellationTokenSource();
@@ -695,9 +696,9 @@ namespace InventoryManagementApp.ViewModels
             {
                 try
                 {
+                    await Reports.RunSummaryReportAsync();
                     var page = new ReportsPage { DataContext = Reports, Title = "Reports" };
                     CurrentPage = page;
-                    await Task.CompletedTask;
                 }
                 catch (Exception ex)
                 {

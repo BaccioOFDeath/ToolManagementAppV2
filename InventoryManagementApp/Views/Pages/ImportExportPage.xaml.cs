@@ -25,18 +25,15 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ImportExportLogRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (sender is DataGridRow row && !row.IsSelected)
-            {
-                row.IsSelected = true;
-                e.Handled = true;
-            }
+            GridContextMenuSelection.SelectRow(sender, e);
         }
 
         private void OpenSelectedLog_Click(object sender, RoutedEventArgs e)
         {
             UiActionGuard.Run(this, "Import / Export", () =>
             {
-                if (ImportExportLogGrid.SelectedItem is not string log || string.IsNullOrWhiteSpace(log))
+                var log = GetSelectedLogForAction();
+                if (string.IsNullOrWhiteSpace(log))
                 {
                     WpfMessageBox.Show("Select an import/export log row first.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -57,7 +54,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Import / Export", () =>
             {
-                if (ImportExportLogGrid.SelectedItem is not string log || string.IsNullOrWhiteSpace(log))
+                var log = GetSelectedLogForAction();
+                if (string.IsNullOrWhiteSpace(log))
                 {
                     WpfMessageBox.Show("Select an import/export log row first.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -67,10 +65,28 @@ namespace InventoryManagementApp.Views.Pages
             });
         }
 
+        private string GetSelectedLogForAction()
+        {
+            if (ImportExportLogGrid.SelectedItem is string gridLog && !string.IsNullOrWhiteSpace(gridLog))
+                return gridLog;
+
+            return DataContext is ImportExportViewModel vm && !string.IsNullOrWhiteSpace(vm.SelectedImportExportLog)
+                ? vm.SelectedImportExportLog
+                : string.Empty;
+        }
+
         private void PrintLogs_Click(object sender, RoutedEventArgs e)
         {
             UiActionGuard.Run(this, "Import / Export", () =>
             {
+                var selectedLog = GetSelectedLogForAction();
+                if (!string.IsNullOrWhiteSpace(selectedLog))
+                {
+                    var selectedDocument = BuildPrintDocument(new[] { selectedLog }, "Selected import/export operation result.", "Import / Export Selected Result");
+                    new PrintPreviewWindow().ShowPreview(selectedDocument, "Import / Export Selected Result", null);
+                    return;
+                }
+
                 if (DataContext is not ImportExportViewModel vm || vm.ImportExportLogs.Count == 0)
                 {
                     WpfMessageBox.Show("There are no import/export log rows to print.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -82,7 +98,10 @@ namespace InventoryManagementApp.Views.Pages
             });
         }
 
-        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<string> logs, string summary)
+        private static FlowDocument BuildPrintDocument(
+            IReadOnlyCollection<string> logs,
+            string summary,
+            string title = "Import / Export Operation Log")
         {
             var document = new FlowDocument
             {
@@ -90,7 +109,7 @@ namespace InventoryManagementApp.Views.Pages
                 FontSize = 11
             };
 
-            document.Blocks.Add(new Paragraph(new Run("Import / Export Operation Log"))
+            document.Blocks.Add(new Paragraph(new Run(title))
             {
                 FontSize = 16,
                 FontWeight = FontWeights.SemiBold,

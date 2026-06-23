@@ -15,6 +15,7 @@ using InventoryManagementApp.Models;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Services;
+using InventoryManagementApp.Services.Printing;
 using InventoryManagementApp.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -279,6 +280,12 @@ namespace InventoryManagementApp.ViewModels
                 LoadCategories(Items);
                 await RefreshCheckedOutItemsAsync(CancellationToken.None);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load item directory");
+                ClearItemStateAfterLoadFailure();
+                await _dialogService.ShowInfoAsync($"Failed to load {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {ex.Message} Visible item rows were cleared until reload succeeds.", "Error");
+            }
             finally
             {
                 _suppressItemsChanged = false;
@@ -322,6 +329,13 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogDebug(ex, "Item search cancelled");
                 return;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to search item directory");
+                ClearItemStateAfterLoadFailure();
+                await _dialogService.ShowInfoAsync($"Failed to search {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {ex.Message} Visible item rows were cleared until reload succeeds.", "Error");
+                return;
+            }
 
             if (!string.IsNullOrWhiteSpace(SelectedCategory) && SelectedCategory != "All")
             {
@@ -338,6 +352,7 @@ namespace InventoryManagementApp.ViewModels
             else
             {
                 SearchResults.ReplaceRange(list);
+                await RefreshCheckedOutItemsAsync(cancellationToken);
             }
         }
 
@@ -449,6 +464,7 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to open rental history for {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
+                await _dialogService.ShowInfoAsync($"Failed to load rental history: {ex.Message}", "Error");
             }
         }
 
@@ -503,6 +519,7 @@ namespace InventoryManagementApp.ViewModels
                         customer.CustomerID,
                         DateTime.Today,
                         dueDate);
+                    await PromptToPrintRentalHandoffAsync(item, customer, dueDate).ConfigureAwait(false);
                     await ReloadItemsAfterRentalAsync(item.ItemID, cancellationToken);
                 }
             }
@@ -517,7 +534,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
-                await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
+                await RefreshItemsAfterWorkflowFailureAsync(item.ItemID, cancellationToken);
+                await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message} The item list has been refreshed in case the rental was saved before the failure.", "Error");
             }
         }
 
@@ -532,6 +550,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     var (customer, dueDate) = result.Value;
                     await _rentalService.RentItemAsync(item.ItemID, customer.CustomerID, DateTime.Today, dueDate);
+                    await PromptToPrintRentalHandoffAsync(item, customer, dueDate).ConfigureAwait(false);
                     await ReloadItemsAfterRentalAsync(item.ItemID, cancellationToken);
                 }
             }
@@ -545,16 +564,143 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to rent {ItemLabelSingular} {ItemID}", LabelProvider.Instance.ItemLabelSingular, item.ItemID);
-                await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message}", "Error");
+                await RefreshItemsAfterWorkflowFailureAsync(item.ItemID, cancellationToken);
+                await _dialogService.ShowInfoAsync($"Failed to rent {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {ex.Message} The item list has been refreshed in case the rental was saved before the failure.", "Error");
             }
         }
 
-        private async Task ReloadItemsAfterRentalAsync(int itemId, CancellationToken cancellationToken)
+        private Task ReloadItemsAfterRentalAsync(int itemId, CancellationToken cancellationToken)
+        {
+            return ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);
+        }
+
+        private async Task PromptToPrintRentalHandoffAsync(ItemModel item, CustomerModel customer, DateTime dueDate)
+        {
+            var print = await _dialogService.ShowConfirmAsync(
+                "Print Rental Handoff",
+                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection and the customer rental copy now?").ConfigureAwait(false);
+            if (!print)
+                return;
+
+            var rental = await FindNewActiveRentalAsync(item, customer, dueDate).ConfigureAwait(false)
+                ?? BuildRentalHandoffFallback(item, customer, dueDate);
+            var printService = new RentalPrintingService("Equipment Rentals", "", "");
+            var rentalTitle = rental.RentalID > 0 ? rental.RentalID.ToString() : item.ItemNumber;
+
+            _dialogService.ShowPrintPreview(
+                printService.GeneratePickingSlip(rental),
+                $"Picking Slip - Rental {rentalTitle}",
+                "Shelf picking slip");
+            _dialogService.ShowPrintPreview(
+                printService.GenerateInvoice(rental, dailyRate: 25.00m, lateFee: 0),
+                $"Invoice - Rental {rentalTitle}",
+                "Customer rental copy");
+        }
+
+        private async Task<RentalModel?> FindNewActiveRentalAsync(ItemModel item, CustomerModel customer, DateTime dueDate)
+        {
+            try
+            {
+                var activeRentals = await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false);
+                return activeRentals
+                    .Where(r => r.ItemID == item.ItemID
+                        && r.CustomerID == customer.CustomerID
+                        && r.DueDate.Date == dueDate.Date
+                        && string.Equals(r.Status, "Rented", StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(r => r.RentalID)
+                    .FirstOrDefault();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static RentalModel BuildRentalHandoffFallback(ItemModel item, CustomerModel customer, DateTime dueDate)
+        {
+            return new RentalModel
+            {
+                ItemID = item.ItemID,
+                CustomerID = customer.CustomerID,
+                RentalDate = DateTime.Today,
+                DueDate = dueDate,
+                Status = "Rented",
+                ItemNumber = item.ItemNumber,
+                ItemLocation = item.Location,
+                CustomerName = customer.Company,
+                CustomerContact = customer.Contact,
+                CustomerEmail = customer.Email,
+                CustomerPhone = string.IsNullOrWhiteSpace(customer.Phone) ? customer.Mobile : customer.Phone,
+                CustomerMobile = customer.Mobile,
+                CustomerAddress = customer.Address
+            };
+        }
+
+        private static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
+
+        private Task ReloadItemsAfterCheckoutAsync(ItemModel item, CancellationToken cancellationToken)
+        {
+            return ReloadItemAfterCheckoutAsync(item, cancellationToken);
+        }
+
+        private async Task RefreshItemsAfterWorkflowFailureAsync(int itemId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await ReloadItemsAfterItemWorkflowAsync(itemId, cancellationToken);
+            }
+            catch (Exception refreshEx)
+            {
+                _logger.LogError(refreshEx, "Failed to refresh items after workflow failure for item {ItemID}", itemId);
+            }
+        }
+
+        private async Task ReloadItemsAfterItemWorkflowAsync(int itemId, CancellationToken cancellationToken)
         {
             var previousSelection = SelectedItem;
 
             await LoadItemsAsync(new ItemPage(1, PageSize));
             await FilterItemsAsync();
+
+            SelectedItem = SearchResults.FirstOrDefault(t => t.ItemID == itemId)
+                ?? Items.FirstOrDefault(t => t.ItemID == itemId)
+                ?? CheckedOutItems.FirstOrDefault(t => t.ItemID == itemId)
+                ?? previousSelection;
+        }
+
+        private async Task ReloadItemAfterCheckoutAsync(ItemModel item, CancellationToken cancellationToken)
+        {
+            var itemId = item.ItemID;
+            var previousSelection = SelectedItem;
+            var refreshed = await _itemService.GetItemByIDAsync(itemId, cancellationToken).ConfigureAwait(false);
+
+            if (refreshed != null)
+            {
+                var existingRows = new[] { item }
+                    .Concat(Items)
+                    .Concat(SearchResults)
+                    .Concat(CheckedOutItems)
+                    .Where(t => t.ItemID == itemId)
+                    .Distinct()
+                    .ToList();
+
+                if (existingRows.Count == 0)
+                {
+                    SearchResults.Add(refreshed);
+                }
+                else
+                {
+                    foreach (var row in existingRows)
+                        ApplyItemState(row, refreshed);
+                }
+            }
+            else
+            {
+                await LoadItemsAsync(new ItemPage(1, PageSize));
+                await FilterItemsAsync();
+            }
+
+            await RefreshCheckedOutItemsAsync(cancellationToken);
 
             SelectedItem = SearchResults.FirstOrDefault(t => t.ItemID == itemId)
                 ?? Items.FirstOrDefault(t => t.ItemID == itemId)
@@ -568,19 +714,14 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
-                if (!result) return;
-
-                var refreshed = await _itemService.GetItemByIDAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
-                if (refreshed == null)
+                if (!result)
                 {
-                    _logger.LogWarning("Item {ItemID} was toggled but could not be refreshed from storage", item.ItemID);
-                    await LoadItemsAsync(new ItemPage(1, PageSize));
-                    await FilterItemsAsync();
+                    await ReloadItemsAfterCheckoutAsync(item, cancellationToken);
+                    await _dialogService.ShowInfoAsync("Check-out status could not be updated. The item may have been changed by another user; the list has been refreshed.", "Check-out Status");
                     return;
                 }
 
-                ApplyItemState(item, refreshed);
-                await RefreshCheckedOutItemsAsync(cancellationToken);
+                await ReloadItemsAfterCheckoutAsync(item, cancellationToken);
             }
             catch (OperationCanceledException)
             {
@@ -592,7 +733,8 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to toggle check out status for item {ItemID}", item.ItemID);
-                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message}", "Error");
+                await RefreshItemsAfterWorkflowFailureAsync(item.ItemID, cancellationToken);
+                await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message} The item list has been refreshed in case the check-out status changed before the failure.", "Error");
             }
         }
 
@@ -657,6 +799,27 @@ namespace InventoryManagementApp.ViewModels
             target.MissingComponentsNotes = source.MissingComponentsNotes;
             target.IssuesNotes = source.IssuesNotes;
             target.CheckoutCount = source.CheckoutCount;
+        }
+
+        private void ClearItemStateAfterLoadFailure()
+        {
+            _suppressItemsChanged = true;
+            try
+            {
+                Items.Clear();
+                SearchResults.Clear();
+                CheckedOutItems.Clear();
+                Categories.ReplaceRange(new[] { "All" });
+                _selectedCategory = "All";
+                OnPropertyChanged(nameof(SelectedCategory));
+                SelectedItem = null;
+                OnPropertyChanged(nameof(SearchResultsSummary));
+                OnPropertyChanged(nameof(CheckedOutSummary));
+            }
+            finally
+            {
+                _suppressItemsChanged = false;
+            }
         }
 
         void LoadCategories(IEnumerable<ItemModel> items, bool suppressSearch = false)

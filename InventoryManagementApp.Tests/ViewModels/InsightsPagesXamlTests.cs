@@ -76,6 +76,116 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ActivityLogsRightClick_UsesSharedGuardedGridSelection()
+        {
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+            var handler = ExtractMethodBody(pageCode, "private void ActivityGridRow_PreviewMouseRightButtonDown", "private async void RefreshLogs_Click");
+
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", handler, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (sender is DataGridRow row", handler, StringComparison.Ordinal);
+            Assert.DoesNotContain("row.IsSelected = true;", handler, StringComparison.Ordinal);
+            Assert.DoesNotContain("e.Handled = true;", handler, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsLoadFailure_ClearsRowsFiltersSelectionAndKeepsFailureStatus()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
+
+            Assert.Contains("ClearActivityLogRowsAfterLoadFailure(\"Activity logs could not be loaded. Activity rows were cleared until refresh succeeds.\");", source, StringComparison.Ordinal);
+            Assert.Contains("private void ClearActivityLogRowsAfterLoadFailure(string message)", source, StringComparison.Ordinal);
+            Assert.Contains("Logs.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("FilteredLogs.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedLog = null;", source, StringComparison.Ordinal);
+            Assert.Contains("RebuildFilterLists();", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(TotalLogCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(FilteredLogCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ActivitySummary));", source, StringComparison.Ordinal);
+            Assert.Contains("StatusMessage = message;", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("StatusMessage = \"Activity logs could not be loaded.\";", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsSelectedRowActions_UseGridOrViewModelSelectedLog()
+        {
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+
+            Assert.Contains("private ActivityLog? GetSelectedActivityLogForAction()", pageCode, StringComparison.Ordinal);
+            Assert.Contains("if (ActivityGrid.SelectedItem is ActivityLog gridLog)", pageCode, StringComparison.Ordinal);
+            Assert.Contains("return DataContext is ActivityLogsViewModel vm", pageCode, StringComparison.Ordinal);
+            Assert.Contains("? vm.SelectedLog", pageCode, StringComparison.Ordinal);
+            Assert.Contains("var log = GetSelectedActivityLogForAction();", pageCode, StringComparison.Ordinal);
+            Assert.Contains("switch (ActivityLogsViewModel.BuildDestinationKey(log.Action))", pageCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("ActivityGrid.SelectedItem is not ActivityLog log", pageCode, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ReportsGenerationFailure_ClearsRowsSelectionAndKeepsFailureStatus()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
+
+            Assert.Contains("catch (Exception ex)", source, StringComparison.Ordinal);
+            Assert.Contains("ReportLines.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedReportLine = null;", source, StringComparison.Ordinal);
+            Assert.Contains("ReportTitle = SelectedReport;", source, StringComparison.Ordinal);
+            Assert.Contains("ReportSubtitle = \"The report could not be generated.\";", source, StringComparison.Ordinal);
+            Assert.Contains("ReportSummary = ex.Message;", source, StringComparison.Ordinal);
+            Assert.Contains("ReportStatus = \"Report failed.\";", source, StringComparison.Ordinal);
+            Assert.Contains("LastRunAt = DateTime.Now;", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReportLineCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReportOperatorPath));", source, StringComparison.Ordinal);
+            Assert.Contains("ClearReportCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("catch (Exception ex)\n            {\n                LoadReport(null);", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ReportsSelectionChange_ClearsStaleRowsSelectionAndRunStateBeforeNextRun()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
+
+            Assert.Contains("ClearReportOutputForSelection(value);", source, StringComparison.Ordinal);
+            Assert.Contains("private void ClearReportOutputForSelection(string reportName)", source, StringComparison.Ordinal);
+            Assert.Contains("ReportLines.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedReportLine = null;", source, StringComparison.Ordinal);
+            Assert.Contains("ReportTitle = string.IsNullOrWhiteSpace(reportName) ? \"Reports\" : reportName;", source, StringComparison.Ordinal);
+            Assert.Contains("ReportSummary = string.IsNullOrWhiteSpace(reportName)", source, StringComparison.Ordinal);
+            Assert.Contains("? \"No report has been run yet.\"", source, StringComparison.Ordinal);
+            Assert.Contains(": $\"Run {reportName} to refresh report rows.\";", source, StringComparison.Ordinal);
+            Assert.Contains("LastRunAt = null;", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReportLineCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReportOperatorPath));", source, StringComparison.Ordinal);
+            Assert.Contains("ClearReportCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ReportsPrintAction_RequiresCompletedFreshReportOutput()
+        {
+            var viewModel = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
+
+            Assert.Contains("public bool CanPrintCurrentReport => LastRunAt.HasValue && ReportLines.Count > 0 && !string.Equals(ReportStatus, \"Report failed.\", StringComparison.Ordinal);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CanPrintCurrentReport));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is not ReportsViewModel vm || !vm.CanPrintCurrentReport)", pageCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (DataContext is not ReportsViewModel vm || vm.ReportLines.Count == 0)", pageCode, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ReportsSelectedRowActions_RequireActualSelectedReportLine()
+        {
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
+
+            Assert.Contains("private ReportLine? GetSelectedReportLineForAction()", pageCode, StringComparison.Ordinal);
+            Assert.Contains("if (ReportGrid.SelectedItem is ReportLine gridLine)", pageCode, StringComparison.Ordinal);
+            Assert.Contains("return DataContext is ReportsViewModel vm", pageCode, StringComparison.Ordinal);
+            Assert.Contains("? vm.SelectedReportLine", pageCode, StringComparison.Ordinal);
+            Assert.Contains("var line = GetSelectedReportLineForAction();", pageCode, StringComparison.Ordinal);
+            Assert.Contains("if (line == null || string.IsNullOrWhiteSpace(line.DestinationKey))", pageCode, StringComparison.Ordinal);
+            Assert.Contains("switch (line.DestinationKey)", pageCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("key = vm.SelectedLineDestinationKey;", pageCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("var key = line?.DestinationKey;", pageCode, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void InsightPrintActions_RouteThroughSharedPrintPreview()
         {
             var reportsCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
@@ -88,9 +198,18 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("\"Activity Logs\"", activityCode, StringComparison.Ordinal);
             Assert.Contains("Review the filtered audit trail, destination routing, and operator handoff before printing.", activityCode, StringComparison.Ordinal);
             Assert.DoesNotContain("WpfPrintDialog", reportsCode, StringComparison.Ordinal);
-            Assert.DoesNotContain("WpfPrintDialog", activityCode, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", reportsCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("WpfPrintDialog", activityCode, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", activityCode, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ReportsNavigation_RunsSummaryReportBeforeShowingPage()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "MainViewModel.cs");
+
+            Assert.Contains("await Reports.RunSummaryReportAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("var page = new ReportsPage { DataContext = Reports, Title = \"Reports\" };", source, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)
@@ -103,6 +222,17 @@ namespace InventoryManagementApp.Tests.ViewModels
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
             return File.ReadAllText(path);
+        }
+
+        static string ExtractMethodBody(string source, string methodStart, string nextMethodStart)
+        {
+            var start = source.IndexOf(methodStart, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Expected to find method starting with {methodStart}");
+
+            var end = source.IndexOf(nextMethodStart, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Expected to find next method starting with {nextMethodStart}");
+
+            return source.Substring(start, end - start);
         }
     }
 }

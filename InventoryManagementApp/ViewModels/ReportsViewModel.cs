@@ -30,6 +30,7 @@ namespace InventoryManagementApp.ViewModels
                     ReportStatus = string.IsNullOrWhiteSpace(value)
                         ? "Select a report to begin."
                         : $"Ready to run {value}.";
+                    ClearReportOutputForSelection(value);
                     RunReportCommand.NotifyCanExecuteChanged();
                 }
             }
@@ -97,12 +98,16 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _lastRunAt, value))
+                {
                     OnPropertyChanged(nameof(LastRunText));
+                    OnPropertyChanged(nameof(CanPrintCurrentReport));
+                }
             }
         }
 
         public string LastRunText => LastRunAt.HasValue ? LastRunAt.Value.ToString("g") : "Not run";
         public int ReportLineCount => ReportLines.Count;
+        public bool CanPrintCurrentReport => LastRunAt.HasValue && ReportLines.Count > 0 && !string.Equals(ReportStatus, "Report failed.", StringComparison.Ordinal);
         public string ReportOperatorPath => string.IsNullOrWhiteSpace(SelectedReport)
             ? "Choose a report, run it, then open the source page from any row that needs follow-up."
             : $"Run {SelectedReport}, select a row, then open {BuildDestinationName(SelectedReport, SelectedReportLine?.Category)} to continue the workflow.";
@@ -147,6 +152,12 @@ namespace InventoryManagementApp.ViewModels
             ClearReportCommand = new RelayCommand(ClearReport, () => ReportLines.Count > 0);
         }
 
+        public async Task RunSummaryReportAsync()
+        {
+            SelectedReport = "Summary";
+            await RunReportAsync().ConfigureAwait(false);
+        }
+
         private bool CanRunReport() => !IsBusy && !string.IsNullOrWhiteSpace(SelectedReport);
 
         private async Task RunReportAsync()
@@ -188,6 +199,7 @@ namespace InventoryManagementApp.ViewModels
                 ReportStatus = "Report failed.";
                 LastRunAt = DateTime.Now;
                 OnPropertyChanged(nameof(ReportLineCount));
+                OnPropertyChanged(nameof(CanPrintCurrentReport));
                 OnPropertyChanged(nameof(ReportOperatorPath));
                 ClearReportCommand.NotifyCanExecuteChanged();
             }
@@ -232,6 +244,25 @@ namespace InventoryManagementApp.ViewModels
             if (ReportLines.Count > 0)
                 SelectedReportLine = ReportLines[0];
             OnPropertyChanged(nameof(ReportLineCount));
+            OnPropertyChanged(nameof(CanPrintCurrentReport));
+            OnPropertyChanged(nameof(ReportOperatorPath));
+            ClearReportCommand.NotifyCanExecuteChanged();
+        }
+
+        private void ClearReportOutputForSelection(string reportName)
+        {
+            ReportLines.Clear();
+            SelectedReportLine = null;
+            ReportTitle = string.IsNullOrWhiteSpace(reportName) ? "Reports" : reportName;
+            ReportSubtitle = string.IsNullOrWhiteSpace(reportName)
+                ? "Run operational reports for inventory, rentals, maintenance, reservations, and usage."
+                : BuildSubtitle(reportName);
+            ReportSummary = string.IsNullOrWhiteSpace(reportName)
+                ? "No report has been run yet."
+                : $"Run {reportName} to refresh report rows.";
+            LastRunAt = null;
+            OnPropertyChanged(nameof(ReportLineCount));
+            OnPropertyChanged(nameof(CanPrintCurrentReport));
             OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
         }
@@ -246,6 +277,7 @@ namespace InventoryManagementApp.ViewModels
             ReportStatus = "Report cleared.";
             LastRunAt = null;
             OnPropertyChanged(nameof(ReportLineCount));
+            OnPropertyChanged(nameof(CanPrintCurrentReport));
             OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
         }

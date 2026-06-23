@@ -8,6 +8,7 @@ using InventoryManagementApp.Utilities.Helpers;
 using System.Reflection;
 using System.IO;
 using Microsoft.Extensions.Caching.Memory;
+using InventoryManagementApp.Models.Domain;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -145,6 +146,41 @@ namespace InventoryManagementApp.Tests
                     }
 
                     Assert.True(cache.Count <= 100);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    WpfTestHelper.ShutdownApplication();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
+        public void Convert_ItemWithoutImagePath_FallsBackToItemNumberImage()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var converter = new NullToDefaultImageConverter();
+                    var item = new ItemModel
+                    {
+                        ItemNumber = "T401",
+                        ImagePath = string.Empty
+                    };
+
+                    var result = Assert.IsType<BitmapImage>(converter.Convert(item, typeof(BitmapImage), "item", CultureInfo.InvariantCulture));
+
+                    Assert.NotNull(result.UriSource);
+                    Assert.EndsWith("Assets/ItemImages/T401.jpeg", result.UriSource.LocalPath.Replace('\\', '/'), StringComparison.OrdinalIgnoreCase);
                 }
                 catch (Exception ex)
                 {

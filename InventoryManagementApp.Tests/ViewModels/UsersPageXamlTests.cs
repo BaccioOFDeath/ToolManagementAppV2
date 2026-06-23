@@ -46,6 +46,20 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Admin desk ready", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void UsersPage_LeavesRoomForDirectoryUserPhotos()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
+            var gridIndex = xaml.IndexOf("x:Name=\"UsersDataGrid\"", StringComparison.Ordinal);
+
+            Assert.True(gridIndex >= 0, "Users directory grid should exist.");
+            var usersGrid = xaml.Substring(gridIndex);
+
+            Assert.Contains("RowHeight=\"48\"", usersGrid, StringComparison.Ordinal);
+            Assert.Contains("Width=\"34\" Height=\"34\"", usersGrid, StringComparison.Ordinal);
+            Assert.Contains("UserPhotoPath=\"{Binding UserPhotoPath}\"", usersGrid, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);

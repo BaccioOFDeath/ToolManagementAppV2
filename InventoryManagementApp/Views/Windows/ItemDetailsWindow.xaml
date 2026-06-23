@@ -127,7 +127,7 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="12">
                             <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource ControlBackgroundBrush}" Height="184" Margin="0,0,0,10">
-                                <Image Stretch="Uniform" Margin="6" Source="{Binding ItemModel.ImagePath, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                                <Image Stretch="Uniform" Margin="6" Source="{Binding ItemModel, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                             </Border>
                             <Grid>
                                 <Grid.ColumnDefinitions>

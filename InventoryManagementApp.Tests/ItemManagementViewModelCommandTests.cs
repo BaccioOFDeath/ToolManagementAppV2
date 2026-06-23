@@ -179,23 +179,137 @@ namespace InventoryManagementApp.Tests
             Assert.Equal("Updated after rent", item.Name);
         }
 
+        [Fact]
+        public async Task ItemDetailsViewModel_RentOutCommand_PromptsToPrintRentalHandoff()
+        {
+            var dueDate = DateTime.Today.AddDays(3);
+            var rental = new RecordingRentalService();
+            rental.ActiveRentals.Add(new RentalModel
+            {
+                RentalID = 42,
+                ItemID = 6,
+                CustomerID = 8,
+                ItemNumber = "T6",
+                ItemLocation = "A1",
+                CustomerName = "SD European",
+                RentalDate = DateTime.Today,
+                DueDate = dueDate,
+                Status = "Rented"
+            });
+            var dialog = new RecordingDialogService
+            {
+                RentItemDialogResult = (new CustomerModel { CustomerID = 8, Company = "SD European" }, dueDate)
+            };
+            var itemService = new RecordingToggleItemService
+            {
+                GetItemResult = new ItemModel { ItemID = 6, QuantityOnHand = 1, RentedQuantity = 1, Name = "Updated after rent" }
+            };
+            var customer = new RecordingCustomerService();
+            var item = new ItemModel { ItemID = 6, ItemNumber = "T6", Location = "A1", QuantityOnHand = 2, RentedQuantity = 0 };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { });
+
+            await vm.RentOutCommand.ExecuteAsync(null);
+
+            Assert.Equal(1, dialog.ConfirmCalls);
+            Assert.Equal("Print Rental Handoff", dialog.LastConfirmTitle);
+            Assert.Contains("SD European", dialog.LastConfirmMessage);
+            Assert.Equal(2, dialog.PrintPreviewCalls);
+            Assert.Contains("Picking Slip - Rental 42", dialog.PrintPreviewTitles);
+            Assert.Contains("Invoice - Rental 42", dialog.PrintPreviewTitles);
+        }
+
+        [Fact]
+        public async Task ItemDetailsViewModel_RentOutCommand_DoesNotPrintWhenHandoffPromptIsCancelled()
+        {
+            var dueDate = DateTime.Today.AddDays(3);
+            var rental = new RecordingRentalService();
+            var dialog = new RecordingDialogService
+            {
+                ConfirmResult = false,
+                RentItemDialogResult = (new CustomerModel { CustomerID = 8, Company = "SD European" }, dueDate)
+            };
+            var itemService = new RecordingToggleItemService
+            {
+                GetItemResult = new ItemModel { ItemID = 6, QuantityOnHand = 1, RentedQuantity = 1, Name = "Updated after rent" }
+            };
+            var customer = new RecordingCustomerService();
+            var item = new ItemModel { ItemID = 6, ItemNumber = "T6", Location = "A1", QuantityOnHand = 2, RentedQuantity = 0 };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { });
+
+            await vm.RentOutCommand.ExecuteAsync(null);
+
+            Assert.Equal(1, dialog.ConfirmCalls);
+            Assert.Equal(0, dialog.PrintPreviewCalls);
+        }
+
+        [Fact]
+        public async Task ItemDetailsViewModel_ToggleCheckOutCommand_HandlesMissingPersistedItem()
+        {
+            var rental = new RecordingRentalService();
+            var dialog = new RecordingDialogService();
+            var itemService = new RecordingToggleItemService
+            {
+                ToggleException = new InvalidOperationException("Item 132 not found.")
+            };
+            var customer = new RecordingCustomerService();
+            var item = new ItemModel { ItemID = 132, QuantityOnHand = 1, IsCheckedOut = false };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { });
+
+            await vm.ToggleCheckOutCommand.ExecuteAsync(null);
+
+            Assert.True(itemService.ToggleCalled);
+            Assert.Contains("Failed to update check-out status: Item 132 not found.", dialog.LastInfoMessage);
+            Assert.Equal("Error", dialog.LastInfoTitle);
+            Assert.False(item.IsCheckedOut);
+        }
+
+        [Fact]
+        public async Task ItemDetailsViewModel_RentOutCommand_HandlesInsufficientQuantity()
+        {
+            var rental = new RecordingRentalService
+            {
+                RentException = new InvalidOperationException("Insufficient quantity.")
+            };
+            var dialog = new RecordingDialogService
+            {
+                RentItemDialogResult = (new CustomerModel { CustomerID = 8 }, DateTime.Today.AddDays(3))
+            };
+            var itemService = new RecordingToggleItemService
+            {
+                GetItemResult = new ItemModel { ItemID = 6, QuantityOnHand = 0, RentedQuantity = 1, Name = "Persisted" }
+            };
+            var customer = new RecordingCustomerService();
+            var item = new ItemModel { ItemID = 6, QuantityOnHand = 0, RentedQuantity = 1, Name = "Before rent" };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { });
+
+            await vm.RentOutCommand.ExecuteAsync(null);
+
+            Assert.True(rental.RentCalled);
+            Assert.Contains("Failed to rent item: Insufficient quantity.", dialog.LastInfoMessage);
+            Assert.Equal("Error", dialog.LastInfoTitle);
+            Assert.Equal("Persisted", item.Name);
+        }
+
         private sealed class RecordingRentalService : IRentalService
         {
             public bool RentCalled { get; private set; }
             public int ItemId { get; private set; }
             public int CustomerId { get; private set; }
             public int LastHistoryItemId { get; private set; }
+            public Exception? RentException { get; set; }
+            public List<RentalModel> ActiveRentals { get; } = new();
             public Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate)
             {
                 RentCalled = true;
                 ItemId = itemID;
                 CustomerId = customerID;
+                if (RentException != null) throw RentException;
                 return Task.CompletedTask;
             }
             public Task ReturnItemAsync(int rentalID, DateTime returnDate) => Task.CompletedTask;
             public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.CompletedTask;
             public Task DeleteRentalAsync(int rentalID) => Task.CompletedTask;
-            public Task<List<Rental>> GetActiveRentalsAsync() => Task.FromResult(new List<Rental>());
+            public Task<List<Rental>> GetActiveRentalsAsync() => Task.FromResult(ActiveRentals.Cast<Rental>().ToList());
             public Task<int> CountActiveRentalsAsync() => Task.FromResult(0);
             public Task<List<Rental>> GetOverdueRentalsAsync() => Task.FromResult(new List<Rental>());
             public Task<List<Rental>> GetAllRentalsAsync() => Task.FromResult(new List<Rental>());
@@ -237,8 +351,31 @@ namespace InventoryManagementApp.Tests
             public ItemModel? LastHistoryItem { get; private set; }
             public (CustomerModel customer, DateTime dueDate)? RentItemDialogResult { get; set; }
             public ItemModel? EditItemDialogResult { get; set; }
-            public void ShowInfo(string message, string title) { }
-            public bool ShowConfirmation(string message, string title) => true;
+            public bool ConfirmResult { get; set; } = true;
+            public int ConfirmCalls { get; private set; }
+            public string LastConfirmTitle { get; private set; } = string.Empty;
+            public string LastConfirmMessage { get; private set; } = string.Empty;
+            public int PrintPreviewCalls { get; private set; }
+            public List<string> PrintPreviewTitles { get; } = new();
+            public string LastInfoMessage { get; private set; } = string.Empty;
+            public string LastInfoTitle { get; private set; } = string.Empty;
+            public void ShowInfo(string message, string title)
+            {
+                LastInfoMessage = message;
+                LastInfoTitle = title;
+            }
+            public Task ShowInfoAsync(string message, string title)
+            {
+                ShowInfo(message, title);
+                return Task.CompletedTask;
+            }
+            public bool ShowConfirmation(string message, string title)
+            {
+                ConfirmCalls++;
+                LastConfirmTitle = title;
+                LastConfirmMessage = message;
+                return ConfirmResult;
+            }
             public ItemModel? ShowEditItemDialog(ItemModel item) => EditItemDialogResult;
             public Task<ItemModel?> ShowEditItemDialogAsync(ItemModel item) => Task.FromResult(EditItemDialogResult);
             public void ShowItemDetails(ItemModel item)
@@ -261,7 +398,11 @@ namespace InventoryManagementApp.Tests
             }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
-            public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description) { }
+            public void ShowPrintPreview(System.Windows.Documents.FlowDocument document, string title, string description)
+            {
+                PrintPreviewCalls++;
+                PrintPreviewTitles.Add(title);
+            }
             public void ShowPrintLabelDialog() { }
         }
 
@@ -329,6 +470,7 @@ namespace InventoryManagementApp.Tests
             public bool UpdateCalled { get; private set; }
             public ItemModel? UpdatedItem { get; private set; }
             public ItemModel? GetItemResult { get; set; }
+            public Exception? ToggleException { get; set; }
             public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default)
             {
@@ -345,6 +487,7 @@ namespace InventoryManagementApp.Tests
             public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default)
             {
                 ToggleCalled = true;
+                if (ToggleException != null) throw ToggleException;
                 if (GetItemResult != null)
                 {
                     var checkedOut = !GetItemResult.IsCheckedOut;
