@@ -30,26 +30,32 @@ namespace InventoryManagementApp.Tests.Views
         [Fact]
         public void OperationalGridPagesUseSharedContextMenuSelectionHelper()
         {
-            var pagePaths = new[]
-            {
-                new[] { "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "ReservationPage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "MaintenancePage.xaml.cs" },
-                new[] { "InventoryManagementApp", "Views", "Pages", "CalibrationPage.xaml.cs" }
-            };
+            var pagePaths = OperationalGridPagePaths();
 
             foreach (var pagePath in pagePaths)
             {
                 var source = ReadRepositoryFile(pagePath);
                 Assert.Contains("GridContextMenuSelection.SelectRow(sender, e)", source, StringComparison.Ordinal);
+            }
+        }
+
+        [Fact]
+        public void OperationalGridRightClickHandlersDoNotSuppressContextMenus()
+        {
+            foreach (var pagePath in OperationalGridPagePaths())
+            {
+                var source = ReadRepositoryFile(pagePath);
+                var handlerCount = 0;
+
+                foreach (var handler in ExtractRightClickHandlers(source))
+                {
+                    handlerCount++;
+                    Assert.DoesNotContain("e.Handled = true;", handler, StringComparison.Ordinal);
+                    Assert.DoesNotContain("if (sender is DataGridRow row", handler, StringComparison.Ordinal);
+                    Assert.DoesNotContain("row.IsSelected = true;", handler, StringComparison.Ordinal);
+                }
+
+                Assert.True(handlerCount > 0, $"Expected at least one grid right-click handler in {Path.Combine(pagePath)}.");
             }
         }
 
@@ -71,6 +77,59 @@ namespace InventoryManagementApp.Tests.Views
                 var source = ReadRepositoryFile(entry.Key);
                 foreach (var removedPattern in entry.Value)
                     Assert.DoesNotContain(removedPattern, source, StringComparison.Ordinal);
+            }
+        }
+
+        private static string[][] OperationalGridPagePaths()
+        {
+            return new[]
+            {
+                new[] { "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "ReservationPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "MaintenancePage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "CalibrationPage.xaml.cs" }
+            };
+        }
+
+        private static IEnumerable<string> ExtractRightClickHandlers(string source)
+        {
+            const string signature = "PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)";
+            var searchIndex = 0;
+
+            while ((searchIndex = source.IndexOf(signature, searchIndex, StringComparison.Ordinal)) >= 0)
+            {
+                var bodyStart = source.IndexOf('{', searchIndex);
+                Assert.True(bodyStart >= 0, "Expected right-click handler body to start with an opening brace.");
+
+                var depth = 0;
+                for (var index = bodyStart; index < source.Length; index++)
+                {
+                    if (source[index] == '{')
+                    {
+                        depth++;
+                    }
+                    else if (source[index] == '}')
+                    {
+                        depth--;
+                        if (depth == 0)
+                        {
+                            var end = index + 1;
+                            yield return source.Substring(searchIndex, end - searchIndex);
+                            searchIndex = end;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
