@@ -44,6 +44,18 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ImportExportLogRightClick_SelectsRowWithoutSuppressingContextMenu()
+        {
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
+            var handler = ExtractMethodBody(pageCode, "private void ImportExportLogRow_PreviewMouseRightButtonDown", "private void OpenSelectedLog_Click");
+
+            Assert.Contains("if (sender is DataGridRow row && !row.IsSelected)", handler, StringComparison.Ordinal);
+            Assert.Contains("row.IsSelected = true;", handler, StringComparison.Ordinal);
+            Assert.Contains("row.Focus();", handler, StringComparison.Ordinal);
+            Assert.DoesNotContain("e.Handled = true;", handler, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ImportExportLogActions_FallBackToViewModelSelectedLog()
         {
             var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
