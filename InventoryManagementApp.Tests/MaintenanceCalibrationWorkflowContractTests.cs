@@ -54,6 +54,25 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error loading calibration records\", ex.Message);", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void CalibrationMutationFailuresRefreshRowsOrClearAfterRecoveryFailure()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CalibrationManagementViewModel.cs");
+
+            Assert.Contains("await RefreshCalibrationAfterMutationFailureAsync(\n                        newRecord.CalibrationID > 0 ? newRecord.CalibrationID : null,\n                        \"Error creating calibration record\",\n                        $\"{ex.Message} Calibration rows were refreshed from saved data.\");", source, StringComparison.Ordinal);
+            Assert.Contains("await RefreshCalibrationAfterMutationFailureAsync(\n                        clone.CalibrationID,\n                        \"Error updating calibration record\",\n                        $\"{ex.Message} Calibration rows were refreshed from saved data.\");", source, StringComparison.Ordinal);
+            Assert.Contains("var deletedRecord = SelectedRecord;\n                try", source, StringComparison.Ordinal);
+            Assert.Contains("await RefreshCalibrationAfterMutationFailureAsync(\n                        deletedRecord.CalibrationID,\n                        \"Error deleting calibration record\",\n                        $\"{ex.Message} Calibration rows were refreshed from saved data.\",\n                        clearSelectionWhenAffectedRecordIsGone: true);", source, StringComparison.Ordinal);
+            Assert.Contains("private async Task RefreshCalibrationAfterMutationFailureAsync(", source, StringComparison.Ordinal);
+            Assert.Contains("var records = await _calibrationService.GetAllCalibrationRecordsAsync();\n                CalibrationRecords.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("clearSelectionWhenAffectedRecordIsGone\n                    && preferredCalibrationId.HasValue\n                    && CalibrationRecords.All(r => r.CalibrationID != preferredCalibrationId.Value)", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedRecord = null;", source, StringComparison.Ordinal);
+            Assert.Contains("Recovery refresh also failed: {refreshEx.Message} Calibration rows were cleared until reload succeeds.", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error creating calibration record\", ex.Message);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error updating calibration record\", ex.Message);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error deleting calibration record\", ex.Message);", source, StringComparison.Ordinal);
+        }
+
         private static string ReadRepoFile(params string[] parts)
         {
             var directory = AppContext.BaseDirectory;
