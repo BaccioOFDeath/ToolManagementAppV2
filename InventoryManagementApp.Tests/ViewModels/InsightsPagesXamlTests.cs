@@ -76,6 +76,18 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ActivityLogsRightClick_UsesSharedGuardedGridSelection()
+        {
+            var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+            var handler = ExtractMethodBody(pageCode, "private void ActivityGridRow_PreviewMouseRightButtonDown", "private async void RefreshLogs_Click");
+
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", handler, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (sender is DataGridRow row", handler, StringComparison.Ordinal);
+            Assert.DoesNotContain("row.IsSelected = true;", handler, StringComparison.Ordinal);
+            Assert.DoesNotContain("e.Handled = true;", handler, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ActivityLogsLoadFailure_ClearsRowsFiltersSelectionAndKeepsFailureStatus()
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
@@ -210,6 +222,17 @@ namespace InventoryManagementApp.Tests.ViewModels
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
             return File.ReadAllText(path);
+        }
+
+        static string ExtractMethodBody(string source, string methodStart, string nextMethodStart)
+        {
+            var start = source.IndexOf(methodStart, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Expected to find method starting with {methodStart}");
+
+            var end = source.IndexOf(nextMethodStart, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Expected to find next method starting with {nextMethodStart}");
+
+            return source.Substring(start, end - start);
         }
     }
 }
