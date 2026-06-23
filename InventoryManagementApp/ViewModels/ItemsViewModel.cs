@@ -277,6 +277,41 @@ namespace InventoryManagementApp.ViewModels
             await _settingsService.SaveSettingAsync("PageSize", value.ToString()).ConfigureAwait(false);
         }
 
+        private async Task<bool> RefreshItemsAfterMutationFailureAsync(int? preferredItemId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var firstPage = await LoadPageAsync(1, cancellationToken).ConfigureAwait(false);
+                await InvokeOnUiThreadAsync(() =>
+                {
+                    Items.ResetWith(firstPage);
+                    SelectedItem = preferredItemId.HasValue
+                        ? Items.FirstOrDefault(item => item.ItemID == preferredItemId.Value)
+                        : null;
+                }).ConfigureAwait(false);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Item mutation recovery refresh canceled");
+                throw;
+            }
+            catch (Exception refreshEx)
+            {
+                _logger.LogError(refreshEx, "Failed to refresh incremental item list after mutation failure");
+                await InvokeOnUiThreadAsync(() =>
+                {
+                    Items.Reset();
+                    SelectedItem = null;
+                }).ConfigureAwait(false);
+                return false;
+            }
+        }
+
+        private static string AppendItemMutationRefreshMessage(string message, bool refreshed) => refreshed
+            ? $"{message} The item list has been refreshed in case saved state changed before the failure."
+            : $"{message} The item list could not be refreshed, so visible item rows were cleared until reload succeeds.";
+
         private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (sender is not ItemModel item) return;
@@ -338,8 +373,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogDebug("Edit item canceled");
             }
-            catch
+            catch (Exception ex)
             {
+                var refreshed = await RefreshItemsAfterMutationFailureAsync(updated.ItemID, ct).ConfigureAwait(false);
+                await _dialogService.ShowInfoAsync($"Failed to update {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {AppendItemMutationRefreshMessage(ex.Message, refreshed)}", "Error").ConfigureAwait(false);
             }
         }
 
@@ -392,15 +429,17 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await _itemService.AddItemAsync(item, ct).ConfigureAwait(false);
-            InvokeOnUiThread(Items.Reset);
+                InvokeOnUiThread(Items.Reset);
                 await Items.LoadMoreAsync(ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
                 _logger.LogDebug("New item creation canceled");
             }
-            catch
+            catch (Exception ex)
             {
+                var refreshed = await RefreshItemsAfterMutationFailureAsync(item.ItemID > 0 ? item.ItemID : null, ct).ConfigureAwait(false);
+                await _dialogService.ShowInfoAsync($"Failed to create {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {AppendItemMutationRefreshMessage(ex.Message, refreshed)}", "Error").ConfigureAwait(false);
             }
         }
 
@@ -415,9 +454,9 @@ namespace InventoryManagementApp.ViewModels
                 : $"Delete {items.Count} {LabelProvider.Instance.ItemLabelPlural.ToLower()}?";
             var confirm = await _dialogService.ShowConfirmationAsync(message, "Confirm Delete").ConfigureAwait(false);
             if (!confirm) return;
+            var toRemove = items.Cast<ItemModel>().ToList();
             try
             {
-                var toRemove = items.Cast<ItemModel>().ToList();
                 foreach (var item in toRemove)
                 {
                     await _itemService.DeleteItemAsync(item.ItemID, ct).ConfigureAwait(false);
@@ -439,7 +478,8 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowInfoAsync($"Failed to delete {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {ex.Message}", "Error").ConfigureAwait(false);
+                var refreshed = await RefreshItemsAfterMutationFailureAsync(toRemove.FirstOrDefault()?.ItemID, ct).ConfigureAwait(false);
+                await _dialogService.ShowInfoAsync($"Failed to delete {LabelProvider.Instance.ItemLabelPlural.ToLower()}: {AppendItemMutationRefreshMessage(ex.Message, refreshed)}", "Error").ConfigureAwait(false);
             }
         }
 
@@ -486,7 +526,10 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowInfoAsync($"Failed to save changes: {ex.Message}", "Error").ConfigureAwait(false);
+                var refreshed = await RefreshItemsAfterMutationFailureAsync(edits.FirstOrDefault()?.ItemID, ct).ConfigureAwait(false);
+                if (refreshed)
+                    _pendingEdits.Clear();
+                await _dialogService.ShowInfoAsync($"Failed to save changes: {AppendItemMutationRefreshMessage(ex.Message, refreshed)}", "Error").ConfigureAwait(false);
             }
         }
 
