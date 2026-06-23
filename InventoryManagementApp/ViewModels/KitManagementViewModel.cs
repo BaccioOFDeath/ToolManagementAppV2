@@ -233,6 +233,39 @@ namespace InventoryManagementApp.ViewModels
             RefreshKitItemSummaries();
         }
 
+        private async Task RefreshKitItemsAfterMutationFailureAsync(string title, string message)
+        {
+            if (SelectedKit == null)
+            {
+                await _dialogService.ShowErrorAsync(title, message);
+                return;
+            }
+
+            try
+            {
+                await ReloadKitItemsForRecoveryAsync(SelectedKit.KitID);
+                await _dialogService.ShowErrorAsync(title, $"{message} Kit item rows were refreshed in case the membership list changed before the failure.");
+            }
+            catch (Exception refreshEx)
+            {
+                ClearKitItemsForReload();
+                await _dialogService.ShowErrorAsync(title, $"{message} Kit item rows were cleared because refresh also failed: {refreshEx.Message}");
+            }
+        }
+
+        private async Task ReloadKitItemsForRecoveryAsync(int kitID)
+        {
+            var selectedKitItemId = SelectedKitItem?.KitItemID;
+            ClearKitItemsForReload();
+            var items = await _kitService.GetKitItemsAsync(kitID);
+            foreach (var item in items)
+            {
+                KitItems.Add(item);
+            }
+            SelectedKitItem = KitItems.FirstOrDefault(i => i.KitItemID == selectedKitItemId) ?? KitItems.FirstOrDefault();
+            RefreshKitItemSummaries();
+        }
+
         private async Task AddKitAsync()
         {
             var newKit = new Kit
@@ -352,7 +385,7 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error adding item to kit", ex.Message);
+                    await RefreshKitItemsAfterMutationFailureAsync("Error adding item to kit", ex.Message);
                 }
             }
         }
@@ -386,7 +419,7 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error updating kit item", ex.Message);
+                    await RefreshKitItemsAfterMutationFailureAsync("Error updating kit item", ex.Message);
                 }
             }
         }
@@ -412,7 +445,7 @@ namespace InventoryManagementApp.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _dialogService.ShowErrorAsync("Error removing item from kit", ex.Message);
+                    await RefreshKitItemsAfterMutationFailureAsync("Error removing item from kit", ex.Message);
                 }
             }
         }
