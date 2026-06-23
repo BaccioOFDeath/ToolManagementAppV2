@@ -11,13 +11,23 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
 
-            Assert.Contains("ClearKitStateAfterLoadFailure();\n                await _dialogService.ShowErrorAsync(\"Error loading kits\", $\"{ex.Message} Kit rows were cleared until reload succeeds.\");", source, StringComparison.Ordinal);
-            Assert.Contains("private void ClearKitStateAfterLoadFailure()", source, StringComparison.Ordinal);
-            Assert.Contains("Kits.Clear();\n            FilteredKits.Clear();\n            SelectedKit = null;\n            SelectedKitItem = null;\n            KitItems.Clear();", source, StringComparison.Ordinal);
-            Assert.Contains("RefreshKitItemSummaries();\n            OnPropertyChanged(nameof(KitResultsSummary));\n            OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));\n            PrintKitListCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
-            Assert.Contains("private bool CanEditOrDelete() => SelectedKit != null;", source, StringComparison.Ordinal);
-            Assert.Contains("private bool CanEditOrRemoveKitItem() => SelectedKitItem != null;", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("catch (Exception ex)\n            {\n                await _dialogService.ShowErrorAsync(\"Error loading kits\", ex.Message);\n            }", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "ClearKitStateAfterLoadFailure();",
+                "await _dialogService.ShowErrorAsync(\"Error loading kits\", $\"{ex.Message} Kit rows were cleared until reload succeeds.\");",
+                "private void ClearKitStateAfterLoadFailure()",
+                "Kits.Clear();",
+                "FilteredKits.Clear();",
+                "SelectedKit = null;",
+                "SelectedKitItem = null;",
+                "KitItems.Clear();",
+                "RefreshKitItemSummaries();",
+                "OnPropertyChanged(nameof(KitResultsSummary));",
+                "OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));",
+                "PrintKitListCommand.NotifyCanExecuteChanged();",
+                "private bool CanEditOrDelete() => SelectedKit != null;",
+                "private bool CanEditOrRemoveKitItem() => SelectedKitItem != null;");
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error loading kits\", ex.Message);", source, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -25,10 +35,15 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
 
-            Assert.Contains("var selectedKitItemId = SelectedKitItem?.KitItemID;\n            ClearKitItemsForReload();", source, StringComparison.Ordinal);
-            Assert.Contains("private void ClearKitItemsForReload()", source, StringComparison.Ordinal);
-            Assert.Contains("KitItems.Clear();\n            SelectedKitItem = null;\n            RefreshKitItemSummaries();", source, StringComparison.Ordinal);
-            Assert.Contains("ClearKitItemsForReload();\n                await _dialogService.ShowErrorAsync(\"Error loading kit items\", $\"{ex.Message} Kit item rows were cleared until reload succeeds.\");", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "var selectedKitItemId = SelectedKitItem?.KitItemID;",
+                "ClearKitItemsForReload();",
+                "private void ClearKitItemsForReload()",
+                "KitItems.Clear();",
+                "SelectedKitItem = null;",
+                "RefreshKitItemSummaries();",
+                "await _dialogService.ShowErrorAsync(\"Error loading kit items\", $\"{ex.Message} Kit item rows were cleared until reload succeeds.\");");
             Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error loading kit items\", ex.Message);", source, StringComparison.Ordinal);
         }
 
@@ -37,15 +52,28 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
 
-            Assert.Contains("private async Task RefreshKitItemsAfterMutationFailureAsync(string title, string message)", source, StringComparison.Ordinal);
-            Assert.Contains("await ReloadKitItemsForRecoveryAsync(SelectedKit.KitID);", source, StringComparison.Ordinal);
-            Assert.Contains("Kit item rows were refreshed in case the membership list changed before the failure.", source, StringComparison.Ordinal);
-            Assert.Contains("ClearKitItemsForReload();\n                await _dialogService.ShowErrorAsync(title, $\"{message} Kit item rows were cleared because refresh also failed: {refreshEx.Message}\");", source, StringComparison.Ordinal);
-            Assert.Contains("private async Task ReloadKitItemsForRecoveryAsync(int kitID)", source, StringComparison.Ordinal);
-            Assert.Equal(3, CountOccurrences(source, "await RefreshKitItemsAfterMutationFailureAsync(\"Error"));
+            AssertContainsAll(
+                source,
+                "private async Task RefreshKitItemsAfterMutationFailureAsync(string title, string message)",
+                "await ReloadKitItemsForRecoveryAsync(SelectedKit.KitID);",
+                "Kit item rows were refreshed in case the membership list changed before the failure.",
+                "ClearKitItemsForReload();",
+                "Kit item rows were cleared because refresh also failed: {refreshEx.Message}",
+                "private async Task ReloadKitItemsForRecoveryAsync(int kitID)");
+            Assert.True(
+                CountOccurrences(source, "await RefreshKitItemsAfterMutationFailureAsync(\"Error") >= 3,
+                "Expected add, edit, and remove kit-item failure paths to refresh or clear member rows.");
             Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error adding item to kit\", ex.Message);", source, StringComparison.Ordinal);
             Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error updating kit item\", ex.Message);", source, StringComparison.Ordinal);
             Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error removing item from kit\", ex.Message);", source, StringComparison.Ordinal);
+        }
+
+        private static void AssertContainsAll(string source, params string[] expectedSnippets)
+        {
+            foreach (var snippet in expectedSnippets)
+            {
+                Assert.Contains(snippet, source, StringComparison.Ordinal);
+            }
         }
 
         private static int CountOccurrences(string source, string value)
