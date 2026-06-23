@@ -106,7 +106,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 _allUsers = await _userService.GetAllUsersAsync(CancellationToken.None);
                 AssignInitialsBrushes(_allUsers);
-                Users.ReplaceRange(_allUsers);
+                Users.ReplaceRange(FilterUsers(_allUsers));
             }
             catch (Exception ex)
             {
@@ -123,6 +123,46 @@ namespace InventoryManagementApp.ViewModels
             SelectedUser = null;
             ((AsyncRelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
             ((AsyncRelayCommand)EditUserCommand).NotifyCanExecuteChanged();
+        }
+
+        private async Task<bool> RefreshUsersAfterMutationFailureAsync(int? preferredUserId, bool clearSelectionWhenMissing)
+        {
+            try
+            {
+                _allUsers = await _userService.GetAllUsersAsync(CancellationToken.None);
+                AssignInitialsBrushes(_allUsers);
+                Users.ReplaceRange(FilterUsers(_allUsers));
+
+                var refreshedSelection = preferredUserId.HasValue
+                    ? Users.FirstOrDefault(user => user.UserID == preferredUserId.Value)
+                    : null;
+
+                if (refreshedSelection != null || clearSelectionWhenMissing)
+                {
+                    SelectedUser = refreshedSelection;
+                }
+                else if (SelectedUser != null)
+                {
+                    SelectedUser = Users.FirstOrDefault(user => user.UserID == SelectedUser.UserID);
+                }
+
+                return true;
+            }
+            catch (Exception refreshEx)
+            {
+                _logger.LogError(refreshEx, "Failed to refresh users after mutation failure");
+                ClearUsersAfterLoadFailure();
+                return false;
+            }
+        }
+
+        private static string BuildMutationFailureMessage(string baseMessage, Exception ex, bool refreshed)
+        {
+            var recoveryMessage = refreshed
+                ? "User rows were refreshed from saved data."
+                : "User rows were cleared because the recovery refresh failed.";
+
+            return $"{baseMessage}: {ex.Message}. {recoveryMessage}";
         }
 
         static string GetInitials(string? name)
@@ -226,8 +266,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
+                var refreshed = await RefreshUsersAfterMutationFailureAsync(SelectedUser.UserID, clearSelectionWhenMissing: true);
                 _logger.LogError(ex, "Failed to update user photo");
-                await _dialogService.ShowInfoAsync($"Failed to update user photo: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync(BuildMutationFailureMessage("Failed to update user photo", ex, refreshed), "Error");
             }
         }
 
@@ -250,8 +291,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
+                var refreshed = await RefreshUsersAfterMutationFailureAsync(SelectedUser.UserID, clearSelectionWhenMissing: true);
                 _logger.LogError(ex, "Failed to update user");
-                await _dialogService.ShowInfoAsync($"Failed to update user: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync(BuildMutationFailureMessage("Failed to update user", ex, refreshed), "Error");
             }
         }
 
@@ -314,8 +356,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
+                var refreshed = await RefreshUsersAfterMutationFailureAsync(newUser.UserID, clearSelectionWhenMissing: false);
                 _logger.LogError(ex, "Failed to add user");
-                await _dialogService.ShowInfoAsync($"Failed to add user: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync(BuildMutationFailureMessage("Failed to add user", ex, refreshed), "Error");
             }
         }
 
@@ -351,20 +394,25 @@ namespace InventoryManagementApp.ViewModels
 
         void SearchUsers()
         {
-            IEnumerable<UserModel> filtered = _allUsers;
-            if (!string.IsNullOrWhiteSpace(UserSearchText))
+            Users.ReplaceRange(FilterUsers(_allUsers));
+        }
+
+        private IEnumerable<UserModel> FilterUsers(IEnumerable<UserModel> users)
+        {
+            if (string.IsNullOrWhiteSpace(UserSearchText))
             {
-                var term = UserSearchText.Trim();
-                filtered = filtered.Where(u =>
-                    (u.UserName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (u.Role?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (u.Email?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (u.Phone?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (u.Mobile?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (u.Address?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (u.AccessSummary?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
+                return users;
             }
-            Users.ReplaceRange(filtered);
+
+            var term = UserSearchText.Trim();
+            return users.Where(u =>
+                (u.UserName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.Role?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.Email?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.Phone?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.Mobile?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.Address?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.AccessSummary?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
         void ClearUserSearch()
@@ -438,8 +486,9 @@ namespace InventoryManagementApp.ViewModels
                     }
                     catch (Exception ex)
                     {
+                        var refreshed = await RefreshUsersAfterMutationFailureAsync(clone.UserID, clearSelectionWhenMissing: true);
                         _logger.LogError(ex, "Failed to update user");
-                        _dialogService.ShowInfo($"Failed to update user: {ex.Message}", "Error");
+                        _dialogService.ShowInfo(BuildMutationFailureMessage("Failed to update user", ex, refreshed), "Error");
                     }
                 },
                 onCancel: () =>
@@ -493,8 +542,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
+                var refreshed = await RefreshUsersAfterMutationFailureAsync(user.UserID, clearSelectionWhenMissing: true);
                 _logger.LogError(ex, "Failed to reset password for user {UserID}", user.UserID);
-                await _dialogService.ShowInfoAsync($"Failed to reset password: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync(BuildMutationFailureMessage("Failed to reset password", ex, refreshed), "Error");
             }
         }
 
@@ -522,8 +572,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
+                var refreshed = await RefreshUsersAfterMutationFailureAsync(user.UserID, clearSelectionWhenMissing: true);
                 _logger.LogError(ex, "Failed to delete user {UserID}", user.UserID);
-                await _dialogService.ShowInfoAsync($"Failed to delete user: {ex.Message}", "Error");
+                await _dialogService.ShowInfoAsync(BuildMutationFailureMessage("Failed to delete user", ex, refreshed), "Error");
             }
         }
     }
