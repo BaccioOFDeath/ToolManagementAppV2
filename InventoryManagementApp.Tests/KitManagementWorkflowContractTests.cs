@@ -32,6 +32,36 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error loading kit items\", ex.Message);", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void KitItemMutationFailuresRefreshOrClearMemberRows()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
+
+            Assert.Contains("private async Task RefreshKitItemsAfterMutationFailureAsync(string title, string message)", source, StringComparison.Ordinal);
+            Assert.Contains("await ReloadKitItemsForRecoveryAsync(SelectedKit.KitID);", source, StringComparison.Ordinal);
+            Assert.Contains("Kit item rows were refreshed in case the membership list changed before the failure.", source, StringComparison.Ordinal);
+            Assert.Contains("ClearKitItemsForReload();\n                await _dialogService.ShowErrorAsync(title, $\"{message} Kit item rows were cleared because refresh also failed: {refreshEx.Message}\");", source, StringComparison.Ordinal);
+            Assert.Contains("private async Task ReloadKitItemsForRecoveryAsync(int kitID)", source, StringComparison.Ordinal);
+            Assert.Equal(3, CountOccurrences(source, "await RefreshKitItemsAfterMutationFailureAsync(\"Error"));
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error adding item to kit\", ex.Message);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error updating kit item\", ex.Message);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error removing item from kit\", ex.Message);", source, StringComparison.Ordinal);
+        }
+
+        private static int CountOccurrences(string source, string value)
+        {
+            var count = 0;
+            var index = 0;
+
+            while ((index = source.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                index += value.Length;
+            }
+
+            return count;
+        }
+
         private static string ReadRepoFile(params string[] parts)
         {
             var directory = AppContext.BaseDirectory;
