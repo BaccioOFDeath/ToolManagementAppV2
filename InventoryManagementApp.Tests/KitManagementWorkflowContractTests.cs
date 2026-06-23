@@ -20,6 +20,18 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("catch (Exception ex)\n            {\n                await _dialogService.ShowErrorAsync(\"Error loading kits\", ex.Message);\n            }", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void KitItemLoadFailuresClearStaleMemberRowsAndSelection()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
+
+            Assert.Contains("var selectedKitItemId = SelectedKitItem?.KitItemID;\n            ClearKitItemsForReload();", source, StringComparison.Ordinal);
+            Assert.Contains("private void ClearKitItemsForReload()", source, StringComparison.Ordinal);
+            Assert.Contains("KitItems.Clear();\n            SelectedKitItem = null;\n            RefreshKitItemSummaries();", source, StringComparison.Ordinal);
+            Assert.Contains("ClearKitItemsForReload();\n                await _dialogService.ShowErrorAsync(\"Error loading kit items\", $\"{ex.Message} Kit item rows were cleared until reload succeeds.\");", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error loading kit items\", ex.Message);", source, StringComparison.Ordinal);
+        }
+
         private static string ReadRepoFile(params string[] parts)
         {
             var directory = AppContext.BaseDirectory;
