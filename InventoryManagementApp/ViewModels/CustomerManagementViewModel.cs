@@ -176,7 +176,12 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowInfoAsync($"Failed to add customer: {ex.Message}", "Add Customer Failed");
+                await RefreshCustomerDirectoryAfterMutationFailureAsync(
+                    customer.CustomerID,
+                    false,
+                    $"Failed to add customer: {ex.Message} Customer rows were refreshed from saved data where possible.",
+                    $"Failed to add customer: {ex.Message} Customer rows were cleared because recovery reload failed.",
+                    "Add Customer Failed");
             }
         }
 
@@ -207,7 +212,12 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowInfoAsync($"Failed to update customer: {ex.Message}", "Update Customer Failed");
+                await RefreshCustomerDirectoryAfterMutationFailureAsync(
+                    selectedId,
+                    false,
+                    $"Failed to update customer: {ex.Message} Customer rows were refreshed from saved data where possible.",
+                    $"Failed to update customer: {ex.Message} Customer rows were cleared because recovery reload failed.",
+                    "Update Customer Failed");
             }
         }
 
@@ -218,19 +228,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var preferredCustomerId = SelectedCustomer?.CustomerID;
-                var all = await _customerService.GetAllCustomersAsync();
-                if (!string.IsNullOrWhiteSpace(CustomerSearchTerm))
-                {
-                    var term = CustomerSearchTerm.Trim();
-                    all = all.Where(c =>
-                        (c.Company?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                        (c.Email?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                        (c.Contact?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                        (c.Phone?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                        (c.Mobile?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                        (c.Address?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
-                        .ToList();
-                }
+                var all = await GetCustomersForCurrentSearchAsync();
                 Customers.ReplaceRange(all);
                 SelectBestCustomerAfterRefresh(preferredCustomerId);
                 OnPropertyChanged(nameof(CustomerResultsSummary));
@@ -241,6 +239,44 @@ namespace InventoryManagementApp.ViewModels
                 if (_dialogService != null)
                     await _dialogService.ShowInfoAsync($"Failed to search customers: {ex.Message} Customer rows were cleared until reload succeeds.", "Customer Search Failed");
             }
+        }
+
+        private async Task RefreshCustomerDirectoryAfterMutationFailureAsync(int? preferredCustomerId, bool clearSelectionWhenPreferredMissing, string refreshedMessage, string clearedMessage, string title)
+        {
+            if (_customerService == null || _dialogService == null) return;
+
+            try
+            {
+                var all = await GetCustomersForCurrentSearchAsync();
+                Customers.ReplaceRange(all);
+                SelectBestCustomerAfterRefresh(preferredCustomerId, clearSelectionWhenPreferredMissing);
+                OnPropertyChanged(nameof(CustomerResultsSummary));
+                await _dialogService.ShowInfoAsync(refreshedMessage, title);
+            }
+            catch
+            {
+                ClearCustomerDirectoryAfterLoadFailure();
+                await _dialogService.ShowInfoAsync(clearedMessage, title);
+            }
+        }
+
+        private async Task<System.Collections.Generic.List<CustomerModel>> GetCustomersForCurrentSearchAsync()
+        {
+            var all = await _customerService!.GetAllCustomersAsync();
+            if (!string.IsNullOrWhiteSpace(CustomerSearchTerm))
+            {
+                var term = CustomerSearchTerm.Trim();
+                all = all.Where(c =>
+                    (c.Company?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Email?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Contact?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Phone?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Mobile?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (c.Address?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .ToList();
+            }
+
+            return all;
         }
 
         private void ClearCustomerDirectoryAfterLoadFailure()
@@ -288,7 +324,12 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowInfoAsync($"Failed to delete customer: {ex.Message}", "Delete Customer Failed");
+                await RefreshCustomerDirectoryAfterMutationFailureAsync(
+                    customer.CustomerID,
+                    true,
+                    $"Failed to delete customer: {ex.Message} Customer rows were refreshed from saved data where possible.",
+                    $"Failed to delete customer: {ex.Message} Customer rows were cleared because recovery reload failed.",
+                    "Delete Customer Failed");
             }
         }
 
@@ -309,7 +350,12 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowInfoAsync($"Failed to edit customer: {ex.Message}", "Edit Customer Failed");
+                await RefreshCustomerDirectoryAfterMutationFailureAsync(
+                    edited.CustomerID,
+                    false,
+                    $"Failed to edit customer: {ex.Message} Customer rows were refreshed from saved data where possible.",
+                    $"Failed to edit customer: {ex.Message} Customer rows were cleared because recovery reload failed.",
+                    "Edit Customer Failed");
             }
         }
 
@@ -414,7 +460,7 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        void SelectBestCustomerAfterRefresh(int? preferredCustomerId = null)
+        void SelectBestCustomerAfterRefresh(int? preferredCustomerId = null, bool clearSelectionWhenPreferredMissing = false)
         {
             if (Customers.Count == 0)
             {
@@ -422,9 +468,14 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
-            SelectedCustomer = preferredCustomerId.HasValue
-                ? Customers.FirstOrDefault(c => c.CustomerID == preferredCustomerId.Value) ?? Customers.FirstOrDefault()
-                : Customers.FirstOrDefault();
+            if (preferredCustomerId.HasValue)
+            {
+                var preferredCustomer = Customers.FirstOrDefault(c => c.CustomerID == preferredCustomerId.Value);
+                SelectedCustomer = preferredCustomer ?? (clearSelectionWhenPreferredMissing ? null : Customers.FirstOrDefault());
+                return;
+            }
+
+            SelectedCustomer = Customers.FirstOrDefault();
         }
 
         static string CreateCustomerHandoffText(CustomerModel customer)
