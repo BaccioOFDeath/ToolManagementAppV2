@@ -44,14 +44,15 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public void ImportExportLogRightClick_SelectsRowWithoutSuppressingContextMenu()
+        public void ImportExportLogRightClick_UsesSharedGuardedGridSelection()
         {
             var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
             var handler = ExtractMethodBody(pageCode, "private void ImportExportLogRow_PreviewMouseRightButtonDown", "private void OpenSelectedLog_Click");
 
-            Assert.Contains("if (sender is DataGridRow row && !row.IsSelected)", handler, StringComparison.Ordinal);
-            Assert.Contains("row.IsSelected = true;", handler, StringComparison.Ordinal);
-            Assert.Contains("row.Focus();", handler, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", handler, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (sender is DataGridRow row", handler, StringComparison.Ordinal);
+            Assert.DoesNotContain("row.IsSelected = true;", handler, StringComparison.Ordinal);
+            Assert.DoesNotContain("row.Focus();", handler, StringComparison.Ordinal);
             Assert.DoesNotContain("e.Handled = true;", handler, StringComparison.Ordinal);
         }
 
