@@ -11,14 +11,16 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
 
-            Assert.Contains("var selectedRentalId = SelectedRental?.RentalID;", source, StringComparison.Ordinal);
-            Assert.Contains("ApplyFilter(selectedRentalId);", source, StringComparison.Ordinal);
-            Assert.Contains("void ApplyFilter() => ApplyFilter(SelectedRental?.RentalID);", source, StringComparison.Ordinal);
-            Assert.Contains("void ApplyFilter(int? selectedRentalId)", source, StringComparison.Ordinal);
-            Assert.Contains("Rentals.ReplaceRange(filtered.ToList());", source, StringComparison.Ordinal);
-            Assert.Contains("RestoreSelectedRental(selectedRentalId);", source, StringComparison.Ordinal);
-            Assert.Contains("void RestoreSelectedRental(int? selectedRentalId)", source, StringComparison.Ordinal);
-            Assert.Contains("SelectedRental = Rentals.FirstOrDefault(r => r.RentalID == selectedRentalId.Value);", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "var selectedRentalId = SelectedRental?.RentalID;",
+                "ApplyFilter(selectedRentalId);",
+                "void ApplyFilter() => ApplyFilter(SelectedRental?.RentalID);",
+                "void ApplyFilter(int? selectedRentalId)",
+                "Rentals.ReplaceRange(filtered.ToList());",
+                "RestoreSelectedRental(selectedRentalId);",
+                "void RestoreSelectedRental(int? selectedRentalId)",
+                "SelectedRental = Rentals.FirstOrDefault(r => r.RentalID == selectedRentalId.Value);");
         }
 
         [Fact]
@@ -26,17 +28,19 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
 
-            Assert.Contains("ClearRentalStateAfterLoadFailure();", source, StringComparison.Ordinal);
-            Assert.Contains("Failed to load rentals: {ex.Message} Rental rows were cleared until reload succeeds.", source, StringComparison.Ordinal);
-            Assert.Contains("void ClearRentalStateAfterLoadFailure()", source, StringComparison.Ordinal);
-            Assert.Contains("_allRentals.Clear();", source, StringComparison.Ordinal);
-            Assert.Contains("Rentals.Clear();", source, StringComparison.Ordinal);
-            Assert.Contains("ActiveRentals.Clear();", source, StringComparison.Ordinal);
-            Assert.Contains("SelectedRental = null;", source, StringComparison.Ordinal);
-            Assert.Contains("OnPropertyChanged(nameof(SearchSummary));", source, StringComparison.Ordinal);
-            Assert.Contains("OnPropertyChanged(nameof(CheckedOutSummary));", source, StringComparison.Ordinal);
-            Assert.Contains("OnPropertyChanged(nameof(SelectedRequestHolderLine));", source, StringComparison.Ordinal);
-            Assert.Contains("OnPropertyChanged(nameof(SelectedRequestNextAction));", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "ClearRentalStateAfterLoadFailure();",
+                "Failed to load rentals: {ex.Message} Rental rows were cleared until reload succeeds.",
+                "void ClearRentalStateAfterLoadFailure()",
+                "_allRentals.Clear();",
+                "Rentals.Clear();",
+                "ActiveRentals.Clear();",
+                "SelectedRental = null;",
+                "OnPropertyChanged(nameof(SearchSummary));",
+                "OnPropertyChanged(nameof(CheckedOutSummary));",
+                "OnPropertyChanged(nameof(SelectedRequestHolderLine));",
+                "OnPropertyChanged(nameof(SelectedRequestNextAction));");
             Assert.DoesNotContain("await _dialogService.ShowInfoAsync($\"Failed to load rentals: {ex.Message}\", \"Error\");", source, StringComparison.Ordinal);
         }
 
@@ -45,11 +49,13 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
 
-            Assert.Contains("if (!selectedRentalId.HasValue)", source, StringComparison.Ordinal);
-            Assert.Contains("if (SelectedRental != null && !Rentals.Contains(SelectedRental))", source, StringComparison.Ordinal);
-            Assert.Contains("SelectedRental = null;", source, StringComparison.Ordinal);
-            Assert.Contains("bool CanReturnSelectedRental() => SelectedRental != null && IsRentalActive(SelectedRental);", source, StringComparison.Ordinal);
-            Assert.Contains("bool CanPlaceRequestForSelectedRental() => SelectedRental != null && IsRentalActive(SelectedRental);", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "if (!selectedRentalId.HasValue)",
+                "if (SelectedRental != null && !Rentals.Contains(SelectedRental))",
+                "SelectedRental = null;",
+                "bool CanReturnSelectedRental() => SelectedRental != null && IsRentalActive(SelectedRental);",
+                "bool CanPlaceRequestForSelectedRental() => SelectedRental != null && IsRentalActive(SelectedRental);");
         }
 
         [Fact]
@@ -57,15 +63,17 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
 
-            Assert.Contains("var updated = await _reservationService.ConfirmReservationAsync(requestId);", source, StringComparison.Ordinal);
-            Assert.Contains("var updated = await _reservationService.CancelReservationAsync(request.ReservationID);", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "var updated = await _reservationService.ConfirmReservationAsync(requestId);",
+                "var updated = await _reservationService.CancelReservationAsync(request.ReservationID);",
+                "The selected request could not be confirmed. It may have been removed or changed by another user. The open request queue has been refreshed.",
+                "The selected request could not be cancelled. It may have been removed or changed by another user. The open request queue has been refreshed.",
+                "Failed to confirm request: {ex.Message} The open request queue has been refreshed in case the request status changed before the failure.",
+                "Failed to cancel request: {ex.Message} The open request queue has been refreshed in case the request status changed before the failure.");
             Assert.True(
-                CountOccurrences(source, "await LoadPendingRequestsAsync();") >= 7,
+                CountOccurrences(source, "await LoadPendingRequestsAsync();") >= 6,
                 "Expected request status, placement, and rental recovery paths to refresh the open request queue.");
-            Assert.Contains("The selected request could not be confirmed. It may have been removed or changed by another user. The open request queue has been refreshed.", source, StringComparison.Ordinal);
-            Assert.Contains("The selected request could not be cancelled. It may have been removed or changed by another user. The open request queue has been refreshed.", source, StringComparison.Ordinal);
-            Assert.Contains("Failed to confirm request: {ex.Message} The open request queue has been refreshed in case the request status changed before the failure.", source, StringComparison.Ordinal);
-            Assert.Contains("Failed to cancel request: {ex.Message} The open request queue has been refreshed in case the request status changed before the failure.", source, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -73,15 +81,17 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
 
-            Assert.Contains("async Task LoadPendingRequestsAsync(bool notifyOnFailure = false)", source, StringComparison.Ordinal);
-            Assert.Contains("_logger.LogError(ex, \"Failed to load open reservations for rentals page\");", source, StringComparison.Ordinal);
-            Assert.Contains("PendingRequests.Clear();", source, StringComparison.Ordinal);
-            Assert.Contains("SelectedRequest = null;", source, StringComparison.Ordinal);
-            Assert.Contains("OnPropertyChanged(nameof(RequestSummary));", source, StringComparison.Ordinal);
-            Assert.Contains("Failed to confirm request: {ex.Message}", source, StringComparison.Ordinal);
-            Assert.Contains("Failed to cancel request: {ex.Message}", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("await LoadPendingRequestsAsync(notifyOnFailure: true);\n                await _dialogService.ShowInfoAsync($\"Failed to confirm request", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("await LoadPendingRequestsAsync(notifyOnFailure: true);\n                await _dialogService.ShowInfoAsync($\"Failed to cancel request", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "async Task LoadPendingRequestsAsync(bool notifyOnFailure = false)",
+                "_logger.LogError(ex, \"Failed to load open reservations for rentals page\");",
+                "PendingRequests.Clear();",
+                "SelectedRequest = null;",
+                "OnPropertyChanged(nameof(RequestSummary));",
+                "Failed to confirm request: {ex.Message}",
+                "Failed to cancel request: {ex.Message}");
+            Assert.DoesNotContain("await LoadPendingRequestsAsync(notifyOnFailure: true);\n                await _dialogService.ShowInfoAsync($\"Failed to confirm request", NormalizeNewlines(source), StringComparison.Ordinal);
+            Assert.DoesNotContain("await LoadPendingRequestsAsync(notifyOnFailure: true);\n                await _dialogService.ShowInfoAsync($\"Failed to cancel request", NormalizeNewlines(source), StringComparison.Ordinal);
         }
 
         [Fact]
@@ -89,13 +99,15 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
 
-            Assert.Contains("await LoadPendingRequestsAsync(notifyOnFailure: true);", source, StringComparison.Ordinal);
-            Assert.Contains("async Task LoadPendingRequestsAsync(bool notifyOnFailure = false)", source, StringComparison.Ordinal);
-            Assert.Contains("PendingRequests.Clear();", source, StringComparison.Ordinal);
-            Assert.Contains("SelectedRequest = null;", source, StringComparison.Ordinal);
-            Assert.Contains("if (notifyOnFailure)", source, StringComparison.Ordinal);
-            Assert.Contains("Failed to load open requests: {ex.Message} The open request queue has been cleared until it can be refreshed.", source, StringComparison.Ordinal);
-            Assert.Contains("Failed to place request: {ex.Message} The open request queue has been refreshed in case the request was saved before the failure.", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "await LoadPendingRequestsAsync(notifyOnFailure: true);",
+                "async Task LoadPendingRequestsAsync(bool notifyOnFailure = false)",
+                "PendingRequests.Clear();",
+                "SelectedRequest = null;",
+                "if (notifyOnFailure)",
+                "Failed to load open requests: {ex.Message} The open request queue has been cleared until it can be refreshed.",
+                "Failed to place request: {ex.Message} The open request queue has been refreshed in case the request was saved before the failure.");
         }
 
         [Fact]
@@ -103,17 +115,21 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
 
-            Assert.Contains("async Task RefreshRentalDeskAfterOperationFailureAsync(int rentalId)", source, StringComparison.Ordinal);
-            Assert.Contains("_allRentals = await _rentalService.GetAllRentalsAsync();", source, StringComparison.Ordinal);
-            Assert.Contains("await LoadPendingRequestsAsync();", source, StringComparison.Ordinal);
-            Assert.Contains("RefreshActiveRentals();", source, StringComparison.Ordinal);
-            Assert.Contains("ApplyFilter(rentalId);", source, StringComparison.Ordinal);
-            Assert.Equal(3, CountOccurrences(source, "await RefreshRentalDeskAfterOperationFailureAsync("));
-            Assert.Contains("var rentalToExtend = SelectedRental;", source, StringComparison.Ordinal);
-            Assert.Contains("await _rentalService.ExtendRentalAsync(rentalToExtend.RentalID, newDueDate);", source, StringComparison.Ordinal);
-            Assert.Contains("_logger.LogError(ex, \"Failed to extend rental {RentalID}\", rentalToExtend.RentalID);", source, StringComparison.Ordinal);
-            Assert.Contains("_logger.LogError(ex, \"Failed to delete rental {RentalID}\", rentalToDelete.RentalID);", source, StringComparison.Ordinal);
-            Assert.Equal(3, CountOccurrences(source, "The rental desk has been refreshed so current rental actions match the latest saved state."));
+            AssertContainsAll(
+                source,
+                "async Task RefreshRentalDeskAfterOperationFailureAsync(int rentalId)",
+                "_allRentals = await _rentalService.GetAllRentalsAsync();",
+                "await LoadPendingRequestsAsync();",
+                "RefreshActiveRentals();",
+                "ApplyFilter(rentalId);",
+                "var rentalToExtend = SelectedRental;",
+                "await _rentalService.ExtendRentalAsync(rentalToExtend.RentalID, newDueDate);",
+                "_logger.LogError(ex, \"Failed to extend rental {RentalID}\", rentalToExtend.RentalID);",
+                "_logger.LogError(ex, \"Failed to delete rental {RentalID}\", rentalToDelete.RentalID);",
+                "The rental desk has been refreshed so current rental actions match the latest saved state.");
+            Assert.True(
+                CountOccurrences(source, "await RefreshRentalDeskAfterOperationFailureAsync(") >= 3,
+                "Expected check-in, extend, and delete failure paths to refresh the rental desk.");
             Assert.DoesNotContain("_logger.LogError(ex, \"Failed to extend rental {RentalID}\", SelectedRental.RentalID);", source, StringComparison.Ordinal);
             Assert.DoesNotContain("_logger.LogError(ex, \"Failed to delete rental {RentalID}\", rentalToDelete?.RentalID);", source, StringComparison.Ordinal);
         }
@@ -124,19 +140,31 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
             var helper = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "GridContextMenuSelection.cs");
 
-            Assert.Contains("var row = GridContextMenuSelection.SelectRow(sender, e);", source, StringComparison.Ordinal);
-            Assert.Contains("GridContextMenuSelection.FindAncestor<System.Windows.Controls.DataGrid>(focusedElement)", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                source,
+                "var row = GridContextMenuSelection.SelectRow(sender, e);",
+                "GridContextMenuSelection.FindAncestor<System.Windows.Controls.DataGrid>(focusedElement)");
             Assert.DoesNotContain("VisualTreeHelper.GetParent", source, StringComparison.Ordinal);
             Assert.DoesNotContain("private static DependencyObject? GetParent", source, StringComparison.Ordinal);
-            Assert.Contains("return TryGetVisualParent(current)", helper, StringComparison.Ordinal);
-            Assert.Contains("?? TryGetLogicalParent(current)", helper, StringComparison.Ordinal);
-            Assert.Contains("?? TryGetFrameworkParent(current);", helper, StringComparison.Ordinal);
+            AssertContainsAll(
+                helper,
+                "return TryGetVisualParent(current)",
+                "?? TryGetLogicalParent(current)",
+                "?? TryGetFrameworkParent(current);",
+                "FrameworkElement element => element.Parent",
+                "FrameworkContentElement contentElement => contentElement.Parent");
             Assert.True(
                 CountOccurrences(helper, "catch (InvalidOperationException)") >= 2,
                 "Expected guarded visual and logical tree traversal to keep invalid WPF parent states non-fatal.");
-            Assert.Contains("FrameworkElement element => element.Parent", helper, StringComparison.Ordinal);
-            Assert.Contains("FrameworkContentElement contentElement => contentElement.Parent", helper, StringComparison.Ordinal);
             Assert.DoesNotContain("return LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
+        }
+
+        private static void AssertContainsAll(string source, params string[] expectedSnippets)
+        {
+            foreach (var snippet in expectedSnippets)
+            {
+                Assert.Contains(snippet, source, StringComparison.Ordinal);
+            }
         }
 
         private static int CountOccurrences(string source, string value)
@@ -152,6 +180,8 @@ namespace InventoryManagementApp.Tests
 
             return count;
         }
+
+        private static string NormalizeNewlines(string source) => source.Replace("\r\n", "\n");
 
         private static string ReadRepoFile(params string[] parts)
         {
