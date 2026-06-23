@@ -161,7 +161,8 @@ namespace InventoryManagementApp.Tests
 
                 Assert.Equal(0xE8, ((SolidColorBrush)app.Resources["ThemeShellHeaderBrush"]).Color.A);
                 Assert.Equal(0x5E, ((SolidColorBrush)app.Resources["ThemeShellMenuBrush"]).Color.A);
-                Assert.Equal(0xCF, ((SolidColorBrush)app.Resources["ThemePopupSurfaceBrush"]).Color.A);
+                Assert.Equal(0x17, ((SolidColorBrush)app.Resources["ThemePopupSurfaceBrush"]).Color.A);
+                Assert.Equal(0xCF, ((SolidColorBrush)app.Resources["ThemeMenuDropDownBackgroundBrush"]).Color.A);
                 Assert.Equal(0xCF, ((SolidColorBrush)app.Resources["ComboBoxPopupBackgroundBrush"]).Color.A);
                 Assert.Equal(0x3B, ((SolidColorBrush)app.Resources["ThemeShellFooterBrush"]).Color.A);
                 Assert.Equal(0xD6, ((SolidColorBrush)app.Resources["ThemeDialogSurfaceBrush"]).Color.A);
@@ -302,7 +303,8 @@ namespace InventoryManagementApp.Tests
                 service.ApplyCustomTheme(settings);
 
                 Assert.Equal(0x2E, ((SolidColorBrush)app.Resources["ThemeShellMenuBrush"]).Color.A);
-                Assert.Equal(0xEB, ((SolidColorBrush)app.Resources["ThemePopupSurfaceBrush"]).Color.A);
+                Assert.Equal(0x1F, ((SolidColorBrush)app.Resources["ThemePopupSurfaceBrush"]).Color.A);
+                Assert.Equal(0xEB, ((SolidColorBrush)app.Resources["ThemeMenuDropDownBackgroundBrush"]).Color.A);
                 Assert.Equal(0xEB, ((SolidColorBrush)app.Resources["ComboBoxPopupBackgroundBrush"]).Color.A);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;

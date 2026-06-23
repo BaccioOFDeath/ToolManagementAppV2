@@ -3,7 +3,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       x:Class="InventoryManagementApp.Views.Pages.ItemSearchPage"
-      Background="{DynamicResource BackgroundBrush}"
+      Background="{DynamicResource MainContentBackgroundBrush}"
       Loaded="Page_Loaded"
       Unloaded="Page_Unloaded">
     <Page.Resources>

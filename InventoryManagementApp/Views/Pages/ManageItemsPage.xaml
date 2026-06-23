@@ -5,7 +5,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
       xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
-      Background="{DynamicResource BackgroundBrush}">
+      Background="{DynamicResource MainContentBackgroundBrush}">
     <Page.Resources>
         <Style x:Key="DirectoryStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
             <Setter Property="Padding" Value="12,10"/>

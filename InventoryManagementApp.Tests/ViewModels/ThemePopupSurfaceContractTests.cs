@@ -11,12 +11,25 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var themeService = ReadRepositoryFile("InventoryManagementApp", "Services", "ThemeService.cs");
 
-            Assert.Contains("ThemePopupSurfaceBrush", themeService, StringComparison.Ordinal);
+            Assert.Contains("ThemeMenuDropDownBackgroundBrush", themeService, StringComparison.Ordinal);
             Assert.Contains("CreateBrush(settings.SurfaceAltColor, settings.MenuDropDownOpacity)", themeService, StringComparison.Ordinal);
+            Assert.Contains("ThemePopupSurfaceBrush", themeService, StringComparison.Ordinal);
+            Assert.Contains("CreateBrush(settings.SurfaceAltColor, surfaceAltOpacity)", themeService, StringComparison.Ordinal);
             Assert.Contains("ComboBoxPopupBackgroundBrush", themeService, StringComparison.Ordinal);
             Assert.DoesNotContain("Math.Min(surfaceAltOpacity, settings.MenuOpacity)", themeService, StringComparison.Ordinal);
             Assert.DoesNotContain("\"ComboBoxPopupBackgroundBrush\", CreateBrush(settings.InputColor, settings.InputOpacity)", themeService, StringComparison.Ordinal);
             Assert.DoesNotContain("Math.Max(settings.InputOpacity, 0.9)", themeService, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ThemeResources_RouteNavigationMenuDropdownRowsThroughDedicatedDropdownBrush()
+        {
+            var tokens = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.Customization.xaml");
+            var styles = ReadRepositoryFile("InventoryManagementApp", "Resources", "Styles.xaml");
+
+            Assert.Contains("x:Key=\"ThemeMenuDropDownBackgroundBrush\"", tokens, StringComparison.Ordinal);
+            Assert.Contains("x:Key=\"SectionDropDownItem\"", styles, StringComparison.Ordinal);
+            Assert.Contains("Background\" Value=\"{DynamicResource ThemeMenuDropDownBackgroundBrush}\"", styles, StringComparison.Ordinal);
         }
 
         [Fact]

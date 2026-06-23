@@ -46,11 +46,13 @@
     <SolidColorBrush x:Key="ThemeGlassSurfaceBrush" Color="#DFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeGlassSurfaceAltBrush" Color="#BFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeAppBackgroundOverlayBrush" Color="#00FFFFFF"/>
+    <SolidColorBrush x:Key="MainContentBackgroundBrush" Color="#00000000"/>
     <SolidColorBrush x:Key="ThemeShellHeaderBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeShellMenuBrush" Color="#FFE8EDF3"/>
     <SolidColorBrush x:Key="ThemeShellFooterBrush" Color="#BFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeDialogSurfaceBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="ThemePopupSurfaceBrush" Color="#FFE8EDF3"/>
+    <SolidColorBrush x:Key="ThemeMenuDropDownBackgroundBrush" Color="#FFE8EDF3"/>
     <SolidColorBrush x:Key="NavigationSurfaceBrush" Color="#FFE8EDF3"/>
     <SolidColorBrush x:Key="NavigationAltSurfaceBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeGridLineBrush" Color="#6B94A3B8"/>

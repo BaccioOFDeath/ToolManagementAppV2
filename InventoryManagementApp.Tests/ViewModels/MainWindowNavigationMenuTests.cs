@@ -30,6 +30,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("<ControlTemplate TargetType=\"MenuItem\">", style, StringComparison.Ordinal);
             Assert.Contains("SystemColors.HighlightBrushKey", style, StringComparison.Ordinal);
             Assert.Contains("SystemColors.HighlightTextBrushKey", style, StringComparison.Ordinal);
+            Assert.Contains("Property=\"Background\" Value=\"{DynamicResource ThemeMenuDropDownBackgroundBrush}\"", style, StringComparison.Ordinal);
+            Assert.DoesNotContain("Property=\"Background\" Value=\"{DynamicResource SurfaceBrush}\"", style, StringComparison.Ordinal);
             Assert.Contains("TargetName=\"Root\" Property=\"Background\" Value=\"{DynamicResource AccentBrush}\"", style, StringComparison.Ordinal);
             Assert.Contains("Property=\"Foreground\" Value=\"{DynamicResource OnAccentForegroundBrush}\"", style, StringComparison.Ordinal);
             Assert.Contains("Property=\"Foreground\" Value=\"{DynamicResource DisabledForegroundBrush}\"", style, StringComparison.Ordinal);

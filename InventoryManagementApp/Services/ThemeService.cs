@@ -84,6 +84,7 @@ namespace InventoryManagementApp.Services
 
                 Set(resources, "BackgroundBrush", CreateBackgroundBrush(settings));
                 Set(resources, "ThemeAppBackgroundOverlayBrush", CreateBrush(settings.BackgroundOverlayColor, settings.BackgroundOverlayOpacity));
+                Set(resources, "MainContentBackgroundBrush", Brushes.Transparent);
                 Set(resources, "SurfaceBrush", surfaceBrush);
                 Set(resources, "SurfaceAltBrush", surfaceAltBrush);
                 Set(resources, "NavigationSurfaceBrush", navigationBrush);
@@ -92,7 +93,8 @@ namespace InventoryManagementApp.Services
                 Set(resources, "ThemeShellMenuBrush", CreateBrush(settings.NavigationColor, settings.MenuOpacity));
                 Set(resources, "ThemeShellFooterBrush", CreateBrush(settings.SurfaceAltColor, settings.FooterOpacity));
                 Set(resources, "ThemeDialogSurfaceBrush", CreateBrush(settings.SurfaceColor, settings.DialogOpacity));
-                Set(resources, "ThemePopupSurfaceBrush", CreateBrush(settings.SurfaceAltColor, settings.MenuDropDownOpacity));
+                Set(resources, "ThemePopupSurfaceBrush", CreateBrush(settings.SurfaceAltColor, surfaceAltOpacity));
+                Set(resources, "ThemeMenuDropDownBackgroundBrush", CreateBrush(settings.SurfaceAltColor, settings.MenuDropDownOpacity));
                 Set(resources, "GlassSurfaceBrush", CreateBrush(settings.SurfaceColor, Math.Min(settings.SurfaceOpacity, 0.78)));
                 Set(resources, "GlassSurfaceAltBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(settings.SurfaceAltOpacity, 0.68)));
                 Set(resources, "TransparentSurfaceBrush", Brushes.Transparent);
