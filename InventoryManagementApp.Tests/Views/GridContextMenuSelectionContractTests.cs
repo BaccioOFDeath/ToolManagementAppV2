@@ -40,6 +40,7 @@ namespace InventoryManagementApp.Tests.Views
                 new[] { "InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml.cs" },
                 new[] { "InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs" },
                 new[] { "InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs" },
+                new[] { "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs" },
                 new[] { "InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml.cs" },
                 new[] { "InventoryManagementApp", "Views", "Pages", "MaintenancePage.xaml.cs" },
                 new[] { "InventoryManagementApp", "Views", "Pages", "CalibrationPage.xaml.cs" }
@@ -61,7 +62,8 @@ namespace InventoryManagementApp.Tests.Views
                 [new[] { "InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs" }] = new[] { "private static T? FindAncestor", "private static DependencyObject? GetParent" },
                 [new[] { "InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs" }] = new[] { "current = VisualTreeHelper.GetParent(current);" },
                 [new[] { "InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml.cs" }] = new[] { "private static T? FindParent", "VisualTreeHelper.GetParent(child)" },
-                [new[] { "InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs" }] = new[] { "private static T? FindParent", "VisualTreeHelper.GetParent(child)" }
+                [new[] { "InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs" }] = new[] { "private static T? FindParent", "VisualTreeHelper.GetParent(child)" },
+                [new[] { "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs" }] = new[] { "if (sender is DataGridRow row", "row.IsSelected = true;", "e.Handled = true;" }
             };
 
             foreach (var entry in pagePaths)
