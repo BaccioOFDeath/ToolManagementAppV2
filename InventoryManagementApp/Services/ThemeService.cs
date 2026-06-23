@@ -92,12 +92,12 @@ namespace InventoryManagementApp.Services
                 Set(resources, "ThemeShellMenuBrush", CreateBrush(settings.NavigationColor, settings.MenuOpacity));
                 Set(resources, "ThemeShellFooterBrush", CreateBrush(settings.SurfaceAltColor, settings.FooterOpacity));
                 Set(resources, "ThemeDialogSurfaceBrush", CreateBrush(settings.SurfaceColor, settings.DialogOpacity));
-                Set(resources, "ThemePopupSurfaceBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(surfaceAltOpacity, settings.MenuOpacity)));
+                Set(resources, "ThemePopupSurfaceBrush", CreateBrush(settings.SurfaceAltColor, settings.MenuDropDownOpacity));
                 Set(resources, "GlassSurfaceBrush", CreateBrush(settings.SurfaceColor, Math.Min(settings.SurfaceOpacity, 0.78)));
                 Set(resources, "GlassSurfaceAltBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(settings.SurfaceAltOpacity, 0.68)));
                 Set(resources, "TransparentSurfaceBrush", Brushes.Transparent);
                 Set(resources, "TextBoxBackgroundBrush", inputBrush);
-                Set(resources, "ComboBoxPopupBackgroundBrush", CreateBrush(settings.SurfaceAltColor, Math.Min(surfaceAltOpacity, settings.MenuOpacity)));
+                Set(resources, "ComboBoxPopupBackgroundBrush", CreateBrush(settings.SurfaceAltColor, settings.MenuDropDownOpacity));
                 Set(resources, "ForegroundBrush", CreateBrush(settings.TextColor, 1));
                 Set(resources, "ForegroundMutedBrush", CreateBrush(settings.MutedTextColor, 1));
                 Set(resources, "AccentBrush", CreateBrush(settings.AccentColor, 1));

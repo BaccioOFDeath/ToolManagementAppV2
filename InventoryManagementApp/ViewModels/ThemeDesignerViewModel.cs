@@ -287,6 +287,12 @@ namespace InventoryManagementApp.ViewModels
             set => SetDouble(value, (settings, newValue) => settings.MenuOpacity = newValue, nameof(MenuOpacity));
         }
 
+        public double MenuDropDownOpacity
+        {
+            get => _settings.MenuDropDownOpacity;
+            set => SetDouble(value, (settings, newValue) => settings.MenuDropDownOpacity = newValue, nameof(MenuDropDownOpacity));
+        }
+
         public double FooterOpacity
         {
             get => _settings.FooterOpacity;
@@ -587,6 +593,7 @@ namespace InventoryManagementApp.ViewModels
             NavigationOpacity = 0.76;
             HeaderOpacity = 0.68;
             MenuOpacity = 0.62;
+            MenuDropDownOpacity = 0.88;
             FooterOpacity = 0.58;
             DialogOpacity = 0.82;
             DisabledOpacity = 0.48;
@@ -646,6 +653,7 @@ namespace InventoryManagementApp.ViewModels
             NavigationOpacity = 0.18;
             HeaderOpacity = 0.16;
             MenuOpacity = 0.16;
+            MenuDropDownOpacity = 0.82;
             FooterOpacity = 0.14;
             DialogOpacity = 0.34;
             DisabledOpacity = 0.36;
@@ -697,6 +705,7 @@ namespace InventoryManagementApp.ViewModels
             ControlShadowScale = 0;
             HeaderOpacity = 0.96;
             MenuOpacity = 0.92;
+            MenuDropDownOpacity = 0.98;
             FooterOpacity = 0.9;
             DialogOpacity = 0.98;
             DisabledOpacity = 0.42;
@@ -733,6 +742,7 @@ namespace InventoryManagementApp.ViewModels
             NavigationOpacity = 0.96;
             HeaderOpacity = 0.96;
             MenuOpacity = 0.94;
+            MenuDropDownOpacity = 0.98;
             FooterOpacity = 0.92;
             DialogOpacity = 0.98;
             BordersVisible = true;
@@ -790,6 +800,7 @@ namespace InventoryManagementApp.ViewModels
             _settings.NavigationOpacity = 1;
             _settings.HeaderOpacity = 1;
             _settings.MenuOpacity = 1;
+            _settings.MenuDropDownOpacity = 1;
             _settings.FooterOpacity = 1;
             _settings.DialogOpacity = 1;
             _settings.DisabledOpacity = 0.72;
@@ -922,6 +933,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(NavigationOpacity));
             OnPropertyChanged(nameof(HeaderOpacity));
             OnPropertyChanged(nameof(MenuOpacity));
+            OnPropertyChanged(nameof(MenuDropDownOpacity));
             OnPropertyChanged(nameof(FooterOpacity));
             OnPropertyChanged(nameof(DialogOpacity));
             OnPropertyChanged(nameof(DisabledOpacity));

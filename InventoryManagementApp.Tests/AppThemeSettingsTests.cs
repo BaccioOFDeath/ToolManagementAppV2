@@ -14,6 +14,7 @@ public class AppThemeSettingsTests
             SurfaceOpacity = -0.5,
             HeaderOpacity = 4,
             MenuOpacity = double.NaN,
+            MenuDropDownOpacity = double.PositiveInfinity,
             FooterOpacity = -2,
             DialogOpacity = 1.2,
             DisabledOpacity = 9,
@@ -42,6 +43,7 @@ public class AppThemeSettingsTests
         Assert.Equal(0, settings.SurfaceOpacity);
         Assert.Equal(1, settings.HeaderOpacity);
         Assert.Equal(0, settings.MenuOpacity);
+        Assert.Equal(0, settings.MenuDropDownOpacity);
         Assert.Equal(0, settings.FooterOpacity);
         Assert.Equal(1, settings.DialogOpacity);
         Assert.Equal(1, settings.DisabledOpacity);
@@ -99,6 +101,7 @@ public class AppThemeSettingsTests
         settings.BackgroundOverlayOpacity = 0.17;
         settings.HeaderOpacity = 0.42;
         settings.MenuOpacity = 0.37;
+        settings.MenuDropDownOpacity = 0.73;
         settings.FooterOpacity = 0.31;
         settings.DialogOpacity = 0.88;
         settings.DisabledOpacity = 0.63;
@@ -119,6 +122,7 @@ public class AppThemeSettingsTests
         Assert.Equal(0.17, roundTripped.BackgroundOverlayOpacity);
         Assert.Equal(0.42, roundTripped.HeaderOpacity);
         Assert.Equal(0.37, roundTripped.MenuOpacity);
+        Assert.Equal(0.73, roundTripped.MenuDropDownOpacity);
         Assert.Equal(0.31, roundTripped.FooterOpacity);
         Assert.Equal(0.88, roundTripped.DialogOpacity);
         Assert.Equal(0.63, roundTripped.DisabledOpacity);

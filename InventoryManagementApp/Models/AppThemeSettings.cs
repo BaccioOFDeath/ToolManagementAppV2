@@ -36,6 +36,7 @@ namespace InventoryManagementApp.Models
         public double NavigationOpacity { get; set; } = 1.0;
         public double HeaderOpacity { get; set; } = 1.0;
         public double MenuOpacity { get; set; } = 1.0;
+        public double MenuDropDownOpacity { get; set; } = 1.0;
         public double FooterOpacity { get; set; } = 1.0;
         public double DialogOpacity { get; set; } = 1.0;
         public double DisabledOpacity { get; set; } = 0.55;
@@ -127,6 +128,7 @@ namespace InventoryManagementApp.Models
                 settings.NavigationOpacity = 1;
                 settings.HeaderOpacity = 1;
                 settings.MenuOpacity = 1;
+                settings.MenuDropDownOpacity = 1;
                 settings.FooterOpacity = 1;
                 settings.DialogOpacity = 1;
                 settings.DisabledOpacity = 0.5;
@@ -185,6 +187,7 @@ namespace InventoryManagementApp.Models
                 settings.NavigationOpacity = 1;
                 settings.HeaderOpacity = 1;
                 settings.MenuOpacity = 1;
+                settings.MenuDropDownOpacity = 1;
                 settings.FooterOpacity = 1;
                 settings.DialogOpacity = 1;
                 settings.DisabledOpacity = 0.48;
@@ -253,6 +256,7 @@ namespace InventoryManagementApp.Models
             NavigationOpacity = Clamp01(NavigationOpacity);
             HeaderOpacity = Clamp01(HeaderOpacity);
             MenuOpacity = Clamp01(MenuOpacity);
+            MenuDropDownOpacity = Clamp01(MenuDropDownOpacity);
             FooterOpacity = Clamp01(FooterOpacity);
             DialogOpacity = Clamp01(DialogOpacity);
             DisabledOpacity = Clamp(DisabledOpacity, 0.15, 1);

@@ -72,6 +72,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("SurfaceAltOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("BackgroundOverlayOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("NavigationOpacity", xaml, StringComparison.Ordinal);
+            Assert.Contains("MenuDropDownOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("PanelCornerRadius", xaml, StringComparison.Ordinal);
             Assert.Contains("BackgroundImagePath", xaml, StringComparison.Ordinal);
             Assert.Contains("BackgroundImageStretch", xaml, StringComparison.Ordinal);

@@ -165,6 +165,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Equal(0.22, viewModel.ButtonOpacity);
             Assert.Equal(0.18, viewModel.NavigationOpacity);
             Assert.Equal(0.16, viewModel.HeaderOpacity);
+            Assert.Equal(0.82, viewModel.MenuDropDownOpacity);
             Assert.Equal(0, viewModel.BorderThickness);
             Assert.Equal(0, viewModel.ControlBorderThickness);
             Assert.Equal(0, viewModel.ShadowDepth);
@@ -287,6 +288,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                     NavigationOpacity = settings.NavigationOpacity,
                     HeaderOpacity = settings.HeaderOpacity,
                     MenuOpacity = settings.MenuOpacity,
+                    MenuDropDownOpacity = settings.MenuDropDownOpacity,
                     FooterOpacity = settings.FooterOpacity,
                     DialogOpacity = settings.DialogOpacity,
                     DisabledOpacity = settings.DisabledOpacity,

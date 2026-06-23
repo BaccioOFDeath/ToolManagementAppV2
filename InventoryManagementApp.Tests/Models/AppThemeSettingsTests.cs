@@ -45,6 +45,7 @@ namespace InventoryManagementApp.Tests.Models
                 ControlShadowScale = double.NaN,
                 PagePadding = 100,
                 NavigationOpacity = 4,
+                MenuDropDownOpacity = -2,
                 FontScale = 3,
                 HeadingFontScale = 4,
                 ControlHeight = 99,
@@ -88,6 +89,7 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal(0, settings.ControlShadowScale);
             Assert.Equal(28, settings.PagePadding);
             Assert.Equal(1, settings.NavigationOpacity);
+            Assert.Equal(0, settings.MenuDropDownOpacity);
             Assert.Equal(1.4, settings.FontScale);
             Assert.Equal(1.6, settings.HeadingFontScale);
             Assert.Equal(44, settings.ControlHeight);
@@ -184,6 +186,7 @@ namespace InventoryManagementApp.Tests.Models
             var settings = AppThemeSettings.CreateDefault("Dark");
             settings.BackgroundOverlayColor = "#AA223344";
             settings.BackgroundOverlayOpacity = 0.28;
+            settings.MenuDropDownOpacity = 0.83;
             settings.NavigationColor = "#FF111111";
             settings.InputColor = "#FF222222";
             settings.ButtonColor = "#FF333333";
@@ -218,6 +221,7 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("Dark", loaded.BaseTheme);
             Assert.Equal("#AA223344", loaded.BackgroundOverlayColor);
             Assert.Equal(0.28, loaded.BackgroundOverlayOpacity);
+            Assert.Equal(0.83, loaded.MenuDropDownOpacity);
             Assert.Equal("#FF111111", loaded.NavigationColor);
             Assert.Equal("#FF222222", loaded.InputColor);
             Assert.Equal("#FF333333", loaded.ButtonColor);

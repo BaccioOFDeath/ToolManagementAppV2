@@ -153,6 +153,7 @@ namespace InventoryManagementApp.Tests
                 settings.NavigationOpacity = 0.13;
                 settings.HeaderOpacity = 0.91;
                 settings.MenuOpacity = 0.37;
+                settings.MenuDropDownOpacity = 0.81;
                 settings.FooterOpacity = 0.23;
                 settings.DialogOpacity = 0.84;
 
@@ -160,6 +161,8 @@ namespace InventoryManagementApp.Tests
 
                 Assert.Equal(0xE8, ((SolidColorBrush)app.Resources["ThemeShellHeaderBrush"]).Color.A);
                 Assert.Equal(0x5E, ((SolidColorBrush)app.Resources["ThemeShellMenuBrush"]).Color.A);
+                Assert.Equal(0xCF, ((SolidColorBrush)app.Resources["ThemePopupSurfaceBrush"]).Color.A);
+                Assert.Equal(0xCF, ((SolidColorBrush)app.Resources["ComboBoxPopupBackgroundBrush"]).Color.A);
                 Assert.Equal(0x3B, ((SolidColorBrush)app.Resources["ThemeShellFooterBrush"]).Color.A);
                 Assert.Equal(0xD6, ((SolidColorBrush)app.Resources["ThemeDialogSurfaceBrush"]).Color.A);
                 Assert.Equal(0x1C, ((SolidColorBrush)app.Resources["DataGridRowBackgroundBrush"]).Color.A);
@@ -269,6 +272,7 @@ namespace InventoryManagementApp.Tests
                 settings.InputOpacity = 1;
                 settings.SurfaceAltOpacity = 1;
                 settings.MenuOpacity = 1;
+                settings.MenuDropDownOpacity = 1;
 
                 service.ApplyCustomTheme(settings);
 
@@ -277,6 +281,29 @@ namespace InventoryManagementApp.Tests
 
                 Assert.Equal(Color.FromRgb(0x25, 0x2D, 0x36), popupBackground);
                 Assert.Equal(Colors.White, textBoxBackground);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
+        [Fact]
+        public async Task ApplyCustomTheme_MenuDropdownOpacityIsIndependentFromMainSurfaces()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                var settings = AppThemeSettings.CreateDefault("Dark");
+                settings.SurfaceAltColor = "#FF252D36";
+                settings.SurfaceAltOpacity = 0.12;
+                settings.MenuOpacity = 0.18;
+                settings.MenuDropDownOpacity = 0.92;
+
+                service.ApplyCustomTheme(settings);
+
+                Assert.Equal(0x2E, ((SolidColorBrush)app.Resources["ThemeShellMenuBrush"]).Color.A);
+                Assert.Equal(0xEB, ((SolidColorBrush)app.Resources["ThemePopupSurfaceBrush"]).Color.A);
+                Assert.Equal(0xEB, ((SolidColorBrush)app.Resources["ComboBoxPopupBackgroundBrush"]).Color.A);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });

@@ -12,8 +12,9 @@ namespace InventoryManagementApp.Tests.ViewModels
             var themeService = ReadRepositoryFile("InventoryManagementApp", "Services", "ThemeService.cs");
 
             Assert.Contains("ThemePopupSurfaceBrush", themeService, StringComparison.Ordinal);
-            Assert.Contains("CreateBrush(settings.SurfaceAltColor, Math.Min(surfaceAltOpacity, settings.MenuOpacity))", themeService, StringComparison.Ordinal);
+            Assert.Contains("CreateBrush(settings.SurfaceAltColor, settings.MenuDropDownOpacity)", themeService, StringComparison.Ordinal);
             Assert.Contains("ComboBoxPopupBackgroundBrush", themeService, StringComparison.Ordinal);
+            Assert.DoesNotContain("Math.Min(surfaceAltOpacity, settings.MenuOpacity)", themeService, StringComparison.Ordinal);
             Assert.DoesNotContain("\"ComboBoxPopupBackgroundBrush\", CreateBrush(settings.InputColor, settings.InputOpacity)", themeService, StringComparison.Ordinal);
             Assert.DoesNotContain("Math.Max(settings.InputOpacity, 0.9)", themeService, StringComparison.Ordinal);
         }
