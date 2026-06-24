@@ -12,6 +12,7 @@ namespace InventoryManagementApp.Views.Windows
         public ConfirmDialogWindow(string message)
         {
             InitializeComponent();
+            this.UseResponsiveDefaultSize(640, 480);
             DataContext = new ConfirmDialogViewModel(message, result => DialogResult = result);
             this.DisposeDataContextOnUnload();
         }

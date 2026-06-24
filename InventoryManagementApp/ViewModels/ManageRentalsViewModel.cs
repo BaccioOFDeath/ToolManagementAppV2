@@ -356,7 +356,9 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 IsLoading = true;
-                await _rentalService.ReturnItemAsync(returnedRental.RentalID, DateTime.Today);
+                var returnDate = DateTime.Today;
+                await _rentalService.ReturnItemAsync(returnedRental.RentalID, returnDate);
+                MarkRentalReturnedInMemory(returnedRental.RentalID, returnDate);
                 await LoadRentalsAsync();
                 await NotifyWaitingRequestsAsync(returnedRental.ItemID, returnedRental.ItemNumber);
             }
@@ -374,6 +376,28 @@ namespace InventoryManagementApp.ViewModels
             {
                 IsLoading = false;
             }
+        }
+
+        void MarkRentalReturnedInMemory(int rentalId, DateTime returnDate)
+        {
+            foreach (var rental in _allRentals
+                .Concat(Rentals)
+                .Concat(ActiveRentals)
+                .Where(r => r.RentalID == rentalId)
+                .Distinct()
+                .ToList())
+            {
+                rental.Status = "Returned";
+                rental.ReturnDate = returnDate;
+            }
+
+            ActiveRentals.ReplaceRange(ActiveRentals.Where(IsRentalActive).ToList());
+            if (SelectedRental != null && SelectedRental.RentalID == rentalId && !IsRentalActive(SelectedRental))
+                SelectedRental = null;
+
+            OnPropertyChanged(nameof(CheckedOutSummary));
+            OnPropertyChanged(nameof(SelectedRequestHolderLine));
+            OnPropertyChanged(nameof(SelectedRequestNextAction));
         }
 
         static string BuildReturnConfirmationMessage(RentalModel rental)

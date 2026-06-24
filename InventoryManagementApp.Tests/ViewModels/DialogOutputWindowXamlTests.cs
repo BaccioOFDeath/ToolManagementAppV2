@@ -11,6 +11,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var info = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "InfoDialogWindow.xaml");
             var confirm = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "ConfirmDialogWindow.xaml");
+            var confirmCodeBehind = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "ConfirmDialogWindow.xaml.cs");
             var input = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "InputDialogWindow.xaml");
 
             Assert.Contains("Information Notice", info, StringComparison.Ordinal);
@@ -21,6 +22,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Action Review", confirm, StringComparison.Ordinal);
             Assert.Contains("CancelCommand", confirm, StringComparison.Ordinal);
             Assert.Contains("OkCommand", confirm, StringComparison.Ordinal);
+            Assert.Contains("this.UseResponsiveDefaultSize(640, 480);", confirmCodeBehind, StringComparison.Ordinal);
 
             Assert.Contains("Input Required", input, StringComparison.Ordinal);
             Assert.Contains("Input is applied only after OK is selected.", input, StringComparison.Ordinal);

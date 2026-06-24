@@ -62,6 +62,37 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task CheckInCommand_RemovesReturnedRentalFromActiveRentals()
+        {
+            var rentals = new List<RentalModel>
+            {
+                new RentalModel
+                {
+                    RentalID = 7,
+                    ItemID = 80,
+                    ItemNumber = "T30",
+                    CustomerName = "Pickerill Automotive And Tyres",
+                    RentalDate = DateTime.Today.AddDays(-1),
+                    DueDate = DateTime.Today.AddDays(2),
+                    Status = "Rented"
+                }
+            };
+            var rentalService = new StubRentalService(rentals);
+            var dialogService = new StubDialogService();
+            var vm = new ManageRentalsViewModel(rentalService, dialogService);
+
+            await vm.LoadRentalsAsync();
+            Assert.Single(vm.ActiveRentals);
+
+            vm.SelectedRental = vm.ActiveRentals[0];
+            await vm.CheckInCommand.ExecuteAsync(null);
+
+            Assert.Empty(vm.ActiveRentals);
+            Assert.Equal("Returned", rentals[0].Status);
+            Assert.NotNull(rentals[0].ReturnDate);
+        }
+
+        [Fact]
         public async Task CheckInCommand_DoesNotReturnWhenPromptIsCancelled()
         {
             var rentals = new List<RentalModel>
@@ -97,6 +128,12 @@ namespace InventoryManagementApp.Tests
             public Task ReturnItemAsync(int rentalID, DateTime returnDate)
             {
                 ReturnCalls++;
+                var rental = _rentals.Find(r => r.RentalID == rentalID);
+                if (rental != null)
+                {
+                    rental.Status = "Returned";
+                    rental.ReturnDate = returnDate;
+                }
                 return Task.CompletedTask;
             }
             public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.CompletedTask;

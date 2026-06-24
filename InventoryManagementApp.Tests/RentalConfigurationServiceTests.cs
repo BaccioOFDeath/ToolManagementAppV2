@@ -88,6 +88,23 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task GetInvoiceEnabledAsync_WithNoSetting_ReturnsFalse()
+        {
+            var enabled = await _configService.GetInvoiceEnabledAsync();
+
+            Assert.False(enabled);
+        }
+
+        [Fact]
+        public async Task SetAndGetInvoiceEnabled_StoresAndRetrievesValue()
+        {
+            await _configService.SetInvoiceEnabledAsync(true);
+            var enabled = await _configService.GetInvoiceEnabledAsync();
+
+            Assert.True(enabled);
+        }
+
+        [Fact]
         public async Task GetEmailEnabledAsync_WithNoSetting_ReturnsFalse()
         {
             var enabled = await _configService.GetEmailEnabledAsync();

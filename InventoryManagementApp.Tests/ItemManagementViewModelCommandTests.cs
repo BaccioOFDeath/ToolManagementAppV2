@@ -257,7 +257,9 @@ namespace InventoryManagementApp.Tests
             };
             var customer = new RecordingCustomerService();
             var item = new ItemModel { ItemID = 6, ItemNumber = "T6", Location = "A1", QuantityOnHand = 2, RentedQuantity = 0 };
-            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { });
+            var settings = new DummySettingsService();
+            await settings.SaveSettingAsync("Rental.InvoiceEnabled", "True");
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { }, null, settings);
 
             await vm.RentOutCommand.ExecuteAsync(null);
 
@@ -267,6 +269,44 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(2, dialog.PrintPreviewCalls);
             Assert.Contains("Picking Slip - Rental 42", dialog.PrintPreviewTitles);
             Assert.Contains("Invoice - Rental 42", dialog.PrintPreviewTitles);
+        }
+
+        [Fact]
+        public async Task ItemDetailsViewModel_RentOutCommand_SkipsInvoiceWhenInvoiceSettingIsOff()
+        {
+            var dueDate = DateTime.Today.AddDays(3);
+            var rental = new RecordingRentalService();
+            rental.ActiveRentals.Add(new RentalModel
+            {
+                RentalID = 42,
+                ItemID = 6,
+                CustomerID = 8,
+                ItemNumber = "T6",
+                ItemLocation = "A1",
+                CustomerName = "SD European",
+                RentalDate = DateTime.Today,
+                DueDate = dueDate,
+                Status = "Rented"
+            });
+            var dialog = new RecordingDialogService
+            {
+                RentItemDialogResult = (new CustomerModel { CustomerID = 8, Company = "SD European" }, dueDate)
+            };
+            var itemService = new RecordingToggleItemService
+            {
+                GetItemResult = new ItemModel { ItemID = 6, QuantityOnHand = 1, RentedQuantity = 1, Name = "Updated after rent" }
+            };
+            var customer = new RecordingCustomerService();
+            var item = new ItemModel { ItemID = 6, ItemNumber = "T6", Location = "A1", QuantityOnHand = 2, RentedQuantity = 0 };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { }, null, new DummySettingsService());
+
+            await vm.RentOutCommand.ExecuteAsync(null);
+
+            Assert.Equal(1, dialog.ConfirmCalls);
+            Assert.Contains("Print the picking slip for shelf collection now?", dialog.LastConfirmMessage);
+            Assert.Equal(1, dialog.PrintPreviewCalls);
+            Assert.Contains("Picking Slip - Rental 42", dialog.PrintPreviewTitles);
+            Assert.DoesNotContain("Invoice - Rental 42", dialog.PrintPreviewTitles);
         }
 
         [Fact]
@@ -459,13 +499,28 @@ namespace InventoryManagementApp.Tests
 
         private sealed class DummySettingsService : ISettingsService
         {
+            readonly Dictionary<string, string> _settings = new();
             public event EventHandler<IDictionary<ItemDetailField, bool>>? ItemDetailVisibilityChanged;
             public event EventHandler<double>? ItemCardSizeChanged;
-            public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
-            public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>());
-            public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default) => Task.CompletedTask;
-            public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
+            {
+                _settings[key] = value;
+                return Task.CompletedTask;
+            }
+            public Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default)
+                => Task.FromResult(key != null && _settings.TryGetValue(key, out var value) ? value : null);
+            public Task<Dictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new Dictionary<string, string>(_settings));
+            public Task UpdateSettingsAsync(Dictionary<string, string> settings, CancellationToken cancellationToken = default)
+            {
+                foreach (var setting in settings)
+                    _settings[setting.Key] = setting.Value;
+                return Task.CompletedTask;
+            }
+            public Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default)
+            {
+                _settings.Remove(key);
+                return Task.CompletedTask;
+            }
             public Task<string?> GetThemeAsync(CancellationToken cancellationToken = default) => Task.FromResult<string?>(null);
             public Task SaveThemeAsync(string theme, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<int> GetPasswordIterationsAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);

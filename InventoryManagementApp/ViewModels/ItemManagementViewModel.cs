@@ -16,6 +16,7 @@ using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Services;
 using InventoryManagementApp.Services.Printing;
+using InventoryManagementApp.Services.Settings;
 using InventoryManagementApp.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -579,10 +580,11 @@ namespace InventoryManagementApp.ViewModels
         {
             var print = await _dialogService.ShowConfirmAsync(
                 "Print Rental Handoff",
-                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection and the customer rental copy now?");
+                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection now?");
             if (!print)
                 return;
 
+            var printInvoice = await IsRentalInvoiceEnabledAsync().ConfigureAwait(false);
             var rental = await FindNewActiveRentalAsync(item, customer, dueDate)
                 ?? BuildRentalHandoffFallback(item, customer, dueDate);
             var printService = new RentalPrintingService("Equipment Rentals", "", "");
@@ -592,10 +594,26 @@ namespace InventoryManagementApp.ViewModels
                 printService.GeneratePickingSlip(rental),
                 $"Picking Slip - Rental {rentalTitle}",
                 "Shelf picking slip");
-            _dialogService.ShowPrintPreview(
-                printService.GenerateInvoice(rental, dailyRate: 25.00m, lateFee: 0),
-                $"Invoice - Rental {rentalTitle}",
-                "Customer rental copy");
+            if (printInvoice)
+            {
+                _dialogService.ShowPrintPreview(
+                    printService.GenerateInvoice(rental, dailyRate: 25.00m, lateFee: 0),
+                    $"Invoice - Rental {rentalTitle}",
+                    "Customer rental copy");
+            }
+        }
+
+        private async Task<bool> IsRentalInvoiceEnabledAsync()
+        {
+            try
+            {
+                return await new RentalConfigurationService(_settingsService).GetInvoiceEnabledAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to read rental invoice setting.");
+                return false;
+            }
         }
 
         private async Task<RentalModel?> FindNewActiveRentalAsync(ItemModel item, CustomerModel customer, DateTime dueDate)

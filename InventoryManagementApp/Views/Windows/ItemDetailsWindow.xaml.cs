@@ -15,10 +15,11 @@ namespace InventoryManagementApp.Views.Windows
             ICustomerService customerService,
             IRentalService rentalService,
             IDialogService dialogService,
-            ReservationService reservationService)
+            ReservationService reservationService,
+            ISettingsService settingsService)
         {
             InitializeComponent();
-            DataContext = new ItemDetailsViewModel(item, itemService, customerService, rentalService, dialogService, () => Close(), reservationService);
+            DataContext = new ItemDetailsViewModel(item, itemService, customerService, rentalService, dialogService, () => Close(), reservationService, settingsService);
             this.DisposeDataContextOnUnload();
         }
     }

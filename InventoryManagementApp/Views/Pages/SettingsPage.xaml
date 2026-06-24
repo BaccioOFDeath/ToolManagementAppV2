@@ -207,6 +207,7 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Connection string" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
                                         <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Use the exact SQLite or server connection path this workstation should trust. Test before closing Settings." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,12"/>
@@ -286,7 +287,9 @@
                                         <TextBlock Grid.Row="5" Text="Item name (singular)" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
                                         <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ItemLabelSingular}" Margin="8,0,0,8"/>
                                         <TextBlock Grid.Row="6" Text="Item name (plural)" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                                        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding ItemLabelPlural}" Margin="8,0,0,0"/>
+                                        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding ItemLabelPlural}" Margin="8,0,0,8"/>
+                                        <TextBlock Grid.Row="7" Text="Rental invoices" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                                        <CheckBox Grid.Row="7" Grid.Column="1" IsChecked="{Binding InvoiceEnabled}" Content="Enable invoice previews after rental" Margin="8,0,0,0"/>
                                     </Grid>
                                 </Border>
                                 <StackPanel Grid.Column="2">
@@ -296,6 +299,7 @@
                                             <TextBlock Text="{Binding ItemLabelSingular, StringFormat='Singular label: {0}'}" Margin="0,2,0,2" TextWrapping="Wrap"/>
                                             <TextBlock Text="{Binding ItemLabelPlural, StringFormat='Plural label: {0}'}" Margin="0,0,0,2" TextWrapping="Wrap"/>
                                             <TextBlock Text="{Binding Theme, StringFormat='Theme: {0}'}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding InvoiceEnabled, StringFormat='Rental invoices enabled: {0}'}" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </Border>
                                     <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,12">

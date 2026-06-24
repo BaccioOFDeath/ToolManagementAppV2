@@ -138,6 +138,7 @@ namespace InventoryManagementApp.ViewModels
                 try
                 {
                     _emailEnabled = await _rentalConfigService.GetEmailEnabledAsync().ConfigureAwait(false);
+                    _invoiceEnabled = await _rentalConfigService.GetInvoiceEnabledAsync().ConfigureAwait(false);
                     _smtpHost = await _rentalConfigService.GetSmtpHostAsync().ConfigureAwait(false);
                     _smtpPort = await _rentalConfigService.GetSmtpPortAsync().ConfigureAwait(false);
                     _smtpUsername = await _rentalConfigService.GetSmtpUsernameAsync().ConfigureAwait(false);
@@ -169,6 +170,7 @@ namespace InventoryManagementApp.ViewModels
                     }
                     
                     OnPropertyChanged(nameof(EmailEnabled));
+                    OnPropertyChanged(nameof(InvoiceEnabled));
                     OnPropertyChanged(nameof(SmtpHost));
                     OnPropertyChanged(nameof(SmtpPort));
                     OnPropertyChanged(nameof(SmtpUsername));
@@ -676,6 +678,45 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _emailEnabled;
             set => SetProperty(ref _emailEnabled, value);
+        }
+
+        private bool _invoiceEnabled;
+        public bool InvoiceEnabled
+        {
+            get => _invoiceEnabled;
+            set
+            {
+                if (SetProperty(ref _invoiceEnabled, value) && _initialized)
+                {
+                    _ = SaveInvoiceEnabledAsync(value);
+                }
+            }
+        }
+
+        private async Task SaveInvoiceEnabledAsync(bool enabled, CancellationToken token = default)
+        {
+            if (_rentalConfigService == null)
+            {
+                return;
+            }
+
+            try
+            {
+                await _rentalConfigService.SetInvoiceEnabledAsync(enabled, token).ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change invoice setting.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogInformation(ex, "Saving invoice setting was canceled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save invoice setting.");
+            }
         }
 
         private string _smtpHost = "";

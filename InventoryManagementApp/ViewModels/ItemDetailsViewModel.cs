@@ -9,6 +9,7 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Printing;
 using InventoryManagementApp.Services.Reservations;
+using InventoryManagementApp.Services.Settings;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -19,6 +20,7 @@ namespace InventoryManagementApp.ViewModels
         readonly IRentalService _rentalService;
         readonly IDialogService _dialogService;
         readonly ReservationService? _reservationService;
+        readonly ISettingsService? _settingsService;
 
         public ItemModel ItemModel { get; }
 
@@ -117,7 +119,8 @@ namespace InventoryManagementApp.ViewModels
             IRentalService rentalService,
             IDialogService dialogService,
             Action onClose,
-            ReservationService? reservationService = null)
+            ReservationService? reservationService = null,
+            ISettingsService? settingsService = null)
         {
             ItemModel = item;
             _itemService = itemService;
@@ -125,6 +128,7 @@ namespace InventoryManagementApp.ViewModels
             _rentalService = rentalService;
             _dialogService = dialogService;
             _reservationService = reservationService;
+            _settingsService = settingsService;
             CloseCommand = new RelayCommand(onClose);
             EditCommand = new AsyncRelayCommand(EditAsync);
             RentOutCommand = new AsyncRelayCommand(RentOutAsync);
@@ -217,10 +221,11 @@ namespace InventoryManagementApp.ViewModels
         {
             var print = await _dialogService.ShowConfirmAsync(
                 "Print Rental Handoff",
-                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection and the customer rental copy now?");
+                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection now?");
             if (!print)
                 return;
 
+            var printInvoice = await IsRentalInvoiceEnabledAsync().ConfigureAwait(false);
             var rental = await FindNewActiveRentalAsync(customer, dueDate)
                 ?? BuildRentalHandoffFallback(customer, dueDate);
             var printService = new RentalPrintingService("Equipment Rentals", "", "");
@@ -230,10 +235,28 @@ namespace InventoryManagementApp.ViewModels
                 printService.GeneratePickingSlip(rental),
                 $"Picking Slip - Rental {rentalTitle}",
                 "Shelf picking slip");
-            _dialogService.ShowPrintPreview(
-                printService.GenerateInvoice(rental, dailyRate: 25.00m, lateFee: 0),
-                $"Invoice - Rental {rentalTitle}",
-                "Customer rental copy");
+            if (printInvoice)
+            {
+                _dialogService.ShowPrintPreview(
+                    printService.GenerateInvoice(rental, dailyRate: 25.00m, lateFee: 0),
+                    $"Invoice - Rental {rentalTitle}",
+                    "Customer rental copy");
+            }
+        }
+
+        async Task<bool> IsRentalInvoiceEnabledAsync()
+        {
+            if (_settingsService == null)
+                return false;
+
+            try
+            {
+                return await new RentalConfigurationService(_settingsService).GetInvoiceEnabledAsync().ConfigureAwait(false);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         async Task<RentalModel?> FindNewActiveRentalAsync(CustomerModel customer, DateTime dueDate)

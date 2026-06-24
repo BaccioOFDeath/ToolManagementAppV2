@@ -57,6 +57,9 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("document.ColumnWidth = contentWidth", codeBehind, StringComparison.Ordinal);
             Assert.Contains("RebalanceTableColumns(table)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("GridUnitType.Star", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("table.Columns.Count == 2", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("new GridLength(3, GridUnitType.Star)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains(": 80", codeBehind, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)

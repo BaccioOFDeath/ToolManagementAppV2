@@ -221,8 +221,17 @@ namespace InventoryManagementApp.Views.Windows
             if (table.Columns.Count == 0)
                 return;
 
+            if (table.Columns.Count == 2
+                && table.Columns[0].Width.IsAbsolute
+                && !table.Columns[1].Width.IsAbsolute)
+            {
+                table.Columns[0].Width = new GridLength(1, GridUnitType.Star);
+                table.Columns[1].Width = new GridLength(3, GridUnitType.Star);
+                return;
+            }
+
             var weights = table.Columns
-                .Select(column => column.Width.IsAbsolute ? Math.Max(1, column.Width.Value) : 1)
+                .Select(column => column.Width.IsAbsolute ? Math.Max(1, column.Width.Value) : 80)
                 .ToArray();
 
             for (var index = 0; index < table.Columns.Count; index++)

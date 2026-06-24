@@ -18,6 +18,7 @@ namespace InventoryManagementApp.Services.Settings
         private const string DefaultDailyRateKey = "Rental.DefaultDailyRate";
         private const string DefaultLateFeeKey = "Rental.DefaultLateFee";
         private const string ReminderEnabledKey = "Rental.ReminderEnabled";
+        private const string InvoiceEnabledKey = "Rental.InvoiceEnabled";
         private const string EmailEnabledKey = "Email.Enabled";
         private const string SmtpHostKey = "Email.SmtpHost";
         private const string SmtpPortKey = "Email.SmtpPort";
@@ -72,6 +73,17 @@ namespace InventoryManagementApp.Services.Settings
         public async Task SetReminderEnabledAsync(bool enabled, CancellationToken cancellationToken = default)
         {
             await _settingsService.SaveSettingAsync(ReminderEnabledKey, enabled.ToString(), cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<bool> GetInvoiceEnabledAsync(CancellationToken cancellationToken = default)
+        {
+            var value = await _settingsService.GetSettingAsync(InvoiceEnabledKey, cancellationToken).ConfigureAwait(false);
+            return bool.TryParse(value, out var enabled) && enabled;
+        }
+
+        public async Task SetInvoiceEnabledAsync(bool enabled, CancellationToken cancellationToken = default)
+        {
+            await _settingsService.SaveSettingAsync(InvoiceEnabledKey, enabled.ToString(), cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<bool> GetEmailEnabledAsync(CancellationToken cancellationToken = default)
