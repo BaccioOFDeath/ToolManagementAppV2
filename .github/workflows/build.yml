@@ -28,6 +28,10 @@ jobs:
       shell: bash
       run: bash scripts/check-banned-words.sh
 
+    - name: Check banned words PowerShell fallback
+      shell: bash
+      run: BANNED_WORD_CHECK_FORCE_POWERSHELL=1 bash scripts/check-banned-words.sh
+
     - name: Build
       run: dotnet build InventoryManagementApp.sln --configuration Release --no-restore
 

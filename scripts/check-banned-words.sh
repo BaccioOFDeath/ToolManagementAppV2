@@ -3,7 +3,15 @@ set -euo pipefail
 
 # Keep the legacy standalone lowercase banned term out of source files while
 # allowing the intentionally seeded item CSV data.
-if ! command -v rg >/dev/null 2>&1; then
+force_powershell_fallback="${BANNED_WORD_CHECK_FORCE_POWERSHELL:-}"
+use_powershell_fallback=false
+if [[ -n "$force_powershell_fallback" ]]; then
+  use_powershell_fallback=true
+elif ! command -v rg >/dev/null 2>&1; then
+  use_powershell_fallback=true
+fi
+
+if [[ "$use_powershell_fallback" == true ]]; then
   powershell_command=()
   if command -v powershell.exe >/dev/null 2>&1; then
     powershell_command=(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command -)
