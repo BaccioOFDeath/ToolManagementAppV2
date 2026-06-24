@@ -34,6 +34,9 @@ jobs:
     - name: Test
       run: dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal
 
+    - name: Restore publish runtime
+      run: dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64
+
     - name: Publish
       run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish
 
