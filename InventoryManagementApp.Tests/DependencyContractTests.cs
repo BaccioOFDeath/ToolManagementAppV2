@@ -38,6 +38,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("dotnet-version: 10.0.x", source);
             Assert.Contains("dotnet restore InventoryManagementApp.sln", source);
             Assert.Contains("bash scripts/check-banned-words.sh", source);
+            Assert.Contains("Check banned words PowerShell fallback", source);
+            Assert.Contains("BANNED_WORD_CHECK_FORCE_POWERSHELL=1 bash scripts/check-banned-words.sh", source);
             Assert.Contains("dotnet build InventoryManagementApp.sln --configuration Release --no-restore", source);
             Assert.Contains("dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal", source);
             Assert.Contains("dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64", source);
@@ -50,6 +52,8 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("scripts", "check-banned-words.sh");
 
+            Assert.Contains("BANNED_WORD_CHECK_FORCE_POWERSHELL", source);
+            Assert.Contains("use_powershell_fallback=true", source);
             Assert.Contains("command -v powershell.exe", source);
             Assert.Contains("command -v pwsh", source);
             Assert.Contains("powershell_command=(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command -)", source);
