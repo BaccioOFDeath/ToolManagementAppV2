@@ -92,4 +92,4 @@ if rg --ignore-case --line-number \
   exit 1
 fi
 
-echo "Banned word check passed."} 想 
+echo "Banned word check passed."
