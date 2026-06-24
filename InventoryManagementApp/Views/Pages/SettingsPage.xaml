@@ -207,7 +207,6 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Connection string" Style="{StaticResource PageTitleTextBlock}" Margin="0,0,0,4"/>
                                         <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="Use the exact SQLite or server connection path this workstation should trust. Test before closing Settings." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,12"/>
@@ -268,6 +267,7 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
