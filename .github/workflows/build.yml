@@ -35,7 +35,7 @@ jobs:
       run: dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal
 
     - name: Publish
-      run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-build -o ./publish
+      run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
