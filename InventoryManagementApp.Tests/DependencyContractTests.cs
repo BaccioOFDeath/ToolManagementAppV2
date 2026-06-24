@@ -57,6 +57,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("[string]$Runtime = \"win-x64\"", source);
             Assert.Contains("[switch]$SkipPublish", source);
             Assert.Contains("dotnet restore InventoryManagementApp.sln", source);
+            Assert.Contains("dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive", source);
             Assert.Contains("dotnet build InventoryManagementApp.sln --configuration $Configuration --no-restore", source);
             Assert.Contains("dotnet test InventoryManagementApp.sln --configuration $Configuration --no-build --verbosity normal", source);
             Assert.Contains("dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime $Runtime", source);
