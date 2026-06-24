@@ -22,16 +22,21 @@ Last updated: 2026-06-24.
 - A 2026-06-24 banned-word fallback hardening pass aligned the `rg` path and PowerShell fallback so both skip generated `bin` and `obj` folders, with dependency-contract coverage for both exclusion paths.
 - A 2026-06-24 CI validation consolidation pass added `BANNED_WORD_CHECK_FORCE_POWERSHELL=1` so the Build and Test workflow exercises the PowerShell banned-word fallback even when `rg` is available.
 - A 2026-06-24 banned-word fallback scan hardening pass limited the PowerShell fallback to known text/source file extensions and a few text file names, avoiding binary asset scans when the forced fallback runs in CI.
+- A 2026-06-24 validation readiness pass added `scripts/run-full-validation.ps1` to run the current restore, build, test, publish, normal banned-word, and forced PowerShell fallback checks from one Windows/.NET-capable checkout.
 - Focused navigation menu tests pass after the dark-theme dropdown hover fix.
 - Banned-word script passes after line-ending cleanup, seeded CSV exclusions, and replacing the remaining standalone hits.
 
 ## Validation Needed Next
 
-The current priority is to rerun full validation after the 2026-06-24 contract-test cleanup, SQLite native package pin, Microsoft.Extensions net10 package alignment, net10 test infrastructure alignment, xUnit runner asset isolation, private test-only package metadata, repository-level NuGet audit guard, Build and Test workflow retargeting, banned-word fallback repair, CI publish restore repair, generated-folder exclusion alignment, forced PowerShell fallback CI validation, and PowerShell text-file scan narrowing:
+The current priority is to rerun full validation after the 2026-06-24 contract-test cleanup, SQLite native package pin, Microsoft.Extensions net10 package alignment, net10 test infrastructure alignment, xUnit runner asset isolation, private test-only package metadata, repository-level NuGet audit guard, Build and Test workflow retargeting, banned-word fallback repair, CI publish restore repair, generated-folder exclusion alignment, forced PowerShell fallback CI validation, PowerShell text-file scan narrowing, and the checked-in validation runner:
+
+- `pwsh -File scripts/run-full-validation.ps1`
+
+The runner executes:
 
 - `dotnet restore InventoryManagementApp.sln`
-- `dotnet build InventoryManagementApp.sln --no-restore`
-- `dotnet test InventoryManagementApp.sln --no-build`
+- `dotnet build InventoryManagementApp.sln --configuration Release --no-restore`
+- `dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal`
 - `dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64`
 - `dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish`
 - `scripts/check-banned-words.sh`
@@ -41,7 +46,7 @@ Confirm during restore that the SQLite advisory is gone, that `SQLitePCLRaw.bund
 
 ## Immediate Cleanup Queue
 
-1. Re-run full validation after the source-contract cleanup and dependency pins: restore, build, test, publish restore/publish, normal banned-word check, and forced PowerShell fallback banned-word check.
+1. Re-run full validation with `pwsh -File scripts/run-full-validation.ps1` after the source-contract cleanup and dependency pins.
 2. Confirm the retargeted GitHub Actions Build and Test workflow runs on the next `master`/`main` pull request with the net10 SDK and both banned-word validation paths.
 3. Review any NU190x warnings surfaced by repository-level direct/transitive NuGet auditing and either update affected packages or document intentional risk decisions.
 4. Smoke test the dark-theme top navigation dropdown visually in the running WPF app.
