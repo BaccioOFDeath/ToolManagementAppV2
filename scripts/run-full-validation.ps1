@@ -25,6 +25,7 @@ function Invoke-ValidationStep {
 }
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+$publishOutputPath = Join-Path $repoRoot "publish"
 Push-Location $repoRoot
 
 try {
@@ -43,6 +44,12 @@ try {
     if (-not $SkipPublish) {
         Invoke-ValidationStep "Restore publish runtime" {
             dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime $Runtime
+        }
+
+        Invoke-ValidationStep "Clean publish output" {
+            if (Test-Path $publishOutputPath) {
+                Remove-Item $publishOutputPath -Recurse -Force
+            }
         }
 
         Invoke-ValidationStep "Publish app" {
