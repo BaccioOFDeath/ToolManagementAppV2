@@ -41,6 +41,40 @@ namespace InventoryManagementApp.Tests
             Assert.True(cleanIndex < publishIndex, "The README manual validation sequence should clean stale publish output before publishing fresh artifacts.");
         }
 
+        [Fact]
+        public void ReadmeManualValidationDocumentsFullReleaseSequenceInRunnerOrder()
+        {
+            var source = ReadRepoFile("README.md");
+            var orderedCommands = new[]
+            {
+                "dotnet restore InventoryManagementApp.sln",
+                "dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive",
+                "dotnet build InventoryManagementApp.sln --configuration Release --no-restore",
+                "dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal",
+                "dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64",
+                "if (Test-Path ./publish) { Remove-Item ./publish -Recurse -Force }",
+                "dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish",
+                "bash scripts/check-banned-words.sh",
+                "$env:BANNED_WORD_CHECK_FORCE_POWERSHELL = \"1\"; bash scripts/check-banned-words.sh; Remove-Item Env:BANNED_WORD_CHECK_FORCE_POWERSHELL"
+            };
+
+            Assert.Contains("Manual equivalent:", source);
+
+            for (var index = 0; index < orderedCommands.Length; index++)
+            {
+                Assert.Contains(orderedCommands[index], source);
+
+                if (index > 0)
+                {
+                    AssertAppearsBefore(
+                        source,
+                        orderedCommands[index - 1],
+                        orderedCommands[index],
+                        "The README manual validation sequence should stay aligned with the checked-in validation runner order.");
+                }
+            }
+        }
+
         private static void AssertAppearsBefore(string source, string first, string second, string because)
         {
             var firstIndex = source.IndexOf(first, StringComparison.Ordinal);
