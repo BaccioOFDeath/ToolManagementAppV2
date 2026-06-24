@@ -45,6 +45,19 @@ namespace InventoryManagementApp.Tests
             }
         }
 
+        [Fact]
+        public void TestProjectPinsNet10CompatibleTestInfrastructure()
+        {
+            var source = ReadRepoFile("InventoryManagementApp.Tests", "InventoryManagementApp.Tests.csproj");
+            var document = XDocument.Parse(source);
+            var packageReferences = GetPackageReferences(source);
+
+            Assert.Equal("net10.0-windows", document.Descendants("TargetFramework").Single().Value);
+            Assert.Equal("18.7.0", packageReferences["Microsoft.NET.Test.Sdk"]);
+            Assert.Equal("2.9.3", packageReferences["xunit"]);
+            Assert.Equal("3.1.5", packageReferences["xunit.runner.visualstudio"]);
+        }
+
         private static IReadOnlyDictionary<string, string> GetPackageReferences(string source)
         {
             var document = XDocument.Parse(source);
