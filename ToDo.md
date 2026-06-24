@@ -17,6 +17,7 @@ Last updated: 2026-06-24.
 - A 2026-06-24 dependency-security pass added repository-level NuGet auditing in `Directory.Build.props` with transitive audit mode and dependency-contract coverage.
 - A 2026-06-24 CI validation repair retargeted the Build and Test workflow to `master`/`main`, moved it to the net10 SDK, runs the solution-level restore/build/test commands, and includes the banned-word check before build.
 - A 2026-06-24 CI validation hardening pass replaced the banned-word script's broken no-`rg` fallback with a PowerShell file scan and added dependency-contract coverage so Windows runners can still check source text when ripgrep is unavailable.
+- A 2026-06-24 CI validation hardening follow-up made the no-`rg` fallback use either Windows PowerShell (`powershell.exe`) or PowerShell Core (`pwsh`) so the script remains usable on non-Windows validation hosts that have PowerShell Core but not ripgrep.
 - Focused navigation menu tests pass after the dark-theme dropdown hover fix.
 - Banned-word script passes after line-ending cleanup, seeded CSV exclusions, and replacing the remaining standalone hits.
 
@@ -29,7 +30,7 @@ The current priority is to rerun full validation after the 2026-06-24 contract-t
 - `dotnet test InventoryManagementApp.sln --no-build`
 - `scripts/check-banned-words.sh`
 
-Confirm during restore that the SQLite advisory is gone, that `SQLitePCLRaw.bundle_e_sqlite3` resolves through `SourceGear.sqlite3` 3.50.4.5 or newer, that the Microsoft.Extensions 10.0.9 pins restore without downgrade/conflict warnings, that the updated xUnit/VSTest packages discover and run the net10 test project cleanly, that direct test-only package references remain private assets, that repository-level NuGet auditing reports direct and transitive vulnerabilities through NU190x warnings, that the banned-word script passes both its normal `rg` path and its PowerShell fallback path, and that GitHub Actions now runs the Windows net10 Build and Test workflow for `master`/`main` pushes and pull requests. If tests still fail, prefer behavior-focused tests or smaller targeted source-contract checks over exact multi-line source snippets.
+Confirm during restore that the SQLite advisory is gone, that `SQLitePCLRaw.bundle_e_sqlite3` resolves through `SourceGear.sqlite3` 3.50.4.5 or newer, that the Microsoft.Extensions 10.0.9 pins restore without downgrade/conflict warnings, that the updated xUnit/VSTest packages discover and run the net10 test project cleanly, that direct test-only package references remain private assets, that repository-level NuGet auditing reports direct and transitive vulnerabilities through NU190x warnings, that the banned-word script passes its normal `rg` path plus both PowerShell fallback command paths (`powershell.exe` and `pwsh`, where available), and that GitHub Actions now runs the Windows net10 Build and Test workflow for `master`/`main` pushes and pull requests. If tests still fail, prefer behavior-focused tests or smaller targeted source-contract checks over exact multi-line source snippets.
 
 ## Immediate Cleanup Queue
 
