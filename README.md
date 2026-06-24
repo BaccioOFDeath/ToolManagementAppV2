@@ -13,11 +13,19 @@ The app uses MVVM and SQLite persistence through the existing `DatabaseService`.
 
 Last local validation: 2026-06-23.
 
-- `dotnet restore InventoryManagementApp.sln`: passes with existing NuGet warnings.
-- `dotnet build InventoryManagementApp.sln --no-restore`: passes with warnings.
-- `dotnet test InventoryManagementApp.sln --no-build`: currently fails 14 unrelated brittle source-contract tests in category, reservation, kit, import/export, maintenance/calibration, and rental workflow contract areas.
-- Focused navigation dropdown tests pass after the dark-theme hover fix.
-- `./scripts/check-banned-words.sh`: passes after line-ending cleanup and seeded CSV exclusions.
+Recent 2026-06-24 maintenance updated the app and test projects to the .NET 10 package line, pinned the supported SQLite native bundle, enabled repository-level NuGet auditing, retargeted the Windows Build and Test workflow, and repaired the banned-word validation fallback path. Full validation still needs to be rerun in a Windows/.NET-capable checkout after those changes.
+
+Use the checked-in validation runner for the current restore/build/test/publish/check sequence:
+
+```powershell
+pwsh -File scripts/run-full-validation.ps1
+```
+
+For a faster compile-and-test pass without publishing:
+
+```powershell
+pwsh -File scripts/run-full-validation.ps1 -SkipPublish
+```
 
 See [ToDo.md](ToDo.md) for the current cleanup queue and known remaining work.
 
@@ -48,19 +56,24 @@ Keep production credentials out of source control. Use `appsettings.Production.j
 Prerequisite:
 
 - .NET 10 SDK with Windows desktop workload/runtime support.
+- PowerShell and Git Bash for the repository validation runner.
 
 Validation commands from the repository root:
 
 ```powershell
-dotnet restore InventoryManagementApp.sln
-dotnet build InventoryManagementApp.sln --no-restore
-dotnet test InventoryManagementApp.sln --no-build
+pwsh -File scripts/run-full-validation.ps1
 ```
 
-Run the banned-word check:
+Manual equivalent:
 
-```bash
-./scripts/check-banned-words.sh
+```powershell
+dotnet restore InventoryManagementApp.sln
+dotnet build InventoryManagementApp.sln --configuration Release --no-restore
+dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal
+dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64
+dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish
+bash scripts/check-banned-words.sh
+$env:BANNED_WORD_CHECK_FORCE_POWERSHELL = "1"; bash scripts/check-banned-words.sh; Remove-Item Env:BANNED_WORD_CHECK_FORCE_POWERSHELL
 ```
 
 Repository rules:
