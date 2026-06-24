@@ -44,6 +44,10 @@ jobs:
     - name: Restore publish runtime
       run: dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64
 
+    - name: Clean publish output
+      shell: pwsh
+      run: if (Test-Path ./publish) { Remove-Item ./publish -Recurse -Force }
+
     - name: Publish
       run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish
 
