@@ -4,8 +4,15 @@ set -euo pipefail
 # Keep the legacy standalone lowercase banned term out of source files while
 # allowing the intentionally seeded item CSV data.
 if ! command -v rg >/dev/null 2>&1; then
+  powershell_command=()
   if command -v powershell.exe >/dev/null 2>&1; then
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command - <<'POWERSHELL'
+    powershell_command=(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command -)
+  elif command -v pwsh >/dev/null 2>&1; then
+    powershell_command=(pwsh -NoProfile -Command -)
+  fi
+
+  if ((${#powershell_command[@]} > 0)); then
+    "${powershell_command[@]}" <<'POWERSHELL'
 $ErrorActionPreference = "Stop"
 $root = (Get-Location).Path.TrimEnd([char[]]@('\', '/'))
 $matches = Get-ChildItem -Path . -Recurse -File -Force |
@@ -30,7 +37,7 @@ POWERSHELL
     exit $?
   fi
 
-  echo "Banned word check failed: neither rg nor powershell.exe is available on PATH." >&2
+  echo "Banned word check failed: neither rg nor PowerShell (powershell.exe or pwsh) is available on PATH." >&2
   exit 127
 fi
 

@@ -49,9 +49,12 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("scripts", "check-banned-words.sh");
 
             Assert.Contains("command -v powershell.exe", source);
+            Assert.Contains("command -v pwsh", source);
+            Assert.Contains("powershell_command=(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command -)", source);
+            Assert.Contains("powershell_command=(pwsh -NoProfile -Command -)", source);
             Assert.Contains("Get-ChildItem -Path . -Recurse -File -Force", source);
             Assert.Contains("Select-String -Pattern", source);
-            Assert.Contains("neither rg nor powershell.exe is available", source);
+            Assert.Contains("neither rg nor PowerShell (powershell.exe or pwsh) is available", source);
             Assert.DoesNotContain("$matches = rg", source, StringComparison.OrdinalIgnoreCase);
         }
 
