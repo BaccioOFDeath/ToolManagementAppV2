@@ -19,6 +19,7 @@ $matches = Get-ChildItem -Path . -Recurse -File -Force |
     Where-Object {
         $relative = $_.FullName.Substring($root.Length).TrimStart([char[]]@('\', '/')).Replace('\', '/')
         $relative -notlike ".git/*" -and
+            $relative -notmatch '(^|/)(bin|obj)/' -and
             $relative -ne "Items.csv" -and
             $relative -ne "items.csv" -and
             $relative -ne "scripts/check-banned-words.sh"
@@ -46,6 +47,8 @@ if rg --ignore-case --line-number \
   --glob '!items.csv' \
   --glob '!scripts/check-banned-words.sh' \
   --glob '!.git/**' \
+  --glob '!**/bin/**' \
+  --glob '!**/obj/**' \
   '\btool\b' .; then
   echo "Banned word check failed: standalone banned term found outside allowed legacy files." >&2
   exit 1
