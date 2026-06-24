@@ -48,6 +48,25 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FullValidationRunnerCoversRestoreBuildTestPublishAndBannedWordChecks()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+
+            Assert.Contains("param(", source);
+            Assert.Contains("[string]$Configuration = \"Release\"", source);
+            Assert.Contains("[string]$Runtime = \"win-x64\"", source);
+            Assert.Contains("[switch]$SkipPublish", source);
+            Assert.Contains("dotnet restore InventoryManagementApp.sln", source);
+            Assert.Contains("dotnet build InventoryManagementApp.sln --configuration $Configuration --no-restore", source);
+            Assert.Contains("dotnet test InventoryManagementApp.sln --configuration $Configuration --no-build --verbosity normal", source);
+            Assert.Contains("dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime $Runtime", source);
+            Assert.Contains("dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c $Configuration -r $Runtime --self-contained false --no-restore -o ./publish", source);
+            Assert.Contains("bash scripts/check-banned-words.sh", source);
+            Assert.Contains("BANNED_WORD_CHECK_FORCE_POWERSHELL", source);
+            Assert.Contains("Remove-Item Env:BANNED_WORD_CHECK_FORCE_POWERSHELL", source);
+        }
+
+        [Fact]
         public void BannedWordScriptHasNonRipgrepPowerShellFallback()
         {
             var source = ReadRepoFile("scripts", "check-banned-words.sh");
