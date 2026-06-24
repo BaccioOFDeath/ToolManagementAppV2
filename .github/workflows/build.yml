@@ -24,6 +24,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore InventoryManagementApp.sln
 
+    - name: Audit vulnerable packages
+      run: dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive
+
     - name: Check banned words
       shell: bash
       run: bash scripts/check-banned-words.sh

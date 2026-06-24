@@ -37,6 +37,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("actions/setup-dotnet@v4", source);
             Assert.Contains("dotnet-version: 10.0.x", source);
             Assert.Contains("dotnet restore InventoryManagementApp.sln", source);
+            Assert.Contains("Audit vulnerable packages", source);
+            Assert.Contains("dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive", source);
             Assert.Contains("bash scripts/check-banned-words.sh", source);
             Assert.Contains("Check banned words PowerShell fallback", source);
             Assert.Contains("BANNED_WORD_CHECK_FORCE_POWERSHELL=1 bash scripts/check-banned-words.sh", source);
