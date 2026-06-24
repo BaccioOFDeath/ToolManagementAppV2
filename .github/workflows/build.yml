@@ -27,14 +27,6 @@ jobs:
     - name: Audit vulnerable packages
       run: dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive
 
-    - name: Check banned words
-      shell: bash
-      run: bash scripts/check-banned-words.sh
-
-    - name: Check banned words PowerShell fallback
-      shell: bash
-      run: BANNED_WORD_CHECK_FORCE_POWERSHELL=1 bash scripts/check-banned-words.sh
-
     - name: Build
       run: dotnet build InventoryManagementApp.sln --configuration Release --no-restore
 
@@ -50,6 +42,14 @@ jobs:
 
     - name: Publish
       run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish
+
+    - name: Check banned words
+      shell: bash
+      run: bash scripts/check-banned-words.sh
+
+    - name: Check banned words PowerShell fallback
+      shell: bash
+      run: BANNED_WORD_CHECK_FORCE_POWERSHELL=1 bash scripts/check-banned-words.sh
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
