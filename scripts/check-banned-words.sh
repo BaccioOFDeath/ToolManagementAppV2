@@ -55,7 +55,7 @@ $matches = Get-ChildItem -Path . -Recurse -File -Force |
         $extension = [System.IO.Path]::GetExtension($relative).ToLowerInvariant()
         $fileName = [System.IO.Path]::GetFileName($relative)
         $relative -notlike ".git/*" -and
-            $relative -notmatch '(^|/)(bin|obj)/' -and
+            $relative -notmatch '(^|/)(bin|obj|publish)/' -and
             $relative -ne "Items.csv" -and
             $relative -ne "items.csv" -and
             $relative -ne "scripts/check-banned-words.sh" -and
@@ -86,6 +86,7 @@ if rg --ignore-case --line-number \
   --glob '!.git/**' \
   --glob '!**/bin/**' \
   --glob '!**/obj/**' \
+  --glob '!**/publish/**' \
   '\btool\b' .; then
   echo "Banned word check failed: standalone banned term found outside allowed legacy files." >&2
   exit 1
