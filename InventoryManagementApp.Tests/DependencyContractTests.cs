@@ -55,6 +55,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("powershell_command=(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command -)", source);
             Assert.Contains("powershell_command=(pwsh -NoProfile -Command -)", source);
             Assert.Contains("Get-ChildItem -Path . -Recurse -File -Force", source);
+            Assert.Contains("$relative -notmatch '(^|/)(bin|obj)/'", source);
+            Assert.Contains("--glob '!**/bin/**'", source);
+            Assert.Contains("--glob '!**/obj/**'", source);
             Assert.Contains("Select-String -Pattern", source);
             Assert.Contains("neither rg nor PowerShell (powershell.exe or pwsh) is available", source);
             Assert.DoesNotContain("$matches = rg", source, StringComparison.OrdinalIgnoreCase);
