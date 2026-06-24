@@ -13,20 +13,21 @@ Last updated: 2026-06-24.
 - A 2026-06-24 dependency consolidation pass aligned the app's direct `Microsoft.Extensions.*` runtime package pins with the net10 package line at 10.0.9.
 - A 2026-06-24 test infrastructure pass aligned the xUnit/VSTest package pins with the net10 test project by updating `Microsoft.NET.Test.Sdk`, `xunit`, and `xunit.runner.visualstudio` plus dependency-contract coverage.
 - A 2026-06-24 test dependency hygiene pass isolated `xunit.runner.visualstudio` test adapter assets with `PrivateAssets`/`IncludeAssets` metadata and source-contract coverage.
+- A 2026-06-24 test dependency hygiene pass kept all direct test-only package references private to the test project, including `Microsoft.NET.Test.Sdk`, `Moq`, `xunit`, and `xunit.runner.visualstudio`.
 - A 2026-06-24 dependency-security pass added repository-level NuGet auditing in `Directory.Build.props` with transitive audit mode and dependency-contract coverage.
 - Focused navigation menu tests pass after the dark-theme dropdown hover fix.
 - Banned-word script passes after line-ending cleanup, seeded CSV exclusions, and replacing the remaining standalone hits.
 
 ## Validation Needed Next
 
-The current priority is to rerun full validation after the 2026-06-24 contract-test cleanup, SQLite native package pin, Microsoft.Extensions net10 package alignment, net10 test infrastructure alignment, xUnit runner asset isolation, and repository-level NuGet audit guard:
+The current priority is to rerun full validation after the 2026-06-24 contract-test cleanup, SQLite native package pin, Microsoft.Extensions net10 package alignment, net10 test infrastructure alignment, xUnit runner asset isolation, private test-only package metadata, and repository-level NuGet audit guard:
 
 - `dotnet restore InventoryManagementApp.sln`
 - `dotnet build InventoryManagementApp.sln --no-restore`
 - `dotnet test InventoryManagementApp.sln --no-build`
 - `scripts/check-banned-words.sh`
 
-Confirm during restore that the SQLite advisory is gone, that `SQLitePCLRaw.bundle_e_sqlite3` resolves through `SourceGear.sqlite3` 3.50.4.5 or newer, that the Microsoft.Extensions 10.0.9 pins restore without downgrade/conflict warnings, that the updated xUnit/VSTest packages discover and run the net10 test project cleanly, that the xUnit runner remains a private test adapter asset, and that repository-level NuGet auditing reports direct and transitive vulnerabilities through NU190x warnings. If tests still fail, prefer behavior-focused tests or smaller targeted source-contract checks over exact multi-line source snippets.
+Confirm during restore that the SQLite advisory is gone, that `SQLitePCLRaw.bundle_e_sqlite3` resolves through `SourceGear.sqlite3` 3.50.4.5 or newer, that the Microsoft.Extensions 10.0.9 pins restore without downgrade/conflict warnings, that the updated xUnit/VSTest packages discover and run the net10 test project cleanly, that direct test-only package references remain private assets, and that repository-level NuGet auditing reports direct and transitive vulnerabilities through NU190x warnings. If tests still fail, prefer behavior-focused tests or smaller targeted source-contract checks over exact multi-line source snippets.
 
 ## Immediate Cleanup Queue
 
