@@ -17,7 +17,7 @@ namespace InventoryManagementApp.Tests.Views
             Assert.DoesNotContain("private static DependencyObject? GetParent", code, StringComparison.Ordinal);
             Assert.Contains("VisualTreeHelper.GetParent(current)", helper, StringComparison.Ordinal);
             Assert.Contains("LogicalTreeHelper.GetParent(current)", helper, StringComparison.Ordinal);
-            Assert.Contains("catch (InvalidOperationException)", helper, StringComparison.Ordinal);
+            Assert.Contains("ex is InvalidOperationException", helper, StringComparison.Ordinal);
         }
 
         private static string ReadRepositoryFile(params string[] relativePath)

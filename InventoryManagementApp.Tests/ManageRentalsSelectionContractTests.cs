@@ -154,7 +154,7 @@ namespace InventoryManagementApp.Tests
                 "FrameworkElement element => element.Parent",
                 "FrameworkContentElement contentElement => contentElement.Parent");
             Assert.True(
-                CountOccurrences(helper, "catch (InvalidOperationException)") >= 2,
+                CountOccurrences(helper, "ex is InvalidOperationException") >= 2,
                 "Expected guarded visual and logical tree traversal to keep invalid WPF parent states non-fatal.");
             Assert.DoesNotContain("return LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
         }
