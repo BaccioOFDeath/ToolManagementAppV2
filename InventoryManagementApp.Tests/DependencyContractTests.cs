@@ -44,6 +44,18 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void BannedWordScriptHasNonRipgrepPowerShellFallback()
+        {
+            var source = ReadRepoFile("scripts", "check-banned-words.sh");
+
+            Assert.Contains("command -v powershell.exe", source);
+            Assert.Contains("Get-ChildItem -Path . -Recurse -File -Force", source);
+            Assert.Contains("Select-String -Pattern", source);
+            Assert.Contains("neither rg nor powershell.exe is available", source);
+            Assert.DoesNotContain("$matches = rg", source, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
         public void AppProjectPinsSupportedSqliteNativeBundle()
         {
             var source = ReadRepoFile("InventoryManagementApp", "InventoryManagementApp.csproj");
