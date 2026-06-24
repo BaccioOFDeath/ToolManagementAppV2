@@ -28,6 +28,22 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void BuildWorkflowRunsCurrentNet10Validation()
+        {
+            var source = ReadRepoFile(".github", "workflows", "build.yml");
+
+            Assert.Contains("branches: [ master, main ]", source);
+            Assert.Contains("actions/checkout@v4", source);
+            Assert.Contains("actions/setup-dotnet@v4", source);
+            Assert.Contains("dotnet-version: 10.0.x", source);
+            Assert.Contains("dotnet restore InventoryManagementApp.sln", source);
+            Assert.Contains("bash scripts/check-banned-words.sh", source);
+            Assert.Contains("dotnet build InventoryManagementApp.sln --configuration Release --no-restore", source);
+            Assert.Contains("dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal", source);
+            Assert.Contains("actions/upload-artifact@v4", source);
+        }
+
+        [Fact]
         public void AppProjectPinsSupportedSqliteNativeBundle()
         {
             var source = ReadRepoFile("InventoryManagementApp", "InventoryManagementApp.csproj");
