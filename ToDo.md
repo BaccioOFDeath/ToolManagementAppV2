@@ -28,12 +28,13 @@ Last updated: 2026-06-25.
 - A 2026-06-25 validation runner visibility pass adds an explicit `dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive` audit step after restore so dependency advisory review has a dedicated log section.
 - A 2026-06-25 CI validation visibility pass adds the same explicit vulnerable-package audit step to the Windows Build and Test workflow immediately after restore, with dependency-contract coverage so CI and the local runner stay aligned.
 - A 2026-06-25 CI publish hardening pass cleans `publish/` before the workflow publishes artifacts, matching the local full validation runner's stale-output protection and guarding the ordering with source-contract coverage.
+- A 2026-06-25 documentation contract pass aligned the README manual validation sequence with the runner and CI by documenting the `publish/` cleanup before manual `dotnet publish`, with source-contract coverage for the command ordering.
 - Focused navigation menu tests pass after the dark-theme dropdown hover fix.
 - Banned-word script passes after line-ending cleanup, seeded CSV exclusions, and replacing the remaining standalone hits.
 
 ## Validation Needed Next
 
-The current priority is to rerun full validation after the 2026-06-24 contract-test cleanup, SQLite native package pin, Microsoft.Extensions net10 package alignment, net10 test infrastructure alignment, xUnit runner asset isolation, private test-only package metadata, repository-level NuGet audit guard, Build and Test workflow retargeting, banned-word fallback repair, CI publish restore repair, generated-folder exclusion alignment, forced PowerShell fallback CI validation, PowerShell text-file scan narrowing, the checked-in validation runner, generated `publish/` output exclusion, publish-output cleanup, the explicit dependency-audit runner step, the matching CI vulnerable-package audit step, and CI publish-output cleanup:
+The current priority is to rerun full validation after the 2026-06-24 contract-test cleanup, SQLite native package pin, Microsoft.Extensions net10 package alignment, net10 test infrastructure alignment, xUnit runner asset isolation, private test-only package metadata, repository-level NuGet audit guard, Build and Test workflow retargeting, banned-word fallback repair, CI publish restore repair, generated-folder exclusion alignment, forced PowerShell fallback CI validation, PowerShell text-file scan narrowing, the checked-in validation runner, generated `publish/` output exclusion, publish-output cleanup, the explicit dependency-audit runner step, the matching CI vulnerable-package audit step, CI publish-output cleanup, and README manual validation cleanup documentation:
 
 - `pwsh -File scripts/run-full-validation.ps1`
 
@@ -53,7 +54,7 @@ Confirm during restore and dependency audit that the SQLite advisory is gone, th
 
 ## Immediate Cleanup Queue
 
-1. Re-run full validation with `pwsh -File scripts/run-full-validation.ps1` after the source-contract cleanup, dependency pins, publish-output scan exclusion, publish-output cleanup, explicit dependency audit step, matching CI audit step, and CI publish cleanup.
+1. Re-run full validation with `pwsh -File scripts/run-full-validation.ps1` after the source-contract cleanup, dependency pins, publish-output scan exclusion, publish-output cleanup, explicit dependency audit step, matching CI audit step, CI publish cleanup, and README manual validation cleanup documentation.
 2. Confirm the retargeted GitHub Actions Build and Test workflow runs on the next `master`/`main` pull request with the net10 SDK, dedicated vulnerable-package audit, both banned-word validation paths, and clean publish output before artifact generation.
 3. Review the runner's dedicated vulnerable-package audit output plus any NU190x warnings surfaced by repository-level direct/transitive NuGet auditing, then update affected packages or document intentional risk decisions.
 4. Smoke test the dark-theme top navigation dropdown visually in the running WPF app.
