@@ -33,6 +33,9 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("OkCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("ResetRecoveryPanel.Visibility", codeBehind, StringComparison.Ordinal);
             Assert.Contains("_attemptCount >= MaxAttempts", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("FocusPasswordBox", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Focus(PasswordBox)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DispatcherPriority.Input", codeBehind, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)

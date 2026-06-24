@@ -1,6 +1,8 @@
 ﻿// Views/PasswordPromptWindow.xaml.cs
 using System;
 using System.Windows;
+using System.Windows.Input;
+using System.Windows.Threading;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
@@ -43,6 +45,7 @@ namespace InventoryManagementApp.Views.Windows
                 ShowError);
             this.DisposeDataContextOnUnload();
             Loaded += OnLoaded;
+            Activated += OnActivated;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -52,7 +55,21 @@ namespace InventoryManagementApp.Views.Windows
             else
                 PromptTextBlock.Text = "Please enter your password:";
 
-            PasswordBox.Focus();
+            FocusPasswordBox();
+        }
+
+        private void OnActivated(object? sender, EventArgs e)
+        {
+            FocusPasswordBox();
+        }
+
+        private void FocusPasswordBox()
+        {
+            PasswordBox.Dispatcher.BeginInvoke(() =>
+            {
+                PasswordBox.Focus();
+                Keyboard.Focus(PasswordBox);
+            }, DispatcherPriority.Input);
         }
 
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
@@ -75,7 +92,7 @@ namespace InventoryManagementApp.Views.Windows
                 : Visibility.Collapsed;
 
             PasswordBox.Clear();
-            PasswordBox.Focus();
+            FocusPasswordBox();
         }
     }
 }
