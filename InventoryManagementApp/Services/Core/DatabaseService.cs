@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Utilities.Helpers;
 using System.Linq;
 
 namespace InventoryManagementApp.Services.Core
@@ -33,17 +34,15 @@ namespace InventoryManagementApp.Services.Core
 
         public DatabaseService(string dbPath, ILogger<DatabaseService>? logger = null)
         {
+            _logger = logger ?? NullLogger<DatabaseService>.Instance;
+
             // Ensure database file exists (create if missing), but skip in-memory databases.
             var isInMemory = dbPath.Contains(":memory:", StringComparison.OrdinalIgnoreCase);
             if (!isInMemory)
             {
-                if (!File.Exists(dbPath))
-                {
-                    var dir = Path.GetDirectoryName(dbPath);
-                    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                        Directory.CreateDirectory(dir);
-                    using (File.Create(dbPath)) { }
-                }
+                var securityWarning = DatabaseSecurityHelper.EnsureDatabaseFileSecurity(dbPath);
+                if (!string.IsNullOrWhiteSpace(securityWarning))
+                    _logger.LogWarning("Database permissions warning: {Warning}", securityWarning);
             }
             var builder = new SqliteConnectionStringBuilder
             {
@@ -63,7 +62,6 @@ namespace InventoryManagementApp.Services.Core
             }
 
             ConnectionString = builder.ToString();
-            _logger = logger ?? NullLogger<DatabaseService>.Instance;
             if (isInMemory)
             {
                 _keepAliveConnection = new SqliteConnection(ConnectionString);
@@ -71,6 +69,13 @@ namespace InventoryManagementApp.Services.Core
             }
             ConfigureDatabase();
             InitializeDatabase();
+
+            if (!isInMemory)
+            {
+                var securityWarning = DatabaseSecurityHelper.EnsureDatabaseFileSecurity(dbPath);
+                if (!string.IsNullOrWhiteSpace(securityWarning))
+                    _logger.LogWarning("Database permissions warning: {Warning}", securityWarning);
+            }
         }
 
         public void Dispose()

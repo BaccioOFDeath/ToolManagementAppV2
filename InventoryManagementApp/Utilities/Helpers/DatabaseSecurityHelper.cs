@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Security.AccessControl;
 using System.Security.Principal;
 
@@ -7,6 +8,51 @@ namespace InventoryManagementApp.Utilities.Helpers
 {
     public static class DatabaseSecurityHelper
     {
+        public static string? EnsureDatabaseFileSecurity(string dbPath)
+        {
+            if (string.IsNullOrWhiteSpace(dbPath))
+                return null;
+
+            try
+            {
+                var directory = Path.GetDirectoryName(dbPath);
+                var createdDirectory = false;
+                if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                    createdDirectory = true;
+                }
+
+                if (!File.Exists(dbPath))
+                    using (File.Create(dbPath)) { }
+
+                if (OperatingSystem.IsWindows())
+                {
+                    if (createdDirectory && !string.IsNullOrWhiteSpace(directory))
+                        SecureWindowsDirectory(directory);
+
+                    SecureWindowsFile(dbPath);
+                    SecureWindowsSidecarFile(dbPath + "-wal");
+                    SecureWindowsSidecarFile(dbPath + "-shm");
+                }
+                else
+                {
+                    if (createdDirectory && !string.IsNullOrWhiteSpace(directory))
+                        SecureUnixDirectory(directory);
+
+                    SecureUnixFile(dbPath);
+                    SecureUnixSidecarFile(dbPath + "-wal");
+                    SecureUnixSidecarFile(dbPath + "-shm");
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Unable to secure database file permissions: {ex.Message}";
+            }
+
+            return GetPermissionWarning(dbPath);
+        }
+
         public static string? GetPermissionWarning(string dbPath)
         {
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
@@ -50,6 +96,67 @@ namespace InventoryManagementApp.Utilities.Helpers
             return null;
         }
 
+        static void SecureWindowsSidecarFile(string path)
+        {
+            if (File.Exists(path))
+                SecureWindowsFile(path);
+        }
+
+        static void SecureWindowsFile(string path)
+        {
+            var fileInfo = new FileInfo(path);
+            var security = fileInfo.GetAccessControl();
+            ProtectWindowsSecurity(security);
+            fileInfo.SetAccessControl(security);
+        }
+
+        static void SecureWindowsDirectory(string path)
+        {
+            var directoryInfo = new DirectoryInfo(path);
+            var security = directoryInfo.GetAccessControl();
+            ProtectWindowsSecurity(security);
+            directoryInfo.SetAccessControl(security);
+        }
+
+        static void ProtectWindowsSecurity(FileSystemSecurity security)
+        {
+            security.SetAccessRuleProtection(isProtected: true, preserveInheritance: true);
+            RemoveBroadWriteAccess(security, WellKnownSidType.WorldSid);
+            RemoveBroadWriteAccess(security, WellKnownSidType.BuiltinUsersSid);
+
+            var currentUser = WindowsIdentity.GetCurrent().User;
+            if (currentUser != null)
+                security.AddAccessRule(new FileSystemAccessRule(currentUser, FileSystemRights.Modify, AccessControlType.Allow));
+
+            security.AddAccessRule(new FileSystemAccessRule(
+                new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
+                FileSystemRights.FullControl,
+                AccessControlType.Allow));
+            security.AddAccessRule(new FileSystemAccessRule(
+                new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+                FileSystemRights.FullControl,
+                AccessControlType.Allow));
+        }
+
+        static void RemoveBroadWriteAccess(FileSystemSecurity security, WellKnownSidType sidType)
+        {
+            var sid = new SecurityIdentifier(sidType, null);
+            var rules = security.GetAccessRules(true, true, typeof(SecurityIdentifier));
+
+            foreach (FileSystemAccessRule rule in rules)
+            {
+                if (rule.AccessControlType != AccessControlType.Allow ||
+                    rule.IdentityReference is not SecurityIdentifier ruleSid ||
+                    !ruleSid.Equals(sid) ||
+                    !HasWriteAccess(rule.FileSystemRights))
+                {
+                    continue;
+                }
+
+                security.RemoveAccessRuleSpecific(rule);
+            }
+        }
+
         static bool HasWriteAccess(FileSystemRights rights)
         {
             const FileSystemRights writeRights =
@@ -64,6 +171,7 @@ namespace InventoryManagementApp.Utilities.Helpers
             return (rights & writeRights) != 0;
         }
 
+        [UnsupportedOSPlatform("windows")]
         static string? GetUnixPermissionWarning(string dbPath)
         {
             try
@@ -85,6 +193,25 @@ namespace InventoryManagementApp.Utilities.Helpers
             }
 
             return null;
+        }
+
+        [UnsupportedOSPlatform("windows")]
+        static void SecureUnixDirectory(string path)
+        {
+            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        }
+
+        [UnsupportedOSPlatform("windows")]
+        static void SecureUnixSidecarFile(string path)
+        {
+            if (File.Exists(path))
+                SecureUnixFile(path);
+        }
+
+        [UnsupportedOSPlatform("windows")]
+        static void SecureUnixFile(string path)
+        {
+            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
         }
     }
 }
