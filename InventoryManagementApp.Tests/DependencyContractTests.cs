@@ -66,6 +66,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("\".yml\"", source);
             Assert.Contains("$textFileNames = @(", source);
             Assert.Contains("\".gitignore\"", source);
+            Assert.Contains("[System.IO.Path]::GetExtension($relative)", source);
+            Assert.Contains("[System.IO.Path]::GetFileName($relative)", source);
             Assert.Contains("$textFileExtensions -contains $extension -or $textFileNames -contains $fileName", source);
             Assert.Contains("$relative -notmatch '(^|/)(bin|obj)/'", source);
             Assert.Contains("--glob '!**/bin/**'", source);
