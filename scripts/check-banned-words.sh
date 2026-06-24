@@ -52,8 +52,8 @@ $textFileNames = @(
 $matches = Get-ChildItem -Path . -Recurse -File -Force |
     Where-Object {
         $relative = $_.FullName.Substring($root.Length).TrimStart([char[]]@('\', '/')).Replace('\', '/')
-        $extension = [IO.Path]::GetExtension($relative).ToLowerInvariant()
-        $fileName = [IO.Path]::GetFileName($relative)
+        $extension = [System.IO.Path]::GetExtension($relative).ToLowerInvariant()
+        $fileName = [System.IO.Path]::GetFileName($relative)
         $relative -notlike ".git/*" -and
             $relative -notmatch '(^|/)(bin|obj)/' -and
             $relative -ne "Items.csv" -and
