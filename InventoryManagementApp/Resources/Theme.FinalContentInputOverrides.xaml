@@ -43,7 +43,7 @@
         <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="SelectionBrush" Value="{DynamicResource ItemSelectedBrush}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -70,7 +70,7 @@
         <Setter Property="SelectionBrush" Value="{DynamicResource ItemSelectedBrush}"/>
         <Setter Property="SelectionTextBrush" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -94,7 +94,7 @@
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource BtnBgHover}"/>
@@ -124,7 +124,7 @@
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource BtnBgHover}"/>

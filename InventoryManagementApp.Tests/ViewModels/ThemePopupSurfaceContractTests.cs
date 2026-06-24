@@ -82,7 +82,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("<Style TargetType=\"ContextMenu\">", controlOverrides, StringComparison.Ordinal);
             Assert.Contains("Background\" Value=\"{DynamicResource ThemePopupSurfaceBrush}\"", controlOverrides, StringComparison.Ordinal);
             Assert.Contains("BorderThickness\" Value=\"{DynamicResource ThemeControlBorderThickness}\"", controlOverrides, StringComparison.Ordinal);
-            Assert.Contains("Effect\" Value=\"{DynamicResource ThemeRaisedShadow}\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("Effect\" Value=\"{x:Null}\"", controlOverrides, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -96,7 +96,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("BorderThickness\" Value=\"{DynamicResource ThemeControlBorderThickness}\"", controlOverrides, StringComparison.Ordinal);
             Assert.Contains("Opacity\" Value=\"{DynamicResource ThemeDisabledOpacity}\"", controlOverrides, StringComparison.Ordinal);
             Assert.Contains("HasDropShadow\" Value=\"False\"", controlOverrides, StringComparison.Ordinal);
-            Assert.Contains("Effect\" Value=\"{DynamicResource ThemeRaisedShadow}\"", controlOverrides, StringComparison.Ordinal);
+            Assert.Contains("Effect\" Value=\"{x:Null}\"", controlOverrides, StringComparison.Ordinal);
         }
 
         private static string ReadRepositoryFile(params string[] relativePathParts)

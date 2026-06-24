@@ -58,7 +58,7 @@
 
     <Style TargetType="primitives:Popup">
         <Setter Property="AllowsTransparency" Value="True"/>
-        <Setter Property="PopupAnimation" Value="Fade"/>
+        <Setter Property="PopupAnimation" Value="None"/>
     </Style>
 
     <Style TargetType="GridViewColumnHeader">

@@ -17,7 +17,7 @@
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="Margin" Value="0,0,0,6"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
@@ -44,7 +44,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemeCardCornerRadius}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="MinHeight" Value="72"/>
     </Style>
 
@@ -54,7 +54,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemeCardCornerRadius}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style x:Key="DesktopPaneHeader" TargetType="Border">
@@ -63,7 +63,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
     </Style>
 
@@ -73,7 +73,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
     </Style>
 
@@ -83,7 +83,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
     </Style>
 
@@ -93,7 +93,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemeFooterCornerRadius}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
@@ -105,7 +105,7 @@
         <Setter Property="CornerRadius" Value="{DynamicResource ThemeCardCornerRadius}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="Margin" Value="0,0,0,8"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style x:Key="DesktopNoteCard" TargetType="Border" BasedOn="{StaticResource DesktopInsetCard}">
@@ -121,7 +121,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemeCardCornerRadius}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <ControlTemplate x:Key="ThemeToolTipTemplate" TargetType="ToolTip">
@@ -130,7 +130,7 @@
                 BorderThickness="{DynamicResource ThemeControlBorderThickness}"
                 CornerRadius="{DynamicResource ThemePanelCornerRadius}"
                 Padding="{TemplateBinding Padding}"
-                Effect="{DynamicResource ThemeRaisedShadow}"
+                Effect="{x:Null}"
                 SnapsToDevicePixels="True">
             <ContentPresenter RecognizesAccessKey="True"/>
         </Border>
@@ -155,7 +155,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="Expander">
@@ -166,7 +166,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="RadioButton">
@@ -190,7 +190,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
@@ -205,7 +205,7 @@
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="TreeView">
@@ -215,7 +215,7 @@
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="TreeViewItem">
@@ -228,7 +228,6 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
@@ -248,7 +247,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="StatusBar">
@@ -259,7 +258,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeCaptionFontSize}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="ListBox">
@@ -270,13 +269,13 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="ListView" BasedOn="{StaticResource {x:Type ListBox}}">
         <Setter Property="Background" Value="{DynamicResource GlassSurfaceBrush}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="ListBoxItem">
@@ -290,7 +289,6 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
@@ -315,7 +313,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Padding" Value="4"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="MenuItem">
@@ -328,7 +326,6 @@
         <Style.Triggers>
             <Trigger Property="IsHighlighted" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSubmenuOpen" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
@@ -354,13 +351,13 @@
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="MinWidth" Value="12"/>
         <Setter Property="MinHeight" Value="12"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="{x:Type primitives:Thumb}">
         <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 </ResourceDictionary>

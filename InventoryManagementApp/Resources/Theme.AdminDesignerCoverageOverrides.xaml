@@ -185,7 +185,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="ItemsControl">
@@ -429,7 +429,6 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
@@ -474,7 +473,6 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>

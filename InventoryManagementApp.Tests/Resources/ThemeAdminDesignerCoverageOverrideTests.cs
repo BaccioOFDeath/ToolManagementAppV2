@@ -198,8 +198,7 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeFontFamily}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBodyFontSize}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeCaptionFontSize}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeSurfaceShadow}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeControlShadow}", xaml, StringComparison.Ordinal);
+            Assert.Contains("Value=\"{x:Null}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ItemHoverBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ItemSelectedBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeDisabledOpacity}", xaml, StringComparison.Ordinal);
@@ -235,7 +234,6 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeSubtleBorderThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBorderlessThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeControlBorderThickness}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeSurfaceShadow}", xaml, StringComparison.Ordinal);
             Assert.Contains("Value=\"{x:Null}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeGridLineBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource DataGridRowBackgroundBrush}", xaml, StringComparison.Ordinal);

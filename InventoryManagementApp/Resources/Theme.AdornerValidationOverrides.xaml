@@ -19,7 +19,7 @@
                     BorderBrush="{DynamicResource ErrorBrush}"
                     BorderThickness="{DynamicResource ThemeControlBorderThickness}"
                     CornerRadius="{DynamicResource ThemeInputCornerRadius}"
-                    Effect="{DynamicResource ThemeControlShadow}">
+                    Effect="{x:Null}">
                 <TextBlock Text="!"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
@@ -31,7 +31,7 @@
             <Border BorderBrush="{DynamicResource ErrorBrush}"
                     BorderThickness="{DynamicResource ThemeControlBorderThickness}"
                     CornerRadius="{DynamicResource ThemeInputCornerRadius}"
-                    Effect="{DynamicResource ThemeControlShadow}">
+                    Effect="{x:Null}">
                 <AdornedElementPlaceholder/>
             </Border>
         </DockPanel>

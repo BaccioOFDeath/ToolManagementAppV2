@@ -17,7 +17,7 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeControlMinHeight}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBodyFontSize}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeDisabledOpacity}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeControlShadow}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{x:Null}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeDataGridRowHeight}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeDataGridHeaderHeight}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeGridLineBrush}", xaml, StringComparison.Ordinal);
@@ -32,8 +32,8 @@ namespace InventoryManagementApp.Tests.Resources
 
             Assert.Contains("{DynamicResource ThemeBorderThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemePanelCornerRadius}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeSurfaceShadow}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeControlShadow}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{x:Null}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{x:Null}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeControlMinHeight}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBodyFontSize}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource CardPadding}", xaml, StringComparison.Ordinal);

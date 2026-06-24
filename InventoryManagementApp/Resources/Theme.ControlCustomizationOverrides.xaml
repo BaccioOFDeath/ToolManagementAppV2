@@ -15,7 +15,7 @@
         <Setter Property="Padding" Value="0"/>
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
@@ -29,7 +29,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Margin" Value="0,0,2,0"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
@@ -96,7 +96,7 @@
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="Padding" Value="4,2"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
@@ -121,7 +121,7 @@
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="Padding" Value="4,2"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
@@ -143,9 +143,9 @@
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Setter Property="IsMoveToPointEnabled" Value="True"/>
-        <Setter Property="AutoToolTipPlacement" Value="TopLeft"/>
+        <Setter Property="AutoToolTipPlacement" Value="None"/>
         <Setter Property="AutoToolTipPrecision" Value="2"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
@@ -160,7 +160,7 @@
         <Setter Property="Background" Value="{DynamicResource ProgressBarBackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="DatePicker">
@@ -172,7 +172,7 @@
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -199,7 +199,7 @@
         <Setter Property="SelectionBrush" Value="{DynamicResource ItemSelectedBrush}"/>
         <Setter Property="SelectionTextBrush" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="Calendar">
@@ -210,7 +210,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="primitives:CalendarButton">
@@ -224,7 +224,6 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
@@ -243,7 +242,6 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
@@ -267,7 +265,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Padding" Value="4"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="MenuItem">
@@ -279,11 +277,10 @@
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsHighlighted" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
@@ -301,6 +298,6 @@
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
         <Setter Property="HasDropShadow" Value="False"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 </ResourceDictionary>

@@ -49,15 +49,14 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public void SharedStyles_UseThemeShapeTransparencyAndShadowTokens()
+        public void SharedStyles_UseThemeShapeTransparencyAndDisableDefaultShadows()
         {
             var polishedXaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "PolishedVisualHierarchy.xaml");
             var shellXaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "DesktopShell.xaml");
 
             Assert.Contains("ThemeCardCornerRadius", polishedXaml, StringComparison.Ordinal);
             Assert.Contains("ThemePanelCornerRadius", polishedXaml, StringComparison.Ordinal);
-            Assert.Contains("ThemeSurfaceShadow", polishedXaml, StringComparison.Ordinal);
-            Assert.Contains("ThemeRaisedShadow", polishedXaml, StringComparison.Ordinal);
+            Assert.Contains("Effect\" Value=\"{x:Null}\"", polishedXaml, StringComparison.Ordinal);
             Assert.Contains("GlassSurfaceBrush", polishedXaml, StringComparison.Ordinal);
             Assert.Contains("GlassSurfaceAltBrush", polishedXaml, StringComparison.Ordinal);
 

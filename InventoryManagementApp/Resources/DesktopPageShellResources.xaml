@@ -26,7 +26,7 @@
                                 BorderThickness="{DynamicResource ThemeBorderThickness}"
                                 CornerRadius="{DynamicResource ThemePanelCornerRadius}"
                                 Padding="{DynamicResource CardPadding}"
-                                Effect="{DynamicResource ThemeSurfaceShadow}">
+                                Effect="{x:Null}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled"
                                           CanContentScroll="True"
@@ -72,7 +72,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="MinHeight" Value="44"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style x:Key="DesktopSettingsForm" TargetType="Grid">
@@ -99,7 +99,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="MinHeight" Value="56"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style x:Key="DesktopPaneSubheader" TargetType="Border">
@@ -108,7 +108,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeSubtleBorderThickness}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
         <Setter Property="MinHeight" Value="42"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style x:Key="DesktopNoteCard" TargetType="Border" BasedOn="{StaticResource DesktopInsetCard}">

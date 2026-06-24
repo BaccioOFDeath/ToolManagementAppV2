@@ -16,7 +16,7 @@
         <Setter Property="BorderThickness" Value="0,0,0,2"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemePanelCornerRadius}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeRaisedShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
@@ -26,7 +26,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemeCardCornerRadius}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeSurfaceShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style x:Key="ThemedDocumentCanvasFrame" TargetType="Border">
@@ -35,7 +35,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemeInputCornerRadius}"/>
         <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
@@ -46,7 +46,7 @@
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>

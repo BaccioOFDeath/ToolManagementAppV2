@@ -78,8 +78,8 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeControlMinHeight}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource CardPadding}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ControlPadding}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeSurfaceShadow}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeRaisedShadow}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{x:Null}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{x:Null}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ItemHoverBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ItemSelectedBrush}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeDisabledOpacity}", xaml, StringComparison.Ordinal);

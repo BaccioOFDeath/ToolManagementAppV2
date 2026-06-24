@@ -42,9 +42,9 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("{DynamicResource ThemeInputCornerRadius}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeBorderThickness}", xaml, StringComparison.Ordinal);
             Assert.Contains("{DynamicResource ThemeControlBorderThickness}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeSurfaceShadow}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeRaisedShadow}", xaml, StringComparison.Ordinal);
-            Assert.Contains("{DynamicResource ThemeControlShadow}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{x:Null}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{x:Null}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{x:Null}", xaml, StringComparison.Ordinal);
             Assert.Contains("DefaultFocusVisual", xaml, StringComparison.Ordinal);
         }
 

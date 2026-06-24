@@ -98,8 +98,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ThemeControlShadowScale", customization, StringComparison.Ordinal);
             Assert.Contains("BorderThickness\" Value=\"{DynamicResource ThemeBorderThickness}\"", hierarchy, StringComparison.Ordinal);
             Assert.Contains("BorderThickness\" Value=\"{DynamicResource ThemeControlBorderThickness}\"", hierarchy, StringComparison.Ordinal);
-            Assert.Contains("Effect\" Value=\"{DynamicResource ThemeControlShadow}\"", hierarchy, StringComparison.Ordinal);
-            Assert.Contains("Effect\" Value=\"{DynamicResource ThemeSurfaceShadow}\"", hierarchy, StringComparison.Ordinal);
+            Assert.Contains("Effect\" Value=\"{x:Null}\"", hierarchy, StringComparison.Ordinal);
+            Assert.Contains("Effect\" Value=\"{x:Null}\"", hierarchy, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)

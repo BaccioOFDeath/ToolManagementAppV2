@@ -13,7 +13,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemeInputCornerRadius}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
@@ -22,7 +22,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderlessThickness}"/>
         <Setter Property="CornerRadius" Value="{DynamicResource ThemeInputCornerRadius}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
@@ -54,7 +54,6 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                            <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource NavButtonPressedBrush}"/>
@@ -99,7 +98,7 @@
         <Setter Property="MinWidth" Value="12"/>
         <Setter Property="MinHeight" Value="12"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="primitives:Thumb">
@@ -147,7 +146,7 @@
         <Setter Property="MinWidth" Value="12"/>
         <Setter Property="MinHeight" Value="12"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Horizontal">
@@ -175,9 +174,9 @@
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Setter Property="IsMoveToPointEnabled" Value="True"/>
-        <Setter Property="AutoToolTipPlacement" Value="TopLeft"/>
+        <Setter Property="AutoToolTipPlacement" Value="None"/>
         <Setter Property="AutoToolTipPrecision" Value="2"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -196,7 +195,7 @@
         <Setter Property="Height" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="MinHeight" Value="4"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
     <Style TargetType="GridSplitter">
@@ -206,7 +205,7 @@
         <Setter Property="MinWidth" Value="4"/>
         <Setter Property="MinHeight" Value="4"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
@@ -227,7 +226,7 @@
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
         <Setter Property="Padding" Value="{DynamicResource ControlPadding}"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
-        <Setter Property="Effect" Value="{DynamicResource ThemeControlShadow}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="primitives:RepeatButton">

@@ -257,7 +257,7 @@
                         IsOpen="{TemplateBinding IsDropDownOpen}"
                         AllowsTransparency="True"
                         Focusable="False"
-                        PopupAnimation="Slide">
+                        PopupAnimation="None">
                             <Border
                             Background="{DynamicResource ComboBoxPopupBackgroundBrush}"
                             BorderBrush="{DynamicResource BorderBrushAlt}"
@@ -662,7 +662,6 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
@@ -719,7 +718,6 @@
         <Style.Triggers>
             <Trigger Property="IsHighlighted" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsChecked" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>

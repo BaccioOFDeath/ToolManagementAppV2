@@ -31,7 +31,7 @@ public class ThemeControlChromeContractTests
         Assert.Contains("{DynamicResource ThemeControlBorderThickness}", xaml, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource ThemeControlMinHeight}", xaml, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource ThemeDisabledOpacity}", xaml, StringComparison.Ordinal);
-        Assert.Contains("{DynamicResource ThemeControlShadow}", xaml, StringComparison.Ordinal);
+        Assert.Contains("{x:Null}", xaml, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource ThemeFontFamily}", xaml, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource ThemeBodyFontSize}", xaml, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource ThemeDialogSurfaceBrush}", xaml, StringComparison.Ordinal);

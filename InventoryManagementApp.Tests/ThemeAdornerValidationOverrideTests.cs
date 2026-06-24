@@ -30,7 +30,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Validation.ErrorTemplate", xaml, StringComparison.Ordinal);
             Assert.Contains("ThemeControlBorderThickness", xaml, StringComparison.Ordinal);
             Assert.Contains("ThemeInputCornerRadius", xaml, StringComparison.Ordinal);
-            Assert.Contains("ThemeControlShadow", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Null", xaml, StringComparison.Ordinal);
             Assert.Contains("ErrorBrush", xaml, StringComparison.Ordinal);
         }
 
