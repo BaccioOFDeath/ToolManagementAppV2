@@ -279,9 +279,7 @@ namespace InventoryManagementApp.Services.Core
                 );";
             using var cmd = new SqliteCommand(sql, conn);
             cmd.ExecuteNonQuery();
-            EnsureColumn(conn, "Users", "FailedLoginAttempts", "INTEGER", "0");
-            EnsureColumn(conn, "Users", "LockoutEndUtc", "DATETIME");
-            EnsureColumn(conn, "Users", "Permissions", "TEXT");
+            EnsureCurrentSchemaColumns(conn);
             EnsureIndex(conn, "Items", "ItemNumber", true);
             EnsureIndex(conn, "Items", "NameDescription");
             EnsureIndex(conn, "Items", "Brand");
@@ -305,6 +303,151 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Kits", "KitNumber", true);
             EnsureIndex(conn, "KitItems", "KitID");
             EnsureIndex(conn, "KitItems", "ItemID");
+        }
+
+        void EnsureCurrentSchemaColumns(SqliteConnection conn)
+        {
+            RenameColumnIfExists(conn, "Items", "ToolID", "ItemID");
+            RenameColumnIfExists(conn, "Items", "ToolNumber", "ItemNumber");
+            RenameColumnIfExists(conn, "Items", "Description", "NameDescription");
+            RenameColumnIfExists(conn, "Items", "Quantity", "AvailableQuantity");
+
+            EnsureColumn(conn, "Items", "ItemNumber", "TEXT", "''");
+            EnsureColumn(conn, "Items", "NameDescription", "TEXT");
+            EnsureColumn(conn, "Items", "Location", "TEXT");
+            EnsureColumn(conn, "Items", "Brand", "TEXT");
+            EnsureColumn(conn, "Items", "PartNumber", "TEXT");
+            EnsureColumn(conn, "Items", "Supplier", "TEXT");
+            EnsureColumn(conn, "Items", "PurchasedDate", "DATETIME");
+            EnsureColumn(conn, "Items", "Notes", "TEXT");
+            EnsureColumn(conn, "Items", "Keywords", "TEXT");
+            EnsureColumn(conn, "Items", "AvailableQuantity", "INTEGER", "0");
+            EnsureColumn(conn, "Items", "RentedQuantity", "INTEGER", "0");
+            EnsureColumn(conn, "Items", "IsRentalItem", "INTEGER", "0");
+            EnsureColumn(conn, "Items", "Price", "NUMERIC", "0");
+            EnsureColumn(conn, "Items", "ImagePath", "TEXT");
+            EnsureColumn(conn, "Items", "IsPowered", "INTEGER", "0");
+            EnsureColumn(conn, "Items", "IsCheckedOut", "INTEGER", "0");
+            EnsureColumn(conn, "Items", "CheckedOutBy", "TEXT");
+            EnsureColumn(conn, "Items", "CheckedOutTime", "DATETIME");
+            EnsureColumn(conn, "Items", "CheckedInBy", "TEXT");
+            EnsureColumn(conn, "Items", "CheckedInTime", "DATETIME");
+            EnsureColumn(conn, "Items", "UpdatedAt", "DATETIME");
+            EnsureColumn(conn, "Items", "IsIncomplete", "INTEGER", "0");
+            EnsureColumn(conn, "Items", "MissingComponentsNotes", "TEXT");
+            EnsureColumn(conn, "Items", "IssuesNotes", "TEXT");
+            EnsureColumn(conn, "Items", "CheckoutCount", "INTEGER", "0");
+
+            EnsureColumn(conn, "Users", "UserName", "TEXT", "''");
+            EnsureColumn(conn, "Users", "UserPhotoPath", "TEXT");
+            EnsureColumn(conn, "Users", "PasswordHash", "TEXT");
+            EnsureColumn(conn, "Users", "PasswordSalt", "TEXT");
+            EnsureColumn(conn, "Users", "IsAdmin", "INTEGER", "0");
+            EnsureColumn(conn, "Users", "Email", "TEXT");
+            EnsureColumn(conn, "Users", "Phone", "TEXT");
+            EnsureColumn(conn, "Users", "Mobile", "TEXT");
+            EnsureColumn(conn, "Users", "Address", "TEXT");
+            EnsureColumn(conn, "Users", "Role", "TEXT");
+            EnsureColumn(conn, "Users", "IsActive", "INTEGER", "1");
+            EnsureColumn(conn, "Users", "CreatedAt", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "Users", "PasswordExpired", "INTEGER", "0");
+            EnsureColumn(conn, "Users", "FailedLoginAttempts", "INTEGER", "0");
+            EnsureColumn(conn, "Users", "LockoutEndUtc", "DATETIME");
+            EnsureColumn(conn, "Users", "Permissions", "TEXT");
+
+            EnsureColumn(conn, "Customers", "Company", "TEXT", "''");
+            EnsureColumn(conn, "Customers", "Email", "TEXT");
+            EnsureColumn(conn, "Customers", "Contact", "TEXT");
+            EnsureColumn(conn, "Customers", "Phone", "TEXT");
+            EnsureColumn(conn, "Customers", "Mobile", "TEXT");
+            EnsureColumn(conn, "Customers", "Address", "TEXT");
+
+            EnsureColumn(conn, "Rentals", "ItemID", "INTEGER", "0");
+            EnsureColumn(conn, "Rentals", "CustomerID", "INTEGER", "0");
+            EnsureColumn(conn, "Rentals", "RentalDate", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "Rentals", "DueDate", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "Rentals", "ReturnDate", "DATETIME");
+            EnsureColumn(conn, "Rentals", "Status", "TEXT", "'Rented'");
+
+            EnsureColumn(conn, "ActivityLogs", "UserID", "INTEGER");
+            EnsureColumn(conn, "ActivityLogs", "UserName", "TEXT");
+            EnsureColumn(conn, "ActivityLogs", "Action", "TEXT");
+            EnsureColumn(conn, "ActivityLogs", "Timestamp", "DATETIME", "'1970-01-01 00:00:00'");
+
+            EnsureColumn(conn, "MaintenanceRecords", "ItemID", "INTEGER", "0");
+            EnsureColumn(conn, "MaintenanceRecords", "ScheduledDate", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "MaintenanceRecords", "CompletedDate", "DATETIME");
+            EnsureColumn(conn, "MaintenanceRecords", "MaintenanceType", "TEXT", "''");
+            EnsureColumn(conn, "MaintenanceRecords", "Description", "TEXT");
+            EnsureColumn(conn, "MaintenanceRecords", "PerformedBy", "TEXT");
+            EnsureColumn(conn, "MaintenanceRecords", "Cost", "NUMERIC", "0");
+            EnsureColumn(conn, "MaintenanceRecords", "Status", "TEXT", "'Scheduled'");
+            EnsureColumn(conn, "MaintenanceRecords", "Notes", "TEXT");
+            EnsureColumn(conn, "MaintenanceRecords", "UserID", "INTEGER");
+            EnsureColumn(conn, "MaintenanceRecords", "CreatedAt", "DATETIME", "'1970-01-01 00:00:00'");
+
+            EnsureColumn(conn, "CalibrationRecords", "ItemID", "INTEGER", "0");
+            EnsureColumn(conn, "CalibrationRecords", "CalibrationDate", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "CalibrationRecords", "NextCalibrationDue", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "CalibrationRecords", "CalibratedBy", "TEXT");
+            EnsureColumn(conn, "CalibrationRecords", "CertificateNumber", "TEXT");
+            EnsureColumn(conn, "CalibrationRecords", "Standard", "TEXT");
+            EnsureColumn(conn, "CalibrationRecords", "Result", "TEXT");
+            EnsureColumn(conn, "CalibrationRecords", "Cost", "NUMERIC", "0");
+            EnsureColumn(conn, "CalibrationRecords", "Notes", "TEXT");
+            EnsureColumn(conn, "CalibrationRecords", "UserID", "INTEGER");
+            EnsureColumn(conn, "CalibrationRecords", "CreatedAt", "DATETIME", "'1970-01-01 00:00:00'");
+
+            EnsureColumn(conn, "Reservations", "ItemID", "INTEGER", "0");
+            EnsureColumn(conn, "Reservations", "CustomerID", "INTEGER", "0");
+            EnsureColumn(conn, "Reservations", "ReservationDate", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "Reservations", "StartDate", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "Reservations", "EndDate", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "Reservations", "Quantity", "INTEGER", "1");
+            EnsureColumn(conn, "Reservations", "Status", "TEXT", "'Pending'");
+            EnsureColumn(conn, "Reservations", "Notes", "TEXT");
+            EnsureColumn(conn, "Reservations", "CreatedByUserID", "INTEGER", "0");
+            EnsureColumn(conn, "Reservations", "CreatedAt", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "Reservations", "RentalID", "INTEGER");
+
+            EnsureColumn(conn, "Kits", "KitNumber", "TEXT", "''");
+            EnsureColumn(conn, "Kits", "Name", "TEXT", "''");
+            EnsureColumn(conn, "Kits", "Description", "TEXT");
+            EnsureColumn(conn, "Kits", "Category", "TEXT");
+            EnsureColumn(conn, "Kits", "IsActive", "INTEGER", "1");
+            EnsureColumn(conn, "Kits", "CreatedByUserID", "INTEGER", "0");
+            EnsureColumn(conn, "Kits", "CreatedAt", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "Kits", "UpdatedAt", "DATETIME", "'1970-01-01 00:00:00'");
+
+            EnsureColumn(conn, "KitItems", "KitID", "INTEGER", "0");
+            EnsureColumn(conn, "KitItems", "ItemID", "INTEGER", "0");
+            EnsureColumn(conn, "KitItems", "Quantity", "INTEGER", "1");
+            EnsureColumn(conn, "KitItems", "IsOptional", "INTEGER", "0");
+
+            BackfillRequiredUniqueValues(conn);
+        }
+
+        static void BackfillRequiredUniqueValues(SqliteConnection conn)
+        {
+            using var itemNumber = new SqliteCommand(
+                "UPDATE Items SET ItemNumber = 'ITEM-' || ItemID WHERE ItemNumber IS NULL OR TRIM(ItemNumber) = ''",
+                conn);
+            itemNumber.ExecuteNonQuery();
+
+            using var userName = new SqliteCommand(
+                "UPDATE Users SET UserName = 'user-' || UserID WHERE UserName IS NULL OR TRIM(UserName) = ''",
+                conn);
+            userName.ExecuteNonQuery();
+
+            using var kitNumber = new SqliteCommand(
+                "UPDATE Kits SET KitNumber = 'KIT-' || KitID WHERE KitNumber IS NULL OR TRIM(KitNumber) = ''",
+                conn);
+            kitNumber.ExecuteNonQuery();
+
+            using var kitName = new SqliteCommand(
+                "UPDATE Kits SET Name = KitNumber WHERE Name IS NULL OR TRIM(Name) = ''",
+                conn);
+            kitName.ExecuteNonQuery();
         }
 
         void MigrateLegacyItemsTable(SqliteConnection conn)
