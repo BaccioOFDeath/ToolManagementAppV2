@@ -51,6 +51,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FullValidationRunnerResetsExternalExitCodeForEachStep()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+
+            Assert.Contains("$global:LASTEXITCODE = 0", source);
+            Assert.Contains("$exitCode = $global:LASTEXITCODE", source);
+            Assert.Contains("if ($null -ne $exitCode -and $exitCode -ne 0)", source);
+            Assert.Contains("throw \"$Name failed with exit code $exitCode.\"", source);
+            Assert.DoesNotContain("if ($LASTEXITCODE -ne 0)", source);
+            AssertAppearsBefore(source, "$global:LASTEXITCODE = 0", "& $Action", "The validation runner should clear stale external exit codes before each named step runs.");
+            AssertAppearsBefore(source, "& $Action", "$exitCode = $global:LASTEXITCODE", "The validation runner should capture the exit code produced by the current step.");
+        }
+
+        [Fact]
         public void BuildWorkflowCleansPublishOutputBeforePublishing()
         {
             var source = ReadRepoFile(".github", "workflows", "build.yml");
