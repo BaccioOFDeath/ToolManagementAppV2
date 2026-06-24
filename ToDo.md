@@ -12,19 +12,20 @@ Last updated: 2026-06-24.
 - A 2026-06-24 dependency maintenance pass pinned the app to `Microsoft.Data.Sqlite` 10.0.9 and `SQLitePCLRaw.bundle_e_sqlite3` 3.0.3 so restore should resolve the supported `SourceGear.sqlite3` native package instead of the deprecated legacy native SQLite package.
 - A 2026-06-24 dependency consolidation pass aligned the app's direct `Microsoft.Extensions.*` runtime package pins with the net10 package line at 10.0.9.
 - A 2026-06-24 test infrastructure pass aligned the xUnit/VSTest package pins with the net10 test project by updating `Microsoft.NET.Test.Sdk`, `xunit`, and `xunit.runner.visualstudio` plus dependency-contract coverage.
+- A 2026-06-24 test dependency hygiene pass isolated `xunit.runner.visualstudio` test adapter assets with `PrivateAssets`/`IncludeAssets` metadata and source-contract coverage.
 - Focused navigation menu tests pass after the dark-theme dropdown hover fix.
 - Banned-word script passes after line-ending cleanup, seeded CSV exclusions, and replacing the remaining standalone hits.
 
 ## Validation Needed Next
 
-The current priority is to rerun full validation after the 2026-06-24 contract-test cleanup, SQLite native package pin, Microsoft.Extensions net10 package alignment, and net10 test infrastructure alignment:
+The current priority is to rerun full validation after the 2026-06-24 contract-test cleanup, SQLite native package pin, Microsoft.Extensions net10 package alignment, net10 test infrastructure alignment, and xUnit runner asset isolation:
 
 - `dotnet restore InventoryManagementApp.sln`
 - `dotnet build InventoryManagementApp.sln --no-restore`
 - `dotnet test InventoryManagementApp.sln --no-build`
 - `scripts/check-banned-words.sh`
 
-Confirm during restore that the SQLite advisory is gone, that `SQLitePCLRaw.bundle_e_sqlite3` resolves through `SourceGear.sqlite3` 3.50.4.5 or newer, that the Microsoft.Extensions 10.0.9 pins restore without downgrade/conflict warnings, and that the updated xUnit/VSTest packages discover and run the net10 test project cleanly. If tests still fail, prefer behavior-focused tests or smaller targeted source-contract checks over exact multi-line source snippets.
+Confirm during restore that the SQLite advisory is gone, that `SQLitePCLRaw.bundle_e_sqlite3` resolves through `SourceGear.sqlite3` 3.50.4.5 or newer, that the Microsoft.Extensions 10.0.9 pins restore without downgrade/conflict warnings, that the updated xUnit/VSTest packages discover and run the net10 test project cleanly, and that the xUnit runner remains a private test adapter asset. If tests still fail, prefer behavior-focused tests or smaller targeted source-contract checks over exact multi-line source snippets.
 
 ## Immediate Cleanup Queue
 
