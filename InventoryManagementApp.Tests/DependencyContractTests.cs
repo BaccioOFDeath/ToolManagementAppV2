@@ -40,6 +40,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("bash scripts/check-banned-words.sh", source);
             Assert.Contains("dotnet build InventoryManagementApp.sln --configuration Release --no-restore", source);
             Assert.Contains("dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal", source);
+            Assert.Contains("dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64", source);
+            Assert.Contains("dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish", source);
             Assert.Contains("actions/upload-artifact@v4", source);
         }
 
