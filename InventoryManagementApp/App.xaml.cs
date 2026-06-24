@@ -48,6 +48,13 @@ namespace InventoryManagementApp
     public partial class App : System.Windows.Application
     {
         internal const string DefaultLogoResourceUri = "pack://application:,,,/InventoryManagementApp;component/Resources/DefaultLogo.png";
+        static readonly DependencyProperty HasAppliedBackgroundOverlayProperty =
+            DependencyProperty.RegisterAttached(
+                "HasAppliedBackgroundOverlay",
+                typeof(bool),
+                typeof(App),
+                new PropertyMetadata(false));
+
         public IHost Host { get; }
         private readonly ILogger<App> _logger;
         private readonly IDialogService _dialogService;
@@ -1554,6 +1561,7 @@ namespace InventoryManagementApp
             if (sender is Window window)
             {
                 window.SetResourceReference(Window.IconProperty, "WindowIcon");
+                ApplyBackgroundOverlay(window);
                 InformationalTooltipService.Apply(window);
             }
         }
@@ -1562,6 +1570,70 @@ namespace InventoryManagementApp
         {
             if (sender is UserControl userControl)
                 InformationalTooltipService.Apply(userControl);
+        }
+
+        internal static void ApplyBackgroundOverlay(Window window)
+        {
+            if (window is MainWindow ||
+                (bool)window.GetValue(HasAppliedBackgroundOverlayProperty) ||
+                HasThemedWindowOverlay(window))
+            {
+                return;
+            }
+
+            var existingContent = window.Content;
+            if (existingContent is null)
+                return;
+
+            window.Content = null;
+
+            var root = new Grid();
+            root.SetResourceReference(Panel.BackgroundProperty, "BackgroundBrush");
+
+            var overlay = new Border
+            {
+                IsHitTestVisible = false
+            };
+            overlay.SetResourceReference(Border.BackgroundProperty, "ThemeAppBackgroundOverlayBrush");
+
+            var contentPresenter = new ContentPresenter
+            {
+                Content = existingContent
+            };
+
+            root.Children.Add(overlay);
+            root.Children.Add(contentPresenter);
+            window.Content = root;
+            window.SetValue(HasAppliedBackgroundOverlayProperty, true);
+        }
+
+        static bool HasThemedWindowOverlay(Window window)
+        {
+            if (window.Content is not DependencyObject content)
+                return false;
+
+            var overlayStyle = Current?.TryFindResource("ThemedWindowOverlay");
+            if (overlayStyle is null)
+                return false;
+
+            return FindDescendant<Border>(content, border => ReferenceEquals(border.Style, overlayStyle)) is not null;
+        }
+
+        static T? FindDescendant<T>(DependencyObject root, Func<T, bool> predicate) where T : DependencyObject
+        {
+            var childCount = VisualTreeHelper.GetChildrenCount(root);
+            for (var i = 0; i < childCount; i++)
+            {
+                var child = VisualTreeHelper.GetChild(root, i);
+                if (child is T match && predicate(match))
+                    return match;
+
+                var descendant = FindDescendant(child, predicate);
+                if (descendant is not null)
+                    return descendant;
+            }
+
+            return null;
         }
 
         public void ApplyWindowBranding(string? logoPath)
