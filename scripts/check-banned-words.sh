@@ -23,14 +23,43 @@ if [[ "$use_powershell_fallback" == true ]]; then
     "${powershell_command[@]}" <<'POWERSHELL'
 $ErrorActionPreference = "Stop"
 $root = (Get-Location).Path.TrimEnd([char[]]@('\', '/'))
+$textFileExtensions = @(
+    ".bat",
+    ".cmd",
+    ".config",
+    ".cs",
+    ".csproj",
+    ".csv",
+    ".editorconfig",
+    ".json",
+    ".md",
+    ".props",
+    ".ps1",
+    ".sln",
+    ".targets",
+    ".txt",
+    ".xaml",
+    ".xml",
+    ".yaml",
+    ".yml"
+)
+$textFileNames = @(
+    ".gitattributes",
+    ".gitignore",
+    "Dockerfile",
+    "Makefile"
+)
 $matches = Get-ChildItem -Path . -Recurse -File -Force |
     Where-Object {
         $relative = $_.FullName.Substring($root.Length).TrimStart([char[]]@('\', '/')).Replace('\', '/')
+        $extension = [IO.Path]::GetExtension($relative).ToLowerInvariant()
+        $fileName = [IO.Path]::GetFileName($relative)
         $relative -notlike ".git/*" -and
             $relative -notmatch '(^|/)(bin|obj)/' -and
             $relative -ne "Items.csv" -and
             $relative -ne "items.csv" -and
-            $relative -ne "scripts/check-banned-words.sh"
+            $relative -ne "scripts/check-banned-words.sh" -and
+            ($textFileExtensions -contains $extension -or $textFileNames -contains $fileName)
     } |
     Select-String -Pattern "\btool\b"
 
