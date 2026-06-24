@@ -475,12 +475,7 @@ namespace InventoryManagementApp.ViewModels
                     return;
 
                 await _rentalService.ReturnItemAsync(rental.RentalID, DateTime.Today).ConfigureAwait(false);
-                RentedItems.Remove(rental);
-                if (SelectedRental?.RentalID == rental.RentalID)
-                    SelectedRental = null;
-                else
-                    UpdateSelectedRecordSummary();
-                OnPropertyChanged(nameof(OperationsSummary));
+                RunOnUiThread(() => RemoveReturnedRentalFromDashboard(rental.RentalID));
             }
             catch (OperationCanceledException)
             {
@@ -489,6 +484,34 @@ namespace InventoryManagementApp.ViewModels
             {
                 _logger.LogError(ex, "Failed to return rental {RentalID}", rental.RentalID);
             }
+        }
+
+        private void RemoveReturnedRentalFromDashboard(int rentalId)
+        {
+            for (var i = RentedItems.Count - 1; i >= 0; i--)
+            {
+                if (RentedItems[i].RentalID == rentalId)
+                    RentedItems.RemoveAt(i);
+            }
+
+            if (SelectedRental?.RentalID == rentalId)
+                SelectedRental = null;
+            else
+                UpdateSelectedRecordSummary();
+
+            OnPropertyChanged(nameof(OperationsSummary));
+        }
+
+        private static void RunOnUiThread(Action action)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+            {
+                action();
+                return;
+            }
+
+            dispatcher.Invoke(action);
         }
 
         private Task<bool> ConfirmRentalReturnAsync(RentalModel rental)

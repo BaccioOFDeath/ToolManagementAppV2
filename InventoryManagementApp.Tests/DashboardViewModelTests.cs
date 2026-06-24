@@ -606,6 +606,34 @@ public class DashboardViewModelTests
     }
 
     [Fact]
+    public async Task ReturnRentalCommand_RemovesRentalByIdWhenCommandInstanceDiffersFromRow()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }));
+
+        vm.RentedItems.Add(new Rental { RentalID = 8, ItemNumber = "T30", CustomerName = "Pickerill Automotive And Tyres" });
+
+        await vm.ReturnRentalCommand.ExecuteAsync(new Rental { RentalID = 8, ItemNumber = "T30", CustomerName = "Pickerill Automotive And Tyres" });
+
+        Assert.Empty(vm.RentedItems);
+        Assert.Equal(1, rentalService.ReturnCalls);
+    }
+
+    [Fact]
     public async Task ReturnRentalCommand_PromptsBeforeReturningRental()
     {
         using var db = new DatabaseService(":memory:");
