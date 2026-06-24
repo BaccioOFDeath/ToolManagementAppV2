@@ -77,16 +77,30 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void TestProjectKeepsTestOnlyPackagesPrivate()
+        {
+            var source = ReadRepoFile("InventoryManagementApp.Tests", "InventoryManagementApp.Tests.csproj");
+            var packageReferences = GetPackageReferenceElements(source);
+            var testOnlyPackages = new[]
+            {
+                "Microsoft.NET.Test.Sdk",
+                "Moq",
+                "xunit",
+                "xunit.runner.visualstudio"
+            };
+
+            foreach (var packageName in testOnlyPackages)
+            {
+                Assert.Equal("all", packageReferences[packageName].Element("PrivateAssets")?.Value);
+            }
+        }
+
+        [Fact]
         public void TestProjectIsolatesXunitRunnerAssets()
         {
             var source = ReadRepoFile("InventoryManagementApp.Tests", "InventoryManagementApp.Tests.csproj");
-            var document = XDocument.Parse(source);
-            var runnerReference = document
-                .Descendants("PackageReference")
-                .Single(element => string.Equals(
-                    element.Attribute("Include")?.Value,
-                    "xunit.runner.visualstudio",
-                    StringComparison.OrdinalIgnoreCase));
+            var packageReferences = GetPackageReferenceElements(source);
+            var runnerReference = packageReferences["xunit.runner.visualstudio"];
 
             Assert.Equal("all", runnerReference.Element("PrivateAssets")?.Value);
             Assert.Equal("runtime; build; native; contentfiles; analyzers", runnerReference.Element("IncludeAssets")?.Value);
@@ -94,12 +108,21 @@ namespace InventoryManagementApp.Tests
 
         private static IReadOnlyDictionary<string, string> GetPackageReferences(string source)
         {
+            return GetPackageReferenceElements(source)
+                .ToDictionary(
+                    element => element.Key,
+                    element => element.Value.Attribute("Version")?.Value ?? string.Empty,
+                    StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static IReadOnlyDictionary<string, XElement> GetPackageReferenceElements(string source)
+        {
             var document = XDocument.Parse(source);
             return document
                 .Descendants("PackageReference")
                 .ToDictionary(
                     element => element.Attribute("Include")?.Value ?? string.Empty,
-                    element => element.Attribute("Version")?.Value ?? string.Empty,
+                    element => element,
                     StringComparer.OrdinalIgnoreCase);
         }
 
