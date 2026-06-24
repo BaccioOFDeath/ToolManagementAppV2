@@ -59,6 +59,16 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("powershell_command=(powershell.exe -NoProfile -ExecutionPolicy Bypass -Command -)", source);
             Assert.Contains("powershell_command=(pwsh -NoProfile -Command -)", source);
             Assert.Contains("Get-ChildItem -Path . -Recurse -File -Force", source);
+            Assert.Contains("$textFileExtensions = @(", source);
+            Assert.Contains("\".cs\"", source);
+            Assert.Contains("\".xaml\"", source);
+            Assert.Contains("\".csproj\"", source);
+            Assert.Contains("\".yml\"", source);
+            Assert.Contains("$textFileNames = @(", source);
+            Assert.Contains("\".gitignore\"", source);
+            Assert.Contains("[System.IO.Path]::GetExtension($relative)", source);
+            Assert.Contains("[System.IO.Path]::GetFileName($relative)", source);
+            Assert.Contains("$textFileExtensions -contains $extension -or $textFileNames -contains $fileName", source);
             Assert.Contains("$relative -notmatch '(^|/)(bin|obj)/'", source);
             Assert.Contains("--glob '!**/bin/**'", source);
             Assert.Contains("--glob '!**/obj/**'", source);
