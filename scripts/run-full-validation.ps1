@@ -33,6 +33,10 @@ try {
         dotnet restore InventoryManagementApp.sln
     }
 
+    Invoke-ValidationStep "Audit vulnerable packages" {
+        dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive
+    }
+
     Invoke-ValidationStep "Build solution" {
         dotnet build InventoryManagementApp.sln --configuration $Configuration --no-restore
     }
