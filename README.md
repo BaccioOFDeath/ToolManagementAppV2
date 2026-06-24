@@ -68,6 +68,7 @@ Manual equivalent:
 
 ```powershell
 dotnet restore InventoryManagementApp.sln
+dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive
 dotnet build InventoryManagementApp.sln --configuration Release --no-restore
 dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal
 dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64
