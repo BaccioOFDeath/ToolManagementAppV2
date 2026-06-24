@@ -58,6 +58,22 @@ namespace InventoryManagementApp.Tests
             Assert.Equal("3.1.5", packageReferences["xunit.runner.visualstudio"]);
         }
 
+        [Fact]
+        public void TestProjectIsolatesXunitRunnerAssets()
+        {
+            var source = ReadRepoFile("InventoryManagementApp.Tests", "InventoryManagementApp.Tests.csproj");
+            var document = XDocument.Parse(source);
+            var runnerReference = document
+                .Descendants("PackageReference")
+                .Single(element => string.Equals(
+                    element.Attribute("Include")?.Value,
+                    "xunit.runner.visualstudio",
+                    StringComparison.OrdinalIgnoreCase));
+
+            Assert.Equal("all", runnerReference.Element("PrivateAssets")?.Value);
+            Assert.Equal("runtime; build; native; contentfiles; analyzers", runnerReference.Element("IncludeAssets")?.Value);
+        }
+
         private static IReadOnlyDictionary<string, string> GetPackageReferences(string source)
         {
             var document = XDocument.Parse(source);
