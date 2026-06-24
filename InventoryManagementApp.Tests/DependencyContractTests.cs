@@ -10,6 +10,24 @@ namespace InventoryManagementApp.Tests
     public class DependencyContractTests
     {
         [Fact]
+        public void RepositoryEnablesTransitiveNuGetAudit()
+        {
+            var source = ReadRepoFile("Directory.Build.props");
+            var document = XDocument.Parse(source);
+            var properties = document
+                .Descendants("PropertyGroup")
+                .Elements()
+                .ToDictionary(
+                    element => element.Name.LocalName,
+                    element => element.Value,
+                    StringComparer.OrdinalIgnoreCase);
+
+            Assert.Equal("true", properties["NuGetAudit"]);
+            Assert.Equal("all", properties["NuGetAuditMode"]);
+            Assert.Equal("low", properties["NuGetAuditLevel"]);
+        }
+
+        [Fact]
         public void AppProjectPinsSupportedSqliteNativeBundle()
         {
             var source = ReadRepoFile("InventoryManagementApp", "InventoryManagementApp.csproj");
