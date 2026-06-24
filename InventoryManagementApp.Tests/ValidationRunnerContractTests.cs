@@ -20,16 +20,16 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void BuildWorkflowAuditsVulnerablePackagesAfterRestoreBeforeValidationContinues()
+        public void BuildWorkflowAuditsVulnerablePackagesAfterRestoreBeforeBuild()
         {
             var source = ReadRepoFile(".github", "workflows", "build.yml");
 
             Assert.Contains("Audit vulnerable packages", source);
             Assert.Contains("dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive", source);
             AssertAppearsBefore(source, "Restore dependencies", "Audit vulnerable packages", "The Build and Test workflow should audit packages immediately after restore.");
-            AssertAppearsBefore(source, "Audit vulnerable packages", "Check banned words", "The Build and Test workflow should surface dependency advisories before source validation continues.");
+            AssertAppearsBefore(source, "Audit vulnerable packages", "Build", "The Build and Test workflow should audit packages before build/test work continues.");
             AssertAppearsBefore(source, "dotnet restore InventoryManagementApp.sln", "dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive", "The workflow audit command should run after solution restore.");
-            AssertAppearsBefore(source, "dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive", "bash scripts/check-banned-words.sh", "The workflow audit command should run before later validation steps.");
+            AssertAppearsBefore(source, "dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive", "dotnet build InventoryManagementApp.sln --configuration Release --no-restore", "The workflow audit command should run before the no-restore build.");
         }
 
         [Fact]
@@ -79,6 +79,19 @@ namespace InventoryManagementApp.Tests
             Assert.True(cleanIndex >= 0, "The Build and Test workflow should name the publish-output cleanup step.");
             Assert.True(publishIndex >= 0, "The Build and Test workflow should publish the app.");
             Assert.True(cleanIndex < publishIndex, "The Build and Test workflow should clean stale publish output before publishing fresh artifacts.");
+        }
+
+        [Fact]
+        public void BuildWorkflowRunsBannedWordChecksAfterPublishingBeforeUpload()
+        {
+            var source = ReadRepoFile(".github", "workflows", "build.yml");
+
+            Assert.Contains("Check banned words", source);
+            Assert.Contains("Check banned words PowerShell fallback", source);
+            Assert.Contains("BANNED_WORD_CHECK_FORCE_POWERSHELL=1 bash scripts/check-banned-words.sh", source);
+            AssertAppearsBefore(source, "dotnet publish InventoryManagementApp/InventoryManagementApp.csproj", "bash scripts/check-banned-words.sh", "The Build and Test workflow should mirror the full validation runner by scanning source after publish completes.");
+            AssertAppearsBefore(source, "bash scripts/check-banned-words.sh", "BANNED_WORD_CHECK_FORCE_POWERSHELL=1 bash scripts/check-banned-words.sh", "The normal banned-word path should run before the forced PowerShell fallback path.");
+            AssertAppearsBefore(source, "BANNED_WORD_CHECK_FORCE_POWERSHELL=1 bash scripts/check-banned-words.sh", "Upload build artifacts", "Both banned-word paths should pass before the workflow uploads generated artifacts.");
         }
 
         private static void AssertAppearsBefore(string source, string first, string second, string because)
