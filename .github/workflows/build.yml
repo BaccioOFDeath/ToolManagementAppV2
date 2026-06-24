@@ -2,38 +2,43 @@ name: Build and Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ master, main ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ master, main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
     permissions:
       contents: read
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
+    - uses: actions/checkout@v4
+
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
-    
+        dotnet-version: 10.0.x
+
     - name: Restore dependencies
-      run: dotnet restore
-    
+      run: dotnet restore InventoryManagementApp.sln
+
+    - name: Check banned words
+      shell: bash
+      run: bash scripts/check-banned-words.sh
+
     - name: Build
-      run: dotnet build --configuration Release --no-restore
-    
+      run: dotnet build InventoryManagementApp.sln --configuration Release --no-restore
+
     - name: Test
-      run: dotnet test --configuration Release --no-build --verbosity normal
-    
+      run: dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal
+
     - name: Publish
-      run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false -o ./publish
-    
+      run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-build -o ./publish
+
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: inventory-management-app
         path: ./publish/
