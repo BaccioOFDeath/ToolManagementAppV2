@@ -10,7 +10,7 @@ Date: 2026-06-24
 
 ## Validation Notes
 
-- NuGet package pages confirmed 10.0.9 packages are available for `Microsoft.Extensions.Logging`, `Microsoft.Extensions.Caching.Memory`, `Microsoft.Extensions.Hosting`, `Microsoft.Extensions.Logging.Abstractions`, and `Microsoft.Extensions.Logging.Debug`.
+- NuGet package pages confirmed 10.0.9 packages are available for `Microsoft.Extensions.Logging`, `Microsoft.Extensions.Caching.Memory`, `Microsoft.Extensions.Hosting`, `Microsoft.Extensions.Logging.Abstractions`, `Microsoft.Extensions.Logging.Debug`, and `Microsoft.Extensions.ObjectPool`.
 - Local validation was not run in this scheduled Linux container because direct repository clone/raw access is blocked, `dotnet` is unavailable, `gh` is unavailable, and WPF runtime/screenshots cannot run here.
 - Validate on a Windows/.NET-capable checkout with:
   - `dotnet restore InventoryManagementApp.sln`
