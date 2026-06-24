@@ -17,10 +17,12 @@ function Invoke-ValidationStep {
 
     Write-Host ""
     Write-Host "==> $Name"
+    $global:LASTEXITCODE = 0
     & $Action
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "$Name failed with exit code $LASTEXITCODE."
+    $exitCode = $global:LASTEXITCODE
+    if ($null -ne $exitCode -and $exitCode -ne 0) {
+        throw "$Name failed with exit code $exitCode."
     }
 }
 
