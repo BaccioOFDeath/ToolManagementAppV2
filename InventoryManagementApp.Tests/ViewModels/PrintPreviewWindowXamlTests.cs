@@ -47,6 +47,18 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Generated from InventoryManagementApp print preview", codeBehind, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void PrintPreviewWindow_FitsPrintedDocumentToPrinterPrintableArea()
+        {
+            var codeBehind = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml.cs");
+
+            Assert.Contains("ConfigureDocumentForPage(_document, dlg.PrintableAreaWidth, dlg.PrintableAreaHeight)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("paginator.PageSize = new Size(dlg.PrintableAreaWidth, dlg.PrintableAreaHeight)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("document.ColumnWidth = contentWidth", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("RebalanceTableColumns(table)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GridUnitType.Star", codeBehind, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);

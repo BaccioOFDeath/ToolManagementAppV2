@@ -150,6 +150,9 @@ namespace InventoryManagementApp.ViewModels
         {
             try
             {
+                if (await HandleRentedItemCheckInRequestAsync())
+                    return;
+
                 var result = await _itemService.ToggleItemCheckOutStatusAsync(ItemModel.ItemID).ConfigureAwait(false);
                 if (!result)
                 {
@@ -171,25 +174,42 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        async Task<bool> HandleRentedItemCheckInRequestAsync()
+        {
+            if (ItemModel.IsCheckedOut || !ItemModel.HasRentedStock)
+                return false;
+
+            await RefreshItemStateAsync();
+
+            if (ItemModel.IsCheckedOut || !ItemModel.HasRentedStock)
+                return false;
+
+            await _dialogService.ShowInfoAsync(
+                $"{ValueOrNotRecorded(ItemModel.ItemNumber)} is currently rented out, not checked out.{Environment.NewLine}{Environment.NewLine}" +
+                "Open Rentals to return the customer rental so the rental record and stock counts stay together.",
+                "Return Rental");
+            return true;
+        }
+
         async Task RentOutAsync()
         {
             try
             {
-                var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
+                var customers = await _customerService.GetAllCustomersAsync();
                 var result = _dialogService.ShowRentItemDialog(ItemModel, customers);
                 if (result == null)
                     return;
 
                 var (customer, dueDate) = result.Value;
-                await _rentalService.RentItemAsync(ItemModel.ItemID, customer.CustomerID, DateTime.Today, dueDate).ConfigureAwait(false);
-                await PromptToPrintRentalHandoffAsync(customer, dueDate).ConfigureAwait(false);
+                await _rentalService.RentItemAsync(ItemModel.ItemID, customer.CustomerID, DateTime.Today, dueDate);
+                await PromptToPrintRentalHandoffAsync(customer, dueDate);
 
-                await RefreshItemStateAsync().ConfigureAwait(false);
+                await RefreshItemStateAsync();
             }
             catch (Exception ex)
             {
-                await RefreshItemStateAsync().ConfigureAwait(false);
-                await _dialogService.ShowInfoAsync($"Failed to rent item: {ex.Message} The item details have been refreshed in case the rental was saved before the failure.", "Error").ConfigureAwait(false);
+                await RefreshItemStateAsync();
+                await _dialogService.ShowInfoAsync($"Failed to rent item: {ex.Message} The item details have been refreshed in case the rental was saved before the failure.", "Error");
             }
         }
 
@@ -197,11 +217,11 @@ namespace InventoryManagementApp.ViewModels
         {
             var print = await _dialogService.ShowConfirmAsync(
                 "Print Rental Handoff",
-                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection and the customer rental copy now?").ConfigureAwait(false);
+                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection and the customer rental copy now?");
             if (!print)
                 return;
 
-            var rental = await FindNewActiveRentalAsync(customer, dueDate).ConfigureAwait(false)
+            var rental = await FindNewActiveRentalAsync(customer, dueDate)
                 ?? BuildRentalHandoffFallback(customer, dueDate);
             var printService = new RentalPrintingService("Equipment Rentals", "", "");
             var rentalTitle = rental.RentalID > 0 ? rental.RentalID.ToString() : ItemModel.ItemNumber;

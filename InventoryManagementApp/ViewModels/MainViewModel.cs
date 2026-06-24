@@ -534,6 +534,7 @@ namespace InventoryManagementApp.ViewModels
                     throw;
                 }
             });
+            ItemManagement.OpenRentalReturnWorkflowAsync = () => OpenRentalsCommand.ExecuteAsync(null);
 
             OpenImportExportCommand = new AsyncRelayCommand(async () =>
             {

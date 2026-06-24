@@ -105,6 +105,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
         public IAsyncRelayCommand<ItemModel> RentItemCommand { get; }
         public IAsyncRelayCommand<ItemModel> ToggleCheckOutCommand { get; }
+        public Func<Task>? OpenRentalReturnWorkflowAsync { get; set; }
 
         readonly IDispatcherTimer _searchDebounceTimer;
         CancellationTokenSource? _searchCts = new();
@@ -519,7 +520,7 @@ namespace InventoryManagementApp.ViewModels
                         customer.CustomerID,
                         DateTime.Today,
                         dueDate);
-                    await PromptToPrintRentalHandoffAsync(item, customer, dueDate).ConfigureAwait(false);
+                    await PromptToPrintRentalHandoffAsync(item, customer, dueDate);
                     await ReloadItemsAfterRentalAsync(item.ItemID, cancellationToken);
                 }
             }
@@ -550,7 +551,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     var (customer, dueDate) = result.Value;
                     await _rentalService.RentItemAsync(item.ItemID, customer.CustomerID, DateTime.Today, dueDate);
-                    await PromptToPrintRentalHandoffAsync(item, customer, dueDate).ConfigureAwait(false);
+                    await PromptToPrintRentalHandoffAsync(item, customer, dueDate);
                     await ReloadItemsAfterRentalAsync(item.ItemID, cancellationToken);
                 }
             }
@@ -578,11 +579,11 @@ namespace InventoryManagementApp.ViewModels
         {
             var print = await _dialogService.ShowConfirmAsync(
                 "Print Rental Handoff",
-                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection and the customer rental copy now?").ConfigureAwait(false);
+                $"Rental saved for {ValueOrNotRecorded(customer.Company)}.{Environment.NewLine}{Environment.NewLine}Print the picking slip for shelf collection and the customer rental copy now?");
             if (!print)
                 return;
 
-            var rental = await FindNewActiveRentalAsync(item, customer, dueDate).ConfigureAwait(false)
+            var rental = await FindNewActiveRentalAsync(item, customer, dueDate)
                 ?? BuildRentalHandoffFallback(item, customer, dueDate);
             var printService = new RentalPrintingService("Equipment Rentals", "", "");
             var rentalTitle = rental.RentalID > 0 ? rental.RentalID.ToString() : item.ItemNumber;
@@ -713,6 +714,9 @@ namespace InventoryManagementApp.ViewModels
             if (item == null) return;
             try
             {
+                if (await HandleRentedItemCheckInRequestAsync(item, cancellationToken))
+                    return;
+
                 var result = await _itemService.ToggleItemCheckOutStatusAsync(item.ItemID, cancellationToken).ConfigureAwait(false);
                 if (!result)
                 {
@@ -736,6 +740,37 @@ namespace InventoryManagementApp.ViewModels
                 await RefreshItemsAfterWorkflowFailureAsync(item.ItemID, cancellationToken);
                 await _dialogService.ShowInfoAsync($"Failed to update check-out status: {ex.Message} The item list has been refreshed in case the check-out status changed before the failure.", "Error");
             }
+        }
+
+        private async Task<bool> HandleRentedItemCheckInRequestAsync(ItemModel item, CancellationToken cancellationToken)
+        {
+            if (item.IsCheckedOut || !item.HasRentedStock)
+                return false;
+
+            await ReloadItemsAfterCheckoutAsync(item, cancellationToken);
+
+            var refreshed = SelectedItem?.ItemID == item.ItemID ? SelectedItem : item;
+            if (refreshed.IsCheckedOut || !refreshed.HasRentedStock)
+                return false;
+
+            const string title = "Return Rental";
+            var message =
+                $"{ValueOrNotRecorded(refreshed.ItemNumber)} is currently rented out, not checked out.{Environment.NewLine}{Environment.NewLine}" +
+                "Rental returns must be completed from the Rentals screen so the customer rental and stock counts stay together.";
+
+            if (OpenRentalReturnWorkflowAsync == null)
+            {
+                await _dialogService.ShowInfoAsync(message, title);
+                return true;
+            }
+
+            var openRentals = await _dialogService.ShowConfirmAsync(
+                title,
+                $"{message}{Environment.NewLine}{Environment.NewLine}Open Rentals now to return it?");
+            if (openRentals)
+                await OpenRentalReturnWorkflowAsync();
+
+            return true;
         }
 
         private static ItemModel CloneItemForEdit(ItemModel source)

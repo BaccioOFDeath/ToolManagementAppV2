@@ -10,6 +10,7 @@ namespace InventoryManagementApp.Views.Windows
         public KitItemEditWindow(KitItem kitItem, bool isNew)
         {
             InitializeComponent();
+            this.UseResponsiveDefaultSize(760, 660);
             DataContext = new KitItemEditViewModel(kitItem, isNew,
                 onSave: () => DialogResult = true,
                 onCancel: () => DialogResult = false);

@@ -12,6 +12,7 @@ namespace InventoryManagementApp.Views.Windows
         public CustomerEditWindow(CustomerModel customer, Action onSave, Action onCancel)
         {
             InitializeComponent();
+            this.UseResponsiveDefaultSize(900, 760);
             DataContext = new CustomerEditViewModel(customer, onSave, onCancel);
             this.DisposeDataContextOnUnload();
         }

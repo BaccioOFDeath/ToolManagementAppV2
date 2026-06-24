@@ -66,6 +66,26 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void RentalPrintHandoffUsesUiThreadPreviewPath()
+        {
+            var dialogService = ReadRepoFile("InventoryManagementApp", "Services", "DialogService.cs");
+            var itemDetails = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemDetailsViewModel.cs");
+            var itemManagement = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemManagementViewModel.cs");
+
+            Assert.Contains("return InvokeOnDispatcher(() => ShowRentItemDialogCore(item, customers)", dialogService, StringComparison.Ordinal);
+            Assert.Contains("InvokeOnDispatcher(() => ShowPrintPreviewCore(document, title, description))", dialogService, StringComparison.Ordinal);
+            Assert.Contains("dispatcher.Invoke(factory)", dialogService, StringComparison.Ordinal);
+
+            Assert.Contains("await PromptToPrintRentalHandoffAsync(customer, dueDate);", itemDetails, StringComparison.Ordinal);
+            Assert.DoesNotContain("await PromptToPrintRentalHandoffAsync(customer, dueDate).ConfigureAwait(false)", itemDetails, StringComparison.Ordinal);
+            Assert.DoesNotContain("await FindNewActiveRentalAsync(customer, dueDate).ConfigureAwait(false)", itemDetails, StringComparison.Ordinal);
+
+            Assert.Contains("await PromptToPrintRentalHandoffAsync(item, customer, dueDate);", itemManagement, StringComparison.Ordinal);
+            Assert.DoesNotContain("await PromptToPrintRentalHandoffAsync(item, customer, dueDate).ConfigureAwait(false)", itemManagement, StringComparison.Ordinal);
+            Assert.DoesNotContain("await FindNewActiveRentalAsync(item, customer, dueDate).ConfigureAwait(false)", itemManagement, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CategoriesKeepBothDirectoryAndSelectedSheetPreviewRoutes()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs");

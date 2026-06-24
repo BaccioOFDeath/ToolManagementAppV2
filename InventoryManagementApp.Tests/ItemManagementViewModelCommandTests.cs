@@ -64,6 +64,36 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task ToggleCheckOutCommand_RentedItemPromptsForRentalReturnInsteadOfToggling()
+        {
+            var itemService = new RecordingToggleItemService
+            {
+                GetItemResult = new ItemModel { ItemID = 80, ItemNumber = "T30", QuantityOnHand = 0, RentedQuantity = 1, IsCheckedOut = false }
+            };
+            var dialog = new RecordingDialogService();
+            var rental = new RecordingRentalService();
+            var customer = new RecordingCustomerService();
+            var settings = new DummySettingsService();
+            var vm = new ItemManagementViewModel(itemService, customer, rental, dialog, settings, NullLogger<ItemManagementViewModel>.Instance);
+            var item = new ItemModel { ItemID = 80, ItemNumber = "T30", QuantityOnHand = 0, RentedQuantity = 1, IsCheckedOut = false };
+            var openedRentals = false;
+            vm.SelectedItem = item;
+            vm.OpenRentalReturnWorkflowAsync = () =>
+            {
+                openedRentals = true;
+                return Task.CompletedTask;
+            };
+
+            await vm.ToggleCheckOutCommand.ExecuteAsync(item);
+
+            Assert.False(itemService.ToggleCalled);
+            Assert.Equal(1, dialog.ConfirmCalls);
+            Assert.Equal("Return Rental", dialog.LastConfirmTitle);
+            Assert.Contains("currently rented out, not checked out", dialog.LastConfirmMessage);
+            Assert.True(openedRentals);
+        }
+
+        [Fact]
         public void OpenItemCardCommand_SelectsItemAndShowsDetails()
         {
             var itemService = new ToggleItemService();
@@ -143,6 +173,27 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(1, item.QuantityOnHand);
             Assert.Equal("Alex", item.CheckedOutBy);
             Assert.Equal("Check In", vm.CheckOutButtonText);
+        }
+
+        [Fact]
+        public async Task ItemDetailsViewModel_ToggleCheckOutCommand_RentedItemExplainsRentalReturnPath()
+        {
+            var rental = new RecordingRentalService();
+            var dialog = new RecordingDialogService();
+            var itemService = new RecordingToggleItemService
+            {
+                GetItemResult = new ItemModel { ItemID = 80, ItemNumber = "T30", QuantityOnHand = 0, RentedQuantity = 1, IsCheckedOut = false }
+            };
+            var customer = new RecordingCustomerService();
+            var item = new ItemModel { ItemID = 80, ItemNumber = "T30", QuantityOnHand = 0, RentedQuantity = 1, IsCheckedOut = false };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { });
+
+            await vm.ToggleCheckOutCommand.ExecuteAsync(null);
+
+            Assert.False(itemService.ToggleCalled);
+            Assert.Equal("Return Rental", dialog.LastInfoTitle);
+            Assert.Contains("currently rented out, not checked out", dialog.LastInfoMessage);
+            Assert.Contains("Open Rentals to return", dialog.LastInfoMessage);
         }
 
         [Fact]

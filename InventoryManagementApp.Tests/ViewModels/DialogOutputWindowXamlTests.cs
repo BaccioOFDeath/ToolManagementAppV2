@@ -87,6 +87,15 @@ namespace InventoryManagementApp.Tests.ViewModels
             var kit = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitEditWindow.xaml");
             var kitItem = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitItemEditWindow.xaml");
             var saveCancel = ReadRepositoryFile("InventoryManagementApp", "Views", "Controls", "SaveCancelBar.xaml");
+            var customerCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "CustomerEditWindow.xaml.cs");
+            var itemCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "ItemEditWindow.xaml.cs");
+            var userCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "UsersEditWindow.xaml.cs");
+            var maintenanceCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "MaintenanceEditWindow.xaml.cs");
+            var calibrationCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "CalibrationEditWindow.xaml.cs");
+            var kitCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitEditWindow.xaml.cs");
+            var kitItemCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "KitItemEditWindow.xaml.cs");
+            var reservationCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "ReservationEditWindow.xaml.cs");
+            var rentCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "RentItemPopupWindow.xaml.cs");
 
             Assert.Contains("Item Edit Workbench", item, StringComparison.Ordinal);
             Assert.Contains("Inventory Identity", item, StringComparison.Ordinal);
@@ -156,6 +165,15 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("SaveCommand", saveCancel, StringComparison.Ordinal);
             Assert.Contains("CancelCommand", saveCancel, StringComparison.Ordinal);
             Assert.Contains("Width=\"104\"", saveCancel, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(900, 760)", customerCode, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(980, 880)", itemCode, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(1120, 880)", userCode, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(880, 720)", maintenanceCode, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(880, 720)", calibrationCode, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(880, 720)", kitCode, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(760, 660)", kitItemCode, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(1000, 780)", reservationCode, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(1040, 760)", rentCode, StringComparison.Ordinal);
         }
 
         [Fact]

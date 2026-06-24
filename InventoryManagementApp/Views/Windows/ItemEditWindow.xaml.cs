@@ -15,6 +15,7 @@ namespace InventoryManagementApp.Views.Windows
         public ItemEditWindow(ItemModel item, Action onSave, Action onCancel, IFileDialogService fileDialogService)
         {
             InitializeComponent();
+            this.UseResponsiveDefaultSize(980, 880);
             _fileDialogService = fileDialogService;
             DataContext = new ItemEditViewModel(item, onSave, onCancel, _fileDialogService);
             this.DisposeDataContextOnUnload();

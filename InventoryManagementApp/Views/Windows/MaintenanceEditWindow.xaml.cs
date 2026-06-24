@@ -10,6 +10,7 @@ namespace InventoryManagementApp.Views.Windows
         public MaintenanceEditWindow(MaintenanceRecord record, bool isNew)
         {
             InitializeComponent();
+            this.UseResponsiveDefaultSize(880, 720);
             DataContext = new MaintenanceEditViewModel(record, isNew,
                 onSave: () => DialogResult = true,
                 onCancel: () => DialogResult = false);

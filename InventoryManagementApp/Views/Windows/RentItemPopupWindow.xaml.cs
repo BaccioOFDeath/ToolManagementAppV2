@@ -8,6 +8,7 @@ namespace InventoryManagementApp.Views.Windows
         public RentItemPopupWindow()
         {
             InitializeComponent();
+            this.UseResponsiveDefaultSize(1040, 760);
             this.DisposeDataContextOnUnload();
         }
     }

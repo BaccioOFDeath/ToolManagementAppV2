@@ -10,6 +10,7 @@ namespace InventoryManagementApp.Views.Windows
         public CalibrationEditWindow(CalibrationRecord record, bool isNew)
         {
             InitializeComponent();
+            this.UseResponsiveDefaultSize(880, 720);
             DataContext = new CalibrationEditViewModel(record, isNew,
                 onSave: () => DialogResult = true,
                 onCancel: () => DialogResult = false);

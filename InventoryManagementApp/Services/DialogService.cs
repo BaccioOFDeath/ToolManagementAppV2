@@ -98,6 +98,11 @@ namespace InventoryManagementApp.Services
         {
             ArgumentNullException.ThrowIfNull(item);
             ArgumentNullException.ThrowIfNull(customers);
+            return InvokeOnDispatcher(() => ShowRentItemDialogCore(item, customers), ((CustomerModel customer, DateTime dueDate)?)null);
+        }
+
+        (CustomerModel customer, DateTime dueDate)? ShowRentItemDialogCore(ItemModel item, IEnumerable<CustomerModel> customers)
+        {
             var vm = ActivatorUtilities.CreateInstance<RentItemPopupViewModel>(_serviceProvider, item, customers, this);
             var win = new RentItemPopupWindow { DataContext = vm };
 
@@ -221,6 +226,11 @@ namespace InventoryManagementApp.Services
             ArgumentNullException.ThrowIfNull(document);
             ArgumentNullException.ThrowIfNull(title);
             ArgumentNullException.ThrowIfNull(description);
+            InvokeOnDispatcher(() => ShowPrintPreviewCore(document, title, description));
+        }
+
+        void ShowPrintPreviewCore(FlowDocument document, string title, string description)
+        {
             var win = new PrintPreviewWindow();
             try { win.Owner = System.Windows.Application.Current?.MainWindow; }
             catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for PrintPreviewWindow"); }
@@ -274,11 +284,51 @@ namespace InventoryManagementApp.Services
         async Task<T> InvokeOnDispatcherAsync<T>(Func<T> factory, T fallback)
         {
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
-            if (dispatcher != null)
-                return await dispatcher.InvokeAsync(factory);
+            if (dispatcher == null)
+            {
+                _logger.LogWarning("No dispatcher available for dialog invocation; returning fallback value.");
+                return fallback;
+            }
 
-            _logger.LogWarning("No dispatcher available for dialog invocation; returning fallback value.");
-            return fallback;
+            if (dispatcher.CheckAccess())
+                return factory();
+
+            return await dispatcher.InvokeAsync(factory);
+        }
+
+        void InvokeOnDispatcher(Action action)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+            {
+                action();
+                return;
+            }
+
+            dispatcher.Invoke(action);
+        }
+
+        T InvokeOnDispatcher<T>(Func<T> factory, T fallback)
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null)
+            {
+                _logger.LogWarning("No dispatcher available for dialog invocation; returning fallback value.");
+                return fallback;
+            }
+
+            if (dispatcher.CheckAccess())
+                return factory();
+
+            try
+            {
+                return dispatcher.Invoke(factory);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to invoke dialog on dispatcher.");
+                return fallback;
+            }
         }
 
         string? ShowInputDialog(string title, string message, bool isRequired = false)

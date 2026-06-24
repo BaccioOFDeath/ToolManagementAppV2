@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -16,6 +17,11 @@ namespace InventoryManagementApp.Views.Windows
 {
     public partial class PrintPreviewWindow : Window
     {
+        private const double DefaultPreviewPageWidth = 816;
+        private const double DefaultPreviewPageHeight = 1056;
+        private const double MinimumPrintableExtent = 320;
+        private static readonly Thickness PrintPagePadding = new(36, 36, 36, 36);
+
         private FlowDocument? _document;
         private string _title = string.Empty;
         private string _description = string.Empty;
@@ -49,6 +55,7 @@ namespace InventoryManagementApp.Views.Windows
             PreviewLogo.Source = bmp;
 
             ApplyDocumentPolish(_document, _title);
+            ConfigureDocumentForPage(_document, DefaultPreviewPageWidth, DefaultPreviewPageHeight);
             DocViewer.Document = _document;
             Owner = System.Windows.Application.Current.MainWindow;
             ShowDialog();
@@ -78,7 +85,7 @@ namespace InventoryManagementApp.Views.Windows
             document.FontFamily = new FontFamily("Segoe UI");
             document.FontSize = Math.Max(document.FontSize, 10.5);
             PrintDocumentTheme.ApplyLightTheme(document);
-            document.PagePadding = new Thickness(44, 40, 44, 42);
+            document.PagePadding = PrintPagePadding;
             document.ColumnGap = 0;
             document.TextAlignment = TextAlignment.Left;
 
@@ -95,8 +102,36 @@ namespace InventoryManagementApp.Views.Windows
             if (document.Blocks.LastBlock is not Paragraph { Tag: "PrintPolishFooter" })
                 document.Blocks.Add(BuildDocumentFooter());
 
-            foreach (var table in document.Blocks.OfType<Table>())
+            foreach (var table in GetTables(document.Blocks))
                 ApplyTablePolish(table);
+        }
+
+        private static void ConfigureDocumentForPage(FlowDocument document, double pageWidth, double pageHeight)
+        {
+            var safePageWidth = Math.Max(MinimumPrintableExtent, pageWidth);
+            var safePageHeight = Math.Max(MinimumPrintableExtent, pageHeight);
+            var contentWidth = Math.Max(120, safePageWidth - document.PagePadding.Left - document.PagePadding.Right);
+
+            document.PageWidth = safePageWidth;
+            document.PageHeight = safePageHeight;
+            document.ColumnGap = 0;
+            document.ColumnWidth = contentWidth;
+        }
+
+        private static IEnumerable<Table> GetTables(BlockCollection blocks)
+        {
+            foreach (var block in blocks)
+            {
+                if (block is Table table)
+                {
+                    yield return table;
+                }
+                else if (block is Section section)
+                {
+                    foreach (var nestedTable in GetTables(section.Blocks))
+                        yield return nestedTable;
+                }
+            }
         }
 
         private static Section BuildDocumentHeader(string title)
@@ -144,8 +179,10 @@ namespace InventoryManagementApp.Views.Windows
 
         private static void ApplyTablePolish(Table table)
         {
+            RebalanceTableColumns(table);
             table.CellSpacing = 0;
             table.Margin = new Thickness(0, 4, 0, 12);
+            table.TextAlignment = TextAlignment.Left;
 
             foreach (var rowGroup in table.RowGroups)
             {
@@ -170,12 +207,26 @@ namespace InventoryManagementApp.Views.Windows
                         cell.BorderBrush = PrintDocumentTheme.RuleBorderBrush;
                         cell.BorderThickness = new Thickness(0, 0, 0, 0.6);
                         cell.Padding = new Thickness(6, 4, 6, 4);
+                        cell.TextAlignment = TextAlignment.Left;
 
                         foreach (var paragraph in cell.Blocks.OfType<Paragraph>())
                             paragraph.Margin = new Thickness(0);
                     }
                 }
             }
+        }
+
+        private static void RebalanceTableColumns(Table table)
+        {
+            if (table.Columns.Count == 0)
+                return;
+
+            var weights = table.Columns
+                .Select(column => column.Width.IsAbsolute ? Math.Max(1, column.Width.Value) : 1)
+                .ToArray();
+
+            for (var index = 0; index < table.Columns.Count; index++)
+                table.Columns[index].Width = new GridLength(weights[index], GridUnitType.Star);
         }
 
         private static string SafeText(string? text, string fallback)
@@ -187,7 +238,7 @@ namespace InventoryManagementApp.Views.Windows
             {
                 // FlowDocumentScrollViewer does not have ViewportWidth.
                 // Use a reasonable default or set PageWidth to the window/client width.
-                DocViewer.Document.PageWidth = DocViewer.ActualWidth;
+                ConfigureDocumentForPage(DocViewer.Document, DocViewer.ActualWidth, Math.Max(DocViewer.ActualHeight, DefaultPreviewPageHeight));
             }
         }
 
@@ -197,7 +248,11 @@ namespace InventoryManagementApp.Views.Windows
             var dlg = new System.Windows.Controls.PrintDialog();
             if (dlg.ShowDialog() == true)
             {
-                dlg.PrintDocument(((IDocumentPaginatorSource)_document).DocumentPaginator, _title);
+                ConfigureDocumentForPage(_document, dlg.PrintableAreaWidth, dlg.PrintableAreaHeight);
+
+                var paginator = ((IDocumentPaginatorSource)_document).DocumentPaginator;
+                paginator.PageSize = new Size(dlg.PrintableAreaWidth, dlg.PrintableAreaHeight);
+                dlg.PrintDocument(paginator, _title);
             }
         }
     }
