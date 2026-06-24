@@ -156,10 +156,14 @@ namespace InventoryManagementApp.Tests
                 settings.MenuDropDownOpacity = 0.81;
                 settings.FooterOpacity = 0.23;
                 settings.DialogOpacity = 0.84;
+                settings.DashboardHeaderColor = "#FF112233";
+                settings.RentalsHeaderColor = "#FF445566";
 
                 service.ApplyCustomTheme(settings);
 
                 Assert.Equal(0xE8, ((SolidColorBrush)app.Resources["ThemeShellHeaderBrush"]).Color.A);
+                Assert.Equal(Color.FromArgb(0xE8, 0x11, 0x22, 0x33), ((SolidColorBrush)app.Resources["PageHeaderDashboardBrush"]).Color);
+                Assert.Equal(Color.FromArgb(0xE8, 0x44, 0x55, 0x66), ((SolidColorBrush)app.Resources["PageHeaderRentalsBrush"]).Color);
                 Assert.Equal(0x5E, ((SolidColorBrush)app.Resources["ThemeShellMenuBrush"]).Color.A);
                 Assert.Equal(0x17, ((SolidColorBrush)app.Resources["ThemePopupSurfaceBrush"]).Color.A);
                 Assert.Equal(0xCF, ((SolidColorBrush)app.Resources["ThemeMenuDropDownBackgroundBrush"]).Color.A);

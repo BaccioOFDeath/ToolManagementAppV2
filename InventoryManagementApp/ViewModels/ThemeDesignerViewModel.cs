@@ -216,6 +216,96 @@ namespace InventoryManagementApp.ViewModels
             set => SetString(value, (settings, newValue) => settings.ShadowColor = newValue, nameof(ShadowColor));
         }
 
+        public string DashboardHeaderColor
+        {
+            get => _settings.DashboardHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.DashboardHeaderColor = newValue, nameof(DashboardHeaderColor));
+        }
+
+        public string SearchHeaderColor
+        {
+            get => _settings.SearchHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.SearchHeaderColor = newValue, nameof(SearchHeaderColor));
+        }
+
+        public string ManageItemsHeaderColor
+        {
+            get => _settings.ManageItemsHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.ManageItemsHeaderColor = newValue, nameof(ManageItemsHeaderColor));
+        }
+
+        public string RentalsHeaderColor
+        {
+            get => _settings.RentalsHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.RentalsHeaderColor = newValue, nameof(RentalsHeaderColor));
+        }
+
+        public string CustomersHeaderColor
+        {
+            get => _settings.CustomersHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.CustomersHeaderColor = newValue, nameof(CustomersHeaderColor));
+        }
+
+        public string ReservationsHeaderColor
+        {
+            get => _settings.ReservationsHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.ReservationsHeaderColor = newValue, nameof(ReservationsHeaderColor));
+        }
+
+        public string MaintenanceHeaderColor
+        {
+            get => _settings.MaintenanceHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.MaintenanceHeaderColor = newValue, nameof(MaintenanceHeaderColor));
+        }
+
+        public string CalibrationHeaderColor
+        {
+            get => _settings.CalibrationHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.CalibrationHeaderColor = newValue, nameof(CalibrationHeaderColor));
+        }
+
+        public string KitsHeaderColor
+        {
+            get => _settings.KitsHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.KitsHeaderColor = newValue, nameof(KitsHeaderColor));
+        }
+
+        public string CategoriesHeaderColor
+        {
+            get => _settings.CategoriesHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.CategoriesHeaderColor = newValue, nameof(CategoriesHeaderColor));
+        }
+
+        public string ReportsHeaderColor
+        {
+            get => _settings.ReportsHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.ReportsHeaderColor = newValue, nameof(ReportsHeaderColor));
+        }
+
+        public string ActivityLogsHeaderColor
+        {
+            get => _settings.ActivityLogsHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.ActivityLogsHeaderColor = newValue, nameof(ActivityLogsHeaderColor));
+        }
+
+        public string ImportExportHeaderColor
+        {
+            get => _settings.ImportExportHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.ImportExportHeaderColor = newValue, nameof(ImportExportHeaderColor));
+        }
+
+        public string UsersHeaderColor
+        {
+            get => _settings.UsersHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.UsersHeaderColor = newValue, nameof(UsersHeaderColor));
+        }
+
+        public string SettingsHeaderColor
+        {
+            get => _settings.SettingsHeaderColor;
+            set => SetString(value, (settings, newValue) => settings.SettingsHeaderColor = newValue, nameof(SettingsHeaderColor));
+        }
+
         public string BackgroundImagePath
         {
             get => _settings.BackgroundImagePath;
@@ -931,6 +1021,21 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(WarningColor));
             OnPropertyChanged(nameof(ErrorColor));
             OnPropertyChanged(nameof(ShadowColor));
+            OnPropertyChanged(nameof(DashboardHeaderColor));
+            OnPropertyChanged(nameof(SearchHeaderColor));
+            OnPropertyChanged(nameof(ManageItemsHeaderColor));
+            OnPropertyChanged(nameof(RentalsHeaderColor));
+            OnPropertyChanged(nameof(CustomersHeaderColor));
+            OnPropertyChanged(nameof(ReservationsHeaderColor));
+            OnPropertyChanged(nameof(MaintenanceHeaderColor));
+            OnPropertyChanged(nameof(CalibrationHeaderColor));
+            OnPropertyChanged(nameof(KitsHeaderColor));
+            OnPropertyChanged(nameof(CategoriesHeaderColor));
+            OnPropertyChanged(nameof(ReportsHeaderColor));
+            OnPropertyChanged(nameof(ActivityLogsHeaderColor));
+            OnPropertyChanged(nameof(ImportExportHeaderColor));
+            OnPropertyChanged(nameof(UsersHeaderColor));
+            OnPropertyChanged(nameof(SettingsHeaderColor));
             OnPropertyChanged(nameof(BackgroundImagePath));
             OnPropertyChanged(nameof(BackgroundImageStretch));
             OnPropertyChanged(nameof(FontFamily));

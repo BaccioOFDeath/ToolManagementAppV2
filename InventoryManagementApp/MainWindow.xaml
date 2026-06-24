@@ -109,11 +109,62 @@
         </Border>
 
         <Border Grid.Row="2"
-                Background="{DynamicResource ThemeShellHeaderBrush}"
                 BorderBrush="{DynamicResource BorderBrushBase}"
                 BorderThickness="0,0,0,1"
                 Effect="{DynamicResource ThemeSurfaceShadow}"
                 Padding="8,6">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="{DynamicResource ThemeShellHeaderBrush}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Dashboard">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderDashboardBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Search">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderSearchBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="ManageItems">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderManageItemsBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Rentals">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderRentalsBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Customers">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderCustomersBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Reservations">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderReservationsBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Maintenance">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderMaintenanceBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Calibration">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderCalibrationBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Kits">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderKitsBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Categories">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderCategoriesBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Reports">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderReportsBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="ActivityLogs">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderActivityLogsBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="ImportExport">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderImportExportBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Users">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderUsersBrush}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Settings">
+                            <Setter Property="Background" Value="{DynamicResource PageHeaderSettingsBrush}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

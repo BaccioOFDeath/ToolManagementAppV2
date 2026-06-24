@@ -78,7 +78,9 @@ namespace InventoryManagementApp.ViewModels
             {
                 CancelCurrentPageLoad();
                 if (SetProperty(ref _currentPage, value))
+                {
                     CurrentPageTitle = value?.Title ?? value?.GetType().Name ?? "Dashboard";
+                }
             }
         }
 
@@ -89,8 +91,18 @@ namespace InventoryManagementApp.ViewModels
             private set
             {
                 if (SetProperty(ref _currentPageTitle, value))
+                {
+                    CurrentPageHeaderKey = ResolvePageHeaderKey(value);
                     RefreshShellWorkflow();
+                }
             }
+        }
+
+        private string _currentPageHeaderKey = "Dashboard";
+        public string CurrentPageHeaderKey
+        {
+            get => _currentPageHeaderKey;
+            private set => SetProperty(ref _currentPageHeaderKey, value);
         }
 
         private string _currentWorkflowGuide = "Search or open a dashboard view to start the workflow.";
@@ -1169,6 +1181,45 @@ namespace InventoryManagementApp.ViewModels
                     $"Search {itemLabelPlural}", OpenSearchItemsCommand,
                     "Dashboard", OpenDashboardCommand);
             }
+        }
+
+        static string ResolvePageHeaderKey(string? title)
+        {
+            var lowerTitle = (title ?? string.Empty).ToLowerInvariant();
+            var itemLabelPlural = LabelProvider.Instance.ItemLabelPlural.ToLowerInvariant();
+
+            if (lowerTitle.Contains("search"))
+                return "Search";
+            if (lowerTitle.Contains("dashboard"))
+                return "Dashboard";
+            if (lowerTitle.Contains("rental"))
+                return "Rentals";
+            if (lowerTitle.Contains("customer"))
+                return "Customers";
+            if (lowerTitle.Contains("reservation"))
+                return "Reservations";
+            if (lowerTitle.Contains("maintenance"))
+                return "Maintenance";
+            if (lowerTitle.Contains("calibration"))
+                return "Calibration";
+            if (lowerTitle.Contains("kit"))
+                return "Kits";
+            if (lowerTitle.Contains("categor"))
+                return "Categories";
+            if (lowerTitle.Contains("report"))
+                return "Reports";
+            if (lowerTitle.Contains("activity"))
+                return "ActivityLogs";
+            if (lowerTitle.Contains("import") || lowerTitle.Contains("export"))
+                return "ImportExport";
+            if (lowerTitle.Contains("user"))
+                return "Users";
+            if (lowerTitle.Contains("setting"))
+                return "Settings";
+            if (lowerTitle.Contains("manage") && lowerTitle.Contains(itemLabelPlural))
+                return "ManageItems";
+
+            return "Dashboard";
         }
 
         void SetWorkflow(

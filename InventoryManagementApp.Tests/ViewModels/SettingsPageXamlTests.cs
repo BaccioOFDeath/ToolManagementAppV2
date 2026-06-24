@@ -98,9 +98,14 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("FocusRingOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("GridLineOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("MotionIntensity", xaml, StringComparison.Ordinal);
+            Assert.Contains("DashboardHeaderColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("RentalsHeaderColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("SettingsHeaderColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("Page header bands", xaml, StringComparison.Ordinal);
             Assert.Contains("Shape and borders", xaml, StringComparison.Ordinal);
             Assert.Contains("Depth, spacing, and density", xaml, StringComparison.Ordinal);
             Assert.Contains("04 Density and interaction", xaml, StringComparison.Ordinal);
+            Assert.Contains("05 Page headers", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -113,6 +118,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Header=\"02 Backgrounds and transparency\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Header=\"03 Shape and depth\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Header=\"04 Density and interaction\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"05 Page headers\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Theme pages", xaml, StringComparison.Ordinal);
         }
 

@@ -48,6 +48,21 @@
     <SolidColorBrush x:Key="ThemeAppBackgroundOverlayBrush" Color="#00FFFFFF"/>
     <SolidColorBrush x:Key="MainContentBackgroundBrush" Color="#00000000"/>
     <SolidColorBrush x:Key="ThemeShellHeaderBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderDashboardBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderSearchBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderManageItemsBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderRentalsBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderCustomersBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderReservationsBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderMaintenanceBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderCalibrationBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderKitsBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderCategoriesBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderReportsBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderActivityLogsBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderImportExportBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderUsersBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="PageHeaderSettingsBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeShellMenuBrush" Color="#FFE8EDF3"/>
     <SolidColorBrush x:Key="ThemeShellFooterBrush" Color="#BFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeDialogSurfaceBrush" Color="#FFFFFFFF"/>

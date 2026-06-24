@@ -53,6 +53,17 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("CurrentUserRole", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void MainWindow_UsesPageSpecificHeaderBandBrushes()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
+
+            Assert.Contains("CurrentPageHeaderKey", xaml, StringComparison.Ordinal);
+            Assert.Contains("PageHeaderDashboardBrush", xaml, StringComparison.Ordinal);
+            Assert.Contains("PageHeaderRentalsBrush", xaml, StringComparison.Ordinal);
+            Assert.Contains("PageHeaderSettingsBrush", xaml, StringComparison.Ordinal);
+        }
+
         static string ReadRepositoryFile(params string[] relativePathParts)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);

@@ -55,6 +55,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             viewModel.ShadowDepth = 8;
             viewModel.ControlShadowScale = 0.75;
             viewModel.BackgroundImageStretch = "Uniform";
+            viewModel.DashboardHeaderColor = "123456";
+            viewModel.RentalsHeaderColor = "654321";
 
             await viewModel.SaveCommand.ExecuteAsync(null);
             var loaded = await ((ISettingsService)settingsService).GetAppThemeSettingsAsync();
@@ -68,9 +70,12 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Equal(8, loaded.ShadowDepth);
             Assert.Equal(0.75, loaded.ControlShadowScale);
             Assert.Equal("Uniform", loaded.BackgroundImageStretch);
+            Assert.Equal("#123456", loaded.DashboardHeaderColor);
+            Assert.Equal("#654321", loaded.RentalsHeaderColor);
             Assert.Equal("Theme saved and applied.", viewModel.Status);
             Assert.NotNull(themeService.LastCustomTheme);
             Assert.Equal("#112233", themeService.LastCustomTheme!.BackgroundColor);
+            Assert.Equal("#123456", themeService.LastCustomTheme.DashboardHeaderColor);
             Assert.True(themeService.CustomApplyCount > 1);
         }
 
@@ -142,6 +147,19 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.NotNull(themeService.LastCustomTheme);
             Assert.Equal("VS Code Light", themeService.LastCustomTheme!.BaseTheme);
             Assert.Equal("VS Code Light theme previewed. Save to keep it.", viewModel.Status);
+        }
+
+        [Fact]
+        public void AppThemeSettings_NormalizeDefaultsPageHeadersToSurfaceColor()
+        {
+            var settings = AppThemeSettings.CreateDefault("Dark");
+            settings.DashboardHeaderColor = string.Empty;
+            settings.RentalsHeaderColor = string.Empty;
+
+            settings.Normalize();
+
+            Assert.Equal(settings.SurfaceColor, settings.DashboardHeaderColor);
+            Assert.Equal(settings.SurfaceColor, settings.RentalsHeaderColor);
         }
 
         [Fact]
@@ -276,6 +294,21 @@ namespace InventoryManagementApp.Tests.ViewModels
                     WarningColor = settings.WarningColor,
                     ErrorColor = settings.ErrorColor,
                     ShadowColor = settings.ShadowColor,
+                    DashboardHeaderColor = settings.DashboardHeaderColor,
+                    SearchHeaderColor = settings.SearchHeaderColor,
+                    ManageItemsHeaderColor = settings.ManageItemsHeaderColor,
+                    RentalsHeaderColor = settings.RentalsHeaderColor,
+                    CustomersHeaderColor = settings.CustomersHeaderColor,
+                    ReservationsHeaderColor = settings.ReservationsHeaderColor,
+                    MaintenanceHeaderColor = settings.MaintenanceHeaderColor,
+                    CalibrationHeaderColor = settings.CalibrationHeaderColor,
+                    KitsHeaderColor = settings.KitsHeaderColor,
+                    CategoriesHeaderColor = settings.CategoriesHeaderColor,
+                    ReportsHeaderColor = settings.ReportsHeaderColor,
+                    ActivityLogsHeaderColor = settings.ActivityLogsHeaderColor,
+                    ImportExportHeaderColor = settings.ImportExportHeaderColor,
+                    UsersHeaderColor = settings.UsersHeaderColor,
+                    SettingsHeaderColor = settings.SettingsHeaderColor,
                     BackgroundImagePath = settings.BackgroundImagePath,
                     BackgroundImageStretch = settings.BackgroundImageStretch,
                     FontFamily = settings.FontFamily,
