@@ -115,18 +115,44 @@ CREATE TABLE KitItems (KitItemID INTEGER PRIMARY KEY AUTOINCREMENT);";
             if (File.Exists(dbPath))
                 File.Delete(dbPath);
         }
+    }
 
-        static bool ColumnExists(SqliteConnection conn, string table, string column)
+    [Fact]
+    public void InitializeDatabase_CreatesRentalPhotosForMobileCapture()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), $"inventory-rental-photos-{Guid.NewGuid():N}.db");
+        try
         {
-            using var pragma = new SqliteCommand($"PRAGMA table_info({table});", conn);
-            using var reader = pragma.ExecuteReader();
-            while (reader.Read())
-            {
-                if (string.Equals(reader["name"]?.ToString(), column, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
+            using var service = new DatabaseService(dbPath);
+            using var conn = service.CreateConnection();
 
-            return false;
+            Assert.True(ColumnExists(conn, "RentalPhotos", "PhotoID"));
+            Assert.True(ColumnExists(conn, "RentalPhotos", "RentalID"));
+            Assert.True(ColumnExists(conn, "RentalPhotos", "ItemID"));
+            Assert.True(ColumnExists(conn, "RentalPhotos", "PhotoStage"));
+            Assert.True(ColumnExists(conn, "RentalPhotos", "FilePath"));
+            Assert.True(ColumnExists(conn, "RentalPhotos", "Notes"));
+            Assert.True(ColumnExists(conn, "RentalPhotos", "CreatedAt"));
+            Assert.True(ColumnExists(conn, "RentalPhotos", "CreatedBy"));
         }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(dbPath))
+                File.Delete(dbPath);
+        }
+    }
+
+    private static bool ColumnExists(SqliteConnection conn, string table, string column)
+    {
+        using var pragma = new SqliteCommand($"PRAGMA table_info({table});", conn);
+        using var reader = pragma.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader["name"]?.ToString(), column, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 }

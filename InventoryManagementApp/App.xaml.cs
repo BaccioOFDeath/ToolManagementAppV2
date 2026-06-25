@@ -39,6 +39,7 @@ using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Categories;
 using InventoryManagementApp.Services.Notifications;
+using InventoryManagementApp.Services.MobileCapture;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.Input;
@@ -187,6 +188,7 @@ namespace InventoryManagementApp
                 services.AddSingleton<CategoriesService>();
                 services.AddTransient<CategoryManagementViewModel>();
                 services.AddSingleton<RentalConfigurationService>();
+                services.AddSingleton<MobileCaptureService>();
                 
                 // Email and Reminder Services for server operation
                 // Register EmailService factory that returns null if not configured

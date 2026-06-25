@@ -64,6 +64,15 @@ namespace InventoryManagementApp.Tests
             Assert.True(editIndex >= 0 && dataGridIndex >= 0 && editIndex < dataGridIndex);
         }
 
+        [Fact]
+        public void MobileCaptureButton_IsWiredToViewModelCommand()
+        {
+            var xaml = ReadXaml();
+
+            Assert.Contains("Content=\"Mobile Capture\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Command=\"{Binding OpenMobileCaptureCommand}\"", xaml, StringComparison.Ordinal);
+        }
+
         private static string ReadXaml()
             => File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml")));
 

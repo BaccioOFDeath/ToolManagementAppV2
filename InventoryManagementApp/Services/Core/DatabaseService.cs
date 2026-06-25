@@ -195,6 +195,18 @@ namespace InventoryManagementApp.Services.Core
                     FOREIGN KEY (ItemID) REFERENCES Items(ItemID),
                     FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
                 );
+                CREATE TABLE IF NOT EXISTS RentalPhotos (
+                    PhotoID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    RentalID INTEGER,
+                    ItemID INTEGER NOT NULL,
+                    PhotoStage TEXT NOT NULL,
+                    FilePath TEXT NOT NULL,
+                    Notes TEXT,
+                    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    CreatedBy TEXT,
+                    FOREIGN KEY (RentalID) REFERENCES Rentals(RentalID),
+                    FOREIGN KEY (ItemID) REFERENCES Items(ItemID)
+                );
                 CREATE TABLE IF NOT EXISTS ActivityLogs (
                     LogID INTEGER PRIMARY KEY AUTOINCREMENT,
                     UserID INTEGER,
@@ -292,6 +304,9 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
             EnsureIndex(conn, "Rentals", new[] { "ItemID", "CustomerID" });
+            EnsureIndex(conn, "RentalPhotos", "RentalID");
+            EnsureIndex(conn, "RentalPhotos", "ItemID");
+            EnsureIndex(conn, "RentalPhotos", "PhotoStage");
             EnsureIndex(conn, "MaintenanceRecords", "ItemID");
             EnsureIndex(conn, "MaintenanceRecords", "ScheduledDate");
             EnsureIndex(conn, "MaintenanceRecords", "Status");
@@ -369,6 +384,14 @@ namespace InventoryManagementApp.Services.Core
             EnsureColumn(conn, "Rentals", "DueDate", "DATETIME", "'1970-01-01 00:00:00'");
             EnsureColumn(conn, "Rentals", "ReturnDate", "DATETIME");
             EnsureColumn(conn, "Rentals", "Status", "TEXT", "'Rented'");
+
+            EnsureColumn(conn, "RentalPhotos", "RentalID", "INTEGER");
+            EnsureColumn(conn, "RentalPhotos", "ItemID", "INTEGER", "0");
+            EnsureColumn(conn, "RentalPhotos", "PhotoStage", "TEXT", "'General'");
+            EnsureColumn(conn, "RentalPhotos", "FilePath", "TEXT", "''");
+            EnsureColumn(conn, "RentalPhotos", "Notes", "TEXT");
+            EnsureColumn(conn, "RentalPhotos", "CreatedAt", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "RentalPhotos", "CreatedBy", "TEXT");
 
             EnsureColumn(conn, "ActivityLogs", "UserID", "INTEGER");
             EnsureColumn(conn, "ActivityLogs", "UserName", "TEXT");

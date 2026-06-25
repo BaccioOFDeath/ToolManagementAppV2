@@ -15,6 +15,8 @@ using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
+using InventoryManagementApp.Services.MobileCapture;
+using InventoryManagementApp.Views.Windows;
 using Microsoft.Extensions.Logging;
 using Application = System.Windows.Application;
 
@@ -27,6 +29,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IDialogService _dialogService;
         private readonly IRentalService _rentalService;
         private readonly ISettingsService _settingsService;
+        private readonly MobileCaptureService? _mobileCaptureService;
         private readonly ILogger<ItemsViewModel> _logger;
         private CancellationTokenSource _filterCts = new();
         private CancellationTokenSource _loadCts = new();
@@ -40,6 +43,7 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand ViewDetailsCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
         public IAsyncRelayCommand NewItemCommand { get; }
+        public IAsyncRelayCommand OpenMobileCaptureCommand { get; }
         public IAsyncRelayCommand<IList> DeleteItemsCommand { get; }
         public IAsyncRelayCommand CommitChangesCommand { get; }
 
@@ -92,13 +96,14 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<SortOption> SortOptions { get; }
 
-        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ISettingsService settingsService, ILogger<ItemsViewModel> logger)
+        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ISettingsService settingsService, ILogger<ItemsViewModel> logger, MobileCaptureService? mobileCaptureService = null)
         {
             _itemService = itemService;
             _memoryBudget = memoryBudget;
             _dialogService = dialogService;
             _rentalService = rentalService;
             _settingsService = settingsService;
+            _mobileCaptureService = mobileCaptureService;
             _logger = logger;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
             SearchCommand = new AsyncRelayCommand(StartFilterAsync);
@@ -123,6 +128,7 @@ namespace InventoryManagementApp.ViewModels
             ViewDetailsCommand = new RelayCommand(ViewDetails);
             OpenRentalHistoryCommand = new AsyncRelayCommand(ct => OpenRentalHistoryAsync(ct));
             NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
+            OpenMobileCaptureCommand = new AsyncRelayCommand(ct => OpenMobileCaptureAsync(ct));
             DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
             CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
         }
@@ -503,6 +509,39 @@ namespace InventoryManagementApp.ViewModels
             {
                 var refreshed = await RefreshItemsAfterMutationFailureAsync(item.ItemID > 0 ? item.ItemID : null, ct).ConfigureAwait(false);
                 await _dialogService.ShowInfoAsync($"Failed to create {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {AppendItemMutationRefreshMessage(ex.Message, refreshed)}", "Error").ConfigureAwait(false);
+            }
+        }
+
+        private async Task OpenMobileCaptureAsync(CancellationToken ct)
+        {
+            if (_mobileCaptureService == null)
+            {
+                await _dialogService.ShowInfoAsync("Mobile capture is not available in this application session.", "Mobile Capture").ConfigureAwait(false);
+                return;
+            }
+
+            try
+            {
+                var session = await _mobileCaptureService.StartSessionAsync(ct).ConfigureAwait(false);
+                await InvokeOnUiThreadAsync(() =>
+                {
+                    var window = new MobileCaptureWindow(session);
+                    try { window.Owner = Application.Current?.MainWindow; }
+                    catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for MobileCaptureWindow"); }
+                    window.ShowDialog();
+                }).ConfigureAwait(false);
+
+                InvokeOnUiThread(Items.Reset);
+                await Items.LoadMoreAsync(ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogDebug("Mobile capture start canceled");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to start mobile capture");
+                await _dialogService.ShowInfoAsync($"Failed to start mobile capture: {ex.Message}", "Mobile Capture").ConfigureAwait(false);
             }
         }
 
