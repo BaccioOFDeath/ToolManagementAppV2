@@ -292,7 +292,7 @@ namespace InventoryManagementApp.Services.Kits
                     LEFT JOIN Items i ON ki.ItemID = i.ItemID
                     WHERE ki.KitID = @KitID
                     AND ki.IsOptional = 0
-                    AND i.AvailableQuantity < ki.Quantity";
+                    AND (i.ItemID IS NULL OR i.AvailableQuantity < ki.Quantity)";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitID", kitID);
                 var missingItems = Convert.ToInt32(cmd.ExecuteScalar());
