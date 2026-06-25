@@ -1,0 +1,2 @@
+dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false -o ./publish
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\update-shared-release.ps1 -Source .\publish -Destination X:\V2

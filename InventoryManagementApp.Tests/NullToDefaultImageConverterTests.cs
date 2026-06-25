@@ -170,6 +170,8 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
+                    ClearImageCaches();
+                    EnsureItemImageCandidate("T401.jpeg");
                     var converter = new NullToDefaultImageConverter();
                     var item = new ItemModel
                     {
@@ -205,6 +207,8 @@ namespace InventoryManagementApp.Tests
             {
                 try
                 {
+                    ClearImageCaches();
+                    EnsureItemImageCandidate("T401.jpeg");
                     var converter = new NullToDefaultImageConverter();
                     var reservation = new Reservation
                     {
@@ -230,6 +234,22 @@ namespace InventoryManagementApp.Tests
             thread.Start();
             thread.Join();
             if (threadEx != null) throw threadEx;
+        }
+
+        static void EnsureItemImageCandidate(string fileName)
+        {
+            var source = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Assets", "ItemImages", fileName));
+            var targetDir = Path.Combine(AppContext.BaseDirectory, "Assets", "ItemImages");
+            Directory.CreateDirectory(targetDir);
+            File.Copy(source, Path.Combine(targetDir, fileName), overwrite: true);
+        }
+
+        static void ClearImageCaches()
+        {
+            var imageCacheField = typeof(NullToDefaultImageConverter).GetField("_imageCache", BindingFlags.NonPublic | BindingFlags.Static);
+            var invalidPathsField = typeof(NullToDefaultImageConverter).GetField("_invalidPaths", BindingFlags.NonPublic | BindingFlags.Static);
+            ((MemoryCache)imageCacheField!.GetValue(null)!).Compact(1.0);
+            ((MemoryCache)invalidPathsField!.GetValue(null)!).Compact(1.0);
         }
     }
 }

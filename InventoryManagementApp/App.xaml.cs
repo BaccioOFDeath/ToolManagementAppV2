@@ -137,7 +137,8 @@ namespace InventoryManagementApp
                     var sharedDatabase = DatabasePathResolver.IsSharedPath(dbPath);
                     var secureDatabaseFile = GetOptionalBoolean(config, "Database:SecureFilePermissions") ?? !sharedDatabase;
                     var useWalJournal = GetOptionalBoolean(config, "Database:UseWalJournal") ?? !sharedDatabase;
-                    return new DatabaseService(dbPath, logger, secureDatabaseFile, useWalJournal);
+                    var useConnectionPooling = GetOptionalBoolean(config, "Database:UseConnectionPooling") ?? !sharedDatabase;
+                    return new DatabaseService(dbPath, logger, secureDatabaseFile, useWalJournal, useConnectionPooling);
                 });
                 services.AddSingleton<IDatabaseService>(sp => sp.GetRequiredService<DatabaseService>());
                 services.AddSingleton<IDatabaseBackupService>(sp => sp.GetRequiredService<DatabaseService>());
@@ -146,14 +147,18 @@ namespace InventoryManagementApp
                 {
                     var config = sp.GetRequiredService<IConfiguration>();
                     var dbPath = ResolveDatabasePath(config);
+                    var sharedDatabase = DatabasePathResolver.IsSharedPath(dbPath);
+                    var useWalJournal = GetOptionalBoolean(config, "Database:UseWalJournal") ?? !sharedDatabase;
+                    var useConnectionPooling = GetOptionalBoolean(config, "Database:UseConnectionPooling") ?? !sharedDatabase;
                     var builder = new SqliteConnectionStringBuilder
                     {
                         DataSource = dbPath,
-                        Pooling = true,
+                        Pooling = useConnectionPooling,
                         Cache = SqliteCacheMode.Shared,
-                        Mode = SqliteOpenMode.ReadWriteCreate
+                        Mode = SqliteOpenMode.ReadWriteCreate,
+                        DefaultTimeout = 15
                     };
-                    return new SqliteConnectionFactory(builder.ToString());
+                    return new SqliteConnectionFactory(builder.ToString(), useWalJournal, useConnectionPooling);
                 });
                 services.AddSingleton<IItemRepository, ItemRepository>();
                 services.AddSingleton<IUserContext, ApplicationUserContext>();
@@ -455,6 +460,7 @@ namespace InventoryManagementApp
                         var themeSettings = JsonSerializer.Deserialize<AppThemeSettings>(File.ReadAllText(themeProfilePath))
                             ?? throw new InvalidDataException("Theme profile did not contain app theme settings.");
                         themeSettings.Normalize();
+                        themeSettings.BackgroundImagePath = ThemeBackgroundAssetHelper.CopyToAppAssets(themeSettings.BackgroundImagePath);
                         await bypassSettings.SaveThemeAsync(themeSettings.BaseTheme);
                         await ((ISettingsService)bypassSettings).SaveAppThemeSettingsAsync(themeSettings);
                     }
@@ -470,24 +476,10 @@ namespace InventoryManagementApp
             {
                 try
                 {
-                    var baseDir = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
                     var fullInputPath = Path.GetFullPath(result.CompanyLogoPath);
                     if (File.Exists(fullInputPath))
                     {
-                        string relativePath;
-                        if (!fullInputPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
-                        {
-                            var assetsDir = Path.Combine(baseDir, "Assets", "CompanyLogo");
-                            Directory.CreateDirectory(assetsDir);
-                            var destPath = Path.Combine(assetsDir, Path.GetFileName(fullInputPath));
-                            File.Copy(fullInputPath, destPath, true);
-                            relativePath = Path.GetRelativePath(baseDir, destPath);
-                        }
-                        else
-                        {
-                            relativePath = Path.GetRelativePath(baseDir, fullInputPath);
-                        }
-
+                        var relativePath = AppAssetHelper.CopyImageToAssetFolder(fullInputPath, AppAssetHelper.CompanyLogoFolder);
                         await bypassSettings.SaveSettingAsync("CompanyLogoPath", relativePath);
                     }
                 }

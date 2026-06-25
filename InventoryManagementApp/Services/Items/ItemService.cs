@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.Data;
+using InventoryManagementApp.Utilities.Helpers;
 using Microsoft.VisualBasic.FileIO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -211,18 +212,15 @@ namespace InventoryManagementApp.Services.Items
                 }
             }
 
-            var destDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "ItemImages");
-            if (!Directory.Exists(destDir))
+            string destDir;
+            try
             {
-                try
-                {
-                    Directory.CreateDirectory(destDir);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to create image directory {Dir}", destDir);
-                    return result;
-                }
+                destDir = AppAssetHelper.EnsureAssetFolder(AppAssetHelper.ItemImagesFolder);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create image directory for item assets");
+                return result;
             }
 
             var supported = new HashSet<string>(new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif" }, StringComparer.OrdinalIgnoreCase);

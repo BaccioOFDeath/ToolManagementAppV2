@@ -23,16 +23,22 @@ namespace InventoryManagementApp.Services.Core
         bool _disposed;
         
         private const int DefaultTimeoutSeconds = 5;
-        private const int BusyTimeoutMilliseconds = 5000;
+        private const int BusyTimeoutMilliseconds = 15000;
 
         public SqliteConnection CreateConnection()
         {
             var conn = new SqliteConnection(ConnectionString);
             conn.Open();
+            ConfigureConnection(conn);
             return conn;
         }
 
-        public DatabaseService(string dbPath, ILogger<DatabaseService>? logger = null, bool secureDatabaseFile = true, bool useWalJournal = true)
+        public DatabaseService(
+            string dbPath,
+            ILogger<DatabaseService>? logger = null,
+            bool secureDatabaseFile = true,
+            bool useWalJournal = true,
+            bool useConnectionPooling = true)
         {
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
 
@@ -46,7 +52,7 @@ namespace InventoryManagementApp.Services.Core
             }
             var builder = new SqliteConnectionStringBuilder
             {
-                Pooling = true,
+                Pooling = useConnectionPooling,
                 Cache = SqliteCacheMode.Shared,
                 DefaultTimeout = DefaultTimeoutSeconds
             };
@@ -113,6 +119,11 @@ namespace InventoryManagementApp.Services.Core
             var journalMode = useWalJournal ? "WAL" : "DELETE";
             using var cmd = new SqliteCommand($"PRAGMA journal_mode={journalMode};", conn);
             cmd.ExecuteNonQuery();
+            ConfigureConnection(conn);
+        }
+
+        static void ConfigureConnection(SqliteConnection conn)
+        {
             using var timeout = new SqliteCommand($"PRAGMA busy_timeout={BusyTimeoutMilliseconds};", conn);
             timeout.ExecuteNonQuery();
         }

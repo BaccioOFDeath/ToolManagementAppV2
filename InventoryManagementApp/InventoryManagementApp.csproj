@@ -144,18 +144,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Assets/ItemImages/**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets/Data/**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets/Backgrounds/**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
   </ItemGroup>
 
 </Project>

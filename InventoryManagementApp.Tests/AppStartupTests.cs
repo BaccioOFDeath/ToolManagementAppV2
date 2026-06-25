@@ -59,10 +59,10 @@ namespace InventoryManagementApp.Tests
 
                 var settings = host.Services.GetRequiredService<ISettingsService>();
                 var saved = await settings.GetSettingAsync("CompanyLogoPath");
-                var stub = (StubSetupWizard)host.Services.GetRequiredService<ISetupWizard>();
-                var expected = Path.Combine("Assets", "CompanyLogo", Path.GetFileName(stub.LogoPath));
-                Assert.Equal(expected, saved);
-                Assert.True(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, saved)));
+                Assert.False(string.IsNullOrWhiteSpace(saved));
+                Assert.StartsWith(Path.Combine("Assets", "CompanyLogo"), saved!, StringComparison.OrdinalIgnoreCase);
+                Assert.EndsWith(".png", saved!, StringComparison.OrdinalIgnoreCase);
+                Assert.True(File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, saved!)));
 
                 WpfTestHelper.ShutdownApplication();
             });

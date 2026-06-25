@@ -79,6 +79,7 @@ For a shared server directory, use a UNC or mapped-drive database path and set `
   "Database": {
     "Path": "\\\\fileserver\\shared\\InventoryManagementApp\\Data\\inventory.db",
     "UseWalJournal": false,
+    "UseConnectionPooling": false,
     "SecureFilePermissions": false
   }
 }
@@ -97,6 +98,15 @@ For a shared server directory, use a UNC or mapped-drive database path and set `
    - Application files: Read & Execute for users
    - Logs directory: Write permissions for application
    - Database directory: Write permissions for application
+
+For updating the shared `X:\V2` deployment after publishing, create a clean release folder and run the shared updater:
+
+```powershell
+dotnet publish InventoryManagementApp\InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false -o .\publish-clean
+.\scripts\update-shared-release.ps1 -Source .\publish-clean -Destination X:\V2
+```
+
+The script mirrors the new release files while preserving `X:\V2\appsettings.json`, `X:\V2\Logs`, and the runtime asset folders under `X:\V2\Assets`: `Data`, `ItemImages`, `RentalPhotos`, `CompanyLogo`, `UserPhotos`, `Backgrounds`, and `Themes`. It also creates a timestamped backup under `X:\V2\_pre_update_backups` before copying.
 
 ### 4. First-Time Setup
 
@@ -213,6 +223,7 @@ Logs are stored in the `Logs` directory:
 - Ensure only one instance of the application is running
 - Check file permissions on `inventory.db`
 - Verify antivirus isn't blocking database file
+- For shared folders such as `X:\V2`, set `Database:UseWalJournal` and `Database:UseConnectionPooling` to `false`
 
 ### Email Notifications Not Sending
 - Verify SMTP settings in `appsettings.json`

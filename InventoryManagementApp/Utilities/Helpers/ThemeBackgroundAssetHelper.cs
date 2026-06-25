@@ -7,21 +7,16 @@ namespace InventoryManagementApp.Utilities.Helpers
 {
     public static class ThemeBackgroundAssetHelper
     {
-        public static readonly string RelativeBackgroundDirectory = Path.Combine("Assets", "Backgrounds");
-        private static readonly string[] AllowedExtensions = [".png", ".jpg", ".jpeg", ".bmp", ".webp"];
+        public static readonly string RelativeBackgroundDirectory = Path.Combine(AppAssetHelper.AssetsDirectoryName, AppAssetHelper.BackgroundsFolder);
 
-        public static string AppBackgroundDirectory => Path.Combine(AppContext.BaseDirectory, RelativeBackgroundDirectory);
+        public static string AppBackgroundDirectory => AppAssetHelper.EnsureAssetFolder(AppAssetHelper.BackgroundsFolder);
 
         public static string? ResolveBackgroundImagePath(string? imagePath)
         {
             if (string.IsNullOrWhiteSpace(imagePath))
                 return null;
 
-            var trimmed = imagePath.Trim();
-            if (Path.IsPathFullyQualified(trimmed))
-                return trimmed;
-
-            return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, trimmed));
+            return AppAssetHelper.ResolveAssetPath(imagePath);
         }
 
         public static string CopyToAppAssets(string? sourcePath)
@@ -30,22 +25,10 @@ namespace InventoryManagementApp.Utilities.Helpers
             if (string.IsNullOrWhiteSpace(resolvedSource) || !File.Exists(resolvedSource))
                 return sourcePath ?? string.Empty;
 
-            var extension = Path.GetExtension(resolvedSource);
-            if (!IsAllowedImageExtension(extension))
+            if (!AppAssetHelper.IsAllowedImageExtension(Path.GetExtension(resolvedSource)))
                 return sourcePath ?? string.Empty;
 
-            Directory.CreateDirectory(AppBackgroundDirectory);
-
-            var appBackgroundDirectory = Path.GetFullPath(AppBackgroundDirectory);
-            var sourceFullPath = Path.GetFullPath(resolvedSource);
-            if (sourceFullPath.StartsWith(appBackgroundDirectory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-                return ToAppRelativePath(sourceFullPath);
-
-            var fileNameWithoutExtension = SanitizeFileName(Path.GetFileNameWithoutExtension(resolvedSource));
-            var hash = GetShortHash(resolvedSource);
-            var targetPath = Path.Combine(appBackgroundDirectory, $"{fileNameWithoutExtension}-{hash}{extension.ToLowerInvariant()}");
-            File.Copy(sourceFullPath, targetPath, overwrite: true);
-            return ToAppRelativePath(targetPath);
+            return AppAssetHelper.CopyImageToAssetFolder(resolvedSource, AppAssetHelper.BackgroundsFolder, Path.GetFileNameWithoutExtension(resolvedSource));
         }
 
         public static void AddEmbeddedBackground(AppThemeSettings settings)
@@ -70,14 +53,14 @@ namespace InventoryManagementApp.Utilities.Helpers
             if (string.IsNullOrWhiteSpace(settings.BackgroundImageContentBase64))
                 return;
 
-            var fileName = SanitizeFileName(Path.GetFileNameWithoutExtension(settings.BackgroundImageFileName));
+            var fileName = AppAssetHelper.SanitizeFileName(Path.GetFileNameWithoutExtension(settings.BackgroundImageFileName));
             var extension = Path.GetExtension(settings.BackgroundImageFileName);
-            if (!IsAllowedImageExtension(extension))
+            if (!AppAssetHelper.IsAllowedImageExtension(extension))
             {
                 extension = Path.GetExtension(settings.BackgroundImagePath);
             }
 
-            if (!IsAllowedImageExtension(extension))
+            if (!AppAssetHelper.IsAllowedImageExtension(extension))
                 extension = ".png";
             extension ??= ".png";
 
@@ -95,44 +78,9 @@ namespace InventoryManagementApp.Utilities.Helpers
             var hash = Convert.ToHexString(SHA256.HashData(bytes))[..8].ToLowerInvariant();
             var targetPath = Path.Combine(AppBackgroundDirectory, $"{fileName}-{hash}{extension.ToLowerInvariant()}");
             File.WriteAllBytes(targetPath, bytes);
-            settings.BackgroundImagePath = ToAppRelativePath(targetPath);
+            settings.BackgroundImagePath = AppAssetHelper.ToAppRelativePath(targetPath);
             settings.BackgroundImageFileName = null;
             settings.BackgroundImageContentBase64 = null;
-        }
-
-        private static string ToAppRelativePath(string fullPath)
-        {
-            var relativePath = Path.GetRelativePath(AppContext.BaseDirectory, fullPath);
-            return relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-        }
-
-        private static string SanitizeFileName(string? value)
-        {
-            var name = string.IsNullOrWhiteSpace(value) ? "background" : value.Trim();
-            foreach (var invalidChar in Path.GetInvalidFileNameChars())
-                name = name.Replace(invalidChar, '-');
-
-            return string.IsNullOrWhiteSpace(name) ? "background" : name;
-        }
-
-        private static bool IsAllowedImageExtension(string? extension)
-        {
-            if (string.IsNullOrWhiteSpace(extension))
-                return false;
-
-            foreach (var allowedExtension in AllowedExtensions)
-            {
-                if (string.Equals(extension, allowedExtension, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static string GetShortHash(string path)
-        {
-            using var stream = File.OpenRead(path);
-            return Convert.ToHexString(SHA256.HashData(stream))[..8].ToLowerInvariant();
         }
     }
 }

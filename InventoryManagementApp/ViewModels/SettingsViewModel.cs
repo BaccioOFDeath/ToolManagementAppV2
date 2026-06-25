@@ -560,42 +560,9 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
-            string baseDir = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
-            string fullInputPath;
-
             try
             {
-                fullInputPath = Path.GetFullPath(CompanyLogoPath);
-            }
-            catch
-            {
-                _dialogService.ShowInfo("Selected logo path is invalid.", "Invalid Path");
-                return;
-            }
-
-            if (!File.Exists(fullInputPath))
-            {
-                _dialogService.ShowInfo("Selected logo path is invalid.", "Invalid Path");
-                return;
-            }
-
-            string relativePath;
-            try
-            {
-                if (!fullInputPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
-                {
-                    var assetsDir = Path.Combine(baseDir, "Assets", "CompanyLogo");
-                    Directory.CreateDirectory(assetsDir);
-                    var fileName = Path.GetFileName(fullInputPath);
-                    var destPath = Path.Combine(assetsDir, fileName);
-                    File.Copy(fullInputPath, destPath, true);
-                    relativePath = Path.GetRelativePath(baseDir, destPath);
-                }
-                else
-                {
-                    relativePath = Path.GetRelativePath(baseDir, fullInputPath);
-                }
-
+                var relativePath = AppAssetHelper.CopyImageToAssetFolder(CompanyLogoPath, AppAssetHelper.CompanyLogoFolder);
                 CompanyLogoPath = relativePath;
 
                 try
@@ -618,7 +585,7 @@ namespace InventoryManagementApp.ViewModels
                     _logger.LogError(ex, "Failed to save company logo path.");
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is ArgumentException || ex is IOException || ex is InvalidOperationException || ex is UnauthorizedAccessException)
             {
                 _logger.LogError(ex, "Failed to copy company logo.");
                 _dialogService.ShowInfo("Failed to save company logo.", "Error");

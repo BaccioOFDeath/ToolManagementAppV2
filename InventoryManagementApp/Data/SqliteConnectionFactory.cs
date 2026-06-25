@@ -7,16 +7,25 @@ namespace InventoryManagementApp.Data;
 public sealed class SqliteConnectionFactory
 {
     private readonly string _connectionString;
+    private readonly string _journalMode;
+    private readonly int _busyTimeoutMilliseconds;
+    private bool _pragmasConfigured;
     private static readonly object _lock = new();
     internal static int PragmasExecutionCount { get; private set; }
 
-    public SqliteConnectionFactory(string connectionString)
+    public SqliteConnectionFactory(
+        string connectionString,
+        bool useWalJournal = true,
+        bool useConnectionPooling = true,
+        int busyTimeoutMilliseconds = 15000)
     {
         var builder = new SqliteConnectionStringBuilder(connectionString)
         {
-            Pooling = true
+            Pooling = useConnectionPooling
         };
         _connectionString = builder.ToString();
+        _journalMode = useWalJournal ? "WAL" : "DELETE";
+        _busyTimeoutMilliseconds = busyTimeoutMilliseconds;
     }
 
     internal static void Reset()
@@ -33,13 +42,20 @@ public sealed class SqliteConnectionFactory
             string.Compare(x, y, CultureInfo.InvariantCulture,
                 CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace));
 
+        using (var timeout = connection.CreateCommand())
+        {
+            timeout.CommandText = $"PRAGMA busy_timeout={_busyTimeoutMilliseconds};";
+            timeout.ExecuteNonQuery();
+        }
+
         lock (_lock)
         {
-            if (PragmasExecutionCount == 0)
+            if (!_pragmasConfigured)
             {
                 using var cmd = connection.CreateCommand();
-                cmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;";
+                cmd.CommandText = $"PRAGMA journal_mode={_journalMode}; PRAGMA synchronous=NORMAL;";
                 cmd.ExecuteNonQuery();
+                _pragmasConfigured = true;
                 PragmasExecutionCount++;
             }
         }

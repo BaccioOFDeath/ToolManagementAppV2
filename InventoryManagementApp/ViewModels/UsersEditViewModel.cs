@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -236,21 +237,7 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
-            var fullPath = Path.GetFullPath(path);
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var targetPath = fullPath;
-
-            if (!fullPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
-            {
-                var assetsDir = Path.Combine(baseDir, "Assets", "UserPhotos");
-                Directory.CreateDirectory(assetsDir);
-                var fileName = Path.GetFileName(fullPath);
-                targetPath = Path.Combine(assetsDir, fileName);
-                File.Copy(fullPath, targetPath, true);
-            }
-
-            var relativePath = Path.GetRelativePath(baseDir, targetPath);
-            EditingUser.UserPhotoPath = relativePath;
+            EditingUser.UserPhotoPath = AppAssetHelper.CopyImageToAssetFolder(path, AppAssetHelper.UserPhotosFolder, EditingUser.UserName);
         }
 
         void RemoveImage()

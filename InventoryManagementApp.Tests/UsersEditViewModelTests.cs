@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.ViewModels;
 using System.Windows.Media;
 using Xunit;
@@ -33,9 +34,11 @@ namespace InventoryManagementApp.Tests
 
             vm.BrowseImageCommand.Execute(null);
 
-            Assert.Equal(Path.GetFileName(filePath), user.UserPhotoPath);
+            Assert.StartsWith(Path.Combine("Assets", "UserPhotos"), user.UserPhotoPath);
+            Assert.True(File.Exists(Path.Combine(AppAssetHelper.ResolveAssetPath(user.UserPhotoPath)!)));
 
             File.Delete(filePath);
+            File.Delete(AppAssetHelper.ResolveAssetPath(user.UserPhotoPath)!);
         }
 
         [Fact]
@@ -51,10 +54,10 @@ namespace InventoryManagementApp.Tests
             vm.BrowseImageCommand.Execute(null);
 
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var expectedRelative = Path.Combine("Assets", "UserPhotos", Path.GetFileName(tempFile));
-            var destPath = Path.Combine(baseDir, expectedRelative);
+            var destPath = AppAssetHelper.ResolveAssetPath(user.UserPhotoPath);
 
-            Assert.Equal(expectedRelative, user.UserPhotoPath);
+            Assert.StartsWith(Path.Combine("Assets", "UserPhotos"), user.UserPhotoPath);
+            Assert.NotNull(destPath);
             Assert.True(File.Exists(destPath));
 
             File.Delete(tempFile);

@@ -14,6 +14,7 @@ using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Services.Users;
+using InventoryManagementApp.Utilities.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -233,9 +234,8 @@ namespace InventoryManagementApp.Services.MobileCapture
 
             var safeSeed = MakeSafeFileName(string.IsNullOrWhiteSpace(nameSeed) ? "capture" : nameSeed);
             var fileName = $"{safeSeed}-{DateTime.Now:yyyyMMdd-HHmmss}-{RandomNumberGenerator.GetInt32(1000, 9999)}{extension.ToLowerInvariant()}";
-            var relativePath = Path.Combine("Assets", assetFolder, fileName).Replace('\\', '/');
-            var targetDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", assetFolder);
-            Directory.CreateDirectory(targetDir);
+            var relativePath = Path.Combine(AppAssetHelper.AssetsDirectoryName, assetFolder, fileName).Replace('\\', '/');
+            var targetDir = AppAssetHelper.EnsureAssetFolder(assetFolder);
             var targetPath = Path.Combine(targetDir, fileName);
 
             await using var stream = new FileStream(targetPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);

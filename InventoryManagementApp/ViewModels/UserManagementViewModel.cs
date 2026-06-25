@@ -229,26 +229,16 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
-            var baseDir = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
-            if (!fullPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+            try
             {
-                try
-                {
-                    var destDir = Path.Combine(baseDir, "Assets", "UserPhotos");
-                    Directory.CreateDirectory(destDir);
-                    var destPath = Path.Combine(destDir, Path.GetFileName(fullPath));
-                    File.Copy(fullPath, destPath, true);
-                    fullPath = destPath;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to copy user photo from {Source}", fullPath);
-                    await _dialogService.ShowInfoAsync("Failed to copy user photo.", "Error");
-                    return;
-                }
+                SelectedUser.UserPhotoPath = AppAssetHelper.CopyImageToAssetFolder(fullPath, AppAssetHelper.UserPhotosFolder, SelectedUser.UserName);
             }
-
-            SelectedUser.UserPhotoPath = Path.GetRelativePath(baseDir, fullPath);
+            catch (Exception ex) when (ex is ArgumentException || ex is IOException || ex is InvalidOperationException || ex is UnauthorizedAccessException)
+            {
+                _logger.LogError(ex, "Failed to copy user photo from {Source}", fullPath);
+                await _dialogService.ShowInfoAsync("Failed to copy user photo.", "Error");
+                return;
+            }
 
             try
             {
