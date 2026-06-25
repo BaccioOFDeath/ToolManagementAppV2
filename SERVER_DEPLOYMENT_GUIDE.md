@@ -71,6 +71,32 @@ When the resolved database path is on a UNC share or mapped network drive, the a
 
 If you copy the release folder to a shared directory and run the app from more than one computer, put `inventory.db` under the shared folder and point every workstation at the same path. Do not copy separate `Data/inventory.db` files to each computer unless each workstation should have its own independent inventory.
 
+
+## Updating While Users Are Active
+
+Windows locks executable files and loaded DLLs while users are running a WPF application from a shared folder, so a traditional in-place overwrite still requires everyone to close InventoryManagementApp first. To make updates possible during the workday, publish each build side-by-side and move new launches to the new release while existing users finish in the old copy.
+
+Recommended active-user update flow:
+
+1. Publish the new build to a clean local folder such as `publish-clean`.
+2. Stage the build without touching files active users already have loaded:
+
+   ```powershell
+   ./scripts/update-shared-release.ps1 -Source ./publish-clean -Destination X:\V2 -DeploymentMode SideBySide -ReleaseName 2026.06.25-1
+   ```
+
+3. Point the shared shortcut, launcher script, or deployment utility at `X:\V2\_releases\2026.06.25-1\InventoryManagementApp.exe`. The script also writes `X:\V2\current-release.txt` so a launcher can read the active release name.
+4. Ask users to restart the app when convenient. Users already running the previous release can continue current rentals/check-ins because the SQLite database and preserved asset folders remain shared.
+5. After confirming nobody is running the older release folder, archive or delete old folders under `_releases`.
+
+Use the default in-place mode only for maintenance windows when all users are closed:
+
+```powershell
+./scripts/update-shared-release.ps1 -Source ./publish-clean -Destination X:\V2
+```
+
+Side-by-side deployment avoids replacing locked application binaries, but it does not make database schema changes magically compatible with old clients. If a release includes a database migration that older app versions cannot safely use, schedule a normal maintenance window and have everyone close the app before launching the new release.
+
 ## Avoid Duplicate Reminder Emails
 
 Each running application instance can start its own reminder service when SMTP is configured. In a multi-user deployment, configure exactly one always-on instance with real SMTP settings.

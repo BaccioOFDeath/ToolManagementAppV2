@@ -1,6 +1,9 @@
 param(
     [string]$Source = (Join-Path $PSScriptRoot "..\publish-clean"),
-    [string]$Destination = "X:\V2"
+    [string]$Destination = "X:\V2",
+    [ValidateSet("InPlace", "SideBySide")]
+    [string]$DeploymentMode = "InPlace",
+    [string]$ReleaseName = (Get-Date -Format "yyyyMMdd-HHmmss")
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,6 +24,8 @@ $themesPath = Join-Path $destinationPath "Assets\Themes"
 $logsPath = Join-Path $destinationPath "Logs"
 $backupRoot = Join-Path $destinationPath "_pre_update_backups"
 $backupPath = Join-Path $backupRoot (Get-Date -Format "yyyyMMdd-HHmmss")
+$releaseRoot = Join-Path $destinationPath "_releases"
+$currentReleaseMarker = Join-Path $destinationPath "current-release.txt"
 $excludedDirectories = @(
     "Assets",
     "Assets\Data",
@@ -32,27 +37,9 @@ $excludedDirectories = @(
     "Assets\Themes",
     "Logs",
     "win-x64",
-    "_pre_update_backups"
+    "_pre_update_backups",
+    "_releases"
 )
-
-Write-Host "Updating InventoryManagementApp release"
-Write-Host "Source:      $sourcePath"
-Write-Host "Destination: $destinationPath"
-Write-Host "Preserving:  $dataPath"
-Write-Host "Preserving:  $itemImagesPath"
-Write-Host "Preserving:  $rentalPhotosPath"
-Write-Host "Preserving:  $companyLogoPath"
-Write-Host "Preserving:  $userPhotosPath"
-Write-Host "Preserving:  $backgroundsPath"
-Write-Host "Preserving:  $themesPath"
-Write-Host "Backup:      $backupPath"
-
-$running = Get-Process -Name "InventoryManagementApp" -ErrorAction SilentlyContinue
-if ($running) {
-    throw "InventoryManagementApp is still running. Close it on all computers before updating $destinationPath."
-}
-
-New-Item -ItemType Directory -Path $backupPath -Force | Out-Null
 $preservedPaths = @(
     "appsettings.json",
     "Assets\Data",
@@ -65,41 +52,103 @@ $preservedPaths = @(
     "Logs"
 )
 
-foreach ($relativePath in $preservedPaths) {
-    $sourceItem = Join-Path $destinationPath $relativePath
-    if (Test-Path -LiteralPath $sourceItem) {
-        $targetItem = Join-Path $backupPath $relativePath
-        $targetParent = Split-Path -Parent $targetItem
-        New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
-        Copy-Item -LiteralPath $sourceItem -Destination $targetItem -Recurse -Force
+function Invoke-ReleaseMirror {
+    param(
+        [Parameter(Mandatory = $true)][string]$From,
+        [Parameter(Mandatory = $true)][string]$To,
+        [string[]]$ExcludedDirectories = @(),
+        [string[]]$ExcludedFiles = @()
+    )
+
+    $robocopyArgs = @($From, $To, "/MIR")
+
+    if ($ExcludedDirectories.Count -gt 0) {
+        $robocopyArgs += "/XD"
+        foreach ($relativePath in $ExcludedDirectories) {
+            $robocopyArgs += $relativePath
+            $robocopyArgs += Join-Path $From $relativePath
+            $robocopyArgs += Join-Path $To $relativePath
+        }
+    }
+
+    if ($ExcludedFiles.Count -gt 0) {
+        $robocopyArgs += "/XF"
+        $robocopyArgs += $ExcludedFiles
+    }
+
+    $robocopyArgs += @( "/R:2", "/W:2", "/NP" )
+
+    & robocopy @robocopyArgs
+    $exitCode = $LASTEXITCODE
+
+    if ($exitCode -ge 8) {
+        throw "Robocopy failed with exit code $exitCode."
     }
 }
 
-$robocopyArgs = @(
-    $sourcePath,
-    $destinationPath,
-    "/MIR",
-    "/XD"
-)
+function Backup-PreservedPaths {
+    New-Item -ItemType Directory -Path $backupPath -Force | Out-Null
 
-foreach ($relativePath in $excludedDirectories) {
-    $robocopyArgs += $relativePath
-    $robocopyArgs += Join-Path $sourcePath $relativePath
-    $robocopyArgs += Join-Path $destinationPath $relativePath
+    foreach ($relativePath in $preservedPaths) {
+        $sourceItem = Join-Path $destinationPath $relativePath
+        if (Test-Path -LiteralPath $sourceItem) {
+            $targetItem = Join-Path $backupPath $relativePath
+            $targetParent = Split-Path -Parent $targetItem
+            New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+            Copy-Item -LiteralPath $sourceItem -Destination $targetItem -Recurse -Force
+        }
+    }
 }
 
-$robocopyArgs += @(
-    "/XF", "appsettings.json",
-    "/R:2",
-    "/W:2",
-    "/NP"
-)
+Write-Host "Updating InventoryManagementApp release"
+Write-Host "Source:      $sourcePath"
+Write-Host "Destination: $destinationPath"
+Write-Host "Mode:        $DeploymentMode"
+Write-Host "Preserving:  $dataPath"
+Write-Host "Preserving:  $itemImagesPath"
+Write-Host "Preserving:  $rentalPhotosPath"
+Write-Host "Preserving:  $companyLogoPath"
+Write-Host "Preserving:  $userPhotosPath"
+Write-Host "Preserving:  $backgroundsPath"
+Write-Host "Preserving:  $themesPath"
+Write-Host "Backup:      $backupPath"
 
-& robocopy @robocopyArgs
-$exitCode = $LASTEXITCODE
+if ($DeploymentMode -eq "SideBySide") {
+    if ([string]::IsNullOrWhiteSpace($ReleaseName) -or $ReleaseName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0) {
+        throw "ReleaseName must be a non-empty folder-safe name."
+    }
 
-if ($exitCode -ge 8) {
-    throw "Robocopy failed with exit code $exitCode."
+    $releasePath = Join-Path $releaseRoot $ReleaseName
+    if (Test-Path -LiteralPath $releasePath) {
+        throw "Release '$ReleaseName' already exists at $releasePath. Choose a new ReleaseName."
+    }
+
+    Write-Host "Release path: $releasePath"
+    Backup-PreservedPaths
+    New-Item -ItemType Directory -Path $releasePath -Force | Out-Null
+    Invoke-ReleaseMirror -From $sourcePath -To $releasePath -ExcludedDirectories @("Assets", "Logs") -ExcludedFiles @("appsettings.json")
+
+    foreach ($relativePath in $preservedPaths) {
+        $sourceItem = Join-Path $destinationPath $relativePath
+        if (Test-Path -LiteralPath $sourceItem) {
+            $targetItem = Join-Path $releasePath $relativePath
+            $targetParent = Split-Path -Parent $targetItem
+            New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+            Copy-Item -LiteralPath $sourceItem -Destination $targetItem -Recurse -Force
+        }
+    }
+
+    Set-Content -LiteralPath $currentReleaseMarker -Value $ReleaseName -Encoding UTF8
+    Write-Host "Side-by-side release staged. Running users can finish in their current copy; restart shortcuts should launch _releases\$ReleaseName."
+    return
 }
+
+$running = Get-Process -Name "InventoryManagementApp" -ErrorAction SilentlyContinue
+if ($running) {
+    throw "InventoryManagementApp is still running. Close it on all computers before updating $destinationPath, or rerun with -DeploymentMode SideBySide to stage a restart-based update."
+}
+
+Backup-PreservedPaths
+Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories $excludedDirectories -ExcludedFiles @("appsettings.json")
 
 Write-Host "Release update complete."
