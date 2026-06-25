@@ -89,6 +89,8 @@ Recommended active-user update flow:
 4. Ask users to restart the app when convenient. Users already running the previous release can continue current rentals/check-ins because the SQLite database and preserved asset folders remain shared.
 5. After confirming nobody is running the older release folder, archive or delete old folders under `_releases`.
 
+In side-by-side mode, the script copies the preserved `appsettings.json` into the staged release and links the release-local data, photo, theme, and log folders back to the shared destination folders. That keeps versioned binaries isolated while the operational SQLite database, uploaded photos, theme files, and logs continue to use the shared location.
+
 Use the default in-place mode only for maintenance windows when all users are closed:
 
 ```powershell
