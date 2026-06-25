@@ -135,6 +135,76 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task CreateReservation_WithMissingItem_ShouldThrow()
+        {
+            var reservation = new Reservation
+            {
+                ItemID = 999,
+                CustomerID = 1,
+                StartDate = DateTime.Today.AddDays(1),
+                EndDate = DateTime.Today.AddDays(2),
+                Quantity = 1,
+                Status = "Pending"
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _reservationService.CreateReservationAsync(reservation));
+        }
+
+        [Fact]
+        public async Task CreateReservation_WithMissingCustomer_ShouldThrow()
+        {
+            var reservation = new Reservation
+            {
+                ItemID = 1,
+                CustomerID = 999,
+                StartDate = DateTime.Today.AddDays(1),
+                EndDate = DateTime.Today.AddDays(2),
+                Quantity = 1,
+                Status = "Pending"
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _reservationService.CreateReservationAsync(reservation));
+        }
+
+        [Fact]
+        public async Task UpdateReservation_WithMissingItem_ShouldThrow()
+        {
+            var reservation = new Reservation
+            {
+                ItemID = 1,
+                CustomerID = 1,
+                StartDate = DateTime.Today.AddDays(1),
+                EndDate = DateTime.Today.AddDays(2),
+                Quantity = 1,
+                Status = "Pending"
+            };
+            var id = await _reservationService.CreateReservationAsync(reservation);
+            reservation.ReservationID = id;
+            reservation.ItemID = 999;
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _reservationService.UpdateReservationAsync(reservation));
+        }
+
+        [Fact]
+        public async Task UpdateReservation_WithMissingCustomer_ShouldThrow()
+        {
+            var reservation = new Reservation
+            {
+                ItemID = 1,
+                CustomerID = 1,
+                StartDate = DateTime.Today.AddDays(1),
+                EndDate = DateTime.Today.AddDays(2),
+                Quantity = 1,
+                Status = "Pending"
+            };
+            var id = await _reservationService.CreateReservationAsync(reservation);
+            reservation.ReservationID = id;
+            reservation.CustomerID = 999;
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _reservationService.UpdateReservationAsync(reservation));
+        }
+
+        [Fact]
         public async Task UpdateReservation_ShouldSucceed()
         {
             var reservation = new Reservation
