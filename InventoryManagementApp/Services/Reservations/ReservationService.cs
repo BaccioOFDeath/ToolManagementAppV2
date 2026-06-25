@@ -299,6 +299,9 @@ namespace InventoryManagementApp.Services.Reservations
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                if (!RecordExists(conn, "SELECT COUNT(*) FROM Rentals WHERE RentalID = @ID", rentalID))
+                    throw new ArgumentException("Reservation fulfillment must reference an existing rental.", nameof(rentalID));
+
                 var sql = "UPDATE Reservations SET Status = 'Fulfilled', RentalID = @RentalID WHERE ReservationID = @ReservationID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ReservationID", reservationID);
