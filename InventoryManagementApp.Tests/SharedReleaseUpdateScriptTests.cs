@@ -60,7 +60,7 @@ namespace InventoryManagementApp.Tests
             var launcher = ReadRepositoryFile("scripts", "start-current-release.ps1");
             var guide = ReadRepositoryFile("SERVER_DEPLOYMENT_GUIDE.md");
 
-            Assert.Contains("$windowsInvalidFileNameCharacters = @(", script, StringComparison.Ordinal);
+            Assert.Contains("[char[]]$windowsInvalidFileNameCharacters = @(", script, StringComparison.Ordinal);
             Assert.Contains("'<'", script, StringComparison.Ordinal);
             Assert.Contains("'>'", script, StringComparison.Ordinal);
             Assert.Contains("':'", script, StringComparison.Ordinal);
@@ -90,7 +90,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("folder-safe Windows name", script, StringComparison.Ordinal);
             Assert.Contains("reserved Windows device name", script, StringComparison.Ordinal);
 
-            Assert.Contains("$windowsInvalidFileNameCharacters = @(", launcher, StringComparison.Ordinal);
+            Assert.Contains("[char[]]$windowsInvalidFileNameCharacters = @(", launcher, StringComparison.Ordinal);
             Assert.Contains("function Test-ReleaseNameHasInvalidWindowsFileNameCharacter", launcher, StringComparison.Ordinal);
             Assert.Contains("$ReleaseName.IndexOfAny($windowsInvalidFileNameCharacters) -ge 0", launcher, StringComparison.Ordinal);
             Assert.Contains("Test-ReleaseNameHasInvalidWindowsFileNameCharacter -ReleaseName $releaseName", launcher, StringComparison.Ordinal);
