@@ -16,8 +16,24 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("$DeploymentMode = \"InPlace\"", script, StringComparison.Ordinal);
             Assert.Contains("$releaseRoot = Join-Path $destinationPath \"_releases\"", script, StringComparison.Ordinal);
             Assert.Contains("$currentReleaseMarker = Join-Path $destinationPath \"current-release.txt\"", script, StringComparison.Ordinal);
-            Assert.Contains("Set-Content -LiteralPath $currentReleaseMarker -Value $ReleaseName", script, StringComparison.Ordinal);
+            Assert.Contains("Set-CurrentReleaseMarker -ReleaseName $ReleaseName", script, StringComparison.Ordinal);
             Assert.Contains("rerun with -DeploymentMode SideBySide", script, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void SideBySideDeploymentPublishesCurrentReleaseMarkerAfterStagingCompletes()
+        {
+            var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
+
+            Assert.Contains("function Set-CurrentReleaseMarker", script, StringComparison.Ordinal);
+            Assert.Contains("current-release.{0}.tmp", script, StringComparison.Ordinal);
+            Assert.Contains("[System.Guid]::NewGuid().ToString(\"N\")", script, StringComparison.Ordinal);
+            Assert.Contains("Set-Content -LiteralPath $temporaryMarker -Value $ReleaseName -Encoding UTF8", script, StringComparison.Ordinal);
+            Assert.Contains("Move-Item -LiteralPath $temporaryMarker -Destination $currentReleaseMarker -Force", script, StringComparison.Ordinal);
+            Assert.Contains("Remove-Item -LiteralPath $temporaryMarker -Force", script, StringComparison.Ordinal);
+
+            var stagingIndex = script.IndexOf("Copy-CurrentReleaseLauncher\n\n    Set-CurrentReleaseMarker -ReleaseName $ReleaseName", StringComparison.Ordinal);
+            Assert.True(stagingIndex >= 0, "Side-by-side deployment should publish current-release.txt only after release staging and launcher refresh complete.");
         }
 
         [Fact]
