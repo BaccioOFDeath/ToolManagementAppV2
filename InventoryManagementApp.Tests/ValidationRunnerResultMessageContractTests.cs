@@ -10,12 +10,15 @@ namespace InventoryManagementApp.Tests
         public void ValidationRunnerUsesDistinctResultMessagesForFullAndSkipPublishPaths()
         {
             var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+            var skipPublishResultBlock = ExtractBracedBlock(source, "if ($SkipPublish)");
+            var fullValidationResultBlock = ExtractFollowingElseBlock(source, "if ($SkipPublish)");
 
             Assert.Contains("if ($SkipPublish)", source);
-            Assert.Contains("Compile-and-test validation completed successfully.", source);
-            Assert.Contains("Full validation completed successfully.", source);
+            Assert.Contains("Compile-and-test validation completed successfully.", skipPublishResultBlock);
+            Assert.Contains("Full validation completed successfully.", fullValidationResultBlock);
+            Assert.DoesNotContain("Full validation completed successfully.", skipPublishResultBlock);
+            Assert.DoesNotContain("Compile-and-test validation completed successfully.", fullValidationResultBlock);
             AssertAppearsBefore(source, "if ($SkipPublish)", "Compile-and-test validation completed successfully.", "The fast validation path should identify that only compile-and-test validation ran.");
-            AssertAppearsBefore(source, "else {", "Full validation completed successfully.", "The full validation path should keep the full-validation success message.");
         }
 
         [Fact]
@@ -48,6 +51,17 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("Full validation completed successfully.", resultMessageBlock);
         }
 
+        [Fact]
+        public void FullValidationResultMessageDoesNotAppearInUnrelatedElseBranch()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+            var resultElseBlock = ExtractFollowingElseBlock(source, "if ($SkipPublish)");
+
+            Assert.Contains("Full validation completed successfully.", resultElseBlock);
+            Assert.DoesNotContain("$env:BANNED_WORD_CHECK_FORCE_POWERSHELL = $previousForce", resultElseBlock);
+            Assert.DoesNotContain("Compile-and-test validation completed successfully.", resultElseBlock);
+        }
+
         private static void AssertAppearsBefore(string source, string first, string second, string because)
         {
             var firstIndex = source.IndexOf(first, StringComparison.Ordinal);
@@ -63,6 +77,32 @@ namespace InventoryManagementApp.Tests
             var markerIndex = source.IndexOf(marker, StringComparison.Ordinal);
             Assert.True(markerIndex >= 0, $"Expected to find '{marker}'.");
 
+            return ExtractBracedBlockAt(source, markerIndex, marker);
+        }
+
+        private static string ExtractFollowingElseBlock(string source, string marker)
+        {
+            var markerIndex = source.IndexOf(marker, StringComparison.Ordinal);
+            Assert.True(markerIndex >= 0, $"Expected to find '{marker}'.");
+
+            var firstBlockEndIndex = FindBracedBlockEnd(source, markerIndex, marker);
+            var elseIndex = source.IndexOf("else", firstBlockEndIndex + 1, StringComparison.Ordinal);
+            Assert.True(elseIndex >= 0, $"Expected '{marker}' to have a following else block.");
+
+            return ExtractBracedBlockAt(source, elseIndex, "else");
+        }
+
+        private static string ExtractBracedBlockAt(string source, int markerIndex, string marker)
+        {
+            var openIndex = source.IndexOf('{', markerIndex);
+            Assert.True(openIndex >= 0, $"Expected '{marker}' to start a braced block.");
+
+            var closeIndex = FindBracedBlockEnd(source, markerIndex, marker);
+            return source.Substring(openIndex + 1, closeIndex - openIndex - 1);
+        }
+
+        private static int FindBracedBlockEnd(string source, int markerIndex, string marker)
+        {
             var openIndex = source.IndexOf('{', markerIndex);
             Assert.True(openIndex >= 0, $"Expected '{marker}' to start a braced block.");
 
@@ -75,7 +115,7 @@ namespace InventoryManagementApp.Tests
                     depth--;
 
                 if (depth == 0)
-                    return source.Substring(openIndex + 1, index - openIndex - 1);
+                    return index;
             }
 
             throw new InvalidOperationException($"Could not find the end of the '{marker}' block.");
