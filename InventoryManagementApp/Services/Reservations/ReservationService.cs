@@ -232,6 +232,7 @@ namespace InventoryManagementApp.Services.Reservations
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureReservationExists(conn, reservation.ReservationID);
                 EnsureReservationReferencesExist(conn, reservation);
                 EnsureReservationRentalReferenceExists(conn, reservation);
 
@@ -268,6 +269,8 @@ namespace InventoryManagementApp.Services.Reservations
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureReservationExists(conn, reservationID);
+
                 var sql = "UPDATE Reservations SET Status = 'Confirmed' WHERE ReservationID = @ReservationID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ReservationID", reservationID);
@@ -283,6 +286,8 @@ namespace InventoryManagementApp.Services.Reservations
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureReservationExists(conn, reservationID);
+
                 var sql = "UPDATE Reservations SET Status = 'Cancelled' WHERE ReservationID = @ReservationID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ReservationID", reservationID);
@@ -300,6 +305,7 @@ namespace InventoryManagementApp.Services.Reservations
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureReservationExists(conn, reservationID);
                 if (!RecordExists(conn, "SELECT COUNT(*) FROM Rentals WHERE RentalID = @ID", rentalID))
                     throw new ArgumentException("Reservation fulfillment must reference an existing rental.", nameof(rentalID));
 
@@ -319,6 +325,8 @@ namespace InventoryManagementApp.Services.Reservations
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureReservationExists(conn, reservationID);
+
                 var sql = "DELETE FROM Reservations WHERE ReservationID = @ReservationID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ReservationID", reservationID);
@@ -399,6 +407,12 @@ namespace InventoryManagementApp.Services.Reservations
                 throw new ArgumentOutOfRangeException(nameof(reservation.Quantity), "Quantity must be greater than 0.");
             if (reservation.EndDate < reservation.StartDate)
                 throw new ArgumentException("End date must be on or after start date.", nameof(reservation.EndDate));
+        }
+
+        private static void EnsureReservationExists(SqliteConnection conn, int reservationID)
+        {
+            if (!RecordExists(conn, "SELECT COUNT(*) FROM Reservations WHERE ReservationID = @ID", reservationID))
+                throw new InvalidOperationException("Reservation not found.");
         }
 
         private static void EnsureReservationReferencesExist(SqliteConnection conn, Reservation reservation)
