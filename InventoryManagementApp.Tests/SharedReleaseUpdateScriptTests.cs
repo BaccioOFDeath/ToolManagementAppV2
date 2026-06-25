@@ -24,6 +24,7 @@ namespace InventoryManagementApp.Tests
         public void SideBySideDeploymentPublishesCurrentReleaseMarkerAfterStagingCompletes()
         {
             var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
+            var normalizedScript = script.Replace("\r\n", "\n", StringComparison.Ordinal);
 
             Assert.Contains("function Set-CurrentReleaseMarker", script, StringComparison.Ordinal);
             Assert.Contains("current-release.{0}.tmp", script, StringComparison.Ordinal);
@@ -32,7 +33,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Move-Item -LiteralPath $temporaryMarker -Destination $currentReleaseMarker -Force", script, StringComparison.Ordinal);
             Assert.Contains("Remove-Item -LiteralPath $temporaryMarker -Force", script, StringComparison.Ordinal);
 
-            var stagingIndex = script.IndexOf("Copy-CurrentReleaseLauncher\n\n    Set-CurrentReleaseMarker -ReleaseName $ReleaseName", StringComparison.Ordinal);
+            var stagingIndex = normalizedScript.IndexOf("Copy-CurrentReleaseLauncher\n\n    Set-CurrentReleaseMarker -ReleaseName $ReleaseName", StringComparison.Ordinal);
             Assert.True(stagingIndex >= 0, "Side-by-side deployment should publish current-release.txt only after release staging and launcher refresh complete.");
         }
 
