@@ -33,6 +33,19 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void BuildWorkflowRunsOnMasterAndMainPushesAndPullRequests()
+        {
+            var source = ReadRepoFile(".github", "workflows", "build.yml").Replace("\r\n", "\n");
+
+            Assert.Contains("  push:\n    branches: [ master, main ]", source);
+            Assert.Contains("  pull_request:\n    branches: [ master, main ]", source);
+            Assert.Contains("  workflow_dispatch:", source);
+            AssertAppearsBefore(source, "  push:", "jobs:", "The Build and Test workflow should keep push validation enabled before job definitions.");
+            AssertAppearsBefore(source, "  pull_request:", "jobs:", "The Build and Test workflow should keep pull-request validation enabled before job definitions.");
+            AssertAppearsBefore(source, "  workflow_dispatch:", "jobs:", "The Build and Test workflow should keep manual dispatch available before job definitions.");
+        }
+
+        [Fact]
         public void FullValidationRunnerCleansPublishOutputBeforePublishing()
         {
             var source = ReadRepoFile("scripts", "run-full-validation.ps1");
