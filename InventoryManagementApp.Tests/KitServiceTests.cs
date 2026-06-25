@@ -245,5 +245,29 @@ namespace InventoryManagementApp.Tests
 
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _kitService.AddKitItemAsync(kitItem));
         }
+
+        [Fact]
+        public async Task CheckKitAvailability_WithMissingRequiredItem_ShouldReturnFalse()
+        {
+            var kit = new Kit
+            {
+                KitNumber = "KIT-011",
+                Name = "Kit with Missing Required Item",
+                IsActive = true
+            };
+            var kitId = await _kitService.CreateKitAsync(kit);
+
+            await _kitService.AddKitItemAsync(new KitItem
+            {
+                KitID = kitId,
+                ItemID = 999,
+                Quantity = 1,
+                IsOptional = false
+            });
+
+            var isAvailable = await _kitService.CheckKitAvailabilityAsync(kitId);
+
+            Assert.False(isAvailable);
+        }
     }
 }
