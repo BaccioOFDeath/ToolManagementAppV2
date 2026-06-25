@@ -85,10 +85,11 @@ Recommended active-user update flow:
    ./scripts/update-shared-release.ps1 -Source ./publish-clean -Destination X:\V2 -DeploymentMode SideBySide -ReleaseName 2026.06.25-1
    ```
 
+   The update script also refreshes the launcher at `X:\V2\scripts\start-current-release.ps1` so shared shortcuts can target the deployed folder instead of depending on a repository checkout.
 3. Point the shared shortcut, launcher script, or deployment utility at the current-release launcher instead of at a specific release executable:
 
    ```powershell
-   powershell.exe -ExecutionPolicy Bypass -File .\scripts\start-current-release.ps1 -Destination X:\V2
+   powershell.exe -ExecutionPolicy Bypass -File X:\V2\scripts\start-current-release.ps1 -Destination X:\V2
    ```
 
    `start-current-release.ps1` reads `X:\V2\current-release.txt`, starts `X:\V2\_releases\<ReleaseName>\InventoryManagementApp.exe`, and falls back to `X:\V2\InventoryManagementApp.exe` when no marker exists for an in-place deployment.
