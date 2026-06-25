@@ -225,6 +225,8 @@ namespace InventoryManagementApp.Services.Kits
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureKitItemReferencesExist(conn, kitItem);
+
                 var sql = @"
                     INSERT INTO KitItems 
                     (KitID, ItemID, Quantity, IsOptional)
@@ -248,6 +250,8 @@ namespace InventoryManagementApp.Services.Kits
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureKitItemReferencesExist(conn, kitItem);
+
                 var sql = @"
                     UPDATE KitItems 
                     SET ItemID = @ItemID,
@@ -354,6 +358,21 @@ namespace InventoryManagementApp.Services.Kits
                 throw new ArgumentOutOfRangeException(nameof(kitItem.ItemID), "Item ID must be greater than 0.");
             if (kitItem.Quantity < 1)
                 throw new ArgumentOutOfRangeException(nameof(kitItem.Quantity), "Quantity must be greater than 0.");
+        }
+
+        private static void EnsureKitItemReferencesExist(SqliteConnection conn, KitItem kitItem)
+        {
+            if (!RecordExists(conn, "SELECT COUNT(*) FROM Kits WHERE KitID = @ID", kitItem.KitID))
+                throw new ArgumentException("Kit item must reference an existing kit.", nameof(kitItem.KitID));
+            if (!RecordExists(conn, "SELECT COUNT(*) FROM Items WHERE ItemID = @ID", kitItem.ItemID))
+                throw new ArgumentException("Kit item must reference an existing item.", nameof(kitItem.ItemID));
+        }
+
+        private static bool RecordExists(SqliteConnection conn, string sql, int id)
+        {
+            using var cmd = new SqliteCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ID", id);
+            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
         }
 
         private static object ToDbNullableText(string? value)
