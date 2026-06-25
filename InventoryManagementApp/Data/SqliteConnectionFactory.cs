@@ -7,7 +7,7 @@ namespace InventoryManagementApp.Data;
 public sealed class SqliteConnectionFactory
 {
     private readonly string _connectionString;
-    private readonly string _journalMode;
+    private readonly bool _useWalJournal;
     private readonly int _busyTimeoutMilliseconds;
     private bool _pragmasConfigured;
     private static readonly object _lock = new();
@@ -24,7 +24,7 @@ public sealed class SqliteConnectionFactory
             Pooling = useConnectionPooling
         };
         _connectionString = builder.ToString();
-        _journalMode = useWalJournal ? "WAL" : "DELETE";
+        _useWalJournal = useWalJournal;
         _busyTimeoutMilliseconds = busyTimeoutMilliseconds;
     }
 
@@ -50,10 +50,10 @@ public sealed class SqliteConnectionFactory
 
         lock (_lock)
         {
-            if (!_pragmasConfigured)
+            if (_useWalJournal && !_pragmasConfigured)
             {
                 using var cmd = connection.CreateCommand();
-                cmd.CommandText = $"PRAGMA journal_mode={_journalMode}; PRAGMA synchronous=NORMAL;";
+                cmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;";
                 cmd.ExecuteNonQuery();
                 _pragmasConfigured = true;
                 PragmasExecutionCount++;

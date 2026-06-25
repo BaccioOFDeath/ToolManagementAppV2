@@ -116,9 +116,12 @@ namespace InventoryManagementApp.Services.Core
         {
             using var conn = new SqliteConnection(ConnectionString);
             conn.Open();
-            var journalMode = useWalJournal ? "WAL" : "DELETE";
-            using var cmd = new SqliteCommand($"PRAGMA journal_mode={journalMode};", conn);
-            cmd.ExecuteNonQuery();
+            if (useWalJournal)
+            {
+                using var cmd = new SqliteCommand("PRAGMA journal_mode=WAL;", conn);
+                cmd.ExecuteNonQuery();
+            }
+
             ConfigureConnection(conn);
         }
 

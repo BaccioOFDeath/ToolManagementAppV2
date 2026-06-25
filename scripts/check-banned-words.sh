@@ -72,6 +72,7 @@ $matches = Get-ChildItem -Path . -Recurse -File -Force |
         }
 
         $relative -notlike ".git/*" -and
+            $relative -notmatch '(^|/)\.[^/]+($|/)' -and
             $relative -notmatch '(^|/)(bin|obj|publish)/' -and
             -not $isAllowedRelativePath -and
             -not $isAllowedPathPrefix -and

@@ -1,7 +1,8 @@
 param(
     [string]$Destination = "X:\V2",
     [string]$ExecutableName = "InventoryManagementApp.exe",
-    [string[]]$ArgumentList = @()
+    [string[]]$ArgumentList = @(),
+    [switch]$AllowMultipleInstances
 )
 
 $ErrorActionPreference = "Stop"
@@ -77,5 +78,15 @@ if (-not [string]::IsNullOrWhiteSpace($releaseName)) {
 }
 
 $workingDirectory = Split-Path -Parent $executablePath
+$processName = [System.IO.Path]::GetFileNameWithoutExtension($ExecutableName)
+if (-not $AllowMultipleInstances -and (Get-Process -Name $processName -ErrorAction SilentlyContinue)) {
+    Write-Host "$processName is already running on this workstation. Close it before starting another copy."
+    return
+}
+
 Write-Host "Starting $executablePath"
-Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory -ArgumentList $ArgumentList
+if ($ArgumentList.Count -gt 0) {
+    Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory -ArgumentList $ArgumentList
+} else {
+    Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory
+}

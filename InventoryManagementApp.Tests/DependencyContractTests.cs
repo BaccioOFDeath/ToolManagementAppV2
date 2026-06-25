@@ -94,6 +94,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("$allowedRelativePaths = @(", source);
             Assert.Contains("$allowedPathPrefixes = @(", source);
             Assert.Contains("Legacy To" + "ol Manager/Legacy data/", source);
+            Assert.Contains("$relative -notmatch '(^|/)\\.[^/]+($|/)'", source);
             Assert.Contains("$relative -notmatch '(^|/)(bin|obj|publish)/'", source);
             Assert.Contains("--glob '!**/bin/**'", source);
             Assert.Contains("--glob '!**/obj/**'", source);
@@ -113,6 +114,18 @@ namespace InventoryManagementApp.Tests
             Assert.Equal("10.0.9", packageReferences["Microsoft.Data.Sqlite"]);
             Assert.Equal("3.0.3", packageReferences["SQLitePCLRaw.bundle_e_sqlite3"]);
             Assert.DoesNotContain("SQLitePCLRaw.lib.e_sqlite3", source, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void AppProjectEmbedsApplicationIcon()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "InventoryManagementApp.csproj");
+            var iconPath = FindRepoPath("InventoryManagementApp", "Resources", "AppIcon.ico");
+
+            Assert.Contains("<ApplicationIcon>Resources\\AppIcon.ico</ApplicationIcon>", source, StringComparison.Ordinal);
+            Assert.Contains("<Content Include=\"Resources\\AppIcon.ico\">", source, StringComparison.Ordinal);
+            Assert.True(File.Exists(iconPath), "Application icon file should exist in Resources.");
+            Assert.True(new FileInfo(iconPath).Length > 0, "Application icon file should not be empty.");
         }
 
         [Fact]
@@ -204,6 +217,9 @@ namespace InventoryManagementApp.Tests
         }
 
         private static string ReadRepoFile(params string[] parts)
+            => File.ReadAllText(FindRepoPath(parts));
+
+        private static string FindRepoPath(params string[] parts)
         {
             var directory = AppContext.BaseDirectory;
 
@@ -211,7 +227,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return candidate;
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)

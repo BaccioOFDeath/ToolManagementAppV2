@@ -28,6 +28,7 @@ public class SqliteConnectionFactoryTests
             cmd.CommandText = "PRAGMA journal_mode;";
 
             Assert.Equal("delete", System.Convert.ToString(cmd.ExecuteScalar())?.ToLowerInvariant());
+            Assert.Equal(0, SqliteConnectionFactory.PragmasExecutionCount);
         }
         finally
         {

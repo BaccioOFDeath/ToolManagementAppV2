@@ -108,6 +108,26 @@ dotnet publish InventoryManagementApp\InventoryManagementApp.csproj -c Release -
 
 The script mirrors the new release files while preserving `X:\V2\appsettings.json`, `X:\V2\Logs`, and the runtime asset folders under `X:\V2\Assets`: `Data`, `ItemImages`, `RentalPhotos`, `CompanyLogo`, `UserPhotos`, `Backgrounds`, and `Themes`. It also creates a timestamped backup under `X:\V2\_pre_update_backups` before copying.
 
+For repeat updates during the day, prefer the one-command side-by-side wrapper:
+
+```powershell
+.\scripts\publish-shared-update.ps1 -Destination X:\V2
+```
+
+It validates, publishes, stages a timestamped side-by-side release, updates `current-release.txt`, and lets older running copies show an update-available message on the login screen.
+
+Refresh the shared shortcut with:
+
+```powershell
+.\scripts\create-shared-desktop-shortcut.ps1 -Destination X:\V2
+```
+
+When the server folder has too many old side-by-side releases or pre-update backups, prune it with:
+
+```powershell
+.\scripts\cleanup-shared-deployment.ps1 -Destination X:\V2 -KeepReleases 3 -KeepBackups 3
+```
+
 ### 4. First-Time Setup
 
 1. Launch the application: `C:\InventoryManagement\InventoryManagementApp.exe`

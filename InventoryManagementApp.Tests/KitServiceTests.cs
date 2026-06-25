@@ -307,12 +307,12 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public async Task CheckKitAvailability_WithMissingRequiredItem_ShouldReturnFalse()
+        public async Task CheckKitAvailability_WithInsufficientRequiredItemQuantity_ShouldReturnFalse()
         {
             var kit = new Kit
             {
                 KitNumber = "KIT-013",
-                Name = "Kit with Missing Required Item",
+                Name = "Kit with Insufficient Required Item",
                 IsActive = true
             };
             var kitId = await _kitService.CreateKitAsync(kit);
@@ -324,8 +324,8 @@ namespace InventoryManagementApp.Tests
                     INSERT INTO KitItems (KitID, ItemID, Quantity, IsOptional)
                     VALUES (@KitID, @ItemID, @Quantity, @IsOptional);";
                 cmd.Parameters.AddWithValue("@KitID", kitId);
-                cmd.Parameters.AddWithValue("@ItemID", 999);
-                cmd.Parameters.AddWithValue("@Quantity", 1);
+                cmd.Parameters.AddWithValue("@ItemID", 1);
+                cmd.Parameters.AddWithValue("@Quantity", 2);
                 cmd.Parameters.AddWithValue("@IsOptional", 0);
                 cmd.ExecuteNonQuery();
             }

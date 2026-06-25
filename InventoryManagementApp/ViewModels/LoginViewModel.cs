@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Reflection;
 using MediaBrush = System.Windows.Media.Brush;
 using MediaBrushes = System.Windows.Media.Brushes;
 using InventoryManagementApp.Interfaces;
@@ -66,6 +67,34 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _windowTitle;
             private set => SetProperty(ref _windowTitle, value);
+        }
+
+        bool _isUpdateAvailable;
+        public bool IsUpdateAvailable
+        {
+            get => _isUpdateAvailable;
+            private set => SetProperty(ref _isUpdateAvailable, value);
+        }
+
+        string _updateAvailableMessage = string.Empty;
+        public string UpdateAvailableMessage
+        {
+            get => _updateAvailableMessage;
+            private set => SetProperty(ref _updateAvailableMessage, value);
+        }
+
+        string _versionDisplayText = string.Empty;
+        public string VersionDisplayText
+        {
+            get => _versionDisplayText;
+            private set => SetProperty(ref _versionDisplayText, value);
+        }
+
+        MediaBrush _versionStatusBrush = MediaBrushes.ForestGreen;
+        public MediaBrush VersionStatusBrush
+        {
+            get => _versionStatusBrush;
+            private set => SetProperty(ref _versionStatusBrush, value);
         }
 
         /// <summary>
@@ -127,7 +156,93 @@ namespace InventoryManagementApp.ViewModels
         {
             CompanyLogo = await LoadLogoAsync(cancellationToken);
             WindowTitle = await GetWindowTitleAsync(cancellationToken);
+            RefreshUpdateAvailability();
             await LoadUsersCommand.ExecuteAsync(null);
+        }
+
+        void RefreshUpdateAvailability()
+        {
+            try
+            {
+                var runningRelease = GetRunningSharedReleaseName(AppContext.BaseDirectory, out var deploymentRoot);
+                VersionDisplayText = BuildVersionDisplayText(runningRelease);
+                VersionStatusBrush = MediaBrushes.ForestGreen;
+                if (string.IsNullOrWhiteSpace(deploymentRoot))
+                {
+                    IsUpdateAvailable = false;
+                    VersionStatusBrush = MediaBrushes.DimGray;
+                    UpdateAvailableMessage = string.Empty;
+                    return;
+                }
+
+                var markerPath = Path.Combine(deploymentRoot, "current-release.txt");
+                if (!File.Exists(markerPath))
+                {
+                    IsUpdateAvailable = false;
+                    UpdateAvailableMessage = string.Empty;
+                    return;
+                }
+
+                var currentRelease = File.ReadLines(markerPath)
+                    .FirstOrDefault(line => !string.IsNullOrWhiteSpace(line))
+                    ?.Trim();
+
+                IsUpdateAvailable = !string.IsNullOrWhiteSpace(currentRelease) &&
+                    !string.Equals(currentRelease, runningRelease, StringComparison.OrdinalIgnoreCase);
+                VersionDisplayText = BuildVersionDisplayText(runningRelease, currentRelease);
+                VersionStatusBrush = IsUpdateAvailable ? MediaBrushes.Firebrick : MediaBrushes.ForestGreen;
+                UpdateAvailableMessage = IsUpdateAvailable
+                    ? "An app update is available. Please close and reopen Inventory Management to start the latest version."
+                    : string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to check shared release update availability.");
+                VersionDisplayText = BuildVersionDisplayText();
+                VersionStatusBrush = MediaBrushes.DimGray;
+                IsUpdateAvailable = false;
+                UpdateAvailableMessage = string.Empty;
+            }
+        }
+
+        static string BuildVersionDisplayText(string? runningRelease = null, string? currentRelease = null)
+        {
+            var appVersion = typeof(LoginViewModel).Assembly
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            if (string.IsNullOrWhiteSpace(appVersion))
+                appVersion = typeof(LoginViewModel).Assembly.GetName().Version?.ToString() ?? "unknown";
+            appVersion = appVersion.Split('+')[0];
+
+            if (!string.IsNullOrWhiteSpace(currentRelease) &&
+                !string.Equals(currentRelease, runningRelease, StringComparison.OrdinalIgnoreCase))
+            {
+                return $"App {appVersion} - Outdated release {runningRelease ?? "local"} - latest {currentRelease}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(runningRelease))
+                return $"App {appVersion} - Current release {runningRelease}";
+
+            return $"App {appVersion} - Local build";
+        }
+
+        static string? GetRunningSharedReleaseName(string baseDirectory, out string? deploymentRoot)
+        {
+            deploymentRoot = null;
+            var releaseDirectory = new DirectoryInfo(baseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            if (releaseDirectory.Parent?.Name.Equals("_releases", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                deploymentRoot = releaseDirectory.Parent.Parent?.FullName;
+                return releaseDirectory.Name;
+            }
+
+            var rootMarkerPath = Path.Combine(releaseDirectory.FullName, "current-release.txt");
+            if (File.Exists(rootMarkerPath))
+            {
+                deploymentRoot = releaseDirectory.FullName;
+                return null;
+            }
+
+            return null;
         }
 
         async Task<BitmapImage> LoadLogoAsync(CancellationToken cancellationToken)

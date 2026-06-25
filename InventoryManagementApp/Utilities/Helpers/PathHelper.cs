@@ -27,15 +27,16 @@ namespace InventoryManagementApp.Utilities.Helpers
             try
             {
                 var baseDir = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
+                var assetBaseDir = GetAssetBaseDirectory(baseDir);
                 var combined = Path.IsPathRooted(path)
                     ? path
-                    : Path.Combine(baseDir, path);
+                    : Path.Combine(assetBaseDir, path);
 
                 var fullPath = Path.GetFullPath(combined);
 
-                if (!fullPath.StartsWith(baseDir, StringComparison.OrdinalIgnoreCase))
+                if (!IsWithinDirectory(fullPath, baseDir) && !IsWithinDirectory(fullPath, assetBaseDir))
                 {
-                    Logger.LogWarning("Resolved path {Path} is outside base directory {BaseDir}", fullPath, baseDir);
+                    Logger.LogWarning("Resolved path {Path} is outside allowed directories {BaseDir} and {AssetBaseDir}", fullPath, baseDir, assetBaseDir);
                     if (throwOnInvalid)
                         throw new InvalidOperationException("Path is outside of the application's base directory.");
                     return null;
@@ -48,6 +49,25 @@ namespace InventoryManagementApp.Utilities.Helpers
                 Logger.LogError(ex, "Failed to resolve path {Path}", path);
                 return null;
             }
+        }
+
+        static string GetAssetBaseDirectory(string baseDir)
+        {
+            var releaseDirectory = new DirectoryInfo(baseDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            if (releaseDirectory.Parent?.Name.Equals("_releases", StringComparison.OrdinalIgnoreCase) == true &&
+                releaseDirectory.Parent.Parent is { } deploymentRoot)
+            {
+                return Path.GetFullPath(deploymentRoot.FullName);
+            }
+
+            return baseDir;
+        }
+
+        static bool IsWithinDirectory(string fullPath, string directory)
+        {
+            var normalizedDirectory = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var normalizedPath = Path.GetFullPath(fullPath);
+            return normalizedPath.StartsWith(normalizedDirectory, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
