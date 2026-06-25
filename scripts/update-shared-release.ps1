@@ -29,6 +29,17 @@ $currentReleaseMarker = Join-Path $destinationPath "current-release.txt"
 $launcherSourcePath = Join-Path $PSScriptRoot "start-current-release.ps1"
 $launcherDestinationDirectory = Join-Path $destinationPath "scripts"
 $launcherDestinationPath = Join-Path $launcherDestinationDirectory "start-current-release.ps1"
+$windowsInvalidFileNameCharacters = @(
+    '<',
+    '>',
+    ':',
+    '"',
+    '/',
+    '\',
+    '|',
+    '?',
+    '*'
+)
 $windowsReservedDeviceNames = @(
     "CON",
     "CONIN$",
@@ -81,6 +92,14 @@ $preservedPaths = @(
     "Logs"
 )
 $sideBySideLinkedDirectories = $preservedPaths | Where-Object { $_ -ne "appsettings.json" }
+
+function Test-ReleaseNameHasInvalidWindowsFileNameCharacter {
+    param(
+        [Parameter(Mandatory = $true)][string]$ReleaseName
+    )
+
+    return $ReleaseName.IndexOfAny($windowsInvalidFileNameCharacters) -ge 0
+}
 
 function Test-ReleaseNameIsReservedDeviceName {
     param(
@@ -228,8 +247,8 @@ Write-Host "Preserving:  $themesPath"
 Write-Host "Backup:      $backupPath"
 
 if ($DeploymentMode -eq "SideBySide") {
-    if ([string]::IsNullOrWhiteSpace($ReleaseName) -or $ReleaseName.EndsWith(".") -or $ReleaseName.EndsWith(" ") -or $ReleaseName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0 -or (Test-ReleaseNameIsReservedDeviceName -ReleaseName $ReleaseName)) {
-        throw "ReleaseName must be a non-empty folder-safe name and cannot end with a dot or space or use a reserved Windows device name."
+    if ([string]::IsNullOrWhiteSpace($ReleaseName) -or $ReleaseName.EndsWith(".") -or $ReleaseName.EndsWith(" ") -or (Test-ReleaseNameHasInvalidWindowsFileNameCharacter -ReleaseName $ReleaseName) -or (Test-ReleaseNameIsReservedDeviceName -ReleaseName $ReleaseName)) {
+        throw "ReleaseName must be a non-empty folder-safe Windows name and cannot contain invalid filename characters, end with a dot or space, or use a reserved Windows device name."
     }
 
     $releasePath = Join-Path $releaseRoot $ReleaseName
