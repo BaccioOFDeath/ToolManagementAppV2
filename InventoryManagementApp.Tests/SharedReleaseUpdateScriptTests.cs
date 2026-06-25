@@ -21,6 +21,30 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void SideBySideDeploymentRejectsReservedWindowsReleaseNames()
+        {
+            var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
+            var launcher = ReadRepositoryFile("scripts", "start-current-release.ps1");
+            var guide = ReadRepositoryFile("SERVER_DEPLOYMENT_GUIDE.md");
+
+            Assert.Contains("$windowsReservedDeviceNames = @(", script, StringComparison.Ordinal);
+            Assert.Contains("\"CON\"", script, StringComparison.Ordinal);
+            Assert.Contains("\"NUL\"", script, StringComparison.Ordinal);
+            Assert.Contains("\"COM1\"", script, StringComparison.Ordinal);
+            Assert.Contains("\"LPT1\"", script, StringComparison.Ordinal);
+            Assert.Contains("function Test-ReleaseNameIsReservedDeviceName", script, StringComparison.Ordinal);
+            Assert.Contains("Test-ReleaseNameIsReservedDeviceName -ReleaseName $ReleaseName", script, StringComparison.Ordinal);
+            Assert.Contains("reserved Windows device name", script, StringComparison.Ordinal);
+
+            Assert.Contains("$windowsReservedDeviceNames = @(", launcher, StringComparison.Ordinal);
+            Assert.Contains("function Test-ReleaseNameIsReservedDeviceName", launcher, StringComparison.Ordinal);
+            Assert.Contains("Test-ReleaseNameIsReservedDeviceName -ReleaseName $releaseName", launcher, StringComparison.Ordinal);
+            Assert.Contains("folder-safe, non-reserved name", launcher, StringComparison.Ordinal);
+
+            Assert.Contains("Avoid Windows reserved device names such as `CON`, `NUL`, `COM1`, or `LPT1`", guide, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void SideBySideDeploymentLinksSharedOperationalFoldersInsteadOfForkingData()
         {
             var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
@@ -58,7 +82,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("$currentReleaseMarker = Join-Path $destinationPath \"current-release.txt\"", launcher, StringComparison.Ordinal);
             Assert.Contains("Get-Content -LiteralPath $currentReleaseMarker", launcher, StringComparison.Ordinal);
             Assert.Contains("$releaseRoot = Join-Path $destinationPath \"_releases\"", launcher, StringComparison.Ordinal);
-            Assert.Contains("ReleaseName in current-release.txt must be a folder-safe name.", launcher, StringComparison.Ordinal);
+            Assert.Contains("ReleaseName in current-release.txt must be a folder-safe", launcher, StringComparison.Ordinal);
             Assert.Contains("$rootExecutable = Join-Path $destinationPath $ExecutableName", launcher, StringComparison.Ordinal);
             Assert.Contains("No current-release.txt marker was found", launcher, StringComparison.Ordinal);
             Assert.Contains("Start-Process -FilePath $executablePath", launcher, StringComparison.Ordinal);
