@@ -29,6 +29,30 @@ $currentReleaseMarker = Join-Path $destinationPath "current-release.txt"
 $launcherSourcePath = Join-Path $PSScriptRoot "start-current-release.ps1"
 $launcherDestinationDirectory = Join-Path $destinationPath "scripts"
 $launcherDestinationPath = Join-Path $launcherDestinationDirectory "start-current-release.ps1"
+$windowsReservedDeviceNames = @(
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    "COM1",
+    "COM2",
+    "COM3",
+    "COM4",
+    "COM5",
+    "COM6",
+    "COM7",
+    "COM8",
+    "COM9",
+    "LPT1",
+    "LPT2",
+    "LPT3",
+    "LPT4",
+    "LPT5",
+    "LPT6",
+    "LPT7",
+    "LPT8",
+    "LPT9"
+)
 $excludedDirectories = @(
     "Assets",
     "Assets\Data",
@@ -55,6 +79,16 @@ $preservedPaths = @(
     "Logs"
 )
 $sideBySideLinkedDirectories = $preservedPaths | Where-Object { $_ -ne "appsettings.json" }
+
+function Test-ReleaseNameIsReservedDeviceName {
+    param(
+        [Parameter(Mandatory = $true)][string]$ReleaseName
+    )
+
+    $normalizedReleaseName = $ReleaseName.TrimEnd([char[]]@(' ', '.'))
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($normalizedReleaseName).ToUpperInvariant()
+    return $windowsReservedDeviceNames -contains $baseName
+}
 
 function Invoke-ReleaseMirror {
     param(
@@ -166,8 +200,8 @@ Write-Host "Preserving:  $themesPath"
 Write-Host "Backup:      $backupPath"
 
 if ($DeploymentMode -eq "SideBySide") {
-    if ([string]::IsNullOrWhiteSpace($ReleaseName) -or $ReleaseName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0) {
-        throw "ReleaseName must be a non-empty folder-safe name."
+    if ([string]::IsNullOrWhiteSpace($ReleaseName) -or $ReleaseName.EndsWith(".") -or $ReleaseName.EndsWith(" ") -or $ReleaseName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0 -or (Test-ReleaseNameIsReservedDeviceName -ReleaseName $ReleaseName)) {
+        throw "ReleaseName must be a non-empty folder-safe name and cannot end with a dot or space or use a reserved Windows device name."
     }
 
     $releasePath = Join-Path $releaseRoot $ReleaseName

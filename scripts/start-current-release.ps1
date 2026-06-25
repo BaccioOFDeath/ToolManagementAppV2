@@ -6,6 +6,41 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$windowsReservedDeviceNames = @(
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    "COM1",
+    "COM2",
+    "COM3",
+    "COM4",
+    "COM5",
+    "COM6",
+    "COM7",
+    "COM8",
+    "COM9",
+    "LPT1",
+    "LPT2",
+    "LPT3",
+    "LPT4",
+    "LPT5",
+    "LPT6",
+    "LPT7",
+    "LPT8",
+    "LPT9"
+)
+
+function Test-ReleaseNameIsReservedDeviceName {
+    param(
+        [Parameter(Mandatory = $true)][string]$ReleaseName
+    )
+
+    $normalizedReleaseName = $ReleaseName.TrimEnd([char[]]@(' ', '.'))
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($normalizedReleaseName).ToUpperInvariant()
+    return $windowsReservedDeviceNames -contains $baseName
+}
+
 if (-not (Test-Path -LiteralPath $Destination)) {
     throw "Destination '$Destination' does not exist."
 }
@@ -23,8 +58,8 @@ if (Test-Path -LiteralPath $currentReleaseMarker) {
 }
 
 if (-not [string]::IsNullOrWhiteSpace($releaseName)) {
-    if ($releaseName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0 -or $releaseName -eq "." -or $releaseName -eq "..") {
-        throw "ReleaseName in current-release.txt must be a folder-safe name."
+    if ($releaseName.EndsWith(".") -or $releaseName.EndsWith(" ") -or $releaseName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0 -or $releaseName -eq "." -or $releaseName -eq ".." -or (Test-ReleaseNameIsReservedDeviceName -ReleaseName $releaseName)) {
+        throw "ReleaseName in current-release.txt must be a folder-safe, non-reserved name that does not end with a dot or space."
     }
 
     $releasePath = Join-Path $releaseRoot $releaseName
