@@ -264,6 +264,23 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task FulfillReservation_WithMissingRental_ShouldThrow()
+        {
+            var reservation = new Reservation
+            {
+                ItemID = 1,
+                CustomerID = 1,
+                StartDate = DateTime.Now.AddDays(1),
+                EndDate = DateTime.Now.AddDays(3),
+                Quantity = 1,
+                Status = "Confirmed"
+            };
+            var id = await _reservationService.CreateReservationAsync(reservation);
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _reservationService.FulfillReservationAsync(id, 999));
+        }
+
+        [Fact]
         public async Task DeleteReservation_ShouldSucceed()
         {
             var reservation = new Reservation
