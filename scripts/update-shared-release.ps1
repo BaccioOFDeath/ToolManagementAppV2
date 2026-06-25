@@ -29,7 +29,7 @@ $currentReleaseMarker = Join-Path $destinationPath "current-release.txt"
 $launcherSourcePath = Join-Path $PSScriptRoot "start-current-release.ps1"
 $launcherDestinationDirectory = Join-Path $destinationPath "scripts"
 $launcherDestinationPath = Join-Path $launcherDestinationDirectory "start-current-release.ps1"
-$windowsInvalidFileNameCharacters = @(
+[char[]]$windowsInvalidFileNameCharacters = @(
     '<',
     '>',
     ':',
