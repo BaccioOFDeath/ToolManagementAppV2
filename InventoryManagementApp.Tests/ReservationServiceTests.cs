@@ -224,6 +224,23 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task UpdateReservation_WithMissingReservation_ShouldThrow()
+        {
+            var reservation = new Reservation
+            {
+                ReservationID = 999,
+                ItemID = 1,
+                CustomerID = 1,
+                StartDate = DateTime.Today.AddDays(1),
+                EndDate = DateTime.Today.AddDays(2),
+                Quantity = 1,
+                Status = "Pending"
+            };
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.UpdateReservationAsync(reservation));
+        }
+
+        [Fact]
         public async Task UpdateReservation_ShouldSucceed()
         {
             var reservation = new Reservation
@@ -264,6 +281,12 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task ConfirmReservation_WithMissingReservation_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.ConfirmReservationAsync(999));
+        }
+
+        [Fact]
         public async Task CancelReservation_ShouldUpdateStatus()
         {
             var reservation = new Reservation
@@ -280,6 +303,12 @@ namespace InventoryManagementApp.Tests
             var result = await _reservationService.CancelReservationAsync(id);
 
             Assert.True(result);
+        }
+
+        [Fact]
+        public async Task CancelReservation_WithMissingReservation_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.CancelReservationAsync(999));
         }
 
         [Fact]
@@ -300,6 +329,12 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task FulfillReservation_WithMissingReservation_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.FulfillReservationAsync(999, 1));
+        }
+
+        [Fact]
         public async Task DeleteReservation_ShouldSucceed()
         {
             var reservation = new Reservation
@@ -316,6 +351,12 @@ namespace InventoryManagementApp.Tests
             var result = await _reservationService.DeleteReservationAsync(id);
 
             Assert.True(result);
+        }
+
+        [Fact]
+        public async Task DeleteReservation_WithMissingReservation_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _reservationService.DeleteReservationAsync(999));
         }
 
         [Fact]
