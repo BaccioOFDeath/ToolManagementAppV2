@@ -5,7 +5,8 @@ Date: 2026-06-25
 ## Completed
 
 - Hardened `scripts/update-shared-release.ps1` so side-by-side release names reject reserved Windows device names such as `CON`, `NUL`, `COM1`, and `LPT1` before staging a release folder or writing `current-release.txt`.
-- Added the same reserved-name guard to `scripts/start-current-release.ps1` so manually edited `current-release.txt` markers fail fast instead of attempting to launch an invalid Windows path.
+- Rejected release names ending with a dot or space, which are also unsafe Windows folder targets.
+- Added the same release-name guard to `scripts/start-current-release.ps1` so manually edited `current-release.txt` markers fail fast instead of attempting to launch an invalid Windows path.
 - Updated `SERVER_DEPLOYMENT_GUIDE.md` with the folder-safe, non-reserved release-name requirement for active-user deployments.
 - Extended `SharedReleaseUpdateScriptTests` with source-contract coverage for the updater, launcher, and guide wording.
 
