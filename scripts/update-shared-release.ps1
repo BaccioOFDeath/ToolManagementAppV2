@@ -167,6 +167,12 @@ function Set-CurrentReleaseMarker {
     }
 }
 
+function Clear-CurrentReleaseMarker {
+    if (Test-Path -LiteralPath $currentReleaseMarker) {
+        Remove-Item -LiteralPath $currentReleaseMarker -Force
+    }
+}
+
 function Copy-ReleaseConfiguration {
     param(
         [Parameter(Mandatory = $true)][string]$ReleasePath
@@ -250,5 +256,6 @@ if ($running) {
 Backup-PreservedPaths
 Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories $excludedDirectories -ExcludedFiles @("appsettings.json")
 Copy-CurrentReleaseLauncher
+Clear-CurrentReleaseMarker
 
 Write-Host "Release update complete."

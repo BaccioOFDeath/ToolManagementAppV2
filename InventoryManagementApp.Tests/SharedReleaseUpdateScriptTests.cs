@@ -38,6 +38,22 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void InPlaceDeploymentClearsCurrentReleaseMarkerAfterLauncherRefresh()
+        {
+            var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
+            var normalizedScript = script.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+            Assert.Contains("function Clear-CurrentReleaseMarker", script, StringComparison.Ordinal);
+            Assert.Contains("Test-Path -LiteralPath $currentReleaseMarker", script, StringComparison.Ordinal);
+            Assert.Contains("Remove-Item -LiteralPath $currentReleaseMarker -Force", script, StringComparison.Ordinal);
+
+            var inPlaceIndex = normalizedScript.IndexOf(
+                "Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories $excludedDirectories -ExcludedFiles @(\"appsettings.json\")\nCopy-CurrentReleaseLauncher\nClear-CurrentReleaseMarker",
+                StringComparison.Ordinal);
+            Assert.True(inPlaceIndex >= 0, "In-place deployment should clear current-release.txt after refreshing the shared launcher so restart shortcuts use the root executable.");
+        }
+
+        [Fact]
         public void SideBySideDeploymentRejectsReservedWindowsReleaseNames()
         {
             var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
