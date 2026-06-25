@@ -35,12 +35,10 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void BuildWorkflowRunsOnMasterAndMainPushesAndPullRequests()
         {
-            var source = ReadRepoFile(".github", "workflows", "build.yml");
-            var pushTrigger = ExtractIndentedBlock(source, "  push:");
-            var pullRequestTrigger = ExtractIndentedBlock(source, "  pull_request:");
+            var source = ReadRepoFile(".github", "workflows", "build.yml").Replace("\r\n", "\n");
 
-            Assert.Contains("branches: [ master, main ]", pushTrigger);
-            Assert.Contains("branches: [ master, main ]", pullRequestTrigger);
+            Assert.Contains("  push:\n    branches: [ master, main ]", source);
+            Assert.Contains("  pull_request:\n    branches: [ master, main ]", source);
             Assert.Contains("  workflow_dispatch:", source);
             AssertAppearsBefore(source, "  push:", "jobs:", "The Build and Test workflow should keep push validation enabled before job definitions.");
             AssertAppearsBefore(source, "  pull_request:", "jobs:", "The Build and Test workflow should keep pull-request validation enabled before job definitions.");
@@ -154,18 +152,6 @@ namespace InventoryManagementApp.Tests
             }
 
             throw new InvalidOperationException($"Could not find the end of the '{marker}' block.");
-        }
-
-        private static string ExtractIndentedBlock(string source, string marker)
-        {
-            var markerIndex = source.IndexOf(marker, StringComparison.Ordinal);
-            Assert.True(markerIndex >= 0, $"Expected to find '{marker}'.");
-
-            var nextPeerIndex = source.IndexOf("\n  ", markerIndex + marker.Length, StringComparison.Ordinal);
-            if (nextPeerIndex < 0)
-                nextPeerIndex = source.Length;
-
-            return source.Substring(markerIndex, nextPeerIndex - markerIndex);
         }
 
         private static string ReadRepoFile(params string[] parts)
