@@ -62,6 +62,8 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("$windowsReservedDeviceNames = @(", script, StringComparison.Ordinal);
             Assert.Contains("\"CON\"", script, StringComparison.Ordinal);
+            Assert.Contains("\"CONIN$\"", script, StringComparison.Ordinal);
+            Assert.Contains("\"CONOUT$\"", script, StringComparison.Ordinal);
             Assert.Contains("\"NUL\"", script, StringComparison.Ordinal);
             Assert.Contains("\"COM1\"", script, StringComparison.Ordinal);
             Assert.Contains("\"LPT1\"", script, StringComparison.Ordinal);
@@ -73,6 +75,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("reserved Windows device name", script, StringComparison.Ordinal);
 
             Assert.Contains("$windowsReservedDeviceNames = @(", launcher, StringComparison.Ordinal);
+            Assert.Contains("\"CONIN$\"", launcher, StringComparison.Ordinal);
+            Assert.Contains("\"CONOUT$\"", launcher, StringComparison.Ordinal);
             Assert.Contains("$releaseName.EndsWith(\".\")", launcher, StringComparison.Ordinal);
             Assert.Contains("$releaseName.EndsWith(\" \")", launcher, StringComparison.Ordinal);
             Assert.Contains("function Test-ReleaseNameIsReservedDeviceName", launcher, StringComparison.Ordinal);
@@ -80,7 +84,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Test-ReleaseNameIsReservedDeviceName -ReleaseName $releaseName", launcher, StringComparison.Ordinal);
             Assert.Contains("folder-safe, non-reserved name", launcher, StringComparison.Ordinal);
 
-            Assert.Contains("Avoid Windows reserved device names such as `CON`, `NUL`, `COM1`, or `LPT1`", guide, StringComparison.Ordinal);
+            Assert.Contains("Avoid Windows reserved device names such as `CON`, `CONIN$`, `CONOUT$`, `NUL`, `COM1`, or `LPT1`", guide, StringComparison.Ordinal);
         }
 
         [Fact]

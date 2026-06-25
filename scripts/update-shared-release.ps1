@@ -31,6 +31,8 @@ $launcherDestinationDirectory = Join-Path $destinationPath "scripts"
 $launcherDestinationPath = Join-Path $launcherDestinationDirectory "start-current-release.ps1"
 $windowsReservedDeviceNames = @(
     "CON",
+    "CONIN$",
+    "CONOUT$",
     "PRN",
     "AUX",
     "NUL",
