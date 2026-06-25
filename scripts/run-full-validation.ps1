@@ -84,7 +84,12 @@ try {
     }
 
     Write-Host ""
-    Write-Host "Full validation completed successfully."
+    if ($SkipPublish) {
+        Write-Host "Compile-and-test validation completed successfully."
+    }
+    else {
+        Write-Host "Full validation completed successfully."
+    }
 }
 finally {
     Pop-Location
