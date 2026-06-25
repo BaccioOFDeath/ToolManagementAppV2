@@ -35,6 +35,21 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void UpdateScriptInstallsCurrentReleaseLauncherIntoSharedDestination()
+        {
+            var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
+
+            Assert.Contains("$launcherSourcePath = Join-Path $PSScriptRoot \"start-current-release.ps1\"", script, StringComparison.Ordinal);
+            Assert.Contains("$launcherDestinationDirectory = Join-Path $destinationPath \"scripts\"", script, StringComparison.Ordinal);
+            Assert.Contains("$launcherDestinationPath = Join-Path $launcherDestinationDirectory \"start-current-release.ps1\"", script, StringComparison.Ordinal);
+            Assert.Contains("function Copy-CurrentReleaseLauncher", script, StringComparison.Ordinal);
+            Assert.Contains("Current release launcher was not found at $launcherSourcePath.", script, StringComparison.Ordinal);
+            Assert.Contains("Copy-Item -LiteralPath $launcherSourcePath -Destination $launcherDestinationPath -Force", script, StringComparison.Ordinal);
+            Assert.Contains("Link-PreservedDirectoriesToRelease -ReleasePath $releasePath\n    Copy-CurrentReleaseLauncher", script, StringComparison.Ordinal);
+            Assert.Contains("Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories $excludedDirectories -ExcludedFiles @(\"appsettings.json\")\nCopy-CurrentReleaseLauncher", script, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CurrentReleaseLauncherUsesMarkerAndFallsBackToInPlaceExecutable()
         {
             var launcher = ReadRepositoryFile("scripts", "start-current-release.ps1");
@@ -58,6 +73,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("-DeploymentMode SideBySide", guide, StringComparison.Ordinal);
             Assert.Contains("current-release.txt", guide, StringComparison.Ordinal);
             Assert.Contains("start-current-release.ps1", guide, StringComparison.Ordinal);
+            Assert.Contains("refreshes the launcher at `X:\\V2\\scripts\\start-current-release.ps1`", guide, StringComparison.Ordinal);
             Assert.Contains("falls back to `X:\\V2\\InventoryManagementApp.exe`", guide, StringComparison.Ordinal);
             Assert.Contains("database migration", guide, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("links the release-local data, photo, theme, and log folders back to the shared destination folders", guide, StringComparison.Ordinal);
