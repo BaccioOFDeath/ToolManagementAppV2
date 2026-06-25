@@ -54,11 +54,26 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void SideBySideDeploymentRejectsReservedWindowsReleaseNames()
+        public void SideBySideDeploymentRejectsUnsafeWindowsReleaseNames()
         {
             var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
             var launcher = ReadRepositoryFile("scripts", "start-current-release.ps1");
             var guide = ReadRepositoryFile("SERVER_DEPLOYMENT_GUIDE.md");
+
+            Assert.Contains("[char[]]$windowsInvalidFileNameCharacters = @(", script, StringComparison.Ordinal);
+            Assert.Contains("'<'", script, StringComparison.Ordinal);
+            Assert.Contains("'>'", script, StringComparison.Ordinal);
+            Assert.Contains("':'", script, StringComparison.Ordinal);
+            Assert.Contains("'\"'", script, StringComparison.Ordinal);
+            Assert.Contains("'/'", script, StringComparison.Ordinal);
+            Assert.Contains("'\\'", script, StringComparison.Ordinal);
+            Assert.Contains("'|'", script, StringComparison.Ordinal);
+            Assert.Contains("'?'", script, StringComparison.Ordinal);
+            Assert.Contains("'*'", script, StringComparison.Ordinal);
+            Assert.Contains("function Test-ReleaseNameHasInvalidWindowsFileNameCharacter", script, StringComparison.Ordinal);
+            Assert.Contains("$ReleaseName.IndexOfAny($windowsInvalidFileNameCharacters) -ge 0", script, StringComparison.Ordinal);
+            Assert.Contains("Test-ReleaseNameHasInvalidWindowsFileNameCharacter -ReleaseName $ReleaseName", script, StringComparison.Ordinal);
+            Assert.DoesNotContain("GetInvalidFileNameChars", script, StringComparison.Ordinal);
 
             Assert.Contains("$windowsReservedDeviceNames = @(", script, StringComparison.Ordinal);
             Assert.Contains("\"CON\"", script, StringComparison.Ordinal);
@@ -72,8 +87,14 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("function Test-ReleaseNameIsReservedDeviceName", script, StringComparison.Ordinal);
             Assert.Contains("$ReleaseName.TrimEnd([char[]]@(' ', '.'))", script, StringComparison.Ordinal);
             Assert.Contains("Test-ReleaseNameIsReservedDeviceName -ReleaseName $ReleaseName", script, StringComparison.Ordinal);
+            Assert.Contains("folder-safe Windows name", script, StringComparison.Ordinal);
             Assert.Contains("reserved Windows device name", script, StringComparison.Ordinal);
 
+            Assert.Contains("[char[]]$windowsInvalidFileNameCharacters = @(", launcher, StringComparison.Ordinal);
+            Assert.Contains("function Test-ReleaseNameHasInvalidWindowsFileNameCharacter", launcher, StringComparison.Ordinal);
+            Assert.Contains("$ReleaseName.IndexOfAny($windowsInvalidFileNameCharacters) -ge 0", launcher, StringComparison.Ordinal);
+            Assert.Contains("Test-ReleaseNameHasInvalidWindowsFileNameCharacter -ReleaseName $releaseName", launcher, StringComparison.Ordinal);
+            Assert.DoesNotContain("GetInvalidFileNameChars", launcher, StringComparison.Ordinal);
             Assert.Contains("$windowsReservedDeviceNames = @(", launcher, StringComparison.Ordinal);
             Assert.Contains("\"CONIN$\"", launcher, StringComparison.Ordinal);
             Assert.Contains("\"CONOUT$\"", launcher, StringComparison.Ordinal);
@@ -82,8 +103,10 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("function Test-ReleaseNameIsReservedDeviceName", launcher, StringComparison.Ordinal);
             Assert.Contains("$ReleaseName.TrimEnd([char[]]@(' ', '.'))", launcher, StringComparison.Ordinal);
             Assert.Contains("Test-ReleaseNameIsReservedDeviceName -ReleaseName $releaseName", launcher, StringComparison.Ordinal);
-            Assert.Contains("folder-safe, non-reserved name", launcher, StringComparison.Ordinal);
+            Assert.Contains("folder-safe Windows name", launcher, StringComparison.Ordinal);
 
+            Assert.Contains("Do not use Windows filename characters such as", guide, StringComparison.Ordinal);
+            Assert.Contains("or `|`", guide, StringComparison.Ordinal);
             Assert.Contains("Avoid Windows reserved device names such as `CON`, `CONIN$`, `CONOUT$`, `NUL`, `COM1`, or `LPT1`", guide, StringComparison.Ordinal);
         }
 
