@@ -233,6 +233,7 @@ namespace InventoryManagementApp.Services.Reservations
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureReservationReferencesExist(conn, reservation);
+                EnsureReservationRentalReferenceExists(conn, reservation);
 
                 var sql = @"
                     UPDATE Reservations 
@@ -406,6 +407,12 @@ namespace InventoryManagementApp.Services.Reservations
                 throw new ArgumentException("Reservation must reference an existing item.", nameof(reservation.ItemID));
             if (!RecordExists(conn, "SELECT COUNT(*) FROM Customers WHERE CustomerID = @ID", reservation.CustomerID))
                 throw new ArgumentException("Reservation must reference an existing customer.", nameof(reservation.CustomerID));
+        }
+
+        private static void EnsureReservationRentalReferenceExists(SqliteConnection conn, Reservation reservation)
+        {
+            if (reservation.RentalID.HasValue && !RecordExists(conn, "SELECT COUNT(*) FROM Rentals WHERE RentalID = @ID", reservation.RentalID.Value))
+                throw new ArgumentException("Reservation must reference an existing rental.", nameof(reservation.RentalID));
         }
 
         private static bool RecordExists(SqliteConnection conn, string sql, int id)
