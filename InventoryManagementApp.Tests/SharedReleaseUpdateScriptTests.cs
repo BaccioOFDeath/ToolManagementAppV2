@@ -57,6 +57,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("## Updating While Users Are Active", guide, StringComparison.Ordinal);
             Assert.Contains("-DeploymentMode SideBySide", guide, StringComparison.Ordinal);
             Assert.Contains("current-release.txt", guide, StringComparison.Ordinal);
+            Assert.Contains("start-current-release.ps1", guide, StringComparison.Ordinal);
+            Assert.Contains("falls back to `X:\\V2\\InventoryManagementApp.exe`", guide, StringComparison.Ordinal);
             Assert.Contains("database migration", guide, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("links the release-local data, photo, theme, and log folders back to the shared destination folders", guide, StringComparison.Ordinal);
         }
