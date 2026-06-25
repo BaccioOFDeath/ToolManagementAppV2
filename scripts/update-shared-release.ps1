@@ -85,7 +85,8 @@ function Test-ReleaseNameIsReservedDeviceName {
         [Parameter(Mandatory = $true)][string]$ReleaseName
     )
 
-    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($ReleaseName).ToUpperInvariant()
+    $normalizedReleaseName = $ReleaseName.TrimEnd([char[]]@(' ', '.'))
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($normalizedReleaseName).ToUpperInvariant()
     return $windowsReservedDeviceNames -contains $baseName
 }
 
@@ -199,8 +200,8 @@ Write-Host "Preserving:  $themesPath"
 Write-Host "Backup:      $backupPath"
 
 if ($DeploymentMode -eq "SideBySide") {
-    if ([string]::IsNullOrWhiteSpace($ReleaseName) -or $ReleaseName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0 -or (Test-ReleaseNameIsReservedDeviceName -ReleaseName $ReleaseName)) {
-        throw "ReleaseName must be a non-empty folder-safe name and cannot be a reserved Windows device name."
+    if ([string]::IsNullOrWhiteSpace($ReleaseName) -or $ReleaseName.EndsWith(".") -or $ReleaseName.EndsWith(" ") -or $ReleaseName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0 -or (Test-ReleaseNameIsReservedDeviceName -ReleaseName $ReleaseName)) {
+        throw "ReleaseName must be a non-empty folder-safe name and cannot end with a dot or space or use a reserved Windows device name."
     }
 
     $releasePath = Join-Path $releaseRoot $ReleaseName
