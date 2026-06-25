@@ -196,5 +196,40 @@ namespace InventoryManagementApp.Tests
             thread.Join();
             if (threadEx != null) throw threadEx;
         }
+
+        [Fact]
+        public void Convert_ReservationWithoutImagePath_FallsBackToItemNumberImage()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var converter = new NullToDefaultImageConverter();
+                    var reservation = new Reservation
+                    {
+                        ItemNumber = "T401",
+                        ImagePath = string.Empty
+                    };
+
+                    var result = Assert.IsType<BitmapImage>(converter.Convert(reservation, typeof(BitmapImage), "item", CultureInfo.InvariantCulture));
+
+                    Assert.NotNull(result.UriSource);
+                    Assert.EndsWith("Assets/ItemImages/T401.jpeg", result.UriSource.LocalPath.Replace('\\', '/'), StringComparison.OrdinalIgnoreCase);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    WpfTestHelper.ShutdownApplication();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
     }
 }

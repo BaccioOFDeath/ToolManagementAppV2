@@ -297,6 +297,15 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Photo" Width="64" MinWidth="64">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Width="48" Height="48" Margin="4" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" ClipToBounds="True">
+                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}" Stretch="UniformToFill" ClipToBounds="True"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="115" MinWidth="82"/>
                             <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="170" MinWidth="120"/>
                             <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="190" MinWidth="140"/>
@@ -323,6 +332,9 @@
                             <StackPanel>
                                 <TextBlock Text="Selected Request" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
                                 <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <Border Height="156" Style="{StaticResource DesktopNoteCard}" Padding="0" Margin="0,0,0,8" ClipToBounds="True">
+                                    <Image Source="{Binding SelectedRequest, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}" Stretch="Uniform"/>
+                                </Border>
                                 <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
                                     <StackPanel>
                                         <TextBlock Text="Request handoff" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>

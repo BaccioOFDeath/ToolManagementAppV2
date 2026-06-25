@@ -1,8 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Windows.Controls;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Utilities.Helpers;
 
 namespace InventoryManagementApp.Services.Printing
 {
@@ -14,6 +20,7 @@ namespace InventoryManagementApp.Services.Printing
         private readonly string _companyName;
         private readonly string _companyAddress;
         private readonly string _companyPhone;
+        private static readonly string[] ItemImageExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".gif" };
 
         public RentalPrintingService(
             string companyName = "Equipment Rentals",
@@ -79,6 +86,10 @@ namespace InventoryManagementApp.Services.Printing
             AddTableRow(infoGroup, "Rental Date:", rental.RentalDate.ToString("yyyy-MM-dd"));
             AddTableRow(infoGroup, "Due Date:", rental.DueDate.ToString("yyyy-MM-dd"));
 
+            var itemImage = CreateItemPhotoBlock(rental);
+            if (itemImage != null)
+                doc.Blocks.Add(itemImage);
+
             doc.Blocks.Add(infoTable);
 
             doc.Blocks.Add(new Paragraph(new Run(""))
@@ -106,6 +117,83 @@ namespace InventoryManagementApp.Services.Printing
             });
 
             return doc;
+        }
+
+        private static BlockUIContainer? CreateItemPhotoBlock(Rental rental)
+        {
+            if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
+                return null;
+
+            if (!TryLoadItemImage(rental, out var bitmap))
+                return null;
+
+            var image = new Image
+            {
+                Source = bitmap,
+                Width = 220,
+                Height = 165,
+                Stretch = Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, 8)
+            };
+
+            return new BlockUIContainer(image)
+            {
+                Margin = new Thickness(0, 0, 0, 12)
+            };
+        }
+
+        private static bool TryLoadItemImage(Rental rental, out BitmapImage image)
+        {
+            image = null!;
+
+            foreach (var path in GetItemImageCandidates(rental))
+            {
+                try
+                {
+                    var absolutePath = ResolveImagePath(path);
+                    if (string.IsNullOrWhiteSpace(absolutePath) || !File.Exists(absolutePath))
+                        continue;
+
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.DecodePixelWidth = 440;
+                    bitmap.UriSource = new Uri(absolutePath, UriKind.Absolute);
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+
+                    image = bitmap;
+                    return true;
+                }
+                catch
+                {
+                    // Keep printed picking slips available even if an item photo is missing or corrupt.
+                }
+            }
+
+            return false;
+        }
+
+        private static IEnumerable<string> GetItemImageCandidates(Rental rental)
+        {
+            if (!string.IsNullOrWhiteSpace(rental.ImagePath))
+                yield return rental.ImagePath;
+
+            var itemNumber = rental.ItemNumber?.Trim();
+            if (string.IsNullOrWhiteSpace(itemNumber))
+                yield break;
+
+            foreach (var extension in ItemImageExtensions)
+                yield return Path.Combine("Assets", "ItemImages", itemNumber + extension);
+        }
+
+        private static string? ResolveImagePath(string path)
+        {
+            if (Path.IsPathFullyQualified(path))
+                return path;
+
+            return PathHelper.GetAbsolutePath(path, false);
         }
 
         /// <summary>

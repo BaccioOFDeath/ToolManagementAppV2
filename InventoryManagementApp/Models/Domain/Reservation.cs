@@ -40,6 +40,13 @@ namespace InventoryManagementApp.Models.Domain
             set => SetProperty(ref _itemName, value);
         }
 
+        private string _imagePath = string.Empty;
+        public string ImagePath
+        {
+            get => _imagePath;
+            set => SetProperty(ref _imagePath, value);
+        }
+
         private string _customerName = string.Empty;
         public string CustomerName
         {

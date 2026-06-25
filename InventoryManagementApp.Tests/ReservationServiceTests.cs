@@ -36,7 +36,7 @@ namespace InventoryManagementApp.Tests
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
                 INSERT INTO Users (UserID, UserName, IsAdmin, IsActive) VALUES (1, 'TestUser', 0, 1);
-                INSERT INTO Items (ItemID, ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, IsPowered) VALUES (1, 'ITEM-001', 'Seed Item', 1, 0, 0, 0);
+                INSERT INTO Items (ItemID, ItemNumber, NameDescription, AvailableQuantity, RentedQuantity, IsRentalItem, ImagePath, IsPowered) VALUES (1, 'ITEM-001', 'Seed Item', 1, 0, 0, 'Assets/ItemImages/ITEM-001.png', 0);
                 INSERT INTO Customers (CustomerID, Company, Contact) VALUES (1, 'Seed Customer', 'Primary Contact');";
             cmd.ExecuteNonQuery();
         }
@@ -95,6 +95,25 @@ namespace InventoryManagementApp.Tests
             var activeReservations = await _reservationService.GetActiveReservationsAsync();
 
             Assert.NotEmpty(activeReservations);
+        }
+
+        [Fact]
+        public async Task GetActiveReservations_IncludesItemImagePath()
+        {
+            var activeReservation = new Reservation
+            {
+                ItemID = 1,
+                CustomerID = 1,
+                StartDate = DateTime.Now.AddDays(1),
+                EndDate = DateTime.Now.AddDays(3),
+                Quantity = 1,
+                Status = "Pending"
+            };
+            await _reservationService.CreateReservationAsync(activeReservation);
+
+            var activeReservations = await _reservationService.GetActiveReservationsAsync();
+
+            Assert.Contains(activeReservations, r => r.ImagePath == "Assets/ItemImages/ITEM-001.png");
         }
 
         [Fact]

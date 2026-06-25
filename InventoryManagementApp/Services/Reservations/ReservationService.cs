@@ -38,7 +38,7 @@ namespace InventoryManagementApp.Services.Reservations
                 var reservations = new List<Reservation>();
                 using var conn = _databaseService.CreateConnection();
                 var sql = @"
-                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, c.Company as CustomerName
+                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
                     LEFT JOIN Items i ON r.ItemID = i.ItemID
                     LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
@@ -64,7 +64,7 @@ namespace InventoryManagementApp.Services.Reservations
                 var reservations = new List<Reservation>();
                 using var conn = _databaseService.CreateConnection();
                 var sql = @"
-                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, c.Company as CustomerName
+                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
                     LEFT JOIN Items i ON r.ItemID = i.ItemID
                     LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
@@ -95,7 +95,7 @@ namespace InventoryManagementApp.Services.Reservations
                 var reservations = new List<Reservation>();
                 using var conn = _databaseService.CreateConnection();
                 var sql = @"
-                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, c.Company as CustomerName
+                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
                     LEFT JOIN Items i ON r.ItemID = i.ItemID
                     LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
@@ -119,7 +119,7 @@ namespace InventoryManagementApp.Services.Reservations
                 var reservations = new List<Reservation>();
                 using var conn = _databaseService.CreateConnection();
                 var sql = @"
-                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, c.Company as CustomerName
+                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
                     LEFT JOIN Items i ON r.ItemID = i.ItemID
                     LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
@@ -143,7 +143,7 @@ namespace InventoryManagementApp.Services.Reservations
                 var reservations = new List<Reservation>();
                 using var conn = _databaseService.CreateConnection();
                 var sql = @"
-                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, c.Company as CustomerName
+                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
                     LEFT JOIN Items i ON r.ItemID = i.ItemID
                     LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
@@ -167,7 +167,7 @@ namespace InventoryManagementApp.Services.Reservations
             {
                 using var conn = _databaseService.CreateConnection();
                 var sql = @"
-                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, c.Company as CustomerName
+                    SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
                     LEFT JOIN Items i ON r.ItemID = i.ItemID
                     LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
@@ -330,6 +330,7 @@ namespace InventoryManagementApp.Services.Reservations
                 ItemNumber = reader.IsDBNull(reader.GetOrdinal("ItemNumber")) ? "" : reader.GetString(reader.GetOrdinal("ItemNumber")),
                 ItemName = reader.IsDBNull(reader.GetOrdinal("ItemName")) ? "" : reader.GetString(reader.GetOrdinal("ItemName")),
                 CustomerName = reader.IsDBNull(reader.GetOrdinal("CustomerName")) ? "" : reader.GetString(reader.GetOrdinal("CustomerName")),
+                ImagePath = reader.IsDBNull(reader.GetOrdinal("ImagePath")) ? "" : reader.GetString(reader.GetOrdinal("ImagePath")),
                 ReservationDate = reader.GetDateTime(reader.GetOrdinal("ReservationDate")),
                 StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
                 EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),

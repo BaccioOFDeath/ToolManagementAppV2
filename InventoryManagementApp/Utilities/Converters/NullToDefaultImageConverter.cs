@@ -55,6 +55,7 @@ namespace InventoryManagementApp.Utilities.Converters
                 string path => path,
                 ItemModel item => item.ImagePath,
                 Rental rental => rental.ImagePath,
+                Reservation reservation => reservation.ImagePath,
                 _ => null
             };
         }
@@ -65,6 +66,7 @@ namespace InventoryManagementApp.Utilities.Converters
             {
                 ItemModel item => item.ItemNumber,
                 Rental rental => rental.ItemNumber,
+                Reservation reservation => reservation.ItemNumber,
                 _ => null
             };
         }
