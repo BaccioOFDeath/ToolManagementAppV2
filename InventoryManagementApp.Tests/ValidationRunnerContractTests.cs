@@ -51,6 +51,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FullValidationRunnerSkipPublishStopsAfterCompileAndTestValidation()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+            var publishValidationBlock = ExtractBracedBlock(source, "if (-not $SkipPublish)");
+
+            Assert.Contains("Restore publish runtime", publishValidationBlock);
+            Assert.Contains("Clean publish output", publishValidationBlock);
+            Assert.Contains("Publish app", publishValidationBlock);
+            Assert.Contains("Check banned words", publishValidationBlock);
+            Assert.Contains("Check banned words PowerShell fallback", publishValidationBlock);
+            AssertAppearsBefore(source, "Test solution", "if (-not $SkipPublish)", "The SkipPublish path should complete after restore, audit, build, and test validation.");
+        }
+
+        [Fact]
         public void FullValidationRunnerResetsExternalExitCodeForEachStep()
         {
             var source = ReadRepoFile("scripts", "run-full-validation.ps1");
@@ -102,6 +116,29 @@ namespace InventoryManagementApp.Tests
             Assert.True(firstIndex >= 0, $"Expected to find '{first}'.");
             Assert.True(secondIndex >= 0, $"Expected to find '{second}'.");
             Assert.True(firstIndex < secondIndex, because);
+        }
+
+        private static string ExtractBracedBlock(string source, string marker)
+        {
+            var markerIndex = source.IndexOf(marker, StringComparison.Ordinal);
+            Assert.True(markerIndex >= 0, $"Expected to find '{marker}'.");
+
+            var openIndex = source.IndexOf('{', markerIndex);
+            Assert.True(openIndex >= 0, $"Expected '{marker}' to start a braced block.");
+
+            var depth = 0;
+            for (var index = openIndex; index < source.Length; index++)
+            {
+                if (source[index] == '{')
+                    depth++;
+                else if (source[index] == '}')
+                    depth--;
+
+                if (depth == 0)
+                    return source.Substring(openIndex + 1, index - openIndex - 1);
+            }
+
+            throw new InvalidOperationException($"Could not find the end of the '{marker}' block.");
         }
 
         private static string ReadRepoFile(params string[] parts)
