@@ -7,6 +7,29 @@ namespace InventoryManagementApp.Tests
     public class ValidationDocumentationContractTests
     {
         [Fact]
+        public void ReadmeDocumentsValidationRunnerAsPrimaryEntryPoint()
+        {
+            var source = ReadRepoFile("README.md");
+            const string currentStatusGuidance = "Use the checked-in validation runner for the current restore/build/test/publish/check sequence:";
+            const string developmentGuidance = "Validation commands from the repository root:";
+            const string fullRunnerCommand = "pwsh -File scripts/run-full-validation.ps1";
+            const string skipPublishCommand = "pwsh -File scripts/run-full-validation.ps1 -SkipPublish";
+            const string skipPublishGuidance = "For a faster compile-and-test pass without publishing or source scan checks:";
+            const string manualEquivalent = "Manual equivalent:";
+
+            Assert.Contains(currentStatusGuidance, source);
+            Assert.Contains(developmentGuidance, source);
+            Assert.Contains(fullRunnerCommand, source);
+            Assert.Contains(skipPublishGuidance, source);
+            Assert.Contains(skipPublishCommand, source);
+            Assert.Contains(manualEquivalent, source);
+            AssertAppearsBefore(source, currentStatusGuidance, fullRunnerCommand, "The README should present the checked-in validation runner as the current validation entrypoint.");
+            AssertAppearsBefore(source, developmentGuidance, fullRunnerCommand, "The Development section should point maintainers to the runner before listing manual commands.");
+            AssertAppearsBefore(source, fullRunnerCommand, manualEquivalent, "The manual validation sequence should remain secondary to the checked-in validation runner.");
+            AssertAppearsBefore(source, skipPublishGuidance, skipPublishCommand, "The README should document the fast compile-and-test checkpoint with the explicit SkipPublish command.");
+        }
+
+        [Fact]
         public void ReadmeManualValidationAuditsVulnerablePackagesAfterRestoreBeforeBuild()
         {
             var source = ReadRepoFile("README.md");
