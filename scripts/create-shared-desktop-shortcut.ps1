@@ -12,6 +12,71 @@ if (-not (Test-Path -LiteralPath $Destination)) {
 }
 
 $destinationPath = (Resolve-Path -LiteralPath $Destination).Path
+[char[]]$windowsInvalidFileNameCharacters = @(
+    '<',
+    '>',
+    ':',
+    '"',
+    '/',
+    '\',
+    '|',
+    '?',
+    '*'
+)
+$windowsReservedDeviceNames = @(
+    "CON",
+    "CONIN$",
+    "CONOUT$",
+    "PRN",
+    "AUX",
+    "NUL",
+    "COM1",
+    "COM2",
+    "COM3",
+    "COM4",
+    "COM5",
+    "COM6",
+    "COM7",
+    "COM8",
+    "COM9",
+    "LPT1",
+    "LPT2",
+    "LPT3",
+    "LPT4",
+    "LPT5",
+    "LPT6",
+    "LPT7",
+    "LPT8",
+    "LPT9"
+)
+
+function Test-ReleaseNameHasInvalidWindowsFileNameCharacter {
+    param(
+        [Parameter(Mandatory = $true)][string]$ReleaseName
+    )
+
+    return $ReleaseName.IndexOfAny($windowsInvalidFileNameCharacters) -ge 0
+}
+
+function Test-ReleaseNameIsReservedDeviceName {
+    param(
+        [Parameter(Mandatory = $true)][string]$ReleaseName
+    )
+
+    $normalizedReleaseName = $ReleaseName.TrimEnd([char[]]@(' ', '.'))
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($normalizedReleaseName).ToUpperInvariant()
+    return $windowsReservedDeviceNames -contains $baseName
+}
+
+function Assert-CurrentReleaseNameIsSafe {
+    param(
+        [Parameter(Mandatory = $true)][string]$ReleaseName
+    )
+
+    if ($ReleaseName.EndsWith(".") -or $ReleaseName.EndsWith(" ") -or (Test-ReleaseNameHasInvalidWindowsFileNameCharacter -ReleaseName $ReleaseName) -or $ReleaseName -eq "." -or $ReleaseName -eq ".." -or (Test-ReleaseNameIsReservedDeviceName -ReleaseName $ReleaseName)) {
+        throw "ReleaseName in current-release.txt must be a folder-safe Windows name that does not contain invalid filename characters, end with a dot or space, or use a reserved device name."
+    }
+}
 
 function Convert-ToUncPathIfMappedDrive {
     param(
@@ -43,6 +108,8 @@ function Get-CurrentReleaseExecutablePath {
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
             Select-Object -First 1
         if (-not [string]::IsNullOrWhiteSpace($currentRelease)) {
+            $currentReleaseName = $currentRelease.Trim()
+            Assert-CurrentReleaseNameIsSafe -ReleaseName $currentReleaseName
             $releaseExecutablePath = Join-Path (Join-Path (Join-Path $destinationPath "_releases") $currentRelease.Trim()) "InventoryManagementApp.exe"
             if (Test-Path -LiteralPath $releaseExecutablePath) {
                 return $releaseExecutablePath
