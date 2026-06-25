@@ -35,6 +35,21 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void CurrentReleaseLauncherUsesMarkerAndFallsBackToInPlaceExecutable()
+        {
+            var launcher = ReadRepositoryFile("scripts", "start-current-release.ps1");
+
+            Assert.Contains("$ExecutableName = \"InventoryManagementApp.exe\"", launcher, StringComparison.Ordinal);
+            Assert.Contains("$currentReleaseMarker = Join-Path $destinationPath \"current-release.txt\"", launcher, StringComparison.Ordinal);
+            Assert.Contains("Get-Content -LiteralPath $currentReleaseMarker", launcher, StringComparison.Ordinal);
+            Assert.Contains("$releaseRoot = Join-Path $destinationPath \"_releases\"", launcher, StringComparison.Ordinal);
+            Assert.Contains("ReleaseName in current-release.txt must be a folder-safe name.", launcher, StringComparison.Ordinal);
+            Assert.Contains("$rootExecutable = Join-Path $destinationPath $ExecutableName", launcher, StringComparison.Ordinal);
+            Assert.Contains("No current-release.txt marker was found", launcher, StringComparison.Ordinal);
+            Assert.Contains("Start-Process -FilePath $executablePath", launcher, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void DeploymentGuideDocumentsActiveUserUpdateFlowAndMigrationLimitation()
         {
             var guide = ReadRepositoryFile("SERVER_DEPLOYMENT_GUIDE.md");
