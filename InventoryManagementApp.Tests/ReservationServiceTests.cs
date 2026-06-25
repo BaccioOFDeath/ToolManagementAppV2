@@ -233,6 +233,41 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task CreateReservation_WithUnknownStatus_ShouldThrow()
+        {
+            var reservation = new Reservation
+            {
+                ItemID = 1,
+                CustomerID = 1,
+                StartDate = DateTime.Today.AddDays(1),
+                EndDate = DateTime.Today.AddDays(2),
+                Quantity = 1,
+                Status = "Waiting"
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _reservationService.CreateReservationAsync(reservation));
+        }
+
+        [Fact]
+        public async Task UpdateReservation_WithUnknownStatus_ShouldThrow()
+        {
+            var reservation = new Reservation
+            {
+                ItemID = 1,
+                CustomerID = 1,
+                StartDate = DateTime.Today.AddDays(1),
+                EndDate = DateTime.Today.AddDays(2),
+                Quantity = 1,
+                Status = "Pending"
+            };
+            var id = await _reservationService.CreateReservationAsync(reservation);
+            reservation.ReservationID = id;
+            reservation.Status = "Waiting";
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _reservationService.UpdateReservationAsync(reservation));
+        }
+
+        [Fact]
         public async Task CheckAvailability_WithInvalidQuantity_ShouldThrow()
         {
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
