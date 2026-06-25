@@ -49,16 +49,32 @@ $textFileNames = @(
     "Dockerfile",
     "Makefile"
 )
+$allowedRelativePaths = @(
+    "Items.csv",
+    "items.csv",
+    "scripts/check-banned-words.sh"
+)
+$allowedPathPrefixes = @(
+    "Legacy Tool Manager/Legacy data/"
+)
 $matches = Get-ChildItem -Path . -Recurse -File -Force |
     Where-Object {
         $relative = $_.FullName.Substring($root.Length).TrimStart([char[]]@('\', '/')).Replace('\', '/')
         $extension = [System.IO.Path]::GetExtension($relative).ToLowerInvariant()
         $fileName = [System.IO.Path]::GetFileName($relative)
+        $isAllowedRelativePath = $allowedRelativePaths -contains $relative
+        $isAllowedPathPrefix = $false
+        foreach ($allowedPathPrefix in $allowedPathPrefixes) {
+            if ($relative.StartsWith($allowedPathPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                $isAllowedPathPrefix = $true
+                break
+            }
+        }
+
         $relative -notlike ".git/*" -and
             $relative -notmatch '(^|/)(bin|obj|publish)/' -and
-            $relative -ne "Items.csv" -and
-            $relative -ne "items.csv" -and
-            $relative -ne "scripts/check-banned-words.sh" -and
+            -not $isAllowedRelativePath -and
+            -not $isAllowedPathPrefix -and
             ($textFileExtensions -contains $extension -or $textFileNames -contains $fileName)
     } |
     Select-String -Pattern "\btool\b"
@@ -83,6 +99,7 @@ if rg --ignore-case --line-number \
   --glob '!Items.csv' \
   --glob '!items.csv' \
   --glob '!scripts/check-banned-words.sh' \
+  --glob '!Legacy Tool Manager/Legacy data/**' \
   --glob '!.git/**' \
   --glob '!**/bin/**' \
   --glob '!**/obj/**' \

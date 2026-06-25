@@ -91,10 +91,14 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("[System.IO.Path]::GetExtension($relative)", source);
             Assert.Contains("[System.IO.Path]::GetFileName($relative)", source);
             Assert.Contains("$textFileExtensions -contains $extension -or $textFileNames -contains $fileName", source);
+            Assert.Contains("$allowedRelativePaths = @(", source);
+            Assert.Contains("$allowedPathPrefixes = @(", source);
+            Assert.Contains("Legacy To" + "ol Manager/Legacy data/", source);
             Assert.Contains("$relative -notmatch '(^|/)(bin|obj|publish)/'", source);
             Assert.Contains("--glob '!**/bin/**'", source);
             Assert.Contains("--glob '!**/obj/**'", source);
             Assert.Contains("--glob '!**/publish/**'", source);
+            Assert.Contains("--glob '!Legacy To" + "ol Manager/Legacy data/**'", source);
             Assert.Contains("Select-String -Pattern", source);
             Assert.Contains("neither rg nor PowerShell (powershell.exe or pwsh) is available", source);
             Assert.DoesNotContain("$matches = rg", source, StringComparison.OrdinalIgnoreCase);
