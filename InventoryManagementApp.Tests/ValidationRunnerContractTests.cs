@@ -33,6 +33,21 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void BuildWorkflowRunsOnMasterAndMainPushesAndPullRequests()
+        {
+            var source = ReadRepoFile(".github", "workflows", "build.yml");
+            var pushTrigger = ExtractIndentedBlock(source, "  push:");
+            var pullRequestTrigger = ExtractIndentedBlock(source, "  pull_request:");
+
+            Assert.Contains("branches: [ master, main ]", pushTrigger);
+            Assert.Contains("branches: [ master, main ]", pullRequestTrigger);
+            Assert.Contains("  workflow_dispatch:", source);
+            AssertAppearsBefore(source, "  push:", "jobs:", "The Build and Test workflow should keep push validation enabled before job definitions.");
+            AssertAppearsBefore(source, "  pull_request:", "jobs:", "The Build and Test workflow should keep pull-request validation enabled before job definitions.");
+            AssertAppearsBefore(source, "  workflow_dispatch:", "jobs:", "The Build and Test workflow should keep manual dispatch available before job definitions.");
+        }
+
+        [Fact]
         public void FullValidationRunnerCleansPublishOutputBeforePublishing()
         {
             var source = ReadRepoFile("scripts", "run-full-validation.ps1");
@@ -139,6 +154,18 @@ namespace InventoryManagementApp.Tests
             }
 
             throw new InvalidOperationException($"Could not find the end of the '{marker}' block.");
+        }
+
+        private static string ExtractIndentedBlock(string source, string marker)
+        {
+            var markerIndex = source.IndexOf(marker, StringComparison.Ordinal);
+            Assert.True(markerIndex >= 0, $"Expected to find '{marker}'.");
+
+            var nextPeerIndex = source.IndexOf("\n  ", markerIndex + marker.Length, StringComparison.Ordinal);
+            if (nextPeerIndex < 0)
+                nextPeerIndex = source.Length;
+
+            return source.Substring(markerIndex, nextPeerIndex - markerIndex);
         }
 
         private static string ReadRepoFile(params string[] parts)
