@@ -36,7 +36,8 @@ function Test-ReleaseNameIsReservedDeviceName {
         [Parameter(Mandatory = $true)][string]$ReleaseName
     )
 
-    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($ReleaseName).ToUpperInvariant()
+    $normalizedReleaseName = $ReleaseName.TrimEnd([char[]]@(' ', '.'))
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($normalizedReleaseName).ToUpperInvariant()
     return $windowsReservedDeviceNames -contains $baseName
 }
 
@@ -57,8 +58,8 @@ if (Test-Path -LiteralPath $currentReleaseMarker) {
 }
 
 if (-not [string]::IsNullOrWhiteSpace($releaseName)) {
-    if ($releaseName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0 -or $releaseName -eq "." -or $releaseName -eq ".." -or (Test-ReleaseNameIsReservedDeviceName -ReleaseName $releaseName)) {
-        throw "ReleaseName in current-release.txt must be a folder-safe, non-reserved name."
+    if ($releaseName.EndsWith(".") -or $releaseName.EndsWith(" ") -or $releaseName.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0 -or $releaseName -eq "." -or $releaseName -eq ".." -or (Test-ReleaseNameIsReservedDeviceName -ReleaseName $releaseName)) {
+        throw "ReleaseName in current-release.txt must be a folder-safe, non-reserved name that does not end with a dot or space."
     }
 
     $releasePath = Join-Path $releaseRoot $releaseName
