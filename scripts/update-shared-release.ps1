@@ -26,6 +26,9 @@ $backupRoot = Join-Path $destinationPath "_pre_update_backups"
 $backupPath = Join-Path $backupRoot (Get-Date -Format "yyyyMMdd-HHmmss")
 $releaseRoot = Join-Path $destinationPath "_releases"
 $currentReleaseMarker = Join-Path $destinationPath "current-release.txt"
+$launcherSourcePath = Join-Path $PSScriptRoot "start-current-release.ps1"
+$launcherDestinationDirectory = Join-Path $destinationPath "scripts"
+$launcherDestinationPath = Join-Path $launcherDestinationDirectory "start-current-release.ps1"
 $excludedDirectories = @(
     "Assets",
     "Assets\Data",
@@ -101,6 +104,15 @@ function Backup-PreservedPaths {
     }
 }
 
+function Copy-CurrentReleaseLauncher {
+    if (-not (Test-Path -LiteralPath $launcherSourcePath)) {
+        throw "Current release launcher was not found at $launcherSourcePath."
+    }
+
+    New-Item -ItemType Directory -Path $launcherDestinationDirectory -Force | Out-Null
+    Copy-Item -LiteralPath $launcherSourcePath -Destination $launcherDestinationPath -Force
+}
+
 function Copy-ReleaseConfiguration {
     param(
         [Parameter(Mandatory = $true)][string]$ReleasePath
@@ -169,6 +181,7 @@ if ($DeploymentMode -eq "SideBySide") {
     Invoke-ReleaseMirror -From $sourcePath -To $releasePath -ExcludedDirectories @("Assets", "Logs") -ExcludedFiles @("appsettings.json")
     Copy-ReleaseConfiguration -ReleasePath $releasePath
     Link-PreservedDirectoriesToRelease -ReleasePath $releasePath
+    Copy-CurrentReleaseLauncher
 
     Set-Content -LiteralPath $currentReleaseMarker -Value $ReleaseName -Encoding UTF8
     Write-Host "Side-by-side release staged. Running users can finish in their current copy; restart shortcuts should launch _releases\$ReleaseName with shared data folders linked from $destinationPath."
@@ -182,5 +195,6 @@ if ($running) {
 
 Backup-PreservedPaths
 Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories $excludedDirectories -ExcludedFiles @("appsettings.json")
+Copy-CurrentReleaseLauncher
 
 Write-Host "Release update complete."
