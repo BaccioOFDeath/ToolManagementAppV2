@@ -21,6 +21,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void SideBySideDeploymentLinksSharedOperationalFoldersInsteadOfForkingData()
+        {
+            var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
+
+            Assert.Contains("$sideBySideLinkedDirectories = $preservedPaths | Where-Object { $_ -ne \"appsettings.json\" }", script, StringComparison.Ordinal);
+            Assert.Contains("function Copy-ReleaseConfiguration", script, StringComparison.Ordinal);
+            Assert.Contains("function Link-PreservedDirectoryToRelease", script, StringComparison.Ordinal);
+            Assert.Contains("New-Item -ItemType Junction -Path $targetItem -Target $sourceItem", script, StringComparison.Ordinal);
+            Assert.Contains("Copy-ReleaseConfiguration -ReleasePath $releasePath", script, StringComparison.Ordinal);
+            Assert.Contains("Link-PreservedDirectoriesToRelease -ReleasePath $releasePath", script, StringComparison.Ordinal);
+            Assert.Contains("shared data folders linked from $destinationPath", script, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void DeploymentGuideDocumentsActiveUserUpdateFlowAndMigrationLimitation()
         {
             var guide = ReadRepositoryFile("SERVER_DEPLOYMENT_GUIDE.md");
@@ -29,6 +43,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("-DeploymentMode SideBySide", guide, StringComparison.Ordinal);
             Assert.Contains("current-release.txt", guide, StringComparison.Ordinal);
             Assert.Contains("database migration", guide, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("links the release-local data, photo, theme, and log folders back to the shared destination folders", guide, StringComparison.Ordinal);
         }
 
         private static string ReadRepositoryFile(params string[] relativePathParts)
