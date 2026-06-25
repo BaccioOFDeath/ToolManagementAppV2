@@ -5,8 +5,8 @@
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Import {0} Pictures'}"
-        Width="760" Height="540"
-        MinWidth="700" MinHeight="520"
+        Width="780" Height="680"
+        MinWidth="700" MinHeight="560"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="14">
@@ -66,7 +66,7 @@
             </Border>
         </UniformGrid>
 
-        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" MinHeight="280">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -78,43 +78,45 @@
                         <TextBlock Text="Enable the identifiers expected in image file names." Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
                     </DockPanel>
                 </Border>
-                <Grid Grid.Row="1" Margin="14">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1.35*"/>
-                        <ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource DesktopSectionActionStrip}" Padding="14">
-                        <StackPanel>
-                            <TextBlock Text="Identifier Rules" Style="{StaticResource SectionHeader}"/>
-                            <TextBlock Text="More than one matching rule can be selected. Start with the most unique identifier and add fallbacks only when filenames are consistent."
-                                       Style="{StaticResource CaptionTextBlock}"
-                                       TextWrapping="Wrap"
-                                       Margin="0,2,0,14"/>
-                            <CheckBox Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} Number'}"
-                                      IsChecked="{Binding UseItemNumber}"
-                                      FontWeight="SemiBold"
-                                      Margin="0,0,0,10"/>
-                            <CheckBox Content="Part Number"
-                                      IsChecked="{Binding UsePartNumber}"
-                                      FontWeight="SemiBold"
-                                      Margin="0,0,0,10"/>
-                            <CheckBox Content="Name"
-                                      IsChecked="{Binding UseName}"
-                                      FontWeight="SemiBold"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Grid.Column="2" Style="{StaticResource AdminHandoffCard}" Margin="0">
-                        <StackPanel>
-                            <TextBlock Text="Import Confidence" Style="{StaticResource SectionHeader}"/>
-                            <TextBlock Text="Pick the most reliable filename identifiers first, then review mapped photos in the data operations workflow before trusting the batch."
-                                       Style="{StaticResource CaptionTextBlock}"
-                                       TextWrapping="Wrap"
-                                       Margin="0,4,0,10"/>
-                            <TextBlock Text="A narrower rule set usually creates fewer accidental image matches." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
-                </Grid>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid Margin="14" MinHeight="190">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.35*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Style="{StaticResource DesktopInsetCard}" Padding="14,12">
+                            <StackPanel>
+                                <TextBlock Text="Identifier Rules" Style="{StaticResource SectionHeader}"/>
+                                <TextBlock Text="More than one matching rule can be selected. Start with the most unique identifier and add fallbacks only when filenames are consistent."
+                                           Style="{StaticResource CaptionTextBlock}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,2,0,10"/>
+                                <CheckBox Content="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} Number'}"
+                                          IsChecked="{Binding UseItemNumber}"
+                                          FontWeight="SemiBold"
+                                          Margin="0,0,0,6"/>
+                                <CheckBox Content="Part Number"
+                                          IsChecked="{Binding UsePartNumber}"
+                                          FontWeight="SemiBold"
+                                          Margin="0,0,0,6"/>
+                                <CheckBox Content="Name"
+                                          IsChecked="{Binding UseName}"
+                                          FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource AdminHandoffCard}" Margin="0">
+                            <StackPanel>
+                                <TextBlock Text="Import Confidence" Style="{StaticResource SectionHeader}"/>
+                                <TextBlock Text="Pick the most reliable filename identifiers first, then review mapped photos in the data operations workflow before trusting the batch."
+                                           Style="{StaticResource CaptionTextBlock}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,4,0,10"/>
+                                <TextBlock Text="A narrower rule set usually creates fewer accidental image matches." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
             </Grid>
         </Border>
 

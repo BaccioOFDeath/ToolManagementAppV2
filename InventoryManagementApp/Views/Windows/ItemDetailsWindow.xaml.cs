@@ -19,6 +19,7 @@ namespace InventoryManagementApp.Views.Windows
             ISettingsService settingsService)
         {
             InitializeComponent();
+            this.UseResponsiveDefaultSize(920, 820);
             DataContext = new ItemDetailsViewModel(item, itemService, customerService, rentalService, dialogService, () => Close(), reservationService, settingsService);
             this.DisposeDataContextOnUnload();
         }
