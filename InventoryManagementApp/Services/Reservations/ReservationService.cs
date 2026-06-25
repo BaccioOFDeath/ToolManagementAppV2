@@ -114,6 +114,9 @@ namespace InventoryManagementApp.Services.Reservations
 
         public async Task<List<Reservation>> GetReservationsByCustomerAsync(int customerID)
         {
+            if (customerID < 1)
+                throw new ArgumentOutOfRangeException(nameof(customerID), "Customer ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 var reservations = new List<Reservation>();
@@ -138,6 +141,9 @@ namespace InventoryManagementApp.Services.Reservations
 
         public async Task<List<Reservation>> GetUpcomingReservationsAsync(int days = 7)
         {
+            if (days < 0)
+                throw new ArgumentOutOfRangeException(nameof(days), "Days must be greater than or equal to 0.");
+
             return await Task.Run(() =>
             {
                 var reservations = new List<Reservation>();
@@ -163,6 +169,9 @@ namespace InventoryManagementApp.Services.Reservations
 
         public async Task<Reservation?> GetReservationByIdAsync(int reservationID)
         {
+            if (reservationID < 1)
+                throw new ArgumentOutOfRangeException(nameof(reservationID), "Reservation ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();

@@ -117,6 +117,24 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task GetReservationsByCustomer_WithInvalidCustomerId_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _reservationService.GetReservationsByCustomerAsync(0));
+        }
+
+        [Fact]
+        public async Task GetUpcomingReservations_WithNegativeDays_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _reservationService.GetUpcomingReservationsAsync(-1));
+        }
+
+        [Fact]
+        public async Task GetReservationById_WithInvalidReservationId_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _reservationService.GetReservationByIdAsync(0));
+        }
+
+        [Fact]
         public async Task UpdateReservation_ShouldSucceed()
         {
             var reservation = new Reservation
