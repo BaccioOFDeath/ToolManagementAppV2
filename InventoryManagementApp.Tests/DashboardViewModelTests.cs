@@ -147,6 +147,7 @@ public class DashboardViewModelTests
         public int ConfirmCalls { get; private set; }
         public string? LastConfirmTitle { get; private set; }
         public string? LastConfirmMessage { get; private set; }
+        public List<ItemModel> ItemDetailsItems { get; } = new();
 
         public void ShowInfo(string message, string title) { }
         public Task ShowInfoAsync(string message, string title) => Task.CompletedTask;
@@ -161,7 +162,7 @@ public class DashboardViewModelTests
         public Task<bool> ShowConfirmationAsync(string message, string title) => Task.FromResult(ShowConfirmation(message, title));
         public ItemModel? ShowEditItemDialog(ItemModel item) => null;
         public Task<ItemModel?> ShowEditItemDialogAsync(ItemModel item) => Task.FromResult<ItemModel?>(null);
-        public void ShowItemDetails(ItemModel item) { }
+        public void ShowItemDetails(ItemModel item) => ItemDetailsItems.Add(item);
         public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
         public CustomerModel? ShowAddCustomerDialog() => null;
         public CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => null;
@@ -517,6 +518,46 @@ public class DashboardViewModelTests
         Assert.Equal(checkedOutAt, commonItem.CheckedOutTime);
         Assert.Equal("images/t15.jpg", commonItem.ImagePath);
         Assert.Contains("1 checked out", vm.OperationsSummary);
+    }
+
+    [Fact]
+    public void OpenSelectedItemCommands_OpenDetailsInsteadOfManageItemsPage()
+    {
+        using var db = new DatabaseService(":memory:");
+        var itemService = new StubItemService();
+        var rentalService = new StubRentalService();
+        var customerService = new StubCustomerService();
+        var userService = new StubUserService();
+        var activityLogService = new StubActivityLogService(db);
+        var dialogService = new StubDialogService();
+        var manageItemsOpenCount = 0;
+
+        var vm = new DashboardViewModel(
+            itemService,
+            rentalService,
+            customerService,
+            userService,
+            activityLogService,
+            new RelayCommand(() => manageItemsOpenCount++),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            dialogService: dialogService);
+
+        var commonItem = new ItemModel { ItemID = 10, ItemNumber = "C10" };
+        var checkedOutItem = new ItemModel { ItemID = 20, ItemNumber = "X20", IsCheckedOut = true };
+        var incompleteItem = new ItemModel { ItemID = 30, ItemNumber = "I30", IsIncomplete = true };
+
+        vm.SelectedCommonlyUsedItem = commonItem;
+        vm.OpenSelectedCommonItemCommand.Execute(null);
+
+        vm.SelectedCheckedOutItem = checkedOutItem;
+        vm.OpenSelectedCheckedOutItemCommand.Execute(null);
+
+        vm.SelectedIncompleteItem = incompleteItem;
+        vm.OpenSelectedIncompleteItemCommand.Execute(null);
+
+        Assert.Equal(0, manageItemsOpenCount);
+        Assert.Equal(new[] { commonItem, checkedOutItem, incompleteItem }, dialogService.ItemDetailsItems);
     }
 
     [Fact]

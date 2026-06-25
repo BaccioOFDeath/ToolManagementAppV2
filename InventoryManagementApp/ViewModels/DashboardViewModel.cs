@@ -209,9 +209,9 @@ namespace InventoryManagementApp.ViewModels
             OpenItemsCommand = new RelayCommand(OpenItemsWorkflow);
             OpenRentalsCommand = new RelayCommand(OpenRentalsWorkflow);
             OpenImportExportCommand = new RelayCommand(OpenImportExportWorkflow);
-            OpenSelectedCommonItemCommand = new RelayCommand(OpenItemsWorkflow, () => HasSelectedCommonItem);
-            OpenSelectedCheckedOutItemCommand = new RelayCommand(OpenItemsWorkflow, () => HasSelectedCheckedOutItem);
-            OpenSelectedIncompleteItemCommand = new RelayCommand(OpenItemsWorkflow, () => HasSelectedIncompleteItem);
+            OpenSelectedCommonItemCommand = new RelayCommand(() => OpenItemDetails(SelectedCommonlyUsedItem), () => HasSelectedCommonItem);
+            OpenSelectedCheckedOutItemCommand = new RelayCommand(() => OpenItemDetails(SelectedCheckedOutItem), () => HasSelectedCheckedOutItem);
+            OpenSelectedIncompleteItemCommand = new RelayCommand(() => OpenItemDetails(SelectedIncompleteItem), () => HasSelectedIncompleteItem);
             OpenSelectedRentalCommand = new RelayCommand(OpenRentalsWorkflow, () => HasSelectedRental);
             OpenActivityDestinationCommand = new RelayCommand(OpenActivityDestination, () => HasSelectedActivity);
             PrintCheckedOutItemsCommand = new AsyncRelayCommand(PrintCheckedOutItemsAsync);
@@ -598,6 +598,24 @@ namespace InventoryManagementApp.ViewModels
         {
             try { _openManageItemsCommand.Execute(null); }
             catch (Exception ex) { _logger.LogError(ex, "Failed to open manage {ItemLabelPlural} page", LabelProvider.Instance.ItemLabelPlural.ToLower()); }
+        }
+
+        private void OpenItemDetails(ItemModel? item)
+        {
+            if (item == null)
+                return;
+
+            var dialogService = _dialogService
+                ?? (System.Windows.Application.Current as InventoryManagementApp.App)?.Host.Services.GetService<IDialogService>();
+
+            if (dialogService == null)
+            {
+                _logger.LogWarning("Item details service is not available for dashboard item {ItemID}", item.ItemID);
+                return;
+            }
+
+            try { dialogService.ShowItemDetails(item); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to open dashboard item details for {ItemID}", item.ItemID); }
         }
 
         private void OpenRentalsWorkflow()
