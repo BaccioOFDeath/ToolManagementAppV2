@@ -199,6 +199,8 @@ namespace InventoryManagementApp.Services.Reservations
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureReservationReferencesExist(conn, reservation);
+
                 var sql = @"
                     INSERT INTO Reservations 
                     (ItemID, CustomerID, ReservationDate, StartDate, EndDate, 
@@ -230,6 +232,8 @@ namespace InventoryManagementApp.Services.Reservations
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureReservationReferencesExist(conn, reservation);
+
                 var sql = @"
                     UPDATE Reservations 
                     SET ItemID = @ItemID,
@@ -391,6 +395,21 @@ namespace InventoryManagementApp.Services.Reservations
                 throw new ArgumentOutOfRangeException(nameof(reservation.Quantity), "Quantity must be greater than 0.");
             if (reservation.EndDate < reservation.StartDate)
                 throw new ArgumentException("End date must be on or after start date.", nameof(reservation.EndDate));
+        }
+
+        private static void EnsureReservationReferencesExist(SqliteConnection conn, Reservation reservation)
+        {
+            if (!RecordExists(conn, "SELECT COUNT(*) FROM Items WHERE ItemID = @ID", reservation.ItemID))
+                throw new ArgumentException("Reservation must reference an existing item.", nameof(reservation.ItemID));
+            if (!RecordExists(conn, "SELECT COUNT(*) FROM Customers WHERE CustomerID = @ID", reservation.CustomerID))
+                throw new ArgumentException("Reservation must reference an existing customer.", nameof(reservation.CustomerID));
+        }
+
+        private static bool RecordExists(SqliteConnection conn, string sql, int id)
+        {
+            using var cmd = new SqliteCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ID", id);
+            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
         }
 
         private static string NormalizeStatus(string? status)
