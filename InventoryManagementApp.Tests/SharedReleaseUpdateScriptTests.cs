@@ -32,12 +32,18 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("\"NUL\"", script, StringComparison.Ordinal);
             Assert.Contains("\"COM1\"", script, StringComparison.Ordinal);
             Assert.Contains("\"LPT1\"", script, StringComparison.Ordinal);
+            Assert.Contains("$ReleaseName.EndsWith(\".\")", script, StringComparison.Ordinal);
+            Assert.Contains("$ReleaseName.EndsWith(\" \")", script, StringComparison.Ordinal);
             Assert.Contains("function Test-ReleaseNameIsReservedDeviceName", script, StringComparison.Ordinal);
+            Assert.Contains("$ReleaseName.TrimEnd([char[]]@(' ', '.'))", script, StringComparison.Ordinal);
             Assert.Contains("Test-ReleaseNameIsReservedDeviceName -ReleaseName $ReleaseName", script, StringComparison.Ordinal);
             Assert.Contains("reserved Windows device name", script, StringComparison.Ordinal);
 
             Assert.Contains("$windowsReservedDeviceNames = @(", launcher, StringComparison.Ordinal);
+            Assert.Contains("$releaseName.EndsWith(\".\")", launcher, StringComparison.Ordinal);
+            Assert.Contains("$releaseName.EndsWith(\" \")", launcher, StringComparison.Ordinal);
             Assert.Contains("function Test-ReleaseNameIsReservedDeviceName", launcher, StringComparison.Ordinal);
+            Assert.Contains("$ReleaseName.TrimEnd([char[]]@(' ', '.'))", launcher, StringComparison.Ordinal);
             Assert.Contains("Test-ReleaseNameIsReservedDeviceName -ReleaseName $releaseName", launcher, StringComparison.Ordinal);
             Assert.Contains("folder-safe, non-reserved name", launcher, StringComparison.Ordinal);
 
