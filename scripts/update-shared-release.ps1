@@ -260,4 +260,4 @@ Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories
 Copy-CurrentReleaseLauncher
 Clear-CurrentReleaseMarker
 
-Write-Host "Release update complete."}      | sed -n '1,20p' >/dev/null
+Write-Host "Release update complete."
