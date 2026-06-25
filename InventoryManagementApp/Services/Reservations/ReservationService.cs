@@ -386,7 +386,12 @@ namespace InventoryManagementApp.Services.Reservations
 
         private static string NormalizeStatus(string? status)
         {
-            return string.IsNullOrWhiteSpace(status) ? "Pending" : status.Trim();
+            var normalizedStatus = string.IsNullOrWhiteSpace(status) ? "Pending" : status.Trim();
+            return normalizedStatus switch
+            {
+                "Pending" or "Confirmed" or "Cancelled" or "Fulfilled" => normalizedStatus,
+                _ => throw new ArgumentException("Reservation status must be Pending, Confirmed, Cancelled, or Fulfilled.", nameof(status))
+            };
         }
 
         private static object ToDbNullableText(string? value)
