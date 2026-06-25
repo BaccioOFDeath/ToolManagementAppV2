@@ -21,7 +21,7 @@ Use the checked-in validation runner for the current restore/build/test/publish/
 pwsh -File scripts/run-full-validation.ps1
 ```
 
-For a faster compile-and-test pass without publishing:
+For a faster compile-and-test pass without publishing or source scan checks:
 
 ```powershell
 pwsh -File scripts/run-full-validation.ps1 -SkipPublish

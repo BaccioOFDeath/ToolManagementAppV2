@@ -61,24 +61,24 @@ try {
         Invoke-ValidationStep "Publish app" {
             dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c $Configuration -r $Runtime --self-contained false --no-restore -o ./publish
         }
-    }
 
-    Invoke-ValidationStep "Check banned words" {
-        bash scripts/check-banned-words.sh
-    }
-
-    Invoke-ValidationStep "Check banned words PowerShell fallback" {
-        $previousForce = $env:BANNED_WORD_CHECK_FORCE_POWERSHELL
-        $env:BANNED_WORD_CHECK_FORCE_POWERSHELL = "1"
-        try {
+        Invoke-ValidationStep "Check banned words" {
             bash scripts/check-banned-words.sh
         }
-        finally {
-            if ($null -eq $previousForce) {
-                Remove-Item Env:BANNED_WORD_CHECK_FORCE_POWERSHELL -ErrorAction SilentlyContinue
+
+        Invoke-ValidationStep "Check banned words PowerShell fallback" {
+            $previousForce = $env:BANNED_WORD_CHECK_FORCE_POWERSHELL
+            $env:BANNED_WORD_CHECK_FORCE_POWERSHELL = "1"
+            try {
+                bash scripts/check-banned-words.sh
             }
-            else {
-                $env:BANNED_WORD_CHECK_FORCE_POWERSHELL = $previousForce
+            finally {
+                if ($null -eq $previousForce) {
+                    Remove-Item Env:BANNED_WORD_CHECK_FORCE_POWERSHELL -ErrorAction SilentlyContinue
+                }
+                else {
+                    $env:BANNED_WORD_CHECK_FORCE_POWERSHELL = $previousForce
+                }
             }
         }
     }
