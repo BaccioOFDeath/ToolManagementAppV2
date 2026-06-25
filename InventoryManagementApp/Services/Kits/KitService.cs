@@ -133,6 +133,8 @@ namespace InventoryManagementApp.Services.Kits
 
         public async Task<int> CreateKitAsync(Kit kit)
         {
+            ValidateKit(kit, requireExistingId: false);
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -143,10 +145,10 @@ namespace InventoryManagementApp.Services.Kits
                     (@KitNumber, @Name, @Description, @Category, @IsActive, @CreatedByUserID, @CreatedAt, @UpdatedAt);
                     SELECT last_insert_rowid();";
                 using var cmd = new SqliteCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber);
-                cmd.Parameters.AddWithValue("@Name", kit.Name);
-                cmd.Parameters.AddWithValue("@Description", kit.Description);
-                cmd.Parameters.AddWithValue("@Category", kit.Category);
+                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber.Trim());
+                cmd.Parameters.AddWithValue("@Name", kit.Name.Trim());
+                cmd.Parameters.AddWithValue("@Description", ToDbNullableText(kit.Description));
+                cmd.Parameters.AddWithValue("@Category", ToDbNullableText(kit.Category));
                 cmd.Parameters.AddWithValue("@IsActive", kit.IsActive ? 1 : 0);
                 cmd.Parameters.AddWithValue("@CreatedByUserID", _userContext.CurrentUser?.UserID ?? 0);
                 cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
@@ -158,6 +160,8 @@ namespace InventoryManagementApp.Services.Kits
 
         public async Task<bool> UpdateKitAsync(Kit kit)
         {
+            ValidateKit(kit, requireExistingId: true);
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -172,10 +176,10 @@ namespace InventoryManagementApp.Services.Kits
                     WHERE KitID = @KitID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitID", kit.KitID);
-                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber);
-                cmd.Parameters.AddWithValue("@Name", kit.Name);
-                cmd.Parameters.AddWithValue("@Description", kit.Description);
-                cmd.Parameters.AddWithValue("@Category", kit.Category);
+                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber.Trim());
+                cmd.Parameters.AddWithValue("@Name", kit.Name.Trim());
+                cmd.Parameters.AddWithValue("@Description", ToDbNullableText(kit.Description));
+                cmd.Parameters.AddWithValue("@Category", ToDbNullableText(kit.Category));
                 cmd.Parameters.AddWithValue("@IsActive", kit.IsActive ? 1 : 0);
                 cmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
                 return cmd.ExecuteNonQuery() > 0;
@@ -184,6 +188,9 @@ namespace InventoryManagementApp.Services.Kits
 
         public async Task<bool> DeleteKitAsync(int kitID)
         {
+            if (kitID < 1)
+                throw new ArgumentOutOfRangeException(nameof(kitID), "Kit ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -213,6 +220,8 @@ namespace InventoryManagementApp.Services.Kits
 
         public async Task<int> AddKitItemAsync(KitItem kitItem)
         {
+            ValidateKitItem(kitItem, requireExistingId: false);
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -234,6 +243,8 @@ namespace InventoryManagementApp.Services.Kits
 
         public async Task<bool> UpdateKitItemAsync(KitItem kitItem)
         {
+            ValidateKitItem(kitItem, requireExistingId: true);
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -254,6 +265,9 @@ namespace InventoryManagementApp.Services.Kits
 
         public async Task<bool> RemoveKitItemAsync(int kitItemID)
         {
+            if (kitItemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(kitItemID), "Kit item ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -266,6 +280,9 @@ namespace InventoryManagementApp.Services.Kits
 
         public async Task<bool> CheckKitAvailabilityAsync(int kitID)
         {
+            if (kitID < 1)
+                throw new ArgumentOutOfRangeException(nameof(kitID), "Kit ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -311,6 +328,37 @@ namespace InventoryManagementApp.Services.Kits
                 Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
                 IsOptional = reader.GetInt32(reader.GetOrdinal("IsOptional")) == 1
             };
+        }
+
+        private static void ValidateKit(Kit kit, bool requireExistingId)
+        {
+            if (kit == null)
+                throw new ArgumentNullException(nameof(kit));
+            if (requireExistingId && kit.KitID < 1)
+                throw new ArgumentOutOfRangeException(nameof(kit.KitID), "Kit ID must be greater than 0.");
+            if (string.IsNullOrWhiteSpace(kit.KitNumber))
+                throw new ArgumentException("Kit number is required.", nameof(kit.KitNumber));
+            if (string.IsNullOrWhiteSpace(kit.Name))
+                throw new ArgumentException("Kit name is required.", nameof(kit.Name));
+        }
+
+        private static void ValidateKitItem(KitItem kitItem, bool requireExistingId)
+        {
+            if (kitItem == null)
+                throw new ArgumentNullException(nameof(kitItem));
+            if (requireExistingId && kitItem.KitItemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(kitItem.KitItemID), "Kit item ID must be greater than 0.");
+            if (kitItem.KitID < 1)
+                throw new ArgumentOutOfRangeException(nameof(kitItem.KitID), "Kit ID must be greater than 0.");
+            if (kitItem.ItemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(kitItem.ItemID), "Item ID must be greater than 0.");
+            if (kitItem.Quantity < 1)
+                throw new ArgumentOutOfRangeException(nameof(kitItem.Quantity), "Quantity must be greater than 0.");
+        }
+
+        private static object ToDbNullableText(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
         }
     }
 }
