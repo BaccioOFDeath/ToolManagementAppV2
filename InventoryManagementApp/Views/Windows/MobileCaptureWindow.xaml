@@ -38,7 +38,7 @@
                 </Border>
 
                 <TextBlock Text="Phone URL" Style="{StaticResource LabelTextBlock}" Margin="0,18,0,4"/>
-                <TextBox Text="{Binding Url}"
+                <TextBox Text="{Binding Url, Mode=OneWay}"
                          IsReadOnly="True"
                          TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"
