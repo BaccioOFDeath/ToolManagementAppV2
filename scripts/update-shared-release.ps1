@@ -51,6 +51,7 @@ $preservedPaths = @(
     "Assets\Themes",
     "Logs"
 )
+$sideBySideLinkedDirectories = $preservedPaths | Where-Object { $_ -ne "appsettings.json" }
 
 function Invoke-ReleaseMirror {
     param(
@@ -100,6 +101,45 @@ function Backup-PreservedPaths {
     }
 }
 
+function Copy-ReleaseConfiguration {
+    param(
+        [Parameter(Mandatory = $true)][string]$ReleasePath
+    )
+
+    $sourceItem = Join-Path $destinationPath "appsettings.json"
+    if (Test-Path -LiteralPath $sourceItem) {
+        $targetItem = Join-Path $ReleasePath "appsettings.json"
+        Copy-Item -LiteralPath $sourceItem -Destination $targetItem -Force
+    }
+}
+
+function Link-PreservedDirectoryToRelease {
+    param(
+        [Parameter(Mandatory = $true)][string]$ReleasePath,
+        [Parameter(Mandatory = $true)][string]$RelativePath
+    )
+
+    $sourceItem = Join-Path $destinationPath $RelativePath
+    if (-not (Test-Path -LiteralPath $sourceItem)) {
+        return
+    }
+
+    $targetItem = Join-Path $ReleasePath $RelativePath
+    $targetParent = Split-Path -Parent $targetItem
+    New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+    New-Item -ItemType Junction -Path $targetItem -Target $sourceItem | Out-Null
+}
+
+function Link-PreservedDirectoriesToRelease {
+    param(
+        [Parameter(Mandatory = $true)][string]$ReleasePath
+    )
+
+    foreach ($relativePath in $sideBySideLinkedDirectories) {
+        Link-PreservedDirectoryToRelease -ReleasePath $ReleasePath -RelativePath $relativePath
+    }
+}
+
 Write-Host "Updating InventoryManagementApp release"
 Write-Host "Source:      $sourcePath"
 Write-Host "Destination: $destinationPath"
@@ -127,19 +167,11 @@ if ($DeploymentMode -eq "SideBySide") {
     Backup-PreservedPaths
     New-Item -ItemType Directory -Path $releasePath -Force | Out-Null
     Invoke-ReleaseMirror -From $sourcePath -To $releasePath -ExcludedDirectories @("Assets", "Logs") -ExcludedFiles @("appsettings.json")
-
-    foreach ($relativePath in $preservedPaths) {
-        $sourceItem = Join-Path $destinationPath $relativePath
-        if (Test-Path -LiteralPath $sourceItem) {
-            $targetItem = Join-Path $releasePath $relativePath
-            $targetParent = Split-Path -Parent $targetItem
-            New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
-            Copy-Item -LiteralPath $sourceItem -Destination $targetItem -Recurse -Force
-        }
-    }
+    Copy-ReleaseConfiguration -ReleasePath $releasePath
+    Link-PreservedDirectoriesToRelease -ReleasePath $releasePath
 
     Set-Content -LiteralPath $currentReleaseMarker -Value $ReleaseName -Encoding UTF8
-    Write-Host "Side-by-side release staged. Running users can finish in their current copy; restart shortcuts should launch _releases\$ReleaseName."
+    Write-Host "Side-by-side release staged. Running users can finish in their current copy; restart shortcuts should launch _releases\$ReleaseName with shared data folders linked from $destinationPath."
     return
 }
 
