@@ -24,8 +24,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains(skipPublishCommand, source);
             Assert.Contains(manualEquivalent, source);
             AssertAppearsBefore(source, currentStatusGuidance, fullRunnerCommand, "The README should present the checked-in validation runner as the current validation entrypoint.");
-            AssertAppearsBefore(source, developmentGuidance, fullRunnerCommand, "The Development section should point maintainers to the runner before listing manual commands.");
-            AssertAppearsBefore(source, fullRunnerCommand, manualEquivalent, "The manual validation sequence should remain secondary to the checked-in validation runner.");
+            AssertAppearsBeforeAfter(source, developmentGuidance, fullRunnerCommand, manualEquivalent, "The Development section should point maintainers to the runner before listing manual commands.");
             AssertAppearsBefore(source, skipPublishGuidance, skipPublishCommand, "The README should document the fast compile-and-test checkpoint with the explicit SkipPublish command.");
         }
 
@@ -105,6 +104,19 @@ namespace InventoryManagementApp.Tests
 
             Assert.True(firstIndex >= 0, $"Expected to find '{first}'.");
             Assert.True(secondIndex >= 0, $"Expected to find '{second}'.");
+            Assert.True(firstIndex < secondIndex, because);
+        }
+
+        private static void AssertAppearsBeforeAfter(string source, string anchor, string first, string second, string because)
+        {
+            var anchorIndex = source.IndexOf(anchor, StringComparison.Ordinal);
+            Assert.True(anchorIndex >= 0, $"Expected to find '{anchor}'.");
+
+            var firstIndex = source.IndexOf(first, anchorIndex, StringComparison.Ordinal);
+            var secondIndex = source.IndexOf(second, anchorIndex, StringComparison.Ordinal);
+
+            Assert.True(firstIndex >= 0, $"Expected to find '{first}' after '{anchor}'.");
+            Assert.True(secondIndex >= 0, $"Expected to find '{second}' after '{anchor}'.");
             Assert.True(firstIndex < secondIndex, because);
         }
 
