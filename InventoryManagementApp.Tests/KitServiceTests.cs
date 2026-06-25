@@ -247,23 +247,88 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public async Task CheckKitAvailability_WithMissingRequiredItem_ShouldReturnFalse()
+        public async Task AddKitItem_WithMissingKit_ShouldThrow()
+        {
+            var kitItem = new KitItem
+            {
+                KitID = 999,
+                ItemID = 1,
+                Quantity = 1,
+                IsOptional = false
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _kitService.AddKitItemAsync(kitItem));
+        }
+
+        [Fact]
+        public async Task AddKitItem_WithMissingItem_ShouldThrow()
         {
             var kit = new Kit
             {
                 KitNumber = "KIT-011",
-                Name = "Kit with Missing Required Item",
+                Name = "Kit Missing Item Guard",
                 IsActive = true
             };
             var kitId = await _kitService.CreateKitAsync(kit);
 
-            await _kitService.AddKitItemAsync(new KitItem
+            var kitItem = new KitItem
             {
                 KitID = kitId,
                 ItemID = 999,
                 Quantity = 1,
                 IsOptional = false
-            });
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _kitService.AddKitItemAsync(kitItem));
+        }
+
+        [Fact]
+        public async Task UpdateKitItem_WithMissingItem_ShouldThrow()
+        {
+            var kit = new Kit
+            {
+                KitNumber = "KIT-012",
+                Name = "Kit Update Missing Item Guard",
+                IsActive = true
+            };
+            var kitId = await _kitService.CreateKitAsync(kit);
+            var kitItem = new KitItem
+            {
+                KitID = kitId,
+                ItemID = 1,
+                Quantity = 1,
+                IsOptional = false
+            };
+            var kitItemId = await _kitService.AddKitItemAsync(kitItem);
+            kitItem.KitItemID = kitItemId;
+            kitItem.ItemID = 999;
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _kitService.UpdateKitItemAsync(kitItem));
+        }
+
+        [Fact]
+        public async Task CheckKitAvailability_WithMissingRequiredItem_ShouldReturnFalse()
+        {
+            var kit = new Kit
+            {
+                KitNumber = "KIT-013",
+                Name = "Kit with Missing Required Item",
+                IsActive = true
+            };
+            var kitId = await _kitService.CreateKitAsync(kit);
+
+            using (var conn = _databaseService.CreateConnection())
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    INSERT INTO KitItems (KitID, ItemID, Quantity, IsOptional)
+                    VALUES (@KitID, @ItemID, @Quantity, @IsOptional);";
+                cmd.Parameters.AddWithValue("@KitID", kitId);
+                cmd.Parameters.AddWithValue("@ItemID", 999);
+                cmd.Parameters.AddWithValue("@Quantity", 1);
+                cmd.Parameters.AddWithValue("@IsOptional", 0);
+                cmd.ExecuteNonQuery();
+            }
 
             var isAvailable = await _kitService.CheckKitAvailabilityAsync(kitId);
 
