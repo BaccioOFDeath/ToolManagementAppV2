@@ -85,7 +85,7 @@ Recommended active-user update flow:
    ./scripts/update-shared-release.ps1 -Source ./publish-clean -Destination X:\V2 -DeploymentMode SideBySide -ReleaseName 2026.06.25-1
    ```
 
-   Use a folder-safe release name. Avoid Windows reserved device names such as `CON`, `NUL`, `COM1`, or `LPT1`, because those names are invalid deployment folder targets on Windows.
+   Use a folder-safe release name that does not end with a dot or space. Avoid Windows reserved device names such as `CON`, `NUL`, `COM1`, or `LPT1`, because those names are invalid deployment folder targets on Windows.
 
    The update script also refreshes the launcher at `X:\V2\scripts\start-current-release.ps1` so shared shortcuts can target the deployed folder instead of depending on a repository checkout.
 3. Point the shared shortcut, launcher script, or deployment utility at the current-release launcher instead of at a specific release executable:
