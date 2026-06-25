@@ -85,7 +85,13 @@ Recommended active-user update flow:
    ./scripts/update-shared-release.ps1 -Source ./publish-clean -Destination X:\V2 -DeploymentMode SideBySide -ReleaseName 2026.06.25-1
    ```
 
-3. Point the shared shortcut, launcher script, or deployment utility at `X:\V2\_releases\2026.06.25-1\InventoryManagementApp.exe`. The script also writes `X:\V2\current-release.txt` so a launcher can read the active release name.
+3. Point the shared shortcut, launcher script, or deployment utility at the current-release launcher instead of at a specific release executable:
+
+   ```powershell
+   powershell.exe -ExecutionPolicy Bypass -File .\scripts\start-current-release.ps1 -Destination X:\V2
+   ```
+
+   `start-current-release.ps1` reads `X:\V2\current-release.txt`, starts `X:\V2\_releases\<ReleaseName>\InventoryManagementApp.exe`, and falls back to `X:\V2\InventoryManagementApp.exe` when no marker exists for an in-place deployment.
 4. Ask users to restart the app when convenient. Users already running the previous release can continue current rentals/check-ins because the SQLite database and preserved asset folders remain shared.
 5. After confirming nobody is running the older release folder, archive or delete old folders under `_releases`.
 

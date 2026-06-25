@@ -35,6 +35,21 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void CurrentReleaseLauncherUsesMarkerAndFallsBackToInPlaceExecutable()
+        {
+            var launcher = ReadRepositoryFile("scripts", "start-current-release.ps1");
+
+            Assert.Contains("$ExecutableName = \"InventoryManagementApp.exe\"", launcher, StringComparison.Ordinal);
+            Assert.Contains("$currentReleaseMarker = Join-Path $destinationPath \"current-release.txt\"", launcher, StringComparison.Ordinal);
+            Assert.Contains("Get-Content -LiteralPath $currentReleaseMarker", launcher, StringComparison.Ordinal);
+            Assert.Contains("$releaseRoot = Join-Path $destinationPath \"_releases\"", launcher, StringComparison.Ordinal);
+            Assert.Contains("ReleaseName in current-release.txt must be a folder-safe name.", launcher, StringComparison.Ordinal);
+            Assert.Contains("$rootExecutable = Join-Path $destinationPath $ExecutableName", launcher, StringComparison.Ordinal);
+            Assert.Contains("No current-release.txt marker was found", launcher, StringComparison.Ordinal);
+            Assert.Contains("Start-Process -FilePath $executablePath", launcher, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void DeploymentGuideDocumentsActiveUserUpdateFlowAndMigrationLimitation()
         {
             var guide = ReadRepositoryFile("SERVER_DEPLOYMENT_GUIDE.md");
@@ -42,6 +57,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("## Updating While Users Are Active", guide, StringComparison.Ordinal);
             Assert.Contains("-DeploymentMode SideBySide", guide, StringComparison.Ordinal);
             Assert.Contains("current-release.txt", guide, StringComparison.Ordinal);
+            Assert.Contains("start-current-release.ps1", guide, StringComparison.Ordinal);
+            Assert.Contains("falls back to `X:\\V2\\InventoryManagementApp.exe`", guide, StringComparison.Ordinal);
             Assert.Contains("database migration", guide, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("links the release-local data, photo, theme, and log folders back to the shared destination folders", guide, StringComparison.Ordinal);
         }
