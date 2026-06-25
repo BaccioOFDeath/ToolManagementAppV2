@@ -251,4 +251,4 @@ Backup-PreservedPaths
 Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories $excludedDirectories -ExcludedFiles @("appsettings.json")
 Copy-CurrentReleaseLauncher
 
-Write-Host "Release update complete."}
+Write-Host "Release update complete."
