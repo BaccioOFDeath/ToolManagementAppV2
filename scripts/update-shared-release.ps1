@@ -31,6 +31,8 @@ $launcherDestinationDirectory = Join-Path $destinationPath "scripts"
 $launcherDestinationPath = Join-Path $launcherDestinationDirectory "start-current-release.ps1"
 $windowsReservedDeviceNames = @(
     "CON",
+    "CONIN$",
+    "CONOUT$",
     "PRN",
     "AUX",
     "NUL",
@@ -258,4 +260,4 @@ Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories
 Copy-CurrentReleaseLauncher
 Clear-CurrentReleaseMarker
 
-Write-Host "Release update complete."
+Write-Host "Release update complete."}      | sed -n '1,20p' >/dev/null
