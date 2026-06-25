@@ -54,14 +54,31 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void SideBySideDeploymentRejectsReservedWindowsReleaseNames()
+        public void SideBySideDeploymentRejectsUnsafeWindowsReleaseNames()
         {
             var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
             var launcher = ReadRepositoryFile("scripts", "start-current-release.ps1");
             var guide = ReadRepositoryFile("SERVER_DEPLOYMENT_GUIDE.md");
 
+            Assert.Contains("[char[]]$windowsInvalidFileNameCharacters = @(", script, StringComparison.Ordinal);
+            Assert.Contains("'<'", script, StringComparison.Ordinal);
+            Assert.Contains("'>'", script, StringComparison.Ordinal);
+            Assert.Contains("':'", script, StringComparison.Ordinal);
+            Assert.Contains("'\"'", script, StringComparison.Ordinal);
+            Assert.Contains("'/'", script, StringComparison.Ordinal);
+            Assert.Contains("'\\'", script, StringComparison.Ordinal);
+            Assert.Contains("'|'", script, StringComparison.Ordinal);
+            Assert.Contains("'?'", script, StringComparison.Ordinal);
+            Assert.Contains("'*'", script, StringComparison.Ordinal);
+            Assert.Contains("function Test-ReleaseNameHasInvalidWindowsFileNameCharacter", script, StringComparison.Ordinal);
+            Assert.Contains("$ReleaseName.IndexOfAny($windowsInvalidFileNameCharacters) -ge 0", script, StringComparison.Ordinal);
+            Assert.Contains("Test-ReleaseNameHasInvalidWindowsFileNameCharacter -ReleaseName $ReleaseName", script, StringComparison.Ordinal);
+            Assert.DoesNotContain("GetInvalidFileNameChars", script, StringComparison.Ordinal);
+
             Assert.Contains("$windowsReservedDeviceNames = @(", script, StringComparison.Ordinal);
             Assert.Contains("\"CON\"", script, StringComparison.Ordinal);
+            Assert.Contains("\"CONIN$\"", script, StringComparison.Ordinal);
+            Assert.Contains("\"CONOUT$\"", script, StringComparison.Ordinal);
             Assert.Contains("\"NUL\"", script, StringComparison.Ordinal);
             Assert.Contains("\"COM1\"", script, StringComparison.Ordinal);
             Assert.Contains("\"LPT1\"", script, StringComparison.Ordinal);
@@ -70,17 +87,27 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("function Test-ReleaseNameIsReservedDeviceName", script, StringComparison.Ordinal);
             Assert.Contains("$ReleaseName.TrimEnd([char[]]@(' ', '.'))", script, StringComparison.Ordinal);
             Assert.Contains("Test-ReleaseNameIsReservedDeviceName -ReleaseName $ReleaseName", script, StringComparison.Ordinal);
+            Assert.Contains("folder-safe Windows name", script, StringComparison.Ordinal);
             Assert.Contains("reserved Windows device name", script, StringComparison.Ordinal);
 
+            Assert.Contains("[char[]]$windowsInvalidFileNameCharacters = @(", launcher, StringComparison.Ordinal);
+            Assert.Contains("function Test-ReleaseNameHasInvalidWindowsFileNameCharacter", launcher, StringComparison.Ordinal);
+            Assert.Contains("$ReleaseName.IndexOfAny($windowsInvalidFileNameCharacters) -ge 0", launcher, StringComparison.Ordinal);
+            Assert.Contains("Test-ReleaseNameHasInvalidWindowsFileNameCharacter -ReleaseName $releaseName", launcher, StringComparison.Ordinal);
+            Assert.DoesNotContain("GetInvalidFileNameChars", launcher, StringComparison.Ordinal);
             Assert.Contains("$windowsReservedDeviceNames = @(", launcher, StringComparison.Ordinal);
+            Assert.Contains("\"CONIN$\"", launcher, StringComparison.Ordinal);
+            Assert.Contains("\"CONOUT$\"", launcher, StringComparison.Ordinal);
             Assert.Contains("$releaseName.EndsWith(\".\")", launcher, StringComparison.Ordinal);
             Assert.Contains("$releaseName.EndsWith(\" \")", launcher, StringComparison.Ordinal);
             Assert.Contains("function Test-ReleaseNameIsReservedDeviceName", launcher, StringComparison.Ordinal);
             Assert.Contains("$ReleaseName.TrimEnd([char[]]@(' ', '.'))", launcher, StringComparison.Ordinal);
             Assert.Contains("Test-ReleaseNameIsReservedDeviceName -ReleaseName $releaseName", launcher, StringComparison.Ordinal);
-            Assert.Contains("folder-safe, non-reserved name", launcher, StringComparison.Ordinal);
+            Assert.Contains("folder-safe Windows name", launcher, StringComparison.Ordinal);
 
-            Assert.Contains("Avoid Windows reserved device names such as `CON`, `NUL`, `COM1`, or `LPT1`", guide, StringComparison.Ordinal);
+            Assert.Contains("Do not use Windows filename characters such as", guide, StringComparison.Ordinal);
+            Assert.Contains("or `|`", guide, StringComparison.Ordinal);
+            Assert.Contains("Avoid Windows reserved device names such as `CON`, `CONIN$`, `CONOUT$`, `NUL`, `COM1`, or `LPT1`", guide, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -133,11 +160,16 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("$currentReleaseMarker = Join-Path $destinationPath \"current-release.txt\"", script, StringComparison.Ordinal);
             Assert.Contains("function Convert-ToUncPathIfMappedDrive", script, StringComparison.Ordinal);
+            Assert.Contains("function Get-CurrentReleaseExecutablePath", script, StringComparison.Ordinal);
             Assert.Contains("$network.EnumNetworkDrives()", script, StringComparison.Ordinal);
-            Assert.Contains("$releaseIconPath = Join-Path (Join-Path (Join-Path $destinationPath \"_releases\") $currentRelease.Trim()) \"InventoryManagementApp.exe\"", script, StringComparison.Ordinal);
+            Assert.Contains("$releaseExecutablePath = Join-Path (Join-Path (Join-Path $destinationPath \"_releases\") $currentRelease.Trim()) \"InventoryManagementApp.exe\"", script, StringComparison.Ordinal);
             Assert.Contains("$appIconPath = Join-Path $destinationPath \"Resources\\AppIcon.ico\"", script, StringComparison.Ordinal);
+            Assert.Contains("[switch]$PointToSharedShortcut", script, StringComparison.Ordinal);
+            Assert.Contains("$shortcut.TargetPath = Convert-ToUncPathIfMappedDrive -Path $targetPath", script, StringComparison.Ordinal);
             Assert.Contains("$shortcut.IconLocation = \"$(Convert-ToUncPathIfMappedDrive -Path $iconPath),0\"", script, StringComparison.Ordinal);
             Assert.Contains("InventoryManagementApp.exe", script, StringComparison.Ordinal);
+            Assert.DoesNotContain("-ExecutionPolicy Bypass", script, StringComparison.Ordinal);
+            Assert.DoesNotContain("-WindowStyle Hidden", script, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -183,6 +215,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("& $bashPath scripts/check-banned-words.sh", script, StringComparison.Ordinal);
             Assert.Contains("-DeploymentMode SideBySide", script, StringComparison.Ordinal);
             Assert.Contains("-ReleaseName $ReleaseName", script, StringComparison.Ordinal);
+            Assert.Contains("& (Join-Path $PSScriptRoot \"create-shared-desktop-shortcut.ps1\")", script, StringComparison.Ordinal);
+            Assert.Contains("-ShortcutDirectory $Destination", script, StringComparison.Ordinal);
             Assert.Contains("Users running older releases will see an update message on the login screen", script, StringComparison.Ordinal);
         }
 
@@ -222,9 +256,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("publish-shared-update.ps1", guide, StringComparison.Ordinal);
             Assert.Contains("-DeploymentMode SideBySide", guide, StringComparison.Ordinal);
             Assert.Contains("current-release.txt", guide, StringComparison.Ordinal);
-            Assert.Contains("start-current-release.ps1", guide, StringComparison.Ordinal);
-            Assert.Contains("refreshes the launcher at `X:\\V2\\scripts\\start-current-release.ps1`", guide, StringComparison.Ordinal);
-            Assert.Contains("falls back to `X:\\V2\\InventoryManagementApp.exe`", guide, StringComparison.Ordinal);
+            Assert.Contains("Inventory Management.lnk", guide, StringComparison.Ordinal);
+            Assert.Contains("points directly at `X:\\V2\\_releases\\<ReleaseName>\\InventoryManagementApp.exe`", guide, StringComparison.Ordinal);
+            Assert.Contains("not at PowerShell", guide, StringComparison.Ordinal);
             Assert.Contains("database migration", guide, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("links the release-local data, photo, theme, and log folders back to the shared destination folders", guide, StringComparison.Ordinal);
         }

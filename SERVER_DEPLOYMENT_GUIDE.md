@@ -99,16 +99,10 @@ Recommended active-user update flow:
    ./scripts/update-shared-release.ps1 -Source ./publish-clean -Destination X:\V2 -DeploymentMode SideBySide -ReleaseName 2026.06.25-1
    ```
 
-   Use a folder-safe release name that does not end with a dot or space. Avoid Windows reserved device names such as `CON`, `NUL`, `COM1`, or `LPT1`, because those names are invalid deployment folder targets on Windows.
+   Use a folder-safe Windows release name that does not end with a dot or space. Do not use Windows filename characters such as `\`, `/`, `:`, `*`, `?`, `"`, `<`, `>`, or `|`. Avoid Windows reserved device names such as `CON`, `CONIN$`, `CONOUT$`, `NUL`, `COM1`, or `LPT1`, because those names are invalid deployment folder targets on Windows.
 
    The update script also refreshes the launcher at `X:\V2\scripts\start-current-release.ps1` so shared shortcuts can target the deployed folder instead of depending on a repository checkout.
-3. Point the shared shortcut, launcher script, or deployment utility at the current-release launcher instead of at a specific release executable:
-
-   ```powershell
-   powershell.exe -ExecutionPolicy Bypass -File X:\V2\scripts\start-current-release.ps1 -Destination X:\V2
-   ```
-
-   `start-current-release.ps1` reads `X:\V2\current-release.txt`, starts `X:\V2\_releases\<ReleaseName>\InventoryManagementApp.exe`, and falls back to `X:\V2\InventoryManagementApp.exe` when no marker exists for an in-place deployment.
+3. Use `X:\V2\Inventory Management.lnk` as the shared shortcut. The publish script refreshes this shortcut so it points directly at `X:\V2\_releases\<ReleaseName>\InventoryManagementApp.exe`; user shortcuts should point at the shared shortcut, not at PowerShell.
 4. Ask users to restart the app when convenient. Users already running the previous release can continue current rentals/check-ins because the SQLite database and preserved asset folders remain shared. When an older side-by-side release reaches the login screen after `current-release.txt` has moved forward, it shows an update message asking the user to close and reopen the app.
 5. After confirming nobody is running older release folders, prune old releases and backups with the cleanup helper:
 
@@ -124,7 +118,7 @@ To create or refresh the desktop shortcut after a publish, run:
 ./scripts/create-shared-desktop-shortcut.ps1 -Destination X:\V2
 ```
 
-That shortcut points to `X:\V2\scripts\start-current-release.ps1`, so users keep opening the latest release without changing the shortcut each time.
+Run it on the server with `-ShortcutDirectory X:\V2` to refresh the shared shortcut. Run it on a workstation with `-PointToSharedShortcut` to create a desktop shortcut that opens the shared shortcut without using hidden PowerShell.
 
 In side-by-side mode, the script copies the preserved `appsettings.json` into the staged release and links the release-local data, photo, theme, and log folders back to the shared destination folders. That keeps versioned binaries isolated while the operational SQLite database, uploaded photos, theme files, and logs continue to use the shared location.
 

@@ -119,7 +119,13 @@ It validates, publishes, stages a timestamped side-by-side release, updates `cur
 Refresh the shared shortcut with:
 
 ```powershell
-.\scripts\create-shared-desktop-shortcut.ps1 -Destination X:\V2
+.\scripts\create-shared-desktop-shortcut.ps1 -Destination X:\V2 -ShortcutDirectory X:\V2
+```
+
+Create a workstation desktop shortcut with:
+
+```powershell
+.\scripts\create-shared-desktop-shortcut.ps1 -Destination X:\V2 -PointToSharedShortcut
 ```
 
 When the server folder has too many old side-by-side releases or pre-update backups, prune it with:
