@@ -8,7 +8,7 @@ namespace InventoryManagementApp.Utilities.Helpers
 {
     public static class DatabaseSecurityHelper
     {
-        public static string? EnsureDatabaseFileSecurity(string dbPath)
+        public static string? EnsureDatabaseFileSecurity(string dbPath, bool securePermissions = true)
         {
             if (string.IsNullOrWhiteSpace(dbPath))
                 return null;
@@ -25,6 +25,9 @@ namespace InventoryManagementApp.Utilities.Helpers
 
                 if (!File.Exists(dbPath))
                     using (File.Create(dbPath)) { }
+
+                if (!securePermissions)
+                    return null;
 
                 if (OperatingSystem.IsWindows())
                 {

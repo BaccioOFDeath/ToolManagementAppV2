@@ -132,9 +132,11 @@ namespace InventoryManagementApp
                 {
                     var config = sp.GetRequiredService<IConfiguration>();
                     var logger = sp.GetRequiredService<ILogger<DatabaseService>>();
-                    var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                        config["Database:Path"] ?? "inventory.db");
-                    return new DatabaseService(dbPath, logger);
+                    var dbPath = ResolveDatabasePath(config);
+                    var sharedDatabase = DatabasePathResolver.IsSharedPath(dbPath);
+                    var secureDatabaseFile = GetOptionalBoolean(config, "Database:SecureFilePermissions") ?? !sharedDatabase;
+                    var useWalJournal = GetOptionalBoolean(config, "Database:UseWalJournal") ?? !sharedDatabase;
+                    return new DatabaseService(dbPath, logger, secureDatabaseFile, useWalJournal);
                 });
                 services.AddSingleton<IDatabaseService>(sp => sp.GetRequiredService<DatabaseService>());
                 services.AddSingleton<IDatabaseBackupService>(sp => sp.GetRequiredService<DatabaseService>());
@@ -142,8 +144,7 @@ namespace InventoryManagementApp
                 services.AddSingleton(sp =>
                 {
                     var config = sp.GetRequiredService<IConfiguration>();
-                    var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                        config["Database:Path"] ?? "inventory.db");
+                    var dbPath = ResolveDatabasePath(config);
                     var builder = new SqliteConnectionStringBuilder
                     {
                         DataSource = dbPath,
@@ -295,9 +296,12 @@ namespace InventoryManagementApp
 
             SecurityHelper.SettingsService = settingsService;
             await SecurityHelper.GetIterationsAsync();
-            var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                configuration["Database:Path"] ?? "inventory.db");
-            var permissionWarning = DatabaseSecurityHelper.GetPermissionWarning(dbPath);
+            var dbPath = ResolveDatabasePath(configuration);
+            var secureDatabaseFile = GetOptionalBoolean(configuration, "Database:SecureFilePermissions")
+                ?? !DatabasePathResolver.IsSharedPath(dbPath);
+            var permissionWarning = secureDatabaseFile
+                ? DatabaseSecurityHelper.GetPermissionWarning(dbPath)
+                : null;
             if (!string.IsNullOrWhiteSpace(permissionWarning))
             {
                 _logger.LogWarning("Database permissions warning: {Warning}", permissionWarning);
@@ -396,6 +400,12 @@ namespace InventoryManagementApp
                 _logger.LogWarning(ex, "Failed to start rental reminder service. Email reminders will not be sent.");
             }
         }
+
+        static string ResolveDatabasePath(IConfiguration configuration)
+            => DatabasePathResolver.Resolve(configuration["Database:Path"], AppDomain.CurrentDomain.BaseDirectory);
+
+        static bool? GetOptionalBoolean(IConfiguration configuration, string key)
+            => bool.TryParse(configuration[key], out var value) ? value : null;
 
         async Task ApplySetupResultAsync(SetupWizardResult result, bool disableAutoLogout = false)
         {
@@ -1531,21 +1541,32 @@ namespace InventoryManagementApp
         internal void HandleDispatcherException(Exception ex, DispatcherUnhandledExceptionEventArgs? e = null)
         {
             _logger.LogError(ex, "Unhandled dispatcher exception");
-            _dialogService.ShowInfo("An unexpected error occurred. Please try again.", "Error");
+            _dialogService.ShowInfo($"An unexpected error occurred. Please try again.\n\nDetails: {GetUserFacingExceptionMessage(ex)}", "Error");
             if (e != null) e.Handled = true;
         }
 
         internal void HandleDomainException(Exception ex, UnhandledExceptionEventArgs? e = null)
         {
             _logger.LogError(ex, "Unhandled domain exception");
-            _dialogService.ShowInfo("An unexpected error occurred. The application may need to close.", "Error");
+            _dialogService.ShowInfo($"An unexpected error occurred. The application may need to close.\n\nDetails: {GetUserFacingExceptionMessage(ex)}", "Error");
         }
 
         internal async void HandleTaskException(AggregateException ex, UnobservedTaskExceptionEventArgs? e = null)
         {
             _logger.LogError(ex, "Unobserved task exception");
-            await _dialogService.ShowInfoAsync("An unexpected background error occurred.", "Error");
+            await _dialogService.ShowInfoAsync($"An unexpected background error occurred.\n\nDetails: {GetUserFacingExceptionMessage(ex)}", "Error");
             if (e != null) e.SetObserved();
+        }
+
+        static string GetUserFacingExceptionMessage(Exception ex)
+        {
+            var current = ex is AggregateException aggregate
+                ? aggregate.Flatten().InnerExceptions.FirstOrDefault() ?? ex
+                : ex.GetBaseException();
+
+            return string.IsNullOrWhiteSpace(current.Message)
+                ? current.GetType().Name
+                : current.Message;
         }
 
         protected async override void OnExit(ExitEventArgs e)

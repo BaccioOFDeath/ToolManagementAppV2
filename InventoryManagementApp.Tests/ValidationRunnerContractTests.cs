@@ -27,7 +27,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Audit vulnerable packages", source);
             Assert.Contains("dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive", source);
             AssertAppearsBefore(source, "Restore dependencies", "Audit vulnerable packages", "The Build and Test workflow should audit packages immediately after restore.");
-            AssertAppearsBefore(source, "Audit vulnerable packages", "Build", "The Build and Test workflow should audit packages before build/test work continues.");
+            AssertAppearsBefore(source, "Audit vulnerable packages", "- name: Build", "The Build and Test workflow should audit packages before build/test work continues.");
             AssertAppearsBefore(source, "dotnet restore InventoryManagementApp.sln", "dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive", "The workflow audit command should run after solution restore.");
             AssertAppearsBefore(source, "dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive", "dotnet build InventoryManagementApp.sln --configuration Release --no-restore", "The workflow audit command should run before the no-restore build.");
         }

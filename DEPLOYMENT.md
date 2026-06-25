@@ -45,7 +45,9 @@ Before deploying, customize the configuration:
 ```json
 {
   "Database": {
-    "Path": "inventory.db"
+    "Path": "Data/inventory.db",
+    "UseWalJournal": true,
+    "SecureFilePermissions": true
   },
   "Logging": {
     "Directory": "Logs"
@@ -69,6 +71,18 @@ Before deploying, customize the configuration:
 ```
 
 **Important**: Keep SMTP credentials secure. Consider using Windows Credential Manager or environment variables for sensitive data.
+
+For a shared server directory, use a UNC or mapped-drive database path and set `UseWalJournal` and `SecureFilePermissions` to `false`:
+
+```json
+{
+  "Database": {
+    "Path": "\\\\fileserver\\shared\\InventoryManagementApp\\Data\\inventory.db",
+    "UseWalJournal": false,
+    "SecureFilePermissions": false
+  }
+}
+```
 
 ### 3. Deploy to Target System
 

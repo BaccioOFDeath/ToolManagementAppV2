@@ -103,5 +103,25 @@ namespace InventoryManagementApp.Tests
                     Directory.Delete(dir, recursive: true);
             }
         }
+
+        [Fact]
+        public void EnsureDatabaseFileSecurity_WhenPermissionSecurityDisabled_CreatesFileWithoutWarning()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), "InventoryManagementAppTests", Guid.NewGuid().ToString("N"));
+            var dbPath = Path.Combine(dir, "inventory.db");
+
+            try
+            {
+                var warning = DatabaseSecurityHelper.EnsureDatabaseFileSecurity(dbPath, securePermissions: false);
+
+                Assert.True(File.Exists(dbPath));
+                Assert.Null(warning);
+            }
+            finally
+            {
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, recursive: true);
+            }
+        }
     }
 }

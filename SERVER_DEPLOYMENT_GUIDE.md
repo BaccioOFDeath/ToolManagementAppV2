@@ -48,7 +48,9 @@ Example database configuration:
 ```json
 {
   "Database": {
-    "Path": "\\\\fileserver\\shared\\InventoryManagementApp\\inventory.db"
+    "Path": "\\\\fileserver\\shared\\InventoryManagementApp\\Data\\inventory.db",
+    "UseWalJournal": false,
+    "SecureFilePermissions": false
   }
 }
 ```
@@ -58,10 +60,16 @@ For mapped drives:
 ```json
 {
   "Database": {
-    "Path": "Z:\\InventoryManagementApp\\inventory.db"
+    "Path": "Z:\\InventoryManagementApp\\Data\\inventory.db",
+    "UseWalJournal": false,
+    "SecureFilePermissions": false
   }
 }
 ```
+
+When the resolved database path is on a UNC share or mapped network drive, the application defaults `UseWalJournal` and `SecureFilePermissions` to `false`. Keep those settings explicit in deployed `appsettings.json` files so each workstation behaves the same way.
+
+If you copy the release folder to a shared directory and run the app from more than one computer, put `inventory.db` under the shared folder and point every workstation at the same path. Do not copy separate `Data/inventory.db` files to each computer unless each workstation should have its own independent inventory.
 
 ## Avoid Duplicate Reminder Emails
 

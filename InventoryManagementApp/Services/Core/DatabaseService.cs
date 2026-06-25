@@ -32,7 +32,7 @@ namespace InventoryManagementApp.Services.Core
             return conn;
         }
 
-        public DatabaseService(string dbPath, ILogger<DatabaseService>? logger = null)
+        public DatabaseService(string dbPath, ILogger<DatabaseService>? logger = null, bool secureDatabaseFile = true, bool useWalJournal = true)
         {
             _logger = logger ?? NullLogger<DatabaseService>.Instance;
 
@@ -40,7 +40,7 @@ namespace InventoryManagementApp.Services.Core
             var isInMemory = dbPath.Contains(":memory:", StringComparison.OrdinalIgnoreCase);
             if (!isInMemory)
             {
-                var securityWarning = DatabaseSecurityHelper.EnsureDatabaseFileSecurity(dbPath);
+                var securityWarning = DatabaseSecurityHelper.EnsureDatabaseFileSecurity(dbPath, secureDatabaseFile);
                 if (!string.IsNullOrWhiteSpace(securityWarning))
                     _logger.LogWarning("Database permissions warning: {Warning}", securityWarning);
             }
@@ -67,12 +67,12 @@ namespace InventoryManagementApp.Services.Core
                 _keepAliveConnection = new SqliteConnection(ConnectionString);
                 _keepAliveConnection.Open();
             }
-            ConfigureDatabase();
+            ConfigureDatabase(useWalJournal);
             InitializeDatabase();
 
             if (!isInMemory)
             {
-                var securityWarning = DatabaseSecurityHelper.EnsureDatabaseFileSecurity(dbPath);
+                var securityWarning = DatabaseSecurityHelper.EnsureDatabaseFileSecurity(dbPath, secureDatabaseFile);
                 if (!string.IsNullOrWhiteSpace(securityWarning))
                     _logger.LogWarning("Database permissions warning: {Warning}", securityWarning);
             }
@@ -106,11 +106,12 @@ namespace InventoryManagementApp.Services.Core
             Dispose(false);
         }
 
-        void ConfigureDatabase()
+        void ConfigureDatabase(bool useWalJournal)
         {
             using var conn = new SqliteConnection(ConnectionString);
             conn.Open();
-            using var cmd = new SqliteCommand("PRAGMA journal_mode=WAL;", conn);
+            var journalMode = useWalJournal ? "WAL" : "DELETE";
+            using var cmd = new SqliteCommand($"PRAGMA journal_mode={journalMode};", conn);
             cmd.ExecuteNonQuery();
             using var timeout = new SqliteCommand($"PRAGMA busy_timeout={BusyTimeoutMilliseconds};", conn);
             timeout.ExecuteNonQuery();
