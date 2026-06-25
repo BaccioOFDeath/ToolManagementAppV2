@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$windowsInvalidFileNameCharacters = @(
+[char[]]$windowsInvalidFileNameCharacters = @(
     '<',
     '>',
     ':',
