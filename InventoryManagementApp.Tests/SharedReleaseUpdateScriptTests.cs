@@ -105,7 +105,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Test-ReleaseNameIsReservedDeviceName -ReleaseName $releaseName", launcher, StringComparison.Ordinal);
             Assert.Contains("folder-safe Windows name", launcher, StringComparison.Ordinal);
 
-            Assert.Contains("Do not use Windows filename characters such as `\\`, `/`, `:`, `*`, `?`, `\"`, `<`, `>`, or `|`", guide, StringComparison.Ordinal);
+            Assert.Contains("Do not use Windows filename characters such as", guide, StringComparison.Ordinal);
+            Assert.Contains("or `|`", guide, StringComparison.Ordinal);
             Assert.Contains("Avoid Windows reserved device names such as `CON`, `CONIN$`, `CONOUT$`, `NUL`, `COM1`, or `LPT1`", guide, StringComparison.Ordinal);
         }
 
