@@ -15,6 +15,11 @@
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
         </Style>
+        <Style x:Key="UserStatValueText" TargetType="TextBlock" BasedOn="{StaticResource HeadingTextBlock}">
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="MinHeight" Value="24"/>
+        </Style>
     </Page.Resources>
 
     <Grid Margin="4">
@@ -55,28 +60,28 @@
             <Border Grid.Column="0" Style="{StaticResource UserStatCard}">
                 <StackPanel>
                     <TextBlock Text="Visible Users" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding Users.Count}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="{Binding Users.Count}" Style="{StaticResource UserStatValueText}"/>
                     <TextBlock Text="Rows matching the current account search" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="1" Style="{StaticResource UserStatCard}">
                 <StackPanel>
                     <TextBlock Text="Directory Filter" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding UserSearchText, TargetNullValue=All accounts}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding UserSearchText, TargetNullValue=All accounts}" Style="{StaticResource UserStatValueText}"/>
                     <TextBlock Text="Search by user, role, contact, or access summary before printing" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="2" Style="{StaticResource UserStatCard}">
                 <StackPanel>
                     <TextBlock Text="Selected Access" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding SelectedUser.AccessSummary, TargetNullValue=No account selected}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding SelectedUser.AccessSummary, TargetNullValue=No account selected}" Style="{StaticResource UserStatValueText}"/>
                     <TextBlock Text="Review allowed app areas before editing permissions" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="3" Style="{StaticResource UserStatCard}" Margin="0">
                 <StackPanel>
                     <TextBlock Text="Security State" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding SelectedUser.LockoutStatus, TargetNullValue=Select a user}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding SelectedUser.LockoutStatus, TargetNullValue=Select a user}" Style="{StaticResource UserStatValueText}"/>
                     <TextBlock Text="Password reset, lockout, and active-status context" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
