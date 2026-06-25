@@ -8,6 +8,8 @@ $ErrorActionPreference = "Stop"
 
 $windowsReservedDeviceNames = @(
     "CON",
+    "CONIN$",
+    "CONOUT$",
     "PRN",
     "AUX",
     "NUL",
