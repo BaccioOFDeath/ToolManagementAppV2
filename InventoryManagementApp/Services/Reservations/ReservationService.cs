@@ -185,6 +185,8 @@ namespace InventoryManagementApp.Services.Reservations
 
         public async Task<int> CreateReservationAsync(Reservation reservation)
         {
+            ValidateReservation(reservation, requireExistingId: false);
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -203,8 +205,8 @@ namespace InventoryManagementApp.Services.Reservations
                 cmd.Parameters.AddWithValue("@StartDate", reservation.StartDate);
                 cmd.Parameters.AddWithValue("@EndDate", reservation.EndDate);
                 cmd.Parameters.AddWithValue("@Quantity", reservation.Quantity);
-                cmd.Parameters.AddWithValue("@Status", reservation.Status);
-                cmd.Parameters.AddWithValue("@Notes", reservation.Notes);
+                cmd.Parameters.AddWithValue("@Status", NormalizeStatus(reservation.Status));
+                cmd.Parameters.AddWithValue("@Notes", ToDbNullableText(reservation.Notes));
                 cmd.Parameters.AddWithValue("@CreatedByUserID", _userContext.CurrentUser?.UserID ?? 0);
                 cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
                 var id = Convert.ToInt32(cmd.ExecuteScalar());
@@ -214,6 +216,8 @@ namespace InventoryManagementApp.Services.Reservations
 
         public async Task<bool> UpdateReservationAsync(Reservation reservation)
         {
+            ValidateReservation(reservation, requireExistingId: true);
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -235,8 +239,8 @@ namespace InventoryManagementApp.Services.Reservations
                 cmd.Parameters.AddWithValue("@StartDate", reservation.StartDate);
                 cmd.Parameters.AddWithValue("@EndDate", reservation.EndDate);
                 cmd.Parameters.AddWithValue("@Quantity", reservation.Quantity);
-                cmd.Parameters.AddWithValue("@Status", reservation.Status);
-                cmd.Parameters.AddWithValue("@Notes", reservation.Notes);
+                cmd.Parameters.AddWithValue("@Status", NormalizeStatus(reservation.Status));
+                cmd.Parameters.AddWithValue("@Notes", ToDbNullableText(reservation.Notes));
                 cmd.Parameters.AddWithValue("@RentalID", reservation.RentalID.HasValue ? (object)reservation.RentalID.Value : DBNull.Value);
                 return cmd.ExecuteNonQuery() > 0;
             });
@@ -244,6 +248,9 @@ namespace InventoryManagementApp.Services.Reservations
 
         public async Task<bool> ConfirmReservationAsync(int reservationID)
         {
+            if (reservationID < 1)
+                throw new ArgumentOutOfRangeException(nameof(reservationID), "Reservation ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -256,6 +263,9 @@ namespace InventoryManagementApp.Services.Reservations
 
         public async Task<bool> CancelReservationAsync(int reservationID)
         {
+            if (reservationID < 1)
+                throw new ArgumentOutOfRangeException(nameof(reservationID), "Reservation ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -268,6 +278,11 @@ namespace InventoryManagementApp.Services.Reservations
 
         public async Task<bool> FulfillReservationAsync(int reservationID, int rentalID)
         {
+            if (reservationID < 1)
+                throw new ArgumentOutOfRangeException(nameof(reservationID), "Reservation ID must be greater than 0.");
+            if (rentalID < 1)
+                throw new ArgumentOutOfRangeException(nameof(rentalID), "Rental ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -281,6 +296,9 @@ namespace InventoryManagementApp.Services.Reservations
 
         public async Task<bool> DeleteReservationAsync(int reservationID)
         {
+            if (reservationID < 1)
+                throw new ArgumentOutOfRangeException(nameof(reservationID), "Reservation ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -293,6 +311,13 @@ namespace InventoryManagementApp.Services.Reservations
 
         public async Task<bool> CheckAvailabilityAsync(int itemID, DateTime startDate, DateTime endDate, int quantity)
         {
+            if (itemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
+            if (quantity < 1)
+                throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than 0.");
+            if (endDate < startDate)
+                throw new ArgumentException("End date must be on or after start date.", nameof(endDate));
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -341,6 +366,32 @@ namespace InventoryManagementApp.Services.Reservations
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
                 RentalID = reader.IsDBNull(reader.GetOrdinal("RentalID")) ? null : reader.GetInt32(reader.GetOrdinal("RentalID"))
             };
+        }
+
+        private static void ValidateReservation(Reservation reservation, bool requireExistingId)
+        {
+            if (reservation == null)
+                throw new ArgumentNullException(nameof(reservation));
+            if (requireExistingId && reservation.ReservationID < 1)
+                throw new ArgumentOutOfRangeException(nameof(reservation.ReservationID), "Reservation ID must be greater than 0.");
+            if (reservation.ItemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(reservation.ItemID), "Item ID must be greater than 0.");
+            if (reservation.CustomerID < 1)
+                throw new ArgumentOutOfRangeException(nameof(reservation.CustomerID), "Customer ID must be greater than 0.");
+            if (reservation.Quantity < 1)
+                throw new ArgumentOutOfRangeException(nameof(reservation.Quantity), "Quantity must be greater than 0.");
+            if (reservation.EndDate < reservation.StartDate)
+                throw new ArgumentException("End date must be on or after start date.", nameof(reservation.EndDate));
+        }
+
+        private static string NormalizeStatus(string? status)
+        {
+            return string.IsNullOrWhiteSpace(status) ? "Pending" : status.Trim();
+        }
+
+        private static object ToDbNullableText(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
         }
     }
 }

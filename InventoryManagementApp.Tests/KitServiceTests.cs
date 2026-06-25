@@ -196,5 +196,54 @@ namespace InventoryManagementApp.Tests
 
             Assert.True(result);
         }
+
+        [Fact]
+        public async Task CreateKit_WithBlankName_ShouldThrow()
+        {
+            var kit = new Kit
+            {
+                KitNumber = "KIT-009",
+                Name = " ",
+                IsActive = true
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _kitService.CreateKitAsync(kit));
+        }
+
+        [Fact]
+        public async Task CreateKit_ShouldTrimRequiredFieldsAndPersistEmptyOptionalFieldsAsEmptyStrings()
+        {
+            var kit = new Kit
+            {
+                KitNumber = " KIT-010 ",
+                Name = " Trimmed Kit ",
+                Description = " ",
+                Category = null!,
+                IsActive = true
+            };
+
+            var id = await _kitService.CreateKitAsync(kit);
+
+            var saved = await _kitService.GetKitByIdAsync(id);
+            Assert.NotNull(saved);
+            Assert.Equal("KIT-010", saved.KitNumber);
+            Assert.Equal("Trimmed Kit", saved.Name);
+            Assert.Equal(string.Empty, saved.Description);
+            Assert.Equal(string.Empty, saved.Category);
+        }
+
+        [Fact]
+        public async Task AddKitItem_WithZeroQuantity_ShouldThrow()
+        {
+            var kitItem = new KitItem
+            {
+                KitID = 1,
+                ItemID = 1,
+                Quantity = 0,
+                IsOptional = false
+            };
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _kitService.AddKitItemAsync(kitItem));
+        }
     }
 }

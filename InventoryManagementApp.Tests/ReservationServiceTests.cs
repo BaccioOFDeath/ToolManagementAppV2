@@ -193,5 +193,50 @@ namespace InventoryManagementApp.Tests
 
             Assert.True(result);
         }
+
+        [Fact]
+        public async Task CreateReservation_WithEndDateBeforeStartDate_ShouldThrow()
+        {
+            var reservation = new Reservation
+            {
+                ItemID = 1,
+                CustomerID = 1,
+                StartDate = DateTime.Today.AddDays(3),
+                EndDate = DateTime.Today.AddDays(2),
+                Quantity = 1,
+                Status = "Pending"
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() => _reservationService.CreateReservationAsync(reservation));
+        }
+
+        [Fact]
+        public async Task CreateReservation_WithBlankStatus_ShouldDefaultToPending()
+        {
+            var reservation = new Reservation
+            {
+                ItemID = 1,
+                CustomerID = 1,
+                StartDate = DateTime.Today.AddDays(1),
+                EndDate = DateTime.Today.AddDays(2),
+                Quantity = 1,
+                Status = "  ",
+                Notes = "  "
+            };
+
+            var id = await _reservationService.CreateReservationAsync(reservation);
+
+            var saved = await _reservationService.GetReservationByIdAsync(id);
+            Assert.NotNull(saved);
+            Assert.Equal("Pending", saved.Status);
+            Assert.Equal(string.Empty, saved.Notes);
+        }
+
+        [Fact]
+        public async Task CheckAvailability_WithInvalidQuantity_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+                () => _reservationService.CheckAvailabilityAsync(1, DateTime.Today, DateTime.Today.AddDays(1), 0));
+        }
     }
 }
