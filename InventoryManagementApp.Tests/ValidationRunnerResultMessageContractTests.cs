@@ -27,6 +27,27 @@ namespace InventoryManagementApp.Tests
             AssertAppearsBefore(source, "Check banned words PowerShell fallback", "if ($SkipPublish)", "The full validation path should finish the forced fallback scan before printing the final result message.");
         }
 
+        [Fact]
+        public void ValidationRunnerEmitsResultMessagesOutsidePublishOnlyBranch()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+            var publishValidationBlock = ExtractBracedBlock(source, "if (-not $SkipPublish)");
+
+            Assert.DoesNotContain("Compile-and-test validation completed successfully.", publishValidationBlock);
+            Assert.DoesNotContain("Full validation completed successfully.", publishValidationBlock);
+            AssertAppearsBefore(source, "if (-not $SkipPublish)", "if ($SkipPublish)", "Both validation paths should share the final result-message branch after release-only checks finish.");
+        }
+
+        [Fact]
+        public void SkipPublishResultMessageDoesNotClaimFullReleaseValidation()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+            var resultMessageBlock = ExtractBracedBlock(source, "if ($SkipPublish)");
+
+            Assert.Contains("Compile-and-test validation completed successfully.", resultMessageBlock);
+            Assert.DoesNotContain("Full validation completed successfully.", resultMessageBlock);
+        }
+
         private static void AssertAppearsBefore(string source, string first, string second, string because)
         {
             var firstIndex = source.IndexOf(first, StringComparison.Ordinal);
@@ -35,6 +56,29 @@ namespace InventoryManagementApp.Tests
             Assert.True(firstIndex >= 0, $"Expected to find '{first}'.");
             Assert.True(secondIndex >= 0, $"Expected to find '{second}'.");
             Assert.True(firstIndex < secondIndex, because);
+        }
+
+        private static string ExtractBracedBlock(string source, string marker)
+        {
+            var markerIndex = source.IndexOf(marker, StringComparison.Ordinal);
+            Assert.True(markerIndex >= 0, $"Expected to find '{marker}'.");
+
+            var openIndex = source.IndexOf('{', markerIndex);
+            Assert.True(openIndex >= 0, $"Expected '{marker}' to start a braced block.");
+
+            var depth = 0;
+            for (var index = openIndex; index < source.Length; index++)
+            {
+                if (source[index] == '{')
+                    depth++;
+                else if (source[index] == '}')
+                    depth--;
+
+                if (depth == 0)
+                    return source.Substring(openIndex + 1, index - openIndex - 1);
+            }
+
+            throw new InvalidOperationException($"Could not find the end of the '{marker}' block.");
         }
 
         private static string ReadRepoFile(params string[] parts)
