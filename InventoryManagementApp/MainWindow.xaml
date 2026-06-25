@@ -8,6 +8,28 @@
         WindowState="Maximized"
         Background="{DynamicResource BackgroundBrush}"
         FontFamily="{DynamicResource ThemeFontFamily}">
+    <Window.Resources>
+        <Style x:Key="ShellTitleButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -34,10 +56,19 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Width="250" MinWidth="210" VerticalAlignment="Center" Margin="0,0,14,0">
-                    <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="Workshop inventory and rental control" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
-                </StackPanel>
+                <Button Grid.Column="0"
+                        Style="{StaticResource ShellTitleButton}"
+                        Command="{Binding OpenDashboardCommand}"
+                        ToolTip="Open dashboard"
+                        Width="250"
+                        MinWidth="210"
+                        VerticalAlignment="Center"
+                        Margin="0,0,14,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Workshop inventory and rental control" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Button>
 
                 <pages:SearchBar Grid.Column="1"
                                  MinWidth="320"

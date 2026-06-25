@@ -5,8 +5,8 @@
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Import {0} Pictures'}"
-        Width="760" Height="500"
-        MinWidth="700" MinHeight="460"
+        Width="760" Height="540"
+        MinWidth="700" MinHeight="520"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="14">
