@@ -147,6 +147,26 @@ function Copy-CurrentReleaseLauncher {
     Copy-Item -LiteralPath $launcherSourcePath -Destination $launcherDestinationPath -Force
 }
 
+function Set-CurrentReleaseMarker {
+    param(
+        [Parameter(Mandatory = $true)][string]$ReleaseName
+    )
+
+    $markerDirectory = Split-Path -Parent $currentReleaseMarker
+    $temporaryMarker = Join-Path $markerDirectory ("current-release.{0}.tmp" -f [System.Guid]::NewGuid().ToString("N"))
+
+    try {
+        Set-Content -LiteralPath $temporaryMarker -Value $ReleaseName -Encoding UTF8
+        Move-Item -LiteralPath $temporaryMarker -Destination $currentReleaseMarker -Force
+    } catch {
+        if (Test-Path -LiteralPath $temporaryMarker) {
+            Remove-Item -LiteralPath $temporaryMarker -Force
+        }
+
+        throw
+    }
+}
+
 function Copy-ReleaseConfiguration {
     param(
         [Parameter(Mandatory = $true)][string]$ReleasePath
@@ -217,7 +237,7 @@ if ($DeploymentMode -eq "SideBySide") {
     Link-PreservedDirectoriesToRelease -ReleasePath $releasePath
     Copy-CurrentReleaseLauncher
 
-    Set-Content -LiteralPath $currentReleaseMarker -Value $ReleaseName -Encoding UTF8
+    Set-CurrentReleaseMarker -ReleaseName $ReleaseName
     Write-Host "Side-by-side release staged. Running users can finish in their current copy; restart shortcuts should launch _releases\$ReleaseName with shared data folders linked from $destinationPath."
     return
 }
