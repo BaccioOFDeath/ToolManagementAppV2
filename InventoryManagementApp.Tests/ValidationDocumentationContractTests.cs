@@ -7,6 +7,28 @@ namespace InventoryManagementApp.Tests
     public class ValidationDocumentationContractTests
     {
         [Fact]
+        public void ReadmeDocumentsValidationRunnerAsPrimaryEntryPoint()
+        {
+            var source = ReadRepoFile("README.md");
+            const string currentStatusGuidance = "Use the checked-in validation runner for the current restore/build/test/publish/check sequence:";
+            const string developmentGuidance = "Validation commands from the repository root:";
+            const string fullRunnerCommand = "pwsh -File scripts/run-full-validation.ps1";
+            const string skipPublishCommand = "pwsh -File scripts/run-full-validation.ps1 -SkipPublish";
+            const string skipPublishGuidance = "For a faster compile-and-test pass without publishing or source scan checks:";
+            const string manualEquivalent = "Manual equivalent:";
+
+            Assert.Contains(currentStatusGuidance, source);
+            Assert.Contains(developmentGuidance, source);
+            Assert.Contains(fullRunnerCommand, source);
+            Assert.Contains(skipPublishGuidance, source);
+            Assert.Contains(skipPublishCommand, source);
+            Assert.Contains(manualEquivalent, source);
+            AssertAppearsBefore(source, currentStatusGuidance, fullRunnerCommand, "The README should present the checked-in validation runner as the current validation entrypoint.");
+            AssertAppearsBeforeAfter(source, developmentGuidance, fullRunnerCommand, manualEquivalent, "The Development section should point maintainers to the runner before listing manual commands.");
+            AssertAppearsBefore(source, skipPublishGuidance, skipPublishCommand, "The README should document the fast compile-and-test checkpoint with the explicit SkipPublish command.");
+        }
+
+        [Fact]
         public void ReadmeManualValidationAuditsVulnerablePackagesAfterRestoreBeforeBuild()
         {
             var source = ReadRepoFile("README.md");
@@ -82,6 +104,19 @@ namespace InventoryManagementApp.Tests
 
             Assert.True(firstIndex >= 0, $"Expected to find '{first}'.");
             Assert.True(secondIndex >= 0, $"Expected to find '{second}'.");
+            Assert.True(firstIndex < secondIndex, because);
+        }
+
+        private static void AssertAppearsBeforeAfter(string source, string anchor, string first, string second, string because)
+        {
+            var anchorIndex = source.IndexOf(anchor, StringComparison.Ordinal);
+            Assert.True(anchorIndex >= 0, $"Expected to find '{anchor}'.");
+
+            var firstIndex = source.IndexOf(first, anchorIndex, StringComparison.Ordinal);
+            var secondIndex = source.IndexOf(second, anchorIndex, StringComparison.Ordinal);
+
+            Assert.True(firstIndex >= 0, $"Expected to find '{first}' after '{anchor}'.");
+            Assert.True(secondIndex >= 0, $"Expected to find '{second}' after '{anchor}'.");
             Assert.True(firstIndex < secondIndex, because);
         }
 
