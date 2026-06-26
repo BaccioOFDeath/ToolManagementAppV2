@@ -58,6 +58,9 @@ public sealed class ItemRepository : IItemRepository
     public async Task<Item?> GetByIdAsync(int id, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+        if (id < 1)
+            throw new ArgumentOutOfRangeException(nameof(id), "Item ID must be greater than 0.");
+
         var sql = $@"SELECT {ItemProjection} FROM Items WHERE ItemID=@ID";
         await using var conn = (DbConnection)_factory.Create();
         return await conn.QueryFirstOrDefaultAsync<Item>(new CommandDefinition(sql, new { ID = id }, cancellationToken: ct)).ConfigureAwait(false);
@@ -114,6 +117,12 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task UpdateAsync(Item item, CancellationToken ct)
     {
+        if (item is null)
+            throw new ArgumentNullException(nameof(item));
+        ct.ThrowIfCancellationRequested();
+        if (item.ItemID < 1)
+            throw new ArgumentOutOfRangeException(nameof(item), "Item ID must be greater than 0.");
+
         const string sql = @"UPDATE Items SET
                   ItemNumber = @ItemNumber,
                   NameDescription = @Name,
@@ -173,6 +182,10 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task DeleteAsync(int itemID, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+        if (itemID < 1)
+            throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
+
         await using var conn = (DbConnection)_factory.Create();
         var rows = await conn.ExecuteAsync(new CommandDefinition("DELETE FROM Items WHERE ItemID=@ID", new { ID = itemID }, cancellationToken: ct));
         if (rows == 0)
@@ -181,6 +194,10 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task<bool> ToggleCheckOutStatusAsync(int itemID, string currentUser, bool isAdmin, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+        if (itemID < 1)
+            throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
+
         await using var conn = (DbConnection)_factory.Create();
         var record = await conn.QueryFirstOrDefaultAsync<(bool Rental, bool Out, int Qty, string? By)>(new CommandDefinition(
             "SELECT IsRentalItem as Rental, IsCheckedOut as Out, AvailableQuantity as Qty, CheckedOutBy as By FROM Items WHERE ItemID=@ID",
@@ -244,6 +261,10 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+        if (itemID < 1)
+            throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
+
         await using var conn = (DbConnection)_factory.Create();
         var rows = await conn.ExecuteAsync(new CommandDefinition("UPDATE Items SET ImagePath=@Img WHERE ItemID=@ID", new { Img = imagePath, ID = itemID }, cancellationToken: ct));
         if (rows == 0)
