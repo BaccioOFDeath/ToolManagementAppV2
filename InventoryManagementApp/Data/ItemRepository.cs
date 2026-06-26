@@ -90,6 +90,10 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task<int> InsertAsync(Item item, CancellationToken ct)
     {
+        if (item is null)
+            throw new ArgumentNullException(nameof(item));
+        ct.ThrowIfCancellationRequested();
+
         const string sql = @"INSERT INTO Items (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, IsPowered, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount)
                              VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@Price,@ImagePath,0,@IsPowered,0,'','',0);
                              SELECT last_insert_rowid();";
@@ -245,6 +249,7 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task<List<Item>> GetItemsCheckedOutByAsync(string userName, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         var sql = $@"SELECT {ItemProjection} FROM Items WHERE CheckedOutBy=@User AND IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0";
         await using var conn = (DbConnection)_factory.Create();
         var items = await conn.QueryAsync<Item>(new CommandDefinition(sql, new { User = userName }, cancellationToken: ct)).ConfigureAwait(false);
@@ -253,6 +258,7 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task<List<Item>> GetCheckedOutItemsAsync(CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         var sql = $@"SELECT {ItemProjection} FROM Items WHERE IsCheckedOut=1 AND IFNULL(IsRentalItem,0)=0";
         await using var conn = (DbConnection)_factory.Create();
         var items = await conn.QueryAsync<Item>(new CommandDefinition(sql, cancellationToken: ct)).ConfigureAwait(false);
@@ -289,6 +295,7 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task<List<Item>> GetIncompleteItemsAsync(CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
         var sql = $@"SELECT {ItemProjection}
             FROM Items
             WHERE IsIncomplete = 1";
