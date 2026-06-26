@@ -1,11 +1,20 @@
 param(
-    [string]$Destination = "X:\V2",
+    [string]$Destination,
     [string]$ExecutableName = "InventoryManagementApp.exe",
     [string[]]$ArgumentList = @(),
     [switch]$AllowMultipleInstances
 )
 
 $ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($Destination)) {
+    if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) {
+        throw "Destination was not supplied and the launcher script location could not be resolved."
+    }
+
+    $scriptDirectory = Split-Path -Parent $PSCommandPath
+    $Destination = Split-Path -Parent $scriptDirectory
+}
 
 [char[]]$windowsInvalidFileNameCharacters = @(
     '<',

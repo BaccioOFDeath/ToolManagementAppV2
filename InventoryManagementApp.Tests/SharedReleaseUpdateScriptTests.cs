@@ -134,6 +134,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("$launcherSourcePath = Join-Path $PSScriptRoot \"start-current-release.ps1\"", script, StringComparison.Ordinal);
             Assert.Contains("$launcherDestinationDirectory = Join-Path $destinationPath \"scripts\"", script, StringComparison.Ordinal);
             Assert.Contains("$launcherDestinationPath = Join-Path $launcherDestinationDirectory \"start-current-release.ps1\"", script, StringComparison.Ordinal);
+            Assert.Contains("$launcherCommandDestinationPath = Join-Path $destinationPath \"Start Inventory Management.cmd\"", script, StringComparison.Ordinal);
             Assert.Contains("$appIconSourcePath = Join-Path $sourcePath \"Resources\\AppIcon.ico\"", script, StringComparison.Ordinal);
             Assert.Contains("$appIconDestinationPath = Join-Path $appIconDestinationDirectory \"AppIcon.ico\"", script, StringComparison.Ordinal);
             Assert.Contains("$databasePath = Join-Path $dataPath \"inventory.db\"", script, StringComparison.Ordinal);
@@ -145,6 +146,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Ensure-JsonProperty -Object $config.Logging -Name \"Directory\" -Value $logsPath", script, StringComparison.Ordinal);
             Assert.Contains("Current release launcher was not found at $launcherSourcePath.", script, StringComparison.Ordinal);
             Assert.Contains("Copy-Item -LiteralPath $launcherSourcePath -Destination $launcherDestinationPath -Force", script, StringComparison.Ordinal);
+            Assert.Contains("powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"\"%~dp0scripts\\start-current-release.ps1\"\" %*", script, StringComparison.Ordinal);
+            Assert.Contains("Set-Content -LiteralPath $launcherCommandDestinationPath -Value $launcherCommand -Encoding ASCII", script, StringComparison.Ordinal);
             Assert.Contains("Copy-Item -LiteralPath $appIconSourcePath -Destination $appIconDestinationPath -Force", script, StringComparison.Ordinal);
             Assert.Contains("Set-DeploymentConfigurations -AppPath $ReleasePath", script, StringComparison.Ordinal);
             Assert.Contains("Set-DeploymentConfigurations -AppPath $destinationPath", script, StringComparison.Ordinal);
@@ -165,8 +168,12 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("$releaseExecutablePath = Join-Path (Join-Path (Join-Path $destinationPath \"_releases\") $currentRelease.Trim()) \"InventoryManagementApp.exe\"", script, StringComparison.Ordinal);
             Assert.Contains("$appIconPath = Join-Path $destinationPath \"Resources\\AppIcon.ico\"", script, StringComparison.Ordinal);
             Assert.Contains("[switch]$PointToSharedShortcut", script, StringComparison.Ordinal);
-            Assert.Contains("$shortcut.TargetPath = Convert-ToUncPathIfMappedDrive -Path $targetPath", script, StringComparison.Ordinal);
-            Assert.Contains("$shortcut.IconLocation = \"$(Convert-ToUncPathIfMappedDrive -Path $iconPath),0\"", script, StringComparison.Ordinal);
+            Assert.Contains("[switch]$UseUncPaths", script, StringComparison.Ordinal);
+            Assert.Contains("function Convert-ToShortcutPath", script, StringComparison.Ordinal);
+            Assert.Contains("if ($UseUncPaths)", script, StringComparison.Ordinal);
+            Assert.Contains("$shortcut.TargetPath = Convert-ToShortcutPath -Path $targetPath", script, StringComparison.Ordinal);
+            Assert.Contains("$shortcut.WorkingDirectory = Convert-ToShortcutPath -Path $workingDirectory", script, StringComparison.Ordinal);
+            Assert.Contains("$shortcut.IconLocation = \"$(Convert-ToShortcutPath -Path $iconPath),0\"", script, StringComparison.Ordinal);
             Assert.Contains("InventoryManagementApp.exe", script, StringComparison.Ordinal);
             Assert.DoesNotContain("-ExecutionPolicy Bypass", script, StringComparison.Ordinal);
             Assert.DoesNotContain("-WindowStyle Hidden", script, StringComparison.Ordinal);
@@ -177,6 +184,8 @@ namespace InventoryManagementApp.Tests
         {
             var launcher = ReadRepositoryFile("scripts", "start-current-release.ps1");
 
+            Assert.Contains("[string]$Destination", launcher, StringComparison.Ordinal);
+            Assert.Contains("$Destination = Split-Path -Parent $scriptDirectory", launcher, StringComparison.Ordinal);
             Assert.Contains("$ExecutableName = \"InventoryManagementApp.exe\"", launcher, StringComparison.Ordinal);
             Assert.Contains("$currentReleaseMarker = Join-Path $destinationPath \"current-release.txt\"", launcher, StringComparison.Ordinal);
             Assert.Contains("Get-Content -LiteralPath $currentReleaseMarker", launcher, StringComparison.Ordinal);
@@ -258,7 +267,10 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("current-release.txt", guide, StringComparison.Ordinal);
             Assert.Contains("Inventory Management.lnk", guide, StringComparison.Ordinal);
             Assert.Contains("points directly at `X:\\V2\\_releases\\<ReleaseName>\\InventoryManagementApp.exe`", guide, StringComparison.Ordinal);
-            Assert.Contains("not at PowerShell", guide, StringComparison.Ordinal);
+            Assert.Contains("Start Inventory Management.cmd", guide, StringComparison.Ordinal);
+            Assert.Contains("resolves the app relative to the folder it is in", guide, StringComparison.Ordinal);
+            Assert.Contains("-UseUncPaths", guide, StringComparison.Ordinal);
+            Assert.Contains("different drive letters", guide, StringComparison.Ordinal);
             Assert.Contains("database migration", guide, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("links the release-local data, photo, theme, and log folders back to the shared destination folders", guide, StringComparison.Ordinal);
         }

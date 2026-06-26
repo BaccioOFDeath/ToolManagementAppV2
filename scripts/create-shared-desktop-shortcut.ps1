@@ -2,7 +2,8 @@ param(
     [string]$Destination = "X:\V2",
     [string]$ShortcutName = "Inventory Management",
     [string]$ShortcutDirectory = ([Environment]::GetFolderPath("Desktop")),
-    [switch]$PointToSharedShortcut
+    [switch]$PointToSharedShortcut,
+    [switch]$UseUncPaths
 )
 
 $ErrorActionPreference = "Stop"
@@ -31,6 +32,18 @@ function Convert-ToUncPathIfMappedDrive {
             $relativePath = $Path.Substring($root.Length)
             return (Join-Path $drives.Item($i + 1) $relativePath)
         }
+    }
+
+    return $Path
+}
+
+function Convert-ToShortcutPath {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+
+    if ($UseUncPaths) {
+        return Convert-ToUncPathIfMappedDrive -Path $Path
     }
 
     return $Path
@@ -93,11 +106,11 @@ if ([string]::IsNullOrWhiteSpace($iconPath)) {
 
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($shortcutPath)
-$shortcut.TargetPath = Convert-ToUncPathIfMappedDrive -Path $targetPath
+$shortcut.TargetPath = Convert-ToShortcutPath -Path $targetPath
 $shortcut.Arguments = ""
-$shortcut.WorkingDirectory = Convert-ToUncPathIfMappedDrive -Path $workingDirectory
+$shortcut.WorkingDirectory = Convert-ToShortcutPath -Path $workingDirectory
 if (-not [string]::IsNullOrWhiteSpace($iconPath)) {
-    $shortcut.IconLocation = "$(Convert-ToUncPathIfMappedDrive -Path $iconPath),0"
+    $shortcut.IconLocation = "$(Convert-ToShortcutPath -Path $iconPath),0"
 }
 $shortcut.Description = "Launches Inventory Management from $destinationPath."
 $shortcut.Save()

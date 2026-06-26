@@ -101,8 +101,8 @@ Recommended active-user update flow:
 
    Use a folder-safe Windows release name that does not end with a dot or space. Do not use Windows filename characters such as `\`, `/`, `:`, `*`, `?`, `"`, `<`, `>`, or `|`. Avoid Windows reserved device names such as `CON`, `CONIN$`, `CONOUT$`, `NUL`, `COM1`, or `LPT1`, because those names are invalid deployment folder targets on Windows.
 
-   The update script also refreshes the launcher at `X:\V2\scripts\start-current-release.ps1` so shared shortcuts can target the deployed folder instead of depending on a repository checkout.
-3. Use `X:\V2\Inventory Management.lnk` as the shared shortcut. The publish script refreshes this shortcut so it points directly at `X:\V2\_releases\<ReleaseName>\InventoryManagementApp.exe`; user shortcuts should point at the shared shortcut, not at PowerShell.
+   The update script also refreshes the launcher at `X:\V2\scripts\start-current-release.ps1` and writes `X:\V2\Start Inventory Management.cmd`. The command launcher resolves the app relative to the folder it is in, so it works even when different workstations map the share to different drive letters.
+3. For mixed workstation mappings, have users run `Start Inventory Management.cmd` from the shared `V2` folder or create each user's desktop shortcut from their own workstation. If every workstation uses the same mapping, `X:\V2\Inventory Management.lnk` can also be used. The publish script refreshes that shortcut so it points directly at `X:\V2\_releases\<ReleaseName>\InventoryManagementApp.exe`.
 4. Ask users to restart the app when convenient. Users already running the previous release can continue current rentals/check-ins because the SQLite database and preserved asset folders remain shared. When an older side-by-side release reaches the login screen after `current-release.txt` has moved forward, it shows an update message asking the user to close and reopen the app.
 5. After confirming nobody is running older release folders, prune old releases and backups with the cleanup helper:
 
@@ -118,7 +118,9 @@ To create or refresh the desktop shortcut after a publish, run:
 ./scripts/create-shared-desktop-shortcut.ps1 -Destination X:\V2
 ```
 
-Run it on the server with `-ShortcutDirectory X:\V2` to refresh the shared shortcut. Run it on a workstation with `-PointToSharedShortcut` to create a desktop shortcut that opens the shared shortcut without using hidden PowerShell.
+Run it on the server with `-ShortcutDirectory X:\V2` to refresh the shared shortcut. Run it on a workstation with `-PointToSharedShortcut` to create a desktop shortcut that opens the shared shortcut without using hidden PowerShell. When computers use different drive letters, prefer the root `Start Inventory Management.cmd` launcher instead of a shared `.lnk`.
+
+If a site prefers direct UNC shortcuts, add `-UseUncPaths`. Do not use that switch when users can open the mapped drive but Windows prompts for credentials to `\\ServerName`.
 
 In side-by-side mode, the script copies the preserved `appsettings.json` into the staged release and links the release-local data, photo, theme, and log folders back to the shared destination folders. That keeps versioned binaries isolated while the operational SQLite database, uploaded photos, theme files, and logs continue to use the shared location.
 

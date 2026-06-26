@@ -30,6 +30,7 @@ $currentReleaseMarker = Join-Path $destinationPath "current-release.txt"
 $launcherSourcePath = Join-Path $PSScriptRoot "start-current-release.ps1"
 $launcherDestinationDirectory = Join-Path $destinationPath "scripts"
 $launcherDestinationPath = Join-Path $launcherDestinationDirectory "start-current-release.ps1"
+$launcherCommandDestinationPath = Join-Path $destinationPath "Start Inventory Management.cmd"
 $appIconSourcePath = Join-Path $sourcePath "Resources\AppIcon.ico"
 $appIconDestinationDirectory = Join-Path $destinationPath "Resources"
 $appIconDestinationPath = Join-Path $appIconDestinationDirectory "AppIcon.ico"
@@ -172,6 +173,12 @@ function Copy-CurrentReleaseLauncher {
 
     New-Item -ItemType Directory -Path $launcherDestinationDirectory -Force | Out-Null
     Copy-Item -LiteralPath $launcherSourcePath -Destination $launcherDestinationPath -Force
+
+    $launcherCommand = @(
+        "@echo off",
+        "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""%~dp0scripts\start-current-release.ps1"" %*"
+    )
+    Set-Content -LiteralPath $launcherCommandDestinationPath -Value $launcherCommand -Encoding ASCII
 }
 
 function Copy-AppIcon {

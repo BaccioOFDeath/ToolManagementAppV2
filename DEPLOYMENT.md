@@ -116,6 +116,8 @@ For repeat updates during the day, prefer the one-command side-by-side wrapper:
 
 It validates, publishes, stages a timestamped side-by-side release, updates `current-release.txt`, and lets older running copies show an update-available message on the login screen.
 
+The updater also writes `Start Inventory Management.cmd` into the shared root. Use that launcher when different workstations map the same server folder to different drive letters, because it resolves the app relative to the folder it is run from.
+
 Refresh the shared shortcut with:
 
 ```powershell
@@ -127,6 +129,8 @@ Create a workstation desktop shortcut with:
 ```powershell
 .\scripts\create-shared-desktop-shortcut.ps1 -Destination X:\V2 -PointToSharedShortcut
 ```
+
+Mapped-drive paths are preserved by default so Windows can reuse the user's existing drive mapping. Use `-UseUncPaths` only when direct UNC shortcuts are known to authenticate correctly for every workstation. When mappings differ between computers, prefer `Start Inventory Management.cmd` or create the desktop shortcut on each workstation.
 
 When the server folder has too many old side-by-side releases or pre-update backups, prune it with:
 
