@@ -71,7 +71,7 @@ namespace InventoryManagementApp.Tests
             var helpers = ExtractMethod(
                 source,
                 "private static async Task EnsureInventoryExistsAsync",
-                "    }\n\n    /// <summary>");
+                "public sealed class CategoryDto");
 
             Assert.Contains("SELECT InventoryID FROM Inventories WHERE InventoryID=@i", helpers, StringComparison.Ordinal);
             Assert.Contains("throw new InvalidOperationException($\"Inventory {inventoryId} not found.\");", helpers, StringComparison.Ordinal);
