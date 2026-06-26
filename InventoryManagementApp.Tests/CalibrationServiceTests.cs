@@ -112,6 +112,15 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task GetUpcomingCalibration_WithNegativeDays_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _calibrationService.GetUpcomingCalibrationAsync(-1));
+
+            Assert.Equal("days", ex.ParamName);
+            Assert.Contains("Days must be greater than or equal to 0.", ex.Message);
+        }
+
+        [Fact]
         public async Task UpdateCalibrationRecord_ShouldSucceed()
         {
             var record = new CalibrationRecord
