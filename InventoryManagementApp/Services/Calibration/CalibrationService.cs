@@ -133,6 +133,9 @@ namespace InventoryManagementApp.Services.Calibration
 
         public async Task<CalibrationRecord?> GetLatestCalibrationForItemAsync(int itemID)
         {
+            if (itemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -156,6 +159,9 @@ namespace InventoryManagementApp.Services.Calibration
 
         public async Task<CalibrationRecord?> GetCalibrationRecordByIdAsync(int calibrationID)
         {
+            if (calibrationID < 1)
+                throw new ArgumentOutOfRangeException(nameof(calibrationID), "Calibration ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -177,9 +183,14 @@ namespace InventoryManagementApp.Services.Calibration
 
         public async Task<int> CreateCalibrationRecordAsync(CalibrationRecord record)
         {
+            if (record.ItemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureItemExists(conn, record.ItemID);
+
                 var sql = @"
                     INSERT INTO CalibrationRecords 
                     (ItemID, CalibrationDate, NextCalibrationDue, CalibratedBy, 
@@ -207,9 +218,17 @@ namespace InventoryManagementApp.Services.Calibration
 
         public async Task<bool> UpdateCalibrationRecordAsync(CalibrationRecord record)
         {
+            if (record.CalibrationID < 1)
+                throw new ArgumentOutOfRangeException(nameof(record.CalibrationID), "Calibration ID must be greater than 0.");
+            if (record.ItemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureCalibrationRecordExists(conn, record.CalibrationID);
+                EnsureItemExists(conn, record.ItemID);
+
                 var sql = @"
                     UPDATE CalibrationRecords 
                     SET ItemID = @ItemID,
@@ -233,19 +252,30 @@ namespace InventoryManagementApp.Services.Calibration
                 cmd.Parameters.AddWithValue("@Result", record.Result);
                 cmd.Parameters.AddWithValue("@Cost", record.Cost);
                 cmd.Parameters.AddWithValue("@Notes", record.Notes);
-                return cmd.ExecuteNonQuery() > 0;
+                if (cmd.ExecuteNonQuery() == 0)
+                    throw new InvalidOperationException("Calibration record not found.");
+
+                return true;
             });
         }
 
         public async Task<bool> DeleteCalibrationRecordAsync(int calibrationID)
         {
+            if (calibrationID < 1)
+                throw new ArgumentOutOfRangeException(nameof(calibrationID), "Calibration ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureCalibrationRecordExists(conn, calibrationID);
+
                 var sql = "DELETE FROM CalibrationRecords WHERE CalibrationID = @CalibrationID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@CalibrationID", calibrationID);
-                return cmd.ExecuteNonQuery() > 0;
+                if (cmd.ExecuteNonQuery() == 0)
+                    throw new InvalidOperationException("Calibration record not found.");
+
+                return true;
             });
         }
 
@@ -268,6 +298,24 @@ namespace InventoryManagementApp.Services.Calibration
                 UserID = reader.IsDBNull(reader.GetOrdinal("UserID")) ? 0 : reader.GetInt32(reader.GetOrdinal("UserID")),
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
             };
+        }
+
+        private static void EnsureItemExists(SqliteConnection conn, int itemID)
+        {
+            using var itemCmd = new SqliteCommand("SELECT COUNT(*) FROM Items WHERE ItemID = @ItemID", conn);
+            itemCmd.Parameters.AddWithValue("@ItemID", itemID);
+            var itemCount = Convert.ToInt32(itemCmd.ExecuteScalar() ?? 0);
+            if (itemCount < 1)
+                throw new InvalidOperationException("Item not found.");
+        }
+
+        private static void EnsureCalibrationRecordExists(SqliteConnection conn, int calibrationID)
+        {
+            using var calibrationCmd = new SqliteCommand("SELECT COUNT(*) FROM CalibrationRecords WHERE CalibrationID = @CalibrationID", conn);
+            calibrationCmd.Parameters.AddWithValue("@CalibrationID", calibrationID);
+            var calibrationCount = Convert.ToInt32(calibrationCmd.ExecuteScalar() ?? 0);
+            if (calibrationCount < 1)
+                throw new InvalidOperationException("Calibration record not found.");
         }
     }
 }
