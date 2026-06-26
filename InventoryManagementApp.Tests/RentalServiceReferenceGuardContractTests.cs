@@ -30,6 +30,29 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("Convert.ToInt32(await availCmd.ExecuteScalarAsync() ?? 0)", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ReturnItemGuardsActiveRentalWriteBeforeInventorySync()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+
+            AssertContainsAll(
+                source,
+                "SELECT ItemID FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'",
+                "var returnedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, tx,",
+                "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID AND Status='Rented'",
+                "if (returnedRows == 0)",
+                "throw new InvalidOperationException(\"Rental not found or already returned.\");",
+                "await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);");
+            Assert.True(
+                source.IndexOf("UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID AND Status='Rented'", StringComparison.Ordinal) <
+                source.IndexOf("await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);", StringComparison.Ordinal),
+                "Expected rental return persistence to prove the active rental row was updated before inventory sync.");
+            Assert.True(
+                source.IndexOf("if (returnedRows == 0)", StringComparison.Ordinal) <
+                source.IndexOf("await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);", StringComparison.Ordinal),
+                "Expected stale return writes to fail before returning item quantity to stock.");
+        }
+
         private static void AssertContainsAll(string source, params string[] expectedSnippets)
         {
             foreach (var snippet in expectedSnippets)
