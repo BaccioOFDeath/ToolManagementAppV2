@@ -7,6 +7,36 @@ namespace InventoryManagementApp.Tests
     public class ActivityLogCheckoutHistoryContractTests
     {
         [Fact]
+        public void RecentLogsRejectsInvalidCountsBeforeSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
+            var method = ExtractMethod(
+                source,
+                "public virtual async Task<Result<List<ActivityLog>>> GetRecentLogsAsync",
+                "public virtual async Task<Result<List<ActivityLog>>> GetCheckoutHistoryForItemAsync");
+
+            Assert.Contains("if (count < 1)", method, StringComparison.Ordinal);
+            Assert.Contains("return new Result<List<ActivityLog>>(null, false, \"Count must be positive.\");", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("if (count < 1)", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection()", StringComparison.Ordinal),
+                "The invalid count guard should run before recent-log SQL work starts.");
+        }
+
+        [Fact]
+        public void RecentLogsStillOrdersByTimestampAndAppliesTheRequestedLimit()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
+            var method = ExtractMethod(
+                source,
+                "public virtual async Task<Result<List<ActivityLog>>> GetRecentLogsAsync",
+                "public virtual async Task<Result<List<ActivityLog>>> GetCheckoutHistoryForItemAsync");
+
+            Assert.Contains("ORDER BY Timestamp DESC", method, StringComparison.Ordinal);
+            Assert.Contains("LIMIT @Count", method, StringComparison.Ordinal);
+            Assert.Contains("new SqliteParameter(\"@Count\", count)", method, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CheckoutHistoryRejectsInvalidItemIdsBeforeSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
