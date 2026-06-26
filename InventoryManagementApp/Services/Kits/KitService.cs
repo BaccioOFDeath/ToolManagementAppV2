@@ -165,6 +165,8 @@ namespace InventoryManagementApp.Services.Kits
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureKitExists(conn, kit.KitID);
+
                 var sql = @"
                     UPDATE Kits 
                     SET KitNumber = @KitNumber,
@@ -194,6 +196,7 @@ namespace InventoryManagementApp.Services.Kits
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureKitExists(conn, kitID);
                 using var transaction = conn.BeginTransaction();
                 try
                 {
@@ -250,6 +253,7 @@ namespace InventoryManagementApp.Services.Kits
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureKitItemExists(conn, kitItem.KitItemID);
                 EnsureKitItemReferencesExist(conn, kitItem);
 
                 var sql = @"
@@ -275,6 +279,8 @@ namespace InventoryManagementApp.Services.Kits
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureKitItemExists(conn, kitItemID);
+
                 var sql = "DELETE FROM KitItems WHERE KitItemID = @KitItemID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitItemID", kitItemID);
@@ -358,6 +364,18 @@ namespace InventoryManagementApp.Services.Kits
                 throw new ArgumentOutOfRangeException(nameof(kitItem.ItemID), "Item ID must be greater than 0.");
             if (kitItem.Quantity < 1)
                 throw new ArgumentOutOfRangeException(nameof(kitItem.Quantity), "Quantity must be greater than 0.");
+        }
+
+        private static void EnsureKitExists(SqliteConnection conn, int kitID)
+        {
+            if (!RecordExists(conn, "SELECT COUNT(*) FROM Kits WHERE KitID = @ID", kitID))
+                throw new InvalidOperationException("Kit not found.");
+        }
+
+        private static void EnsureKitItemExists(SqliteConnection conn, int kitItemID)
+        {
+            if (!RecordExists(conn, "SELECT COUNT(*) FROM KitItems WHERE KitItemID = @ID", kitItemID))
+                throw new InvalidOperationException("Kit item not found.");
         }
 
         private static void EnsureKitItemReferencesExist(SqliteConnection conn, KitItem kitItem)
