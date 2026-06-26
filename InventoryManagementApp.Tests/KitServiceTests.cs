@@ -6,6 +6,7 @@ using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Interfaces;
 using Moq;
+using Microsoft.Data.Sqlite;
 
 namespace InventoryManagementApp.Tests
 {
@@ -220,9 +221,15 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public async Task DeleteKit_WithMissingKit_ShouldThrowWithoutDeletingLegacyKitItems()
         {
-            using (var conn = _databaseService.CreateConnection())
+            var builder = new SqliteConnectionStringBuilder(_databaseService.ConnectionString)
+            {
+                ForeignKeys = false
+            };
+
+            using (var conn = new SqliteConnection(builder.ToString()))
             using (var cmd = conn.CreateCommand())
             {
+                conn.Open();
                 cmd.CommandText = @"
                     INSERT INTO KitItems (KitID, ItemID, Quantity, IsOptional)
                     VALUES (999, 1, 1, 0);";
