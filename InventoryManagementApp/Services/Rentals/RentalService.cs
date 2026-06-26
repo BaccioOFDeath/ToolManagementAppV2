@@ -173,11 +173,9 @@ namespace InventoryManagementApp.Services.Rentals
             _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
-                var availCmd = new SqliteCommand(
-                    "SELECT AvailableQuantity FROM Items WHERE ItemID=@ItemID",
-                    conn, tx);
-                availCmd.Parameters.AddWithValue("@ItemID", itemID);
-                int avail = Convert.ToInt32(await availCmd.ExecuteScalarAsync() ?? 0);
+                var avail = await GetAvailableQuantityForExistingItemAsync(conn, tx, itemID);
+                await EnsureCustomerExistsAsync(conn, tx, customerID);
+
                 if (avail < 1)
                     throw new InvalidOperationException("Insufficient quantity.");
 
@@ -400,6 +398,30 @@ namespace InventoryManagementApp.Services.Rentals
             }
             
             return frequencies;
+        }
+
+        private static async Task<int> GetAvailableQuantityForExistingItemAsync(SqliteConnection conn, SqliteTransaction tx, int itemID)
+        {
+            var availCmd = new SqliteCommand(
+                "SELECT AvailableQuantity FROM Items WHERE ItemID=@ItemID",
+                conn, tx);
+            availCmd.Parameters.AddWithValue("@ItemID", itemID);
+            var result = await availCmd.ExecuteScalarAsync();
+            if (result == null || result is DBNull)
+                throw new InvalidOperationException("Item not found.");
+
+            return Convert.ToInt32(result);
+        }
+
+        private static async Task EnsureCustomerExistsAsync(SqliteConnection conn, SqliteTransaction tx, int customerID)
+        {
+            var customerCmd = new SqliteCommand(
+                "SELECT COUNT(*) FROM Customers WHERE CustomerID=@CustomerID",
+                conn, tx);
+            customerCmd.Parameters.AddWithValue("@CustomerID", customerID);
+            var customerCount = Convert.ToInt32(await customerCmd.ExecuteScalarAsync() ?? 0);
+            if (customerCount < 1)
+                throw new InvalidOperationException("Customer not found.");
         }
     }
 }
