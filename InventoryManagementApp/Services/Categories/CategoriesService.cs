@@ -1,4 +1,4 @@
-﻿// Services/CategoriesService.cs
+// Services/CategoriesService.cs
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
         /// <param name="inventoryId">The inventory ID.</param>
         /// <param name="ct">Cancellation token for the operation.</param>
         /// <exception cref="InvalidOperationException">Thrown if inventory not found.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown if category not found.</exception>
         public async Task LinkCategoryToInventoryAsync(int categoryId, int inventoryId, CancellationToken ct = default)
         {
             if (categoryId < 1)
@@ -102,11 +103,8 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
                 throw new ArgumentOutOfRangeException(nameof(inventoryId), "Inventory ID must be greater than 0.");
             
             await using var conn = _db.CreateConnection();
-            var exists = await conn.ExecuteScalarAsync<long>(
-                "SELECT InventoryID FROM Inventories WHERE InventoryID=@i",
-                new { i = inventoryId });
-            if (exists == 0)
-                throw new InvalidOperationException($"Inventory {inventoryId} not found.");
+            await EnsureInventoryExistsAsync(conn, inventoryId);
+            await EnsureCategoryExistsAsync(conn, categoryId);
             await conn.ExecuteAsync(
                 "INSERT OR IGNORE INTO InventoryCategories(InventoryID,CategoryID) VALUES(@i,@c);",
                 new { i = inventoryId, c = categoryId });
@@ -119,11 +117,13 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
         /// <param name="ct">Cancellation token for the operation.</param>
         /// <returns>A list of categories for the inventory.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if inventoryId is less than 1.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if inventory not found.</exception>
         public async Task<List<CategoryDto>> GetCategoriesForInventoryAsync(int inventoryId, CancellationToken ct = default)
         {
             if (inventoryId < 1)
                 throw new ArgumentOutOfRangeException(nameof(inventoryId), "Inventory ID must be greater than 0.");
             await using var conn = _db.CreateConnection();
+            await EnsureInventoryExistsAsync(conn, inventoryId);
             var list = await conn.QueryAsync<CategoryDto>(
                 @"SELECT c.CategoryID, c.Name
                   FROM InventoryCategories ic
@@ -143,6 +143,7 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
         /// <returns>True if renamed successfully; false if new name already exists.</returns>
         /// <exception cref="ArgumentException">Thrown if newName is null or empty.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if categoryId is less than 1.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown if category not found.</exception>
         public async Task<bool> RenameCategoryAsync(int categoryId, string newName, CancellationToken ct = default)
         {
             if (categoryId < 1)
@@ -151,6 +152,7 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
             newName = (newName ?? string.Empty).Trim();
             if (newName.Length == 0) throw new ArgumentException("Category name cannot be empty.", nameof(newName));
             await using var conn = _db.CreateConnection();
+            await EnsureCategoryExistsAsync(conn, categoryId);
             var exists = await conn.ExecuteScalarAsync<long>(
                 "SELECT CategoryID FROM Categories WHERE Name=@n COLLATE NOCASE AND CategoryID<>@id",
                 new { n = newName, id = categoryId });
@@ -158,7 +160,9 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
             var rows = await conn.ExecuteAsync(
                 "UPDATE Categories SET Name=@n WHERE CategoryID=@id",
                 new { n = newName, id = categoryId });
-            return rows > 0;
+            if (rows == 0)
+                throw new KeyNotFoundException($"Category {categoryId} not found.");
+            return true;
         }
 
         /// <summary>
@@ -166,8 +170,9 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
         /// </summary>
         /// <param name="categoryId">The category ID to delete.</param>
         /// <param name="ct">Cancellation token for the operation.</param>
-        /// <returns>True if deleted successfully; false if category not found.</returns>
+        /// <returns>True if deleted successfully.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if categoryId is less than 1.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown if category not found.</exception>
         public async Task<bool> DeleteCategoryAsync(int categoryId, CancellationToken ct = default)
         {
             if (categoryId < 1)
@@ -176,16 +181,37 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
             var tx = conn.BeginTransaction();
             try
             {
+                await EnsureCategoryExistsAsync(conn, categoryId, tx);
                 await conn.ExecuteAsync("DELETE FROM InventoryCategories WHERE CategoryID=@id", new { id = categoryId }, tx);
                 var rows = await conn.ExecuteAsync("DELETE FROM Categories WHERE CategoryID=@id", new { id = categoryId }, tx);
+                if (rows == 0)
+                    throw new KeyNotFoundException($"Category {categoryId} not found.");
                 tx.Commit();
-                return rows > 0;
+                return true;
             }
             catch
             {
                 tx.Rollback();
                 throw;
             }
+        }
+
+        private static async Task EnsureInventoryExistsAsync(DbConnection conn, int inventoryId, DbTransaction? transaction = null)
+        {
+            var exists = await conn.ExecuteScalarAsync<long>(
+                "SELECT InventoryID FROM Inventories WHERE InventoryID=@i",
+                new { i = inventoryId }, transaction);
+            if (exists == 0)
+                throw new InvalidOperationException($"Inventory {inventoryId} not found.");
+        }
+
+        private static async Task EnsureCategoryExistsAsync(DbConnection conn, int categoryId, DbTransaction? transaction = null)
+        {
+            var exists = await conn.ExecuteScalarAsync<long>(
+                "SELECT CategoryID FROM Categories WHERE CategoryID=@id",
+                new { id = categoryId }, transaction);
+            if (exists == 0)
+                throw new KeyNotFoundException($"Category {categoryId} not found.");
         }
     }
 
