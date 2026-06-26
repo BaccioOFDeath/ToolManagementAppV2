@@ -303,15 +303,16 @@ namespace InventoryManagementApp.Services.Rentals
                 var isActive = string.Equals(status, "Rented", StringComparison.OrdinalIgnoreCase) && reader["ReturnDate"] is DBNull;
                 await reader.DisposeAsync();
 
-                if (isActive && _itemService != null)
-                    await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);
-
                 var deleteCmd = new SqliteCommand(
                     "DELETE FROM Rentals WHERE RentalID=@RentalID",
                     conn, tx);
                 deleteCmd.Parameters.AddWithValue("@RentalID", rentalID);
-                if (await deleteCmd.ExecuteNonQueryAsync() == 0)
+                var deletedRows = await deleteCmd.ExecuteNonQueryAsync();
+                if (deletedRows == 0)
                     throw new InvalidOperationException("Rental not found.");
+
+                if (isActive && _itemService != null)
+                    await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);
             });
             if (_activityLog != null)
             {
