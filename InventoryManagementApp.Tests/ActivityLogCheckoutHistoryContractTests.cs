@@ -7,6 +7,29 @@ namespace InventoryManagementApp.Tests
     public class ActivityLogCheckoutHistoryContractTests
     {
         [Fact]
+        public void ActivityLogEntrypointsHonorCancellationBeforeSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
+
+            AssertCancellationGuardBeforeSqlWork(
+                source,
+                "public virtual async Task<Result> LogActionAsync",
+                "public virtual async Task<Result<List<ActivityLog>>> GetRecentLogsAsync");
+            AssertCancellationGuardBeforeSqlWork(
+                source,
+                "public virtual async Task<Result<List<ActivityLog>>> GetRecentLogsAsync",
+                "public virtual async Task<Result<List<ActivityLog>>> GetCheckoutHistoryForItemAsync");
+            AssertCancellationGuardBeforeSqlWork(
+                source,
+                "public virtual async Task<Result<List<ActivityLog>>> GetCheckoutHistoryForItemAsync",
+                "public virtual async Task<Result> PurgeOldLogsAsync");
+            AssertCancellationGuardBeforeSqlWork(
+                source,
+                "public virtual async Task<Result> PurgeOldLogsAsync",
+                "ActivityLog MapLog");
+        }
+
+        [Fact]
         public void RecentLogsRejectsInvalidCountsBeforeSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
@@ -67,6 +90,19 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Action LIKE @LegacyTogglePattern", method, StringComparison.Ordinal);
             Assert.Contains("OR Action LIKE @ItemNumberPattern", method, StringComparison.Ordinal);
             Assert.Contains("ORDER BY Timestamp DESC", method, StringComparison.Ordinal);
+        }
+
+        private static void AssertCancellationGuardBeforeSqlWork(string source, string startMarker, string endMarker)
+        {
+            var method = ExtractMethod(source, startMarker, endMarker);
+
+            Assert.Contains("cancellationToken.ThrowIfCancellationRequested();", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("const string sql =", StringComparison.Ordinal),
+                $"Expected {startMarker} to honor cancellation before SQL work starts.");
+            Assert.True(
+                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection()", StringComparison.Ordinal),
+                $"Expected {startMarker} to honor cancellation before opening a database connection.");
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)
