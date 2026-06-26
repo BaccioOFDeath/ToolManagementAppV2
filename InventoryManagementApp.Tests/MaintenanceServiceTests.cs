@@ -112,6 +112,15 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task GetUpcomingMaintenance_WithNegativeDays_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _maintenanceService.GetUpcomingMaintenanceAsync(-1));
+
+            Assert.Equal("days", ex.ParamName);
+            Assert.Contains("Days must be greater than or equal to 0.", ex.Message);
+        }
+
+        [Fact]
         public async Task UpdateMaintenanceRecord_ShouldSucceed()
         {
             var record = new MaintenanceRecord
