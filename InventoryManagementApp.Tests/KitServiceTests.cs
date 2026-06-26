@@ -108,6 +108,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task UpdateKit_WithMissingKit_ShouldThrow()
+        {
+            var kit = new Kit
+            {
+                KitID = 999,
+                KitNumber = "KIT-MISSING",
+                Name = "Missing Kit",
+                IsActive = true
+            };
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _kitService.UpdateKitAsync(kit));
+        }
+
+        [Fact]
         public async Task AddKitItem_ShouldSucceed()
         {
             var kit = new Kit
@@ -182,6 +196,12 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task RemoveKitItem_WithMissingKitItem_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _kitService.RemoveKitItemAsync(999));
+        }
+
+        [Fact]
         public async Task DeleteKit_ShouldSucceed()
         {
             var kit = new Kit
@@ -195,6 +215,23 @@ namespace InventoryManagementApp.Tests
             var result = await _kitService.DeleteKitAsync(id);
 
             Assert.True(result);
+        }
+
+        [Fact]
+        public async Task DeleteKit_WithMissingKit_ShouldThrowWithoutDeletingLegacyKitItems()
+        {
+            using (var conn = _databaseService.CreateConnection())
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"
+                    INSERT INTO KitItems (KitID, ItemID, Quantity, IsOptional)
+                    VALUES (999, 1, 1, 0);";
+                cmd.ExecuteNonQuery();
+            }
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _kitService.DeleteKitAsync(999));
+
+            Assert.Equal(1, CountKitItemsForKit(999));
         }
 
         [Fact]
@@ -283,11 +320,33 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public async Task UpdateKitItem_WithMissingItem_ShouldThrow()
+        public async Task UpdateKitItem_WithMissingKitItem_ShouldThrow()
         {
             var kit = new Kit
             {
                 KitNumber = "KIT-012",
+                Name = "Kit Update Missing Kit Item Guard",
+                IsActive = true
+            };
+            var kitId = await _kitService.CreateKitAsync(kit);
+            var kitItem = new KitItem
+            {
+                KitItemID = 999,
+                KitID = kitId,
+                ItemID = 1,
+                Quantity = 1,
+                IsOptional = false
+            };
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _kitService.UpdateKitItemAsync(kitItem));
+        }
+
+        [Fact]
+        public async Task UpdateKitItem_WithMissingItem_ShouldThrow()
+        {
+            var kit = new Kit
+            {
+                KitNumber = "KIT-013",
                 Name = "Kit Update Missing Item Guard",
                 IsActive = true
             };
@@ -311,7 +370,7 @@ namespace InventoryManagementApp.Tests
         {
             var kit = new Kit
             {
-                KitNumber = "KIT-013",
+                KitNumber = "KIT-014",
                 Name = "Kit with Insufficient Required Item",
                 IsActive = true
             };
@@ -333,6 +392,15 @@ namespace InventoryManagementApp.Tests
             var isAvailable = await _kitService.CheckKitAvailabilityAsync(kitId);
 
             Assert.False(isAvailable);
+        }
+
+        private int CountKitItemsForKit(int kitID)
+        {
+            using var conn = _databaseService.CreateConnection();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM KitItems WHERE KitID = @KitID";
+            cmd.Parameters.AddWithValue("@KitID", kitID);
+            return Convert.ToInt32(cmd.ExecuteScalar());
         }
     }
 }
