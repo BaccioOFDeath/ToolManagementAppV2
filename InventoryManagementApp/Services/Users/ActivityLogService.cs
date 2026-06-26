@@ -28,6 +28,8 @@ namespace InventoryManagementApp.Services.Users
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 const string sql = @"
                     INSERT INTO ActivityLogs (UserID, UserName, Action)
                     VALUES (@UserID, @UserName, @Action)";
@@ -62,6 +64,8 @@ namespace InventoryManagementApp.Services.Users
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (count < 1)
                     return new Result<List<ActivityLog>>(null, false, "Count must be positive.");
 
@@ -95,6 +99,8 @@ namespace InventoryManagementApp.Services.Users
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (itemID < 1)
                     return new Result<List<ActivityLog>>(null, false, "Item ID must be positive.");
 
@@ -144,6 +150,8 @@ namespace InventoryManagementApp.Services.Users
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 const string sql = @"
                     DELETE FROM ActivityLogs
                      WHERE Timestamp < @Threshold";
