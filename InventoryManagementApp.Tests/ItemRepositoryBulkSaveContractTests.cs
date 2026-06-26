@@ -85,6 +85,47 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void InsertItemRejectsNullBeforeCancellationAndSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Data", "ItemRepository.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task<int> InsertAsync(Item item, CancellationToken ct)",
+                "public async Task UpdateAsync");
+
+            Assert.Contains("if (item is null)", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(item));", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("if (item is null)", StringComparison.Ordinal) < method.IndexOf("ct.ThrowIfCancellationRequested();", StringComparison.Ordinal),
+                "Null item inserts should fail before cancellation and SQL work can dereference the item.");
+            Assert.True(
+                method.IndexOf("ct.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("const string sql =", StringComparison.Ordinal),
+                "Item inserts should honor cancellation before SQL work starts.");
+            Assert.True(
+                method.IndexOf("ct.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("await using var conn", StringComparison.Ordinal),
+                "Item inserts should honor cancellation before opening a database connection.");
+        }
+
+        [Fact]
+        public void ItemRepositoryHelperQueriesHonorCancellationBeforeConnectionWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Data", "ItemRepository.cs");
+
+            AssertCancellationGuardBeforeConnection(
+                source,
+                "public async Task<List<Item>> GetItemsCheckedOutByAsync(string userName, CancellationToken ct)",
+                "public async Task<List<Item>> GetCheckedOutItemsAsync(CancellationToken ct)");
+            AssertCancellationGuardBeforeConnection(
+                source,
+                "public async Task<List<Item>> GetCheckedOutItemsAsync(CancellationToken ct)",
+                "public async Task UpdateItemImageAsync");
+            AssertCancellationGuardBeforeConnection(
+                source,
+                "public async Task<List<Item>> GetIncompleteItemsAsync(CancellationToken ct)",
+                "private static (string WhereClause, DynamicParameters Parameters) BuildFilter");
+        }
+
+        [Fact]
         public void MostCommonlyUsedItemsRejectsInvalidLimitsBeforeSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Data", "ItemRepository.cs");
@@ -129,6 +170,19 @@ namespace InventoryManagementApp.Tests
             Assert.True(
                 method.IndexOf(guardSnippet, StringComparison.Ordinal) < method.IndexOf("await using var conn", StringComparison.Ordinal),
                 $"Expected {startMarker} to reject invalid item IDs before opening a database connection.");
+        }
+
+        private static void AssertCancellationGuardBeforeConnection(string source, string startMarker, string endMarker)
+        {
+            var method = ExtractMethod(source, startMarker, endMarker);
+
+            Assert.Contains("ct.ThrowIfCancellationRequested();", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("ct.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("var sql =", StringComparison.Ordinal),
+                $"Expected {startMarker} to honor cancellation before SQL work starts.");
+            Assert.True(
+                method.IndexOf("ct.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("await using var conn", StringComparison.Ordinal),
+                $"Expected {startMarker} to honor cancellation before opening a database connection.");
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)
