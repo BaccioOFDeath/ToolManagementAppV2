@@ -93,7 +93,7 @@ namespace InventoryManagementApp.Services.Users
             try
             {
                 if (itemID < 1)
-                    return new Result<List<ActivityLog>>(new List<ActivityLog>(), true);
+                    return new Result<List<ActivityLog>>(null, false, "Item ID must be positive.");
 
                 var itemIdPattern = $"%item {itemID} check-out status%";
                 var itemNumberPattern = string.IsNullOrWhiteSpace(itemNumber)
