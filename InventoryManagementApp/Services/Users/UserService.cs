@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Threading;
@@ -319,6 +320,11 @@ namespace InventoryManagementApp.Services.Users
 
         public async Task UpdateUserAsync(User user)
         {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+            if (user.UserID < 1)
+                throw new ArgumentOutOfRangeException(nameof(user), "User ID must be greater than 0.");
+
             _auth.EnsurePermission(User.PermissionManageUsers);
             const string sql = @"
                 UPDATE Users SET
@@ -336,20 +342,17 @@ namespace InventoryManagementApp.Services.Users
                   Permissions   = @Permissions
                 WHERE UserID = @UserID";
 
+            var existing = await GetUserByIDAsync(user.UserID, CancellationToken.None);
+            if (existing is null)
+                throw new KeyNotFoundException($"User {user.UserID} not found.");
+
             string hashed = user.PasswordHash;
             string salt = user.PasswordSalt;
 
-            if (string.IsNullOrWhiteSpace(user.PasswordHash) || string.IsNullOrWhiteSpace(user.PasswordSalt))
-            {
-                var existing = await GetUserByIDAsync(user.UserID, CancellationToken.None);
-                if (existing != null)
-                {
-                    if (string.IsNullOrWhiteSpace(user.PasswordHash))
-                        hashed = existing.PasswordHash;
-                    if (string.IsNullOrWhiteSpace(user.PasswordSalt))
-                        salt = existing.PasswordSalt;
-                }
-            }
+            if (string.IsNullOrWhiteSpace(user.PasswordHash))
+                hashed = existing.PasswordHash;
+            if (string.IsNullOrWhiteSpace(user.PasswordSalt))
+                salt = existing.PasswordSalt;
 
             if (!string.IsNullOrWhiteSpace(user.PasswordHash) && string.IsNullOrWhiteSpace(user.PasswordSalt))
             {
@@ -376,7 +379,10 @@ namespace InventoryManagementApp.Services.Users
             };
 
             using var conn = _dbService.CreateConnection();
-            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+            int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+            if (rows == 0)
+                throw new KeyNotFoundException($"User {user.UserID} not found.");
+
             user.PasswordHash = hashed;
             user.PasswordSalt = salt;
         }
