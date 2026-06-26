@@ -32,6 +32,35 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void BulkItemSaveRejectsInvalidEntrypointInputsBeforeConnectionWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Data", "ItemRepository.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task SaveChangesAsync(IEnumerable<Item> changes, CancellationToken ct)",
+                "public async Task<int> InsertAsync(Item item, CancellationToken ct)");
+
+            Assert.Contains("if (changes is null)", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(changes));", method, StringComparison.Ordinal);
+            Assert.Contains("ct.ThrowIfCancellationRequested();", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("if (changes is null)", StringComparison.Ordinal) < method.IndexOf("ct.ThrowIfCancellationRequested();", StringComparison.Ordinal),
+                "Null bulk item change collections should fail before cancellation and connection work.");
+            Assert.True(
+                method.IndexOf("ct.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("await using var conn", StringComparison.Ordinal),
+                "Bulk item saves should honor cancellation before opening a database connection.");
+            Assert.True(
+                method.IndexOf("ct.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("const string sql =", StringComparison.Ordinal),
+                "Bulk item saves should honor cancellation before SQL work starts.");
+
+            Assert.Contains("if (item is null)", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentException(\"Bulk item changes cannot contain null items.\", nameof(changes));", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("if (item is null)", StringComparison.Ordinal) < method.IndexOf("var rows = await conn.ExecuteAsync", StringComparison.Ordinal),
+                "Null rows inside a bulk item change collection should fail before an update command is built.");
+        }
+
+        [Fact]
         public void ItemRepositoryRejectsInvalidItemIdsBeforeConnectionWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Data", "ItemRepository.cs");
