@@ -418,31 +418,74 @@ namespace InventoryManagementApp.ViewModels
                 Margin = new Thickness(0, 0, 0, 10)
             });
 
-            var table = new Table { CellSpacing = 0 };
-            table.Columns.Add(new TableColumn { Width = new GridLength(130) });
-            table.Columns.Add(new TableColumn { Width = new GridLength(420) });
-            var rows = new TableRowGroup();
-            table.RowGroups.Add(rows);
+            AddPrintSection(document, "Identity", new[]
+            {
+                ("Item #", ItemModel.ItemNumber),
+                ("Name", ItemModel.Name),
+                ("Brand", ItemModel.Brand),
+                ("Part #", ItemModel.PartNumber),
+                ("Powered", ItemModel.IsPowered ? "Yes" : "No"),
+                ("Rental item", ItemModel.IsRentalItem ? "Yes" : "No")
+            });
 
-            AddPrintRow(rows, "Name", ItemModel.Name);
-            AddPrintRow(rows, "Status", StatusText);
-            AddPrintRow(rows, "Availability", AvailabilitySummary);
-            AddPrintRow(rows, "Current holder", HolderSummary);
-            AddPrintRow(rows, "Stock", StockSummary);
-            AddPrintRow(rows, "Out since", CheckedOutSinceText);
-            AddPrintRow(rows, "Time out", TimeOutText);
-            AddPrintRow(rows, "Location", ItemModel.Location);
-            AddPrintRow(rows, "Brand", ItemModel.Brand);
-            AddPrintRow(rows, "Part #", ItemModel.PartNumber);
-            AddPrintRow(rows, "Usage", UsageSummary);
-            AddPrintRow(rows, "Condition", ConditionSummary);
-            AddPrintRow(rows, "Notes", string.IsNullOrWhiteSpace(ItemModel.Notes) ? "No notes recorded" : ItemModel.Notes);
+            AddPrintSection(document, "Availability And Checkout", new[]
+            {
+                ("Status", StatusText),
+                ("Availability", AvailabilitySummary),
+                ("Current holder", HolderSummary),
+                ("Out since", CheckedOutSinceText),
+                ("Time out", TimeOutText),
+                ("Last check-in", LastCheckInText),
+                ("Next action", NextActionText)
+            });
 
-            document.Blocks.Add(table);
+            AddPrintSection(document, "Stock And Location", new[]
+            {
+                ("Stock", StockSummary),
+                ("Location", ItemModel.Location),
+                ("Usage", UsageSummary),
+                ("Updated", UpdatedText)
+            });
+
+            AddPrintSection(document, "Purchase And Supplier", new[]
+            {
+                ("Supplier", ItemModel.Supplier),
+                ("Purchased", PurchasedText),
+                ("Price", PriceText)
+            });
+
+            AddPrintSection(document, "Condition And Notes", new[]
+            {
+                ("Condition", ConditionSummary),
+                ("Missing components", ItemModel.MissingComponentsNotes),
+                ("Issues", ItemModel.IssuesNotes),
+                ("Notes", string.IsNullOrWhiteSpace(ItemModel.Notes) ? "No notes recorded" : ItemModel.Notes)
+            });
+
             return document;
         }
 
-        static void AddPrintRow(TableRowGroup rows, string label, string value)
+        static void AddPrintSection(FlowDocument document, string title, (string Label, string Value)[] rows)
+        {
+            document.Blocks.Add(new Paragraph(new Bold(new Run(title)))
+            {
+                FontSize = 13,
+                Margin = new Thickness(0, 10, 0, 4)
+            });
+
+            var table = new Table { CellSpacing = 0, Tag = "KeyValue" };
+            table.Columns.Add(new TableColumn { Width = new GridLength(130) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(420) });
+            var rowGroup = new TableRowGroup();
+            table.RowGroups.Add(rowGroup);
+
+            foreach (var row in rows)
+                AddPrintRow(rowGroup, row.Label, ValueOrNotRecorded(row.Value));
+
+            document.Blocks.Add(table);
+        }
+
+        static void AddPrintRow(TableRowGroup rows, string label, string? value)
         {
             var row = new TableRow();
             rows.Rows.Add(row);

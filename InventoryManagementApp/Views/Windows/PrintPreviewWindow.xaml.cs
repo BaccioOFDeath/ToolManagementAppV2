@@ -183,15 +183,16 @@ namespace InventoryManagementApp.Views.Windows
             table.CellSpacing = 0;
             table.Margin = new Thickness(0, 4, 0, 12);
             table.TextAlignment = TextAlignment.Left;
+            var isKeyValueTable = string.Equals(table.Tag as string, "KeyValue", StringComparison.Ordinal);
 
             foreach (var rowGroup in table.RowGroups)
             {
                 for (var rowIndex = 0; rowIndex < rowGroup.Rows.Count; rowIndex++)
                 {
                     var row = rowGroup.Rows[rowIndex];
-                    row.FontSize = rowIndex == 0 ? 10.5 : 10;
+                    row.FontSize = !isKeyValueTable && rowIndex == 0 ? 10.5 : 10;
 
-                    if (rowIndex == 0)
+                    if (!isKeyValueTable && rowIndex == 0)
                     {
                         row.Background = PrintDocumentTheme.HeaderBackgroundBrush;
                         row.Foreground = PrintDocumentTheme.HeaderForegroundBrush;

@@ -101,6 +101,22 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ItemDetailsPrintUsesKeyValueSectionsWithFullItemContext()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemDetailsViewModel.cs");
+
+            Assert.Contains("AddPrintSection(document, \"Identity\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddPrintSection(document, \"Availability And Checkout\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddPrintSection(document, \"Stock And Location\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddPrintSection(document, \"Purchase And Supplier\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddPrintSection(document, \"Condition And Notes\"", source, StringComparison.Ordinal);
+            Assert.Contains("Tag = \"KeyValue\"", source, StringComparison.Ordinal);
+            Assert.Contains("(\"Supplier\", ItemModel.Supplier)", source, StringComparison.Ordinal);
+            Assert.Contains("(\"Price\", PriceText)", source, StringComparison.Ordinal);
+            Assert.Contains("(\"Next action\", NextActionText)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CategoriesKeepBothDirectoryAndSelectedSheetPreviewRoutes()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs");
