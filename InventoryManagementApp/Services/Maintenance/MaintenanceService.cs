@@ -165,6 +165,8 @@ namespace InventoryManagementApp.Services.Maintenance
 
         public async Task<int> CreateMaintenanceRecordAsync(MaintenanceRecord record)
         {
+            if (record is null)
+                throw new ArgumentNullException(nameof(record));
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
@@ -200,6 +202,8 @@ namespace InventoryManagementApp.Services.Maintenance
 
         public async Task<bool> UpdateMaintenanceRecordAsync(MaintenanceRecord record)
         {
+            if (record is null)
+                throw new ArgumentNullException(nameof(record));
             if (record.MaintenanceID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.MaintenanceID), "Maintenance ID must be greater than 0.");
             if (record.ItemID < 1)
