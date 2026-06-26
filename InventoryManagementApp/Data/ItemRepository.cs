@@ -252,6 +252,10 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task<List<Item>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+        if (limit < 1)
+            throw new ArgumentOutOfRangeException(nameof(limit), "Limit must be positive.");
+
         var sql = $@"SELECT {ItemProjection}
             FROM Items
             WHERE CheckoutCount > 0 
