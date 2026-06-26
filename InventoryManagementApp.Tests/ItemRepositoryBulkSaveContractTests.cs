@@ -31,6 +31,41 @@ namespace InventoryManagementApp.Tests
                 "Bulk item saves should fail before committing when a stale item row is encountered.");
         }
 
+        [Fact]
+        public void MostCommonlyUsedItemsRejectsInvalidLimitsBeforeSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Data", "ItemRepository.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task<List<Item>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken ct)",
+                "public async Task<List<Item>> GetIncompleteItemsAsync(CancellationToken ct)");
+
+            Assert.Contains("ct.ThrowIfCancellationRequested();", method, StringComparison.Ordinal);
+            Assert.Contains("if (limit < 1)", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentOutOfRangeException(nameof(limit), \"Limit must be positive.\");", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("if (limit < 1)", StringComparison.Ordinal) < method.IndexOf("var sql =", StringComparison.Ordinal),
+                "The invalid limit guard should run before most-common item SQL work starts.");
+            Assert.True(
+                method.IndexOf("if (limit < 1)", StringComparison.Ordinal) < method.IndexOf("await using var conn", StringComparison.Ordinal),
+                "The invalid limit guard should run before opening a database connection.");
+        }
+
+        [Fact]
+        public void MostCommonlyUsedItemsStillOrdersByCheckoutCountAndAppliesTheRequestedLimit()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Data", "ItemRepository.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task<List<Item>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken ct)",
+                "public async Task<List<Item>> GetIncompleteItemsAsync(CancellationToken ct)");
+
+            Assert.Contains("WHERE CheckoutCount > 0", method, StringComparison.Ordinal);
+            Assert.Contains("ORDER BY CheckoutCount DESC", method, StringComparison.Ordinal);
+            Assert.Contains("LIMIT @Limit", method, StringComparison.Ordinal);
+            Assert.Contains("new { Limit = limit }", method, StringComparison.Ordinal);
+        }
+
         private static string ExtractMethod(string source, string startMarker, string endMarker)
         {
             var start = source.IndexOf(startMarker, StringComparison.Ordinal);
