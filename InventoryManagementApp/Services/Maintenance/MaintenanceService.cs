@@ -112,6 +112,9 @@ namespace InventoryManagementApp.Services.Maintenance
 
         public async Task<List<MaintenanceRecord>> GetUpcomingMaintenanceAsync(int days = 30)
         {
+            if (days < 0)
+                throw new ArgumentOutOfRangeException(nameof(days), "Days must be greater than or equal to 0.");
+
             return await Task.Run(() =>
             {
                 var records = new List<MaintenanceRecord>();
