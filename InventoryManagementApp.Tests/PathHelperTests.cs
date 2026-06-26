@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
 using Xunit;
 
@@ -11,10 +12,9 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void AssetBaseDirectory_UsesDeploymentRootForSideBySideRelease()
         {
-            var method = typeof(PathHelper).GetMethod("GetAssetBaseDirectory", BindingFlags.NonPublic | BindingFlags.Static)!;
             var releaseBase = Path.Combine("X:\\V2", "_releases", "2026.06.26-100233") + Path.DirectorySeparatorChar;
 
-            var assetBase = Assert.IsType<string>(method.Invoke(null, new object[] { releaseBase }));
+            var assetBase = DeploymentPathResolver.GetDeploymentRoot(releaseBase);
 
             Assert.Equal(Path.GetFullPath("X:\\V2"), assetBase.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         }

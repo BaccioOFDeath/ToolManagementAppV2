@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using InventoryManagementApp.Utilities;
 
 namespace InventoryManagementApp.Utilities.Helpers
 {
@@ -19,7 +20,7 @@ namespace InventoryManagementApp.Utilities.Helpers
 
         public static string EnsureAssetFolder(string folderName)
         {
-            var fullPath = Path.Combine(AppContext.BaseDirectory, AssetsDirectoryName, folderName);
+            var fullPath = Path.Combine(DeploymentPathResolver.GetDeploymentRoot(AppContext.BaseDirectory), AssetsDirectoryName, folderName);
             Directory.CreateDirectory(fullPath);
             return fullPath;
         }
@@ -62,7 +63,7 @@ namespace InventoryManagementApp.Utilities.Helpers
                 var trimmed = path.Trim();
                 return Path.IsPathFullyQualified(trimmed)
                     ? Path.GetFullPath(trimmed)
-                    : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, trimmed));
+                    : Path.GetFullPath(Path.Combine(DeploymentPathResolver.GetDeploymentRoot(AppContext.BaseDirectory), trimmed));
             }
             catch
             {
@@ -72,7 +73,7 @@ namespace InventoryManagementApp.Utilities.Helpers
 
         public static string ToAppRelativePath(string fullPath)
         {
-            var relativePath = Path.GetRelativePath(AppContext.BaseDirectory, Path.GetFullPath(fullPath));
+            var relativePath = Path.GetRelativePath(DeploymentPathResolver.GetDeploymentRoot(AppContext.BaseDirectory), Path.GetFullPath(fullPath));
             return relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 

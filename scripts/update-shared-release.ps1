@@ -15,14 +15,14 @@ if (-not (Test-Path -LiteralPath $Destination)) {
 
 $destinationPath = (Resolve-Path -LiteralPath $Destination).Path
 $dataPath = Join-Path $destinationPath "Assets\Data"
-$databasePath = Join-Path $dataPath "inventory.db"
+$databasePath = "Assets\Data\inventory.db"
 $itemImagesPath = Join-Path $destinationPath "Assets\ItemImages"
 $rentalPhotosPath = Join-Path $destinationPath "Assets\RentalPhotos"
 $companyLogoPath = Join-Path $destinationPath "Assets\CompanyLogo"
 $userPhotosPath = Join-Path $destinationPath "Assets\UserPhotos"
 $backgroundsPath = Join-Path $destinationPath "Assets\Backgrounds"
 $themesPath = Join-Path $destinationPath "Assets\Themes"
-$logsPath = Join-Path $destinationPath "Logs"
+$logsPath = "Logs"
 $backupRoot = Join-Path $destinationPath "_pre_update_backups"
 $backupPath = Join-Path $backupRoot (Get-Date -Format "yyyyMMdd-HHmmss")
 $releaseRoot = Join-Path $destinationPath "_releases"
@@ -31,6 +31,7 @@ $launcherSourcePath = Join-Path $PSScriptRoot "start-current-release.ps1"
 $launcherDestinationDirectory = Join-Path $destinationPath "scripts"
 $launcherDestinationPath = Join-Path $launcherDestinationDirectory "start-current-release.ps1"
 $launcherCommandDestinationPath = Join-Path $destinationPath "Start Inventory Management.cmd"
+$legacySharedShortcutPath = Join-Path $destinationPath "Inventory Management.lnk"
 $appIconSourcePath = Join-Path $sourcePath "Resources\AppIcon.ico"
 $appIconDestinationDirectory = Join-Path $destinationPath "Resources"
 $appIconDestinationPath = Join-Path $appIconDestinationDirectory "AppIcon.ico"
@@ -176,7 +177,27 @@ function Copy-CurrentReleaseLauncher {
 
     $launcherCommand = @(
         "@echo off",
-        "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""%~dp0scripts\start-current-release.ps1"" %*"
+        "setlocal",
+        "set ""SCRIPT_DIR=%~dp0""",
+        "set ""LOG_DIR=%SCRIPT_DIR%Logs""",
+        "if not exist ""%LOG_DIR%"" mkdir ""%LOG_DIR%"" >nul 2>&1",
+        "set ""LAUNCH_LOG=%LOG_DIR%\launcher-%COMPUTERNAME%.log""",
+        "echo ==================================================>>""%LAUNCH_LOG%""",
+        "echo [%date% %time%] Starting Inventory Management>>""%LAUNCH_LOG%""",
+        "echo Computer: %COMPUTERNAME% User: %USERNAME%>>""%LAUNCH_LOG%""",
+        "echo Script directory: %SCRIPT_DIR%>>""%LAUNCH_LOG%""",
+        "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""%SCRIPT_DIR%scripts\start-current-release.ps1"" %* >>""%LAUNCH_LOG%"" 2>&1",
+        "set ""EXIT_CODE=%ERRORLEVEL%""",
+        "if not ""%EXIT_CODE%""==""0"" (",
+        "    echo.",
+        "    echo Inventory Management failed to start. Error code %EXIT_CODE%.",
+        "    echo See ""%LAUNCH_LOG%"" for details.",
+        "    echo.",
+        "    type ""%LAUNCH_LOG%""",
+        "    pause",
+        "    exit /b %EXIT_CODE%",
+        ")",
+        "exit /b 0"
     )
     Set-Content -LiteralPath $launcherCommandDestinationPath -Value $launcherCommand -Encoding ASCII
 }
@@ -188,6 +209,12 @@ function Copy-AppIcon {
 
     New-Item -ItemType Directory -Path $appIconDestinationDirectory -Force | Out-Null
     Copy-Item -LiteralPath $appIconSourcePath -Destination $appIconDestinationPath -Force
+}
+
+function Remove-LegacySharedShortcut {
+    if (Test-Path -LiteralPath $legacySharedShortcutPath) {
+        Remove-Item -LiteralPath $legacySharedShortcutPath -Force
+    }
 }
 
 function Ensure-JsonProperty {
@@ -339,6 +366,7 @@ if ($DeploymentMode -eq "SideBySide") {
     Link-PreservedDirectoriesToRelease -ReleasePath $releasePath
     Copy-CurrentReleaseLauncher
     Copy-AppIcon
+    Remove-LegacySharedShortcut
 
     Set-CurrentReleaseMarker -ReleaseName $ReleaseName
     Write-Host "Side-by-side release staged. Running users can finish in their current copy; restart shortcuts should launch _releases\$ReleaseName with shared data folders linked from $destinationPath."
@@ -355,6 +383,7 @@ Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories
 Set-DeploymentConfigurations -AppPath $destinationPath
 Copy-CurrentReleaseLauncher
 Copy-AppIcon
+Remove-LegacySharedShortcut
 Clear-CurrentReleaseMarker
 
 Write-Host "Release update complete."

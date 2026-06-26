@@ -17,6 +17,17 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void Resolve_RelativePathInsideSideBySideRelease_UsesDeploymentRoot()
+        {
+            var deploymentRoot = Path.Combine(Path.GetTempPath(), "InventoryManagementAppTests", "V2");
+            var releaseDirectory = Path.Combine(deploymentRoot, "_releases", "2026.06.26-170000");
+
+            var resolved = DatabasePathResolver.Resolve("Assets/Data/inventory.db", releaseDirectory);
+
+            Assert.Equal(Path.GetFullPath(Path.Combine(deploymentRoot, "Assets/Data/inventory.db")), resolved);
+        }
+
+        [Fact]
         public void Resolve_AbsolutePath_KeepsConfiguredPath()
         {
             var configured = Path.Combine(Path.GetTempPath(), "inventory.db");

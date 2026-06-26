@@ -113,7 +113,8 @@ namespace InventoryManagementApp.Services.MobileCapture
 
         public void Dispose()
         {
-            StopAsync().GetAwaiter().GetResult();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            StopAsync(cts.Token).GetAwaiter().GetResult();
             _gate.Dispose();
         }
 

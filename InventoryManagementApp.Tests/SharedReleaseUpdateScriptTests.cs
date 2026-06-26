@@ -33,8 +33,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Move-Item -LiteralPath $temporaryMarker -Destination $currentReleaseMarker -Force", script, StringComparison.Ordinal);
             Assert.Contains("Remove-Item -LiteralPath $temporaryMarker -Force", script, StringComparison.Ordinal);
 
-            var stagingIndex = normalizedScript.IndexOf("Copy-CurrentReleaseLauncher\n    Copy-AppIcon\n\n    Set-CurrentReleaseMarker -ReleaseName $ReleaseName", StringComparison.Ordinal);
-            Assert.True(stagingIndex >= 0, "Side-by-side deployment should publish current-release.txt only after release staging, launcher refresh, and icon refresh complete.");
+            var stagingIndex = normalizedScript.IndexOf("Copy-CurrentReleaseLauncher\n    Copy-AppIcon\n    Remove-LegacySharedShortcut\n\n    Set-CurrentReleaseMarker -ReleaseName $ReleaseName", StringComparison.Ordinal);
+            Assert.True(stagingIndex >= 0, "Side-by-side deployment should publish current-release.txt only after release staging, launcher refresh, icon refresh, and legacy shortcut removal complete.");
         }
 
         [Fact]
@@ -48,9 +48,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Remove-Item -LiteralPath $currentReleaseMarker -Force", script, StringComparison.Ordinal);
 
             var inPlaceIndex = normalizedScript.IndexOf(
-                "Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories $excludedDirectories -ExcludedFiles @(\"appsettings.json\")\nSet-DeploymentConfigurations -AppPath $destinationPath\nCopy-CurrentReleaseLauncher\nCopy-AppIcon\nClear-CurrentReleaseMarker",
+                "Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories $excludedDirectories -ExcludedFiles @(\"appsettings.json\")\nSet-DeploymentConfigurations -AppPath $destinationPath\nCopy-CurrentReleaseLauncher\nCopy-AppIcon\nRemove-LegacySharedShortcut\nClear-CurrentReleaseMarker",
                 StringComparison.Ordinal);
-            Assert.True(inPlaceIndex >= 0, "In-place deployment should clear current-release.txt after refreshing the shared launcher and icon so restart shortcuts use the root executable.");
+            Assert.True(inPlaceIndex >= 0, "In-place deployment should clear current-release.txt after refreshing the shared launcher, icon, and legacy shortcut state so restart shortcuts use the root executable.");
         }
 
         [Fact]
@@ -135,25 +135,33 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("$launcherDestinationDirectory = Join-Path $destinationPath \"scripts\"", script, StringComparison.Ordinal);
             Assert.Contains("$launcherDestinationPath = Join-Path $launcherDestinationDirectory \"start-current-release.ps1\"", script, StringComparison.Ordinal);
             Assert.Contains("$launcherCommandDestinationPath = Join-Path $destinationPath \"Start Inventory Management.cmd\"", script, StringComparison.Ordinal);
+            Assert.Contains("$legacySharedShortcutPath = Join-Path $destinationPath \"Inventory Management.lnk\"", script, StringComparison.Ordinal);
             Assert.Contains("$appIconSourcePath = Join-Path $sourcePath \"Resources\\AppIcon.ico\"", script, StringComparison.Ordinal);
             Assert.Contains("$appIconDestinationPath = Join-Path $appIconDestinationDirectory \"AppIcon.ico\"", script, StringComparison.Ordinal);
-            Assert.Contains("$databasePath = Join-Path $dataPath \"inventory.db\"", script, StringComparison.Ordinal);
+            Assert.Contains("$databasePath = \"Assets\\Data\\inventory.db\"", script, StringComparison.Ordinal);
             Assert.Contains("function Copy-CurrentReleaseLauncher", script, StringComparison.Ordinal);
             Assert.Contains("function Copy-AppIcon", script, StringComparison.Ordinal);
+            Assert.Contains("function Remove-LegacySharedShortcut", script, StringComparison.Ordinal);
             Assert.Contains("function Set-DeploymentConfigurationPaths", script, StringComparison.Ordinal);
             Assert.Contains("Ensure-JsonProperty -Object $config.Database -Name \"Path\" -Value $databasePath", script, StringComparison.Ordinal);
             Assert.Contains("Ensure-JsonProperty -Object $config.Database -Name \"UseWalJournal\" -Value $false", script, StringComparison.Ordinal);
+            Assert.Contains("$logsPath = \"Logs\"", script, StringComparison.Ordinal);
             Assert.Contains("Ensure-JsonProperty -Object $config.Logging -Name \"Directory\" -Value $logsPath", script, StringComparison.Ordinal);
             Assert.Contains("Current release launcher was not found at $launcherSourcePath.", script, StringComparison.Ordinal);
             Assert.Contains("Copy-Item -LiteralPath $launcherSourcePath -Destination $launcherDestinationPath -Force", script, StringComparison.Ordinal);
-            Assert.Contains("powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"\"%~dp0scripts\\start-current-release.ps1\"\" %*", script, StringComparison.Ordinal);
+            Assert.Contains("set \"\"LAUNCH_LOG=%LOG_DIR%\\launcher-%COMPUTERNAME%.log\"\"", script, StringComparison.Ordinal);
+            Assert.Contains("Computer: %COMPUTERNAME% User: %USERNAME%", script, StringComparison.Ordinal);
+            Assert.Contains("Script directory: %SCRIPT_DIR%", script, StringComparison.Ordinal);
+            Assert.Contains("powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"\"%SCRIPT_DIR%scripts\\start-current-release.ps1\"\" %* >>\"\"%LAUNCH_LOG%\"\" 2>&1", script, StringComparison.Ordinal);
+            Assert.Contains("Inventory Management failed to start. Error code %EXIT_CODE%.", script, StringComparison.Ordinal);
             Assert.Contains("Set-Content -LiteralPath $launcherCommandDestinationPath -Value $launcherCommand -Encoding ASCII", script, StringComparison.Ordinal);
             Assert.Contains("Copy-Item -LiteralPath $appIconSourcePath -Destination $appIconDestinationPath -Force", script, StringComparison.Ordinal);
+            Assert.Contains("Remove-Item -LiteralPath $legacySharedShortcutPath -Force", script, StringComparison.Ordinal);
             Assert.Contains("Set-DeploymentConfigurations -AppPath $ReleasePath", script, StringComparison.Ordinal);
             Assert.Contains("Set-DeploymentConfigurations -AppPath $destinationPath", script, StringComparison.Ordinal);
             Assert.Contains("Link-PreservedDirectoriesToRelease -ReleasePath $releasePath\n    Copy-CurrentReleaseLauncher", normalizedScript, StringComparison.Ordinal);
-            Assert.Contains("Copy-CurrentReleaseLauncher\n    Copy-AppIcon\n\n    Set-CurrentReleaseMarker", normalizedScript, StringComparison.Ordinal);
-            Assert.Contains("Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories $excludedDirectories -ExcludedFiles @(\"appsettings.json\")\nSet-DeploymentConfigurations -AppPath $destinationPath\nCopy-CurrentReleaseLauncher\nCopy-AppIcon", normalizedScript, StringComparison.Ordinal);
+            Assert.Contains("Copy-CurrentReleaseLauncher\n    Copy-AppIcon\n    Remove-LegacySharedShortcut\n\n    Set-CurrentReleaseMarker", normalizedScript, StringComparison.Ordinal);
+            Assert.Contains("Invoke-ReleaseMirror -From $sourcePath -To $destinationPath -ExcludedDirectories $excludedDirectories -ExcludedFiles @(\"appsettings.json\")\nSet-DeploymentConfigurations -AppPath $destinationPath\nCopy-CurrentReleaseLauncher\nCopy-AppIcon\nRemove-LegacySharedShortcut", normalizedScript, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -169,6 +177,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("$currentReleaseName = $currentRelease.Trim()", script, StringComparison.Ordinal);
             Assert.Contains("$releaseExecutablePath = Join-Path (Join-Path (Join-Path $destinationPath \"_releases\") $currentReleaseName) \"InventoryManagementApp.exe\"", script, StringComparison.Ordinal);
             Assert.DoesNotContain("$releaseExecutablePath = Join-Path (Join-Path (Join-Path $destinationPath \"_releases\") $currentRelease.Trim()) \"InventoryManagementApp.exe\"", script, StringComparison.Ordinal);
+            Assert.Contains("$launcherCommandPath = Join-Path $destinationPath \"Start Inventory Management.cmd\"", script, StringComparison.Ordinal);
+            Assert.Contains("if (Test-Path -LiteralPath $launcherCommandPath) {\n    $targetPath = $launcherCommandPath\n    $workingDirectory = $destinationPath\n} else {", normalizedScript, StringComparison.Ordinal);
             Assert.Contains("$appIconPath = Join-Path $destinationPath \"Resources\\AppIcon.ico\"", script, StringComparison.Ordinal);
             Assert.Contains("if (Test-Path -LiteralPath $appIconPath) {\n    $iconPath = $appIconPath\n} else {\n    $iconPath = $currentReleaseExecutablePath\n}", normalizedScript, StringComparison.Ordinal);
             Assert.Contains("[switch]$PointToSharedShortcut", script, StringComparison.Ordinal);
@@ -199,10 +209,17 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("No current-release.txt marker was found", launcher, StringComparison.Ordinal);
             Assert.Contains("[switch]$AllowMultipleInstances", launcher, StringComparison.Ordinal);
             Assert.Contains("Get-Process -Name $processName -ErrorAction SilentlyContinue", launcher, StringComparison.Ordinal);
-            Assert.Contains("is already running on this workstation", launcher, StringComparison.Ordinal);
+            Assert.Contains("function Get-RunningProcessDescription", launcher, StringComparison.Ordinal);
+            Assert.Contains("PID $($Process.Id), Path: $processPath", launcher, StringComparison.Ordinal);
+            Assert.Contains("Running process(es): $runningProcessDetails", launcher, StringComparison.Ordinal);
+            Assert.Contains("is already running on this workstation. Close it in Task Manager before starting another copy.", launcher, StringComparison.Ordinal);
+            Assert.Contains("function Write-DotNetRuntimeSummary", launcher, StringComparison.Ordinal);
+            Assert.Contains("& $dotnetCommand.Source --list-runtimes", launcher, StringComparison.Ordinal);
             Assert.Contains("if ($ArgumentList.Count -gt 0)", launcher, StringComparison.Ordinal);
-            Assert.Contains("Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory -ArgumentList $ArgumentList", launcher, StringComparison.Ordinal);
-            Assert.Contains("Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory", launcher, StringComparison.Ordinal);
+            Assert.Contains("Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory -ArgumentList $ArgumentList -PassThru", launcher, StringComparison.Ordinal);
+            Assert.Contains("Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory -PassThru", launcher, StringComparison.Ordinal);
+            Assert.Contains("Start-Sleep -Milliseconds 1500", launcher, StringComparison.Ordinal);
+            Assert.Contains("exited immediately with code", launcher, StringComparison.Ordinal);
             Assert.Contains("Start-Process -FilePath $executablePath", launcher, StringComparison.Ordinal);
         }
 
@@ -228,8 +245,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("& $bashPath scripts/check-banned-words.sh", script, StringComparison.Ordinal);
             Assert.Contains("-DeploymentMode SideBySide", script, StringComparison.Ordinal);
             Assert.Contains("-ReleaseName $ReleaseName", script, StringComparison.Ordinal);
-            Assert.Contains("& (Join-Path $PSScriptRoot \"create-shared-desktop-shortcut.ps1\")", script, StringComparison.Ordinal);
-            Assert.Contains("-ShortcutDirectory $Destination", script, StringComparison.Ordinal);
+            Assert.DoesNotContain("& (Join-Path $PSScriptRoot \"create-shared-desktop-shortcut.ps1\")", script, StringComparison.Ordinal);
+            Assert.DoesNotContain("-ShortcutDirectory $Destination", script, StringComparison.Ordinal);
+            Assert.Contains("Use Start Inventory Management.cmd from the shared folder", script, StringComparison.Ordinal);
             Assert.Contains("Users running older releases will see an update message on the login screen", script, StringComparison.Ordinal);
         }
 
@@ -270,7 +288,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("-DeploymentMode SideBySide", guide, StringComparison.Ordinal);
             Assert.Contains("current-release.txt", guide, StringComparison.Ordinal);
             Assert.Contains("Inventory Management.lnk", guide, StringComparison.Ordinal);
-            Assert.Contains("points directly at `X:\\V2\\_releases\\<ReleaseName>\\InventoryManagementApp.exe`", guide, StringComparison.Ordinal);
+            Assert.Contains("removes the old shared `Inventory Management.lnk` shortcut", guide, StringComparison.Ordinal);
             Assert.Contains("Start Inventory Management.cmd", guide, StringComparison.Ordinal);
             Assert.Contains("resolves the app relative to the folder it is in", guide, StringComparison.Ordinal);
             Assert.Contains("-UseUncPaths", guide, StringComparison.Ordinal);

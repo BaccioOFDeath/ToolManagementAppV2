@@ -144,9 +144,15 @@ if (-not (Test-Path -LiteralPath $ShortcutDirectory)) {
 
 $shortcutPath = Join-Path $ShortcutDirectory "$ShortcutName.lnk"
 $sharedShortcutPath = Join-Path $destinationPath "$ShortcutName.lnk"
+$launcherCommandPath = Join-Path $destinationPath "Start Inventory Management.cmd"
 $currentReleaseExecutablePath = Get-CurrentReleaseExecutablePath
-$targetPath = $currentReleaseExecutablePath
-$workingDirectory = Split-Path -Parent $currentReleaseExecutablePath
+if (Test-Path -LiteralPath $launcherCommandPath) {
+    $targetPath = $launcherCommandPath
+    $workingDirectory = $destinationPath
+} else {
+    $targetPath = $currentReleaseExecutablePath
+    $workingDirectory = Split-Path -Parent $currentReleaseExecutablePath
+}
 
 if ($PointToSharedShortcut -and
     (Test-Path -LiteralPath $sharedShortcutPath) -and

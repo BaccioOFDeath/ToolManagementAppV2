@@ -7,13 +7,7 @@ namespace InventoryManagementApp.Utilities
     {
         public static string Resolve(string? configuredPath, string baseDirectory)
         {
-            var path = string.IsNullOrWhiteSpace(configuredPath)
-                ? "inventory.db"
-                : Environment.ExpandEnvironmentVariables(configuredPath.Trim());
-
-            return Path.GetFullPath(Path.IsPathFullyQualified(path)
-                ? path
-                : Path.Combine(baseDirectory, path));
+            return DeploymentPathResolver.Resolve(configuredPath, baseDirectory, "inventory.db");
         }
 
         public static bool IsSharedPath(string path)

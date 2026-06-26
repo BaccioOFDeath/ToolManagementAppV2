@@ -118,17 +118,13 @@ It validates, publishes, stages a timestamped side-by-side release, updates `cur
 
 The updater also writes `Start Inventory Management.cmd` into the shared root. Use that launcher when different workstations map the same server folder to different drive letters, because it resolves the app relative to the folder it is run from.
 
-Refresh the shared shortcut with:
+Create an icon-bearing desktop shortcut on each workstation with:
 
 ```powershell
-.\scripts\create-shared-desktop-shortcut.ps1 -Destination X:\V2 -ShortcutDirectory X:\V2
+.\scripts\create-shared-desktop-shortcut.ps1 -Destination X:\V2
 ```
 
-Create a workstation desktop shortcut with:
-
-```powershell
-.\scripts\create-shared-desktop-shortcut.ps1 -Destination X:\V2 -PointToSharedShortcut
-```
+Do not create or use a shared `.lnk` in `X:\V2`; the updater removes the old `Inventory Management.lnk` shortcut if it exists.
 
 Mapped-drive paths are preserved by default so Windows can reuse the user's existing drive mapping. Use `-UseUncPaths` only when direct UNC shortcuts are known to authenticate correctly for every workstation. When mappings differ between computers, prefer `Start Inventory Management.cmd` or create the desktop shortcut on each workstation.
 

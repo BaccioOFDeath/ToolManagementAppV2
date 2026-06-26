@@ -101,8 +101,8 @@ Recommended active-user update flow:
 
    Use a folder-safe Windows release name that does not end with a dot or space. Do not use Windows filename characters such as `\`, `/`, `:`, `*`, `?`, `"`, `<`, `>`, or `|`. Avoid Windows reserved device names such as `CON`, `CONIN$`, `CONOUT$`, `NUL`, `COM1`, or `LPT1`, because those names are invalid deployment folder targets on Windows.
 
-   The update script also refreshes the launcher at `X:\V2\scripts\start-current-release.ps1` and writes `X:\V2\Start Inventory Management.cmd`. The command launcher resolves the app relative to the folder it is in, so it works even when different workstations map the share to different drive letters.
-3. For mixed workstation mappings, have users run `Start Inventory Management.cmd` from the shared `V2` folder or create each user's desktop shortcut from their own workstation. If every workstation uses the same mapping, `X:\V2\Inventory Management.lnk` can also be used. The publish script refreshes that shortcut so it points directly at `X:\V2\_releases\<ReleaseName>\InventoryManagementApp.exe`.
+   The update script also refreshes the launcher at `X:\V2\scripts\start-current-release.ps1`, writes `X:\V2\Start Inventory Management.cmd`, and removes the old shared `Inventory Management.lnk` shortcut if it exists. The command launcher resolves the app relative to the folder it is in, so it works even when different workstations map the share to different drive letters.
+3. For mixed workstation mappings, have users run `Start Inventory Management.cmd` from the shared `V2` folder or create each user's desktop shortcut from their own workstation. Do not use a shared `.lnk` from the server folder, because shortcuts store machine-specific paths.
 4. Ask users to restart the app when convenient. Users already running the previous release can continue current rentals/check-ins because the SQLite database and preserved asset folders remain shared. When an older side-by-side release reaches the login screen after `current-release.txt` has moved forward, it shows an update message asking the user to close and reopen the app.
 5. After confirming nobody is running older release folders, prune old releases and backups with the cleanup helper:
 
@@ -118,7 +118,13 @@ To create or refresh the desktop shortcut after a publish, run:
 ./scripts/create-shared-desktop-shortcut.ps1 -Destination X:\V2
 ```
 
-Run it on the server with `-ShortcutDirectory X:\V2` to refresh the shared shortcut. Run it on a workstation with `-PointToSharedShortcut` to create a desktop shortcut that opens the shared shortcut without using hidden PowerShell. When computers use different drive letters, prefer the root `Start Inventory Management.cmd` launcher instead of a shared `.lnk`.
+Run it on each workstation to create an icon-bearing desktop shortcut to that workstation's mapped `Start Inventory Management.cmd` launcher:
+
+```powershell
+./scripts/create-shared-desktop-shortcut.ps1 -Destination X:\V2
+```
+
+Do not run it with `-ShortcutDirectory X:\V2` for normal deployments, because that creates a shared `.lnk` with one machine's path mapping.
 
 If a site prefers direct UNC shortcuts, add `-UseUncPaths`. Do not use that switch when users can open the mapped drive but Windows prompts for credentials to `\\ServerName`.
 

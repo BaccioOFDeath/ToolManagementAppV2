@@ -72,6 +72,32 @@ function Test-ReleaseNameIsReservedDeviceName {
     return $windowsReservedDeviceNames -contains $baseName
 }
 
+function Get-RunningProcessDescription {
+    param(
+        [Parameter(Mandatory = $true)]$Process
+    )
+
+    $processPath = ""
+    try {
+        $processPath = $Process.Path
+    } catch {
+        $processPath = "path unavailable"
+    }
+
+    return "PID $($Process.Id), Path: $processPath"
+}
+
+function Write-DotNetRuntimeSummary {
+    $dotnetCommand = Get-Command dotnet -ErrorAction SilentlyContinue
+    if (-not $dotnetCommand) {
+        Write-Host "dotnet command was not found on this workstation."
+        return
+    }
+
+    Write-Host ".NET runtimes installed on this workstation:"
+    & $dotnetCommand.Source --list-runtimes
+}
+
 if (-not (Test-Path -LiteralPath $Destination)) {
     throw "Destination '$Destination' does not exist."
 }
@@ -111,14 +137,21 @@ if (-not [string]::IsNullOrWhiteSpace($releaseName)) {
 
 $workingDirectory = Split-Path -Parent $executablePath
 $processName = [System.IO.Path]::GetFileNameWithoutExtension($ExecutableName)
-if (-not $AllowMultipleInstances -and (Get-Process -Name $processName -ErrorAction SilentlyContinue)) {
-    Write-Host "$processName is already running on this workstation. Close it before starting another copy."
-    return
+$runningProcesses = Get-Process -Name $processName -ErrorAction SilentlyContinue
+if (-not $AllowMultipleInstances -and $runningProcesses) {
+    $runningProcessDetails = ($runningProcesses | ForEach-Object { Get-RunningProcessDescription -Process $_ }) -join "; "
+    throw "$processName is already running on this workstation. Close it in Task Manager before starting another copy. Running process(es): $runningProcessDetails"
 }
 
 Write-Host "Starting $executablePath"
 if ($ArgumentList.Count -gt 0) {
-    Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory -ArgumentList $ArgumentList
+    $process = Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory -ArgumentList $ArgumentList -PassThru
 } else {
-    Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory
+    $process = Start-Process -FilePath $executablePath -WorkingDirectory $workingDirectory -PassThru
+}
+
+Start-Sleep -Milliseconds 1500
+if ($process.HasExited -and $process.ExitCode -ne 0) {
+    Write-DotNetRuntimeSummary
+    throw "InventoryManagementApp.exe exited immediately with code $($process.ExitCode). Confirm the .NET 10 Desktop Runtime is installed on this workstation and check the application logs."
 }

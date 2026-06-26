@@ -2,6 +2,7 @@
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using InventoryManagementApp.Utilities;
 
 namespace InventoryManagementApp.Utilities.Helpers
 {
@@ -27,7 +28,7 @@ namespace InventoryManagementApp.Utilities.Helpers
             try
             {
                 var baseDir = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
-                var assetBaseDir = GetAssetBaseDirectory(baseDir);
+                var assetBaseDir = DeploymentPathResolver.GetDeploymentRoot(baseDir);
                 var combined = Path.IsPathRooted(path)
                     ? path
                     : Path.Combine(assetBaseDir, path);
@@ -49,18 +50,6 @@ namespace InventoryManagementApp.Utilities.Helpers
                 Logger.LogError(ex, "Failed to resolve path {Path}", path);
                 return null;
             }
-        }
-
-        static string GetAssetBaseDirectory(string baseDir)
-        {
-            var releaseDirectory = new DirectoryInfo(baseDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-            if (releaseDirectory.Parent?.Name.Equals("_releases", StringComparison.OrdinalIgnoreCase) == true &&
-                releaseDirectory.Parent.Parent is { } deploymentRoot)
-            {
-                return Path.GetFullPath(deploymentRoot.FullName);
-            }
-
-            return baseDir;
         }
 
         static bool IsWithinDirectory(string fullPath, string directory)

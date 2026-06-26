@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -106,8 +107,10 @@ namespace InventoryManagementApp
             })
             .ConfigureLogging((context, logging) =>
             {
-                var logsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                    context.Configuration["Logging:Directory"] ?? "Logs");
+                var logsDir = DeploymentPathResolver.Resolve(
+                    context.Configuration["Logging:Directory"],
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    "Logs");
                 Directory.CreateDirectory(logsDir);
                 var logFile = Path.Combine(logsDir, "app-.log");
 
@@ -1565,10 +1568,38 @@ namespace InventoryManagementApp
 
         protected async override void OnExit(ExitEventArgs e)
         {
-            await Host.StopAsync();
-            Host.Dispose();
-            Log.CloseAndFlush();
-            base.OnExit(e);
+            try
+            {
+                await StopApplicationServicesAsync().ConfigureAwait(false);
+                using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                await Host.StopAsync(stopCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogWarning(ex, "Timed out while stopping application services during shutdown.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed while stopping application services during shutdown.");
+            }
+            finally
+            {
+                Host.Dispose();
+                Log.CloseAndFlush();
+                base.OnExit(e);
+            }
+        }
+
+        async Task StopApplicationServicesAsync()
+        {
+            Host.Services.GetService<RentalReminderService>()?.Stop();
+
+            var mobileCaptureService = Host.Services.GetService<MobileCaptureService>();
+            if (mobileCaptureService != null)
+            {
+                using var mobileCaptureStopCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                await mobileCaptureService.StopAsync(mobileCaptureStopCts.Token).ConfigureAwait(false);
+            }
         }
 
         void OnWindowLoaded(object sender, RoutedEventArgs e)

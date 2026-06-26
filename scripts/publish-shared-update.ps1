@@ -120,14 +120,9 @@ try {
             -ReleaseName $ReleaseName
     }
 
-    Invoke-PublishStep "Refresh shared shortcut" {
-        & (Join-Path $PSScriptRoot "create-shared-desktop-shortcut.ps1") `
-            -Destination $Destination `
-            -ShortcutDirectory $Destination
-    }
-
     Write-Host ""
     Write-Host "Shared update staged as '$ReleaseName'. Users running older releases will see an update message on the login screen and should close and reopen the app."
+    Write-Host "Use Start Inventory Management.cmd from the shared folder, or create a per-workstation desktop shortcut to that launcher."
 } finally {
     Pop-Location
 }
