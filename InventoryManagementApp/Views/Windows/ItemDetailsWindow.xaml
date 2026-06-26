@@ -67,7 +67,8 @@
                     <Button Style="{StaticResource PrimaryButton}" Content="{Binding CheckOutButtonText}" Command="{Binding ToggleCheckOutCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="Request / Hold" Command="{Binding PlaceReservationCommand}" ToolTip="Create a pending request or hold for this item (Ctrl+R)" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintDetailsCommand}" ToolTip="Print item details (Ctrl+P)" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,0,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Checkout History" Command="{Binding OpenCheckoutHistoryCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Rental History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,0,6"/>
                 </WrapPanel>
             </DockPanel>
         </Border>
@@ -271,6 +272,7 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Style="{StaticResource GhostButton}" Content="Request / Hold" Command="{Binding PlaceReservationCommand}" ToolTip="Create a pending request for this item" Margin="0,0,6,0"/>
                         <Button Style="{StaticResource GhostButton}" Content="Print Details" Command="{Binding PrintDetailsCommand}" Margin="0,0,6,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Checkout History" Command="{Binding OpenCheckoutHistoryCommand}" Margin="0,0,6,0"/>
                         <Button Style="{StaticResource GhostButton}" Content="Rental History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,6,0"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Close" Command="{Binding CloseCommand}"/>
                     </StackPanel>

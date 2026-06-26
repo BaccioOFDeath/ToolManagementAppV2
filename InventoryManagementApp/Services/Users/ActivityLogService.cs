@@ -88,6 +88,55 @@ namespace InventoryManagementApp.Services.Users
             }
         }
 
+        public virtual async Task<Result<List<ActivityLog>>> GetCheckoutHistoryForItemAsync(int itemID, string? itemNumber, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                if (itemID < 1)
+                    return new Result<List<ActivityLog>>(new List<ActivityLog>(), true);
+
+                var itemIdPattern = $"%item {itemID} check-out status%";
+                var itemNumberPattern = string.IsNullOrWhiteSpace(itemNumber)
+                    ? null
+                    : $"%item {itemNumber.Trim()} ({itemID})%";
+
+                var sql = @"
+                    SELECT * FROM ActivityLogs
+                     WHERE Action LIKE @LegacyTogglePattern";
+                var parameters = new List<SqliteParameter>
+                {
+                    new("@LegacyTogglePattern", itemIdPattern)
+                };
+
+                if (itemNumberPattern != null)
+                {
+                    sql += " OR Action LIKE @ItemNumberPattern";
+                    parameters.Add(new SqliteParameter("@ItemNumberPattern", itemNumberPattern));
+                }
+
+                sql += " ORDER BY Timestamp DESC";
+
+                using var conn = _dbService.CreateConnection();
+                var logs = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapLog, parameters.ToArray(), cancellationToken).ConfigureAwait(false);
+                return new Result<List<ActivityLog>>(logs, true);
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogWarning(ex, "Retrieving checkout history for item {ItemID} canceled or timed out", itemID);
+                return new Result<List<ActivityLog>>(null, false, "Operation canceled");
+            }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_BUSY)
+            {
+                _logger.LogWarning(ex, "Retrieving checkout history for item {ItemID} timed out", itemID);
+                return new Result<List<ActivityLog>>(null, false, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve checkout history for item {ItemID}", itemID);
+                return new Result<List<ActivityLog>>(null, false, ex.Message);
+            }
+        }
+
         public virtual async Task<Result> PurgeOldLogsAsync(DateTime threshold, CancellationToken cancellationToken = default)
         {
             try

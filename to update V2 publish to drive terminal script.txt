@@ -2,5 +2,5 @@
 For publishing work going forward, use:
 .\scripts\publish-shared-update.ps1 -Destination X:\V2
 
-For cleaning old server releases later:
-.\scripts\cleanup-shared-deployment.ps1 -Destination X:\V2 -KeepReleases 3 -KeepBackups 3
+This now also runs cleanup automatically with:
+-KeepReleases 3 -KeepBackups 3

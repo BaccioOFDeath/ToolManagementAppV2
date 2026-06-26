@@ -135,6 +135,7 @@ namespace InventoryManagementApp.Services.Items
             if (_context?.CurrentUser == null)
                 throw new InvalidOperationException("Current user is not available.");
 
+            var before = await GetItemByIDAsync(itemID, cancellationToken).ConfigureAwait(false);
             var caller = _context.UserName;
             var result = await ToggleItemCheckOutStatusInternalAsync(itemID, caller, _auth.IsAdmin, cancellationToken).ConfigureAwait(false);
             if (!result)
@@ -143,7 +144,14 @@ namespace InventoryManagementApp.Services.Items
             if (_activityLog != null)
             {
                 int userId = _context.CurrentUser?.UserID ?? 0;
-                await _activityLog.LogActionAsync(userId, caller, $"Toggled item {itemID} check-out status", cancellationToken).ConfigureAwait(false);
+                var after = await GetItemByIDAsync(itemID, cancellationToken).ConfigureAwait(false);
+                var itemNumber = string.IsNullOrWhiteSpace(after?.ItemNumber)
+                    ? string.IsNullOrWhiteSpace(before?.ItemNumber) ? itemID.ToString() : before.ItemNumber
+                    : after.ItemNumber;
+                var action = after?.IsCheckedOut == true
+                    ? $"Checked out item {itemNumber} ({itemID})"
+                    : $"Checked in item {itemNumber} ({itemID})";
+                await _activityLog.LogActionAsync(userId, caller, action, cancellationToken).ConfigureAwait(false);
             }
             return true;
         }

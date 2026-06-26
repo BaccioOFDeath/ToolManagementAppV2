@@ -6,6 +6,8 @@ using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Services.Core;
+using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.ViewModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -126,6 +128,40 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(12, rental.LastHistoryItemId);
             Assert.True(dialog.ShowRentalHistoryCalled);
             Assert.Same(item, dialog.LastHistoryItem);
+        }
+
+        [Fact]
+        public async Task ItemDetailsViewModel_CheckoutHistoryCommand_ShowsCheckoutActivity()
+        {
+            var rental = new RecordingRentalService();
+            var dialog = new RecordingDialogService();
+            var itemService = new RecordingToggleItemService();
+            var customer = new RecordingCustomerService();
+            var activityLog = new RecordingActivityLogService(new List<ActivityLog>
+            {
+                new()
+                {
+                    UserName = "Alex",
+                    Action = "Checked out item T34 (12)",
+                    Timestamp = new DateTime(2026, 6, 26, 9, 30, 0)
+                },
+                new()
+                {
+                    UserName = "Sam",
+                    Action = "Checked in item T34 (12)",
+                    Timestamp = new DateTime(2026, 6, 26, 12, 45, 0)
+                }
+            });
+            var item = new ItemModel { ItemID = 12, ItemNumber = "T34", Name = "Brake Bleeder" };
+            var vm = new ItemDetailsViewModel(item, itemService, customer, rental, dialog, () => { }, activityLogService: activityLog);
+
+            await vm.OpenCheckoutHistoryCommand.ExecuteAsync(null);
+
+            Assert.Equal(12, activityLog.LastItemId);
+            Assert.Equal("T34", activityLog.LastItemNumber);
+            Assert.Equal("Checkout History - T34", dialog.LastInfoTitle);
+            Assert.Contains("2026-06-26 12:45 - Sam - Checked in item T34 (12)", dialog.LastInfoMessage);
+            Assert.Contains("2026-06-26 09:30 - Alex - Checked out item T34 (12)", dialog.LastInfoMessage);
         }
 
         [Fact]
@@ -431,6 +467,26 @@ namespace InventoryManagementApp.Tests
             public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<int> ImportCustomersAsync(string filePath, IDataImporter<Customer> importer, CancellationToken cancellationToken = default) => Task.FromResult(0);
             public Task ExportCustomersAsync(string filePath, IDataExporter<Customer> exporter, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        }
+
+        private sealed class RecordingActivityLogService : ActivityLogService
+        {
+            readonly List<ActivityLog> _logs;
+            public int LastItemId { get; private set; }
+            public string? LastItemNumber { get; private set; }
+
+            public RecordingActivityLogService(List<ActivityLog> logs)
+                : base(new DatabaseService(":memory:", NullLogger<DatabaseService>.Instance))
+            {
+                _logs = logs;
+            }
+
+            public override Task<Result<List<ActivityLog>>> GetCheckoutHistoryForItemAsync(int itemID, string? itemNumber, CancellationToken cancellationToken = default)
+            {
+                LastItemId = itemID;
+                LastItemNumber = itemNumber;
+                return Task.FromResult(new Result<List<ActivityLog>>(_logs, true));
+            }
         }
 
         private sealed class RecordingDialogService : IDialogService

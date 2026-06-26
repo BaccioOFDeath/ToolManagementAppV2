@@ -45,9 +45,24 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("dialogService.ShowPrintPreview(document, title, description)", source, StringComparison.Ordinal);
             Assert.Contains("Dashboard checked-out item handoff", source, StringComparison.Ordinal);
             Assert.Contains("Dashboard operations snapshot", source, StringComparison.Ordinal);
+            Assert.Contains("AddCheckedOutItemTable(doc, CheckedOutItems", source, StringComparison.Ordinal);
+            Assert.Contains("AddTableCell(headerRow, \"Out Since\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("AddTableCell(headerRow, \"Handoff\", true)", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new System.Windows.Controls.PrintDialog", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new PrintDialog", source, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((System.Windows.Documents.IDocumentPaginatorSource)doc).DocumentPaginator", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ItemSearchCheckedOutPrintIncludesHandoffColumns()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml.cs");
+
+            Assert.Contains("BuildCheckedOutPrintDocument(title, items)", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Out Since\")", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Stock\")", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Handoff\")", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(row, item.AvailabilityDetail)", source, StringComparison.Ordinal);
         }
 
         [Fact]

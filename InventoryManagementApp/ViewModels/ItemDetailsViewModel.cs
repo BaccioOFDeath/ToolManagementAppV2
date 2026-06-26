@@ -10,6 +10,7 @@ using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Printing;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Services.Settings;
+using InventoryManagementApp.Services.Users;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -21,6 +22,7 @@ namespace InventoryManagementApp.ViewModels
         readonly IDialogService _dialogService;
         readonly ReservationService? _reservationService;
         readonly ISettingsService? _settingsService;
+        readonly ActivityLogService? _activityLogService;
 
         public ItemModel ItemModel { get; }
 
@@ -28,6 +30,7 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand EditCommand { get; }
         public IAsyncRelayCommand RentOutCommand { get; }
         public IAsyncRelayCommand ToggleCheckOutCommand { get; }
+        public IAsyncRelayCommand OpenCheckoutHistoryCommand { get; }
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
         public IAsyncRelayCommand PlaceReservationCommand { get; }
         public IRelayCommand PrintDetailsCommand { get; }
@@ -120,7 +123,8 @@ namespace InventoryManagementApp.ViewModels
             IDialogService dialogService,
             Action onClose,
             ReservationService? reservationService = null,
-            ISettingsService? settingsService = null)
+            ISettingsService? settingsService = null,
+            ActivityLogService? activityLogService = null)
         {
             ItemModel = item;
             _itemService = itemService;
@@ -129,10 +133,12 @@ namespace InventoryManagementApp.ViewModels
             _dialogService = dialogService;
             _reservationService = reservationService;
             _settingsService = settingsService;
+            _activityLogService = activityLogService;
             CloseCommand = new RelayCommand(onClose);
             EditCommand = new AsyncRelayCommand(EditAsync);
             RentOutCommand = new AsyncRelayCommand(RentOutAsync);
             ToggleCheckOutCommand = new AsyncRelayCommand(ToggleCheckOutAsync);
+            OpenCheckoutHistoryCommand = new AsyncRelayCommand(OpenCheckoutHistoryAsync);
             OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync);
             PlaceReservationCommand = new AsyncRelayCommand(PlaceReservationAsync, () => _reservationService != null);
             PrintDetailsCommand = new RelayCommand(PrintDetails);
@@ -304,6 +310,34 @@ namespace InventoryManagementApp.ViewModels
         {
             var history = await _rentalService.GetRentalHistoryForItemAsync(ItemModel.ItemID).ConfigureAwait(false);
             _dialogService.ShowRentalHistory(ItemModel, history);
+        }
+
+        async Task OpenCheckoutHistoryAsync()
+        {
+            if (_activityLogService == null)
+            {
+                await _dialogService.ShowInfoAsync("Checkout history is unavailable in this detail window.", "Checkout History").ConfigureAwait(false);
+                return;
+            }
+
+            var result = await _activityLogService.GetCheckoutHistoryForItemAsync(ItemModel.ItemID, ItemModel.ItemNumber).ConfigureAwait(false);
+            if (!result.Success)
+            {
+                await _dialogService.ShowInfoAsync($"Checkout history could not be loaded: {result.ErrorMessage}", "Checkout History").ConfigureAwait(false);
+                return;
+            }
+
+            var logs = result.Value ?? new();
+            if (logs.Count == 0)
+            {
+                await _dialogService.ShowInfoAsync("No checkout or check-in history was found for this item.", "Checkout History").ConfigureAwait(false);
+                return;
+            }
+
+            var lines = logs
+                .OrderByDescending(log => log.Timestamp)
+                .Select(log => $"{log.Timestamp:yyyy-MM-dd HH:mm} - {ValueOrNotRecorded(log.UserName)} - {log.Action}");
+            await _dialogService.ShowInfoAsync(string.Join(Environment.NewLine, lines), $"Checkout History - {ValueOrNotRecorded(ItemModel.ItemNumber)}").ConfigureAwait(false);
         }
 
         async Task PlaceReservationAsync()

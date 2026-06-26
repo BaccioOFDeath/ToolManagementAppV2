@@ -140,7 +140,9 @@ $processName = [System.IO.Path]::GetFileNameWithoutExtension($ExecutableName)
 $runningProcesses = Get-Process -Name $processName -ErrorAction SilentlyContinue
 if (-not $AllowMultipleInstances -and $runningProcesses) {
     $runningProcessDetails = ($runningProcesses | ForEach-Object { Get-RunningProcessDescription -Process $_ }) -join "; "
-    throw "$processName is already running on this workstation. Close it in Task Manager before starting another copy. Running process(es): $runningProcessDetails"
+    Write-Host "$processName is already running on this workstation. No new copy was started."
+    Write-Host "Running process(es): $runningProcessDetails"
+    return
 }
 
 Write-Host "Starting $executablePath"

@@ -212,7 +212,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("function Get-RunningProcessDescription", launcher, StringComparison.Ordinal);
             Assert.Contains("PID $($Process.Id), Path: $processPath", launcher, StringComparison.Ordinal);
             Assert.Contains("Running process(es): $runningProcessDetails", launcher, StringComparison.Ordinal);
-            Assert.Contains("is already running on this workstation. Close it in Task Manager before starting another copy.", launcher, StringComparison.Ordinal);
+            Assert.Contains("No new copy was started.", launcher, StringComparison.Ordinal);
+            Assert.Contains("return", launcher, StringComparison.Ordinal);
             Assert.Contains("function Write-DotNetRuntimeSummary", launcher, StringComparison.Ordinal);
             Assert.Contains("& $dotnetCommand.Source --list-runtimes", launcher, StringComparison.Ordinal);
             Assert.Contains("if ($ArgumentList.Count -gt 0)", launcher, StringComparison.Ordinal);
@@ -230,6 +231,8 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("$Destination = \"X:\\V2\"", script, StringComparison.Ordinal);
             Assert.Contains("$ReleaseName = (Get-Date -Format \"yyyy.MM.dd-HHmmss\")", script, StringComparison.Ordinal);
+            Assert.Contains("$KeepReleases = 3", script, StringComparison.Ordinal);
+            Assert.Contains("$KeepBackups = 3", script, StringComparison.Ordinal);
             Assert.Contains("$global:LASTEXITCODE = 0", script, StringComparison.Ordinal);
             Assert.Contains("if ($global:LASTEXITCODE -ne 0)", script, StringComparison.Ordinal);
             Assert.Contains("failed with exit code $global:LASTEXITCODE", script, StringComparison.Ordinal);
@@ -245,6 +248,10 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("& $bashPath scripts/check-banned-words.sh", script, StringComparison.Ordinal);
             Assert.Contains("-DeploymentMode SideBySide", script, StringComparison.Ordinal);
             Assert.Contains("-ReleaseName $ReleaseName", script, StringComparison.Ordinal);
+            Assert.Contains("Clean old shared releases and backups", script, StringComparison.Ordinal);
+            Assert.Contains("& (Join-Path $PSScriptRoot \"cleanup-shared-deployment.ps1\")", script, StringComparison.Ordinal);
+            Assert.Contains("-KeepReleases $KeepReleases", script, StringComparison.Ordinal);
+            Assert.Contains("-KeepBackups $KeepBackups", script, StringComparison.Ordinal);
             Assert.DoesNotContain("& (Join-Path $PSScriptRoot \"create-shared-desktop-shortcut.ps1\")", script, StringComparison.Ordinal);
             Assert.DoesNotContain("-ShortcutDirectory $Destination", script, StringComparison.Ordinal);
             Assert.Contains("Use Start Inventory Management.cmd from the shared folder", script, StringComparison.Ordinal);

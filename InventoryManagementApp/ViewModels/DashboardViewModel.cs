@@ -831,7 +831,7 @@ namespace InventoryManagementApp.ViewModels
         private System.Windows.Documents.FlowDocument GenerateCheckedOutItemsDocument(string userName)
         {
             var doc = CreatePrintDocument("Checked Out Items", userName);
-            AddItemTable(doc, CheckedOutItems, "Checked-out inventory", includeHolder: true);
+            AddCheckedOutItemTable(doc, CheckedOutItems, "Checked-out inventory");
             AddTotal(doc, $"Total Items: {CheckedOutItems.Count}");
             return doc;
         }
@@ -842,7 +842,7 @@ namespace InventoryManagementApp.ViewModels
 
             AddSummaryParagraph(doc, OperationsSummary);
             AddItemTable(doc, CommonlyUsedItems.Take(10), "Commonly used items", includeUsage: true);
-            AddItemTable(doc, CheckedOutItems.Take(25), "Checked-out items", includeHolder: true);
+            AddCheckedOutItemTable(doc, CheckedOutItems.Take(25), "Checked-out items");
             AddRentalTable(doc, RentedItems.Take(25), "Active rentals");
             AddItemTable(doc, IncompleteItems.Take(15), "Items with issues", includeNotes: true);
 
@@ -910,6 +910,39 @@ namespace InventoryManagementApp.ViewModels
                 AddTableCell(row, item.Name);
                 AddTableCell(row, includeHolder ? item.CheckedOutBy : includeUsage ? item.CheckoutCount.ToString() : item.Location);
                 AddTableCell(row, includeNotes ? item.MissingComponentsNotes : (item.IsCheckedOut ? "Checked out" : "Available"));
+                table.RowGroups[1].Rows.Add(row);
+            }
+
+            doc.Blocks.Add(table);
+            AddTotal(doc, $"Rows: {itemList.Count}");
+        }
+
+        private void AddCheckedOutItemTable(System.Windows.Documents.FlowDocument doc, IEnumerable<ItemModel> items, string title)
+        {
+            var itemList = items.ToList();
+            AddSectionTitle(doc, title);
+
+            var table = CreateTable(7);
+            var headerRow = CreateHeaderRow();
+            AddTableCell(headerRow, "Item #", true);
+            AddTableCell(headerRow, "Name", true);
+            AddTableCell(headerRow, "Location", true);
+            AddTableCell(headerRow, "Holder", true);
+            AddTableCell(headerRow, "Out Since", true);
+            AddTableCell(headerRow, "Stock", true);
+            AddTableCell(headerRow, "Handoff", true);
+            table.RowGroups[0].Rows.Add(headerRow);
+
+            foreach (var item in itemList)
+            {
+                var row = new System.Windows.Documents.TableRow();
+                AddTableCell(row, item.ItemNumber);
+                AddTableCell(row, item.Name);
+                AddTableCell(row, ValueOrNotRecorded(item.Location));
+                AddTableCell(row, item.HolderDisplay);
+                AddTableCell(row, item.OutSinceDisplay);
+                AddTableCell(row, item.StockSummary);
+                AddTableCell(row, item.AvailabilityDetail);
                 table.RowGroups[1].Rows.Add(row);
             }
 

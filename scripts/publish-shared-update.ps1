@@ -4,6 +4,8 @@ param(
     [string]$Configuration = "Release",
     [string]$Runtime = "win-x64",
     [string]$PublishOutput = (Join-Path $PSScriptRoot "..\publish-clean"),
+    [int]$KeepReleases = 3,
+    [int]$KeepBackups = 3,
     [switch]$SkipValidation,
     [switch]$SkipBannedWordCheck
 )
@@ -120,8 +122,15 @@ try {
             -ReleaseName $ReleaseName
     }
 
+    Invoke-PublishStep "Clean old shared releases and backups" {
+        & (Join-Path $PSScriptRoot "cleanup-shared-deployment.ps1") `
+            -Destination $Destination `
+            -KeepReleases $KeepReleases `
+            -KeepBackups $KeepBackups
+    }
+
     Write-Host ""
-    Write-Host "Shared update staged as '$ReleaseName'. Users running older releases will see an update message on the login screen and should close and reopen the app."
+    Write-Host "Shared update staged as '$ReleaseName'. Kept the newest $KeepReleases release(s) and $KeepBackups backup(s). Users running older releases will see an update message on the login screen and should close and reopen the app."
     Write-Host "Use Start Inventory Management.cmd from the shared folder, or create a per-workstation desktop shortcut to that launcher."
 } finally {
     Pop-Location

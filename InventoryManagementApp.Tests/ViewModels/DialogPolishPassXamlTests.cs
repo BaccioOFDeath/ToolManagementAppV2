@@ -60,6 +60,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("EditCommand", details, StringComparison.Ordinal);
             Assert.Contains("RentOutCommand", details, StringComparison.Ordinal);
             Assert.Contains("ToggleCheckOutCommand", details, StringComparison.Ordinal);
+            Assert.Contains("OpenCheckoutHistoryCommand", details, StringComparison.Ordinal);
+            Assert.Contains("Checkout History", details, StringComparison.Ordinal);
             Assert.Contains("OpenRentalHistoryCommand", details, StringComparison.Ordinal);
             Assert.Contains("CloseCommand", details, StringComparison.Ordinal);
         }

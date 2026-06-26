@@ -340,6 +340,9 @@ namespace InventoryManagementApp.Views.Pages
 
         private static FlowDocument BuildPrintDocument(string title, IReadOnlyCollection<ItemModel> items)
         {
+            if (title.Contains("Checked Out", StringComparison.OrdinalIgnoreCase))
+                return BuildCheckedOutPrintDocument(title, items);
+
             var document = new FlowDocument
             {
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
@@ -385,6 +388,59 @@ namespace InventoryManagementApp.Views.Pages
                 AddCell(row, item.QuantityOnHand.ToString());
                 AddCell(row, item.CheckedOutBy);
                 AddCell(row, item.CheckedOutTime?.ToString("g") ?? string.Empty);
+            }
+
+            document.Blocks.Add(table);
+            return document;
+        }
+
+        private static FlowDocument BuildCheckedOutPrintDocument(string title, IReadOnlyCollection<ItemModel> items)
+        {
+            var document = new FlowDocument
+            {
+                FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
+                FontSize = 10.5
+            };
+
+            document.Blocks.Add(new Paragraph(new Run(title))
+            {
+                FontSize = 16,
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {items.Count} checked-out item(s)"))
+            {
+                FontSize = 10,
+                Margin = new Thickness(0, 0, 0, 10)
+            });
+
+            var table = new Table { CellSpacing = 0 };
+            foreach (var width in new[] { 75.0, 150.0, 95.0, 105.0, 105.0, 85.0, 190.0 })
+                table.Columns.Add(new TableColumn { Width = new GridLength(width) });
+
+            var rowGroup = new TableRowGroup();
+            table.RowGroups.Add(rowGroup);
+            var header = new TableRow { FontWeight = FontWeights.SemiBold };
+            rowGroup.Rows.Add(header);
+            AddCell(header, "Item #");
+            AddCell(header, "Name");
+            AddCell(header, "Location");
+            AddCell(header, "Holder");
+            AddCell(header, "Out Since");
+            AddCell(header, "Stock");
+            AddCell(header, "Handoff");
+
+            foreach (var item in items)
+            {
+                var row = new TableRow();
+                rowGroup.Rows.Add(row);
+                AddCell(row, item.ItemNumber);
+                AddCell(row, item.Name);
+                AddCell(row, ValueOrNotRecorded(item.Location));
+                AddCell(row, item.HolderDisplay);
+                AddCell(row, item.OutSinceDisplay);
+                AddCell(row, item.StockSummary);
+                AddCell(row, item.AvailabilityDetail);
             }
 
             document.Blocks.Add(table);
@@ -524,6 +580,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             return item.HasNoOnHand || item.HasRentedStock || item.IsCheckedOut;
         }
+
+        private static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
 
         private static string GetStatus(ItemModel item)
         {
