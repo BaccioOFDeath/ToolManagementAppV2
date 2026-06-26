@@ -31,6 +31,32 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void RentalHistoryQueriesValidateParentRowsBeforeExecutingHistoryQueries()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+
+            AssertContainsAll(
+                source,
+                "private static async Task EnsureItemExistsAsync(SqliteConnection conn, int itemID)",
+                "SELECT COUNT(*) FROM Items WHERE ItemID=@ItemID",
+                "throw new InvalidOperationException(\"Item not found.\");",
+                "private static async Task EnsureCustomerExistsAsync(SqliteConnection conn, int customerID)",
+                "SELECT COUNT(*) FROM Customers WHERE CustomerID=@CustomerID",
+                "throw new InvalidOperationException(\"Customer not found.\");",
+                "await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);",
+                "await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);");
+
+            Assert.True(
+                source.IndexOf("await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);", StringComparison.Ordinal) <
+                source.IndexOf("var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);", StringComparison.Ordinal),
+                "Expected item rental history to confirm the item row exists before executing the history query.");
+            Assert.True(
+                source.IndexOf("await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);", StringComparison.Ordinal) <
+                source.LastIndexOf("var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);", StringComparison.Ordinal),
+                "Expected customer rental history to confirm the customer row exists before executing the history query.");
+        }
+
+        [Fact]
         public void RentalFrequencyValidatesPositiveLimitBeforeSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
