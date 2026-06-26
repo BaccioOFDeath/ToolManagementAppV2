@@ -223,13 +223,15 @@ namespace InventoryManagementApp.Services.Rentals
                 if (result == null) throw new InvalidOperationException("Rental not found or already returned.");
                 var itemID = Convert.ToInt32(result);
 
-                await SqliteHelper.ExecuteNonQueryAsync(conn, tx,
-                    "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID",
+                var returnedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, tx,
+                    "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID AND Status='Rented'",
                     new[]
                     {
                         new SqliteParameter("@ReturnDate", returnDate),
                         new SqliteParameter("@RentalID", rentalID)
                     });
+                if (returnedRows == 0)
+                    throw new InvalidOperationException("Rental not found or already returned.");
 
                 if (_itemService != null)
                     await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);
