@@ -138,6 +138,9 @@ namespace InventoryManagementApp.Services.Maintenance
 
         public async Task<MaintenanceRecord?> GetMaintenanceRecordByIdAsync(int maintenanceID)
         {
+            if (maintenanceID < 1)
+                throw new ArgumentOutOfRangeException(nameof(maintenanceID), "Maintenance ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -159,9 +162,14 @@ namespace InventoryManagementApp.Services.Maintenance
 
         public async Task<int> CreateMaintenanceRecordAsync(MaintenanceRecord record)
         {
+            if (record.ItemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureItemExists(conn, record.ItemID);
+
                 var sql = @"
                     INSERT INTO MaintenanceRecords 
                     (ItemID, ScheduledDate, CompletedDate, MaintenanceType, Description, 
@@ -189,9 +197,17 @@ namespace InventoryManagementApp.Services.Maintenance
 
         public async Task<bool> UpdateMaintenanceRecordAsync(MaintenanceRecord record)
         {
+            if (record.MaintenanceID < 1)
+                throw new ArgumentOutOfRangeException(nameof(record.MaintenanceID), "Maintenance ID must be greater than 0.");
+            if (record.ItemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureMaintenanceRecordExists(conn, record.MaintenanceID);
+                EnsureItemExists(conn, record.ItemID);
+
                 var sql = @"
                     UPDATE MaintenanceRecords 
                     SET ItemID = @ItemID,
@@ -215,15 +231,23 @@ namespace InventoryManagementApp.Services.Maintenance
                 cmd.Parameters.AddWithValue("@Cost", record.Cost);
                 cmd.Parameters.AddWithValue("@Status", record.Status);
                 cmd.Parameters.AddWithValue("@Notes", record.Notes);
-                return cmd.ExecuteNonQuery() > 0;
+                if (cmd.ExecuteNonQuery() == 0)
+                    throw new InvalidOperationException("Maintenance record not found.");
+
+                return true;
             });
         }
 
         public async Task<bool> CompleteMaintenanceAsync(int maintenanceID, string performedBy, string notes = "")
         {
+            if (maintenanceID < 1)
+                throw new ArgumentOutOfRangeException(nameof(maintenanceID), "Maintenance ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureMaintenanceRecordExists(conn, maintenanceID);
+
                 var sql = @"
                     UPDATE MaintenanceRecords 
                     SET Status = 'Completed',
@@ -236,19 +260,30 @@ namespace InventoryManagementApp.Services.Maintenance
                 cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
                 cmd.Parameters.AddWithValue("@PerformedBy", performedBy);
                 cmd.Parameters.AddWithValue("@Notes", notes);
-                return cmd.ExecuteNonQuery() > 0;
+                if (cmd.ExecuteNonQuery() == 0)
+                    throw new InvalidOperationException("Maintenance record not found.");
+
+                return true;
             });
         }
 
         public async Task<bool> DeleteMaintenanceRecordAsync(int maintenanceID)
         {
+            if (maintenanceID < 1)
+                throw new ArgumentOutOfRangeException(nameof(maintenanceID), "Maintenance ID must be greater than 0.");
+
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureMaintenanceRecordExists(conn, maintenanceID);
+
                 var sql = "DELETE FROM MaintenanceRecords WHERE MaintenanceID = @MaintenanceID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@MaintenanceID", maintenanceID);
-                return cmd.ExecuteNonQuery() > 0;
+                if (cmd.ExecuteNonQuery() == 0)
+                    throw new InvalidOperationException("Maintenance record not found.");
+
+                return true;
             });
         }
 
@@ -271,6 +306,24 @@ namespace InventoryManagementApp.Services.Maintenance
                 UserID = reader.IsDBNull(reader.GetOrdinal("UserID")) ? 0 : reader.GetInt32(reader.GetOrdinal("UserID")),
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
             };
+        }
+
+        private static void EnsureItemExists(SqliteConnection conn, int itemID)
+        {
+            using var itemCmd = new SqliteCommand("SELECT COUNT(*) FROM Items WHERE ItemID = @ItemID", conn);
+            itemCmd.Parameters.AddWithValue("@ItemID", itemID);
+            var itemCount = Convert.ToInt32(itemCmd.ExecuteScalar() ?? 0);
+            if (itemCount < 1)
+                throw new InvalidOperationException("Item not found.");
+        }
+
+        private static void EnsureMaintenanceRecordExists(SqliteConnection conn, int maintenanceID)
+        {
+            using var maintenanceCmd = new SqliteCommand("SELECT COUNT(*) FROM MaintenanceRecords WHERE MaintenanceID = @MaintenanceID", conn);
+            maintenanceCmd.Parameters.AddWithValue("@MaintenanceID", maintenanceID);
+            var maintenanceCount = Convert.ToInt32(maintenanceCmd.ExecuteScalar() ?? 0);
+            if (maintenanceCount < 1)
+                throw new InvalidOperationException("Maintenance record not found.");
         }
     }
 }
