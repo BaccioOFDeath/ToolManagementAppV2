@@ -60,6 +60,14 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task CreateCalibrationRecord_WithNullRecord_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _calibrationService.CreateCalibrationRecordAsync(null));
+
+            Assert.Equal("record", ex.ParamName);
+        }
+
+        [Fact]
         public async Task CreateCalibrationRecord_WithMissingItem_ShouldThrow()
         {
             var record = new CalibrationRecord
@@ -137,6 +145,14 @@ namespace InventoryManagementApp.Tests
             var result = await _calibrationService.UpdateCalibrationRecordAsync(record);
 
             Assert.True(result);
+        }
+
+        [Fact]
+        public async Task UpdateCalibrationRecord_WithNullRecord_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _calibrationService.UpdateCalibrationRecordAsync(null));
+
+            Assert.Equal("record", ex.ParamName);
         }
 
         [Fact]

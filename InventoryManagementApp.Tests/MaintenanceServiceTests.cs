@@ -60,6 +60,14 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task CreateMaintenanceRecord_WithNullRecord_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _maintenanceService.CreateMaintenanceRecordAsync(null));
+
+            Assert.Equal("record", ex.ParamName);
+        }
+
+        [Fact]
         public async Task CreateMaintenanceRecord_WithMissingItem_ShouldThrow()
         {
             var record = new MaintenanceRecord
@@ -137,6 +145,14 @@ namespace InventoryManagementApp.Tests
             var result = await _maintenanceService.UpdateMaintenanceRecordAsync(record);
 
             Assert.True(result);
+        }
+
+        [Fact]
+        public async Task UpdateMaintenanceRecord_WithNullRecord_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _maintenanceService.UpdateMaintenanceRecordAsync(null));
+
+            Assert.Equal("record", ex.ParamName);
         }
 
         [Fact]

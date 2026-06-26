@@ -186,6 +186,8 @@ namespace InventoryManagementApp.Services.Calibration
 
         public async Task<int> CreateCalibrationRecordAsync(CalibrationRecord record)
         {
+            if (record is null)
+                throw new ArgumentNullException(nameof(record));
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
@@ -221,6 +223,8 @@ namespace InventoryManagementApp.Services.Calibration
 
         public async Task<bool> UpdateCalibrationRecordAsync(CalibrationRecord record)
         {
+            if (record is null)
+                throw new ArgumentNullException(nameof(record));
             if (record.CalibrationID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.CalibrationID), "Calibration ID must be greater than 0.");
             if (record.ItemID < 1)
