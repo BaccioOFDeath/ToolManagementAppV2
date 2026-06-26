@@ -62,6 +62,9 @@ namespace InventoryManagementApp.Services.Users
         {
             try
             {
+                if (count < 1)
+                    return new Result<List<ActivityLog>>(null, false, "Count must be positive.");
+
                 const string sql = @"
                     SELECT * FROM ActivityLogs
                      ORDER BY Timestamp DESC
