@@ -53,6 +53,33 @@ namespace InventoryManagementApp.Tests
                 "Expected stale return writes to fail before returning item quantity to stock.");
         }
 
+        [Fact]
+        public void DeleteRentalGuardsDeleteWriteBeforeInventorySync()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+
+            AssertContainsAll(
+                source,
+                "public async Task DeleteRentalAsync(int rentalID)",
+                "SELECT ItemID, Status, ReturnDate FROM Rentals WHERE RentalID=@RentalID",
+                "var deletedRows = await deleteCmd.ExecuteNonQueryAsync();",
+                "if (deletedRows == 0)",
+                "throw new InvalidOperationException(\"Rental not found.\");",
+                "await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);");
+
+            var deleteMethodIndex = source.IndexOf("public async Task DeleteRentalAsync(int rentalID)", StringComparison.Ordinal);
+            var deletedRowsIndex = source.IndexOf("var deletedRows = await deleteCmd.ExecuteNonQueryAsync();", deleteMethodIndex, StringComparison.Ordinal);
+            var staleGuardIndex = source.IndexOf("if (deletedRows == 0)", deleteMethodIndex, StringComparison.Ordinal);
+            var deleteInventorySyncIndex = source.LastIndexOf("await _itemService.UpdateItemQuantitiesAsync(itemID, 1, false, conn, tx);", StringComparison.Ordinal);
+
+            Assert.True(
+                deletedRowsIndex < deleteInventorySyncIndex,
+                "Expected rental delete persistence to prove the row was removed before inventory sync.");
+            Assert.True(
+                staleGuardIndex < deleteInventorySyncIndex,
+                "Expected stale rental delete writes to fail before returning item quantity to stock.");
+        }
+
         private static void AssertContainsAll(string source, params string[] expectedSnippets)
         {
             foreach (var snippet in expectedSnippets)
