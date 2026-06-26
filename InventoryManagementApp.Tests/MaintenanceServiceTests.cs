@@ -60,6 +60,24 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task CreateMaintenanceRecord_WithMissingItem_ShouldThrow()
+        {
+            var record = new MaintenanceRecord
+            {
+                ItemID = 999,
+                ScheduledDate = DateTime.Now.AddDays(7),
+                MaintenanceType = "Routine",
+                Description = "Missing item maintenance",
+                Status = "Scheduled",
+                Cost = 100.00m
+            };
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _maintenanceService.CreateMaintenanceRecordAsync(record));
+
+            Assert.Equal("Item not found.", ex.Message);
+        }
+
+        [Fact]
         public async Task GetAllMaintenanceRecords_ShouldReturnList()
         {
             var record = new MaintenanceRecord
@@ -113,6 +131,42 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task UpdateMaintenanceRecord_WithMissingItem_ShouldThrow()
+        {
+            var record = new MaintenanceRecord
+            {
+                ItemID = 1,
+                ScheduledDate = DateTime.Now.AddDays(7),
+                MaintenanceType = "Routine",
+                Status = "Scheduled"
+            };
+            var id = await _maintenanceService.CreateMaintenanceRecordAsync(record);
+            record.MaintenanceID = id;
+            record.ItemID = 999;
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _maintenanceService.UpdateMaintenanceRecordAsync(record));
+
+            Assert.Equal("Item not found.", ex.Message);
+        }
+
+        [Fact]
+        public async Task UpdateMaintenanceRecord_WithMissingRecord_ShouldThrow()
+        {
+            var record = new MaintenanceRecord
+            {
+                MaintenanceID = 999,
+                ItemID = 1,
+                ScheduledDate = DateTime.Now.AddDays(7),
+                MaintenanceType = "Routine",
+                Status = "Scheduled"
+            };
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _maintenanceService.UpdateMaintenanceRecordAsync(record));
+
+            Assert.Equal("Maintenance record not found.", ex.Message);
+        }
+
+        [Fact]
         public async Task CompleteMaintenanceAsync_ShouldMarkAsCompleted()
         {
             var record = new MaintenanceRecord
@@ -130,6 +184,14 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task CompleteMaintenanceAsync_WithMissingRecord_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _maintenanceService.CompleteMaintenanceAsync(999, "John Doe"));
+
+            Assert.Equal("Maintenance record not found.", ex.Message);
+        }
+
+        [Fact]
         public async Task DeleteMaintenanceRecord_ShouldSucceed()
         {
             var record = new MaintenanceRecord
@@ -144,6 +206,14 @@ namespace InventoryManagementApp.Tests
             var result = await _maintenanceService.DeleteMaintenanceRecordAsync(id);
 
             Assert.True(result);
+        }
+
+        [Fact]
+        public async Task DeleteMaintenanceRecord_WithMissingRecord_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _maintenanceService.DeleteMaintenanceRecordAsync(999));
+
+            Assert.Equal("Maintenance record not found.", ex.Message);
         }
     }
 }
