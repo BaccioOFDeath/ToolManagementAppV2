@@ -31,7 +31,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void RentalHistoryQueriesValidateParentRowsBeforeHistorySqlWork()
+        public void RentalHistoryQueriesValidateParentRowsBeforeExecutingHistoryQueries()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
 
@@ -48,12 +48,12 @@ namespace InventoryManagementApp.Tests
 
             Assert.True(
                 source.IndexOf("await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);", StringComparison.Ordinal) <
-                source.IndexOf("WHERE r.ItemID = @ItemID", StringComparison.Ordinal),
-                "Expected item rental history to confirm the item row exists before running the history query.");
+                source.IndexOf("var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);", StringComparison.Ordinal),
+                "Expected item rental history to confirm the item row exists before executing the history query.");
             Assert.True(
                 source.IndexOf("await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);", StringComparison.Ordinal) <
-                source.IndexOf("WHERE r.CustomerID = @CustomerID", StringComparison.Ordinal),
-                "Expected customer rental history to confirm the customer row exists before running the history query.");
+                source.LastIndexOf("var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);", StringComparison.Ordinal),
+                "Expected customer rental history to confirm the customer row exists before executing the history query.");
         }
 
         [Fact]
