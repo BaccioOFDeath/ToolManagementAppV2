@@ -98,7 +98,7 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("cancellationToken.ThrowIfCancellationRequested();", method, StringComparison.Ordinal);
             Assert.True(
-                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("const string sql =", StringComparison.Ordinal),
+                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("sql =", StringComparison.Ordinal),
                 $"Expected {startMarker} to honor cancellation before SQL work starts.");
             Assert.True(
                 method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection()", StringComparison.Ordinal),
