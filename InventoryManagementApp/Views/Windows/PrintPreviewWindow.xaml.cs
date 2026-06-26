@@ -198,7 +198,7 @@ namespace InventoryManagementApp.Views.Windows
                         row.Foreground = PrintDocumentTheme.HeaderForegroundBrush;
                         row.FontWeight = FontWeights.SemiBold;
                     }
-                    else if (rowIndex % 2 == 0)
+                    else if (!isKeyValueTable && rowIndex % 2 == 0)
                     {
                         row.Background = PrintDocumentTheme.AlternatingRowBackgroundBrush;
                     }
