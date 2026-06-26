@@ -68,11 +68,17 @@ public sealed class ItemRepository : IItemRepository
 
     public async Task SaveChangesAsync(IEnumerable<Item> changes, CancellationToken ct)
     {
+        if (changes is null)
+            throw new ArgumentNullException(nameof(changes));
+        ct.ThrowIfCancellationRequested();
+
         await using var conn = (DbConnection)_factory.Create();
         using var tx = conn.BeginTransaction();
         const string sql = "UPDATE Items SET NameDescription=@Name, Location=@Location, AvailableQuantity=@QuantityOnHand, Price=@Price WHERE ItemID=@ItemID";
         foreach (var item in changes)
         {
+            if (item is null)
+                throw new ArgumentException("Bulk item changes cannot contain null items.", nameof(changes));
             ct.ThrowIfCancellationRequested();
             var rows = await conn.ExecuteAsync(new CommandDefinition(sql, new
             {
