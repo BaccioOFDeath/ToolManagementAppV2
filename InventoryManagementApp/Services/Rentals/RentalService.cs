@@ -357,6 +357,7 @@ namespace InventoryManagementApp.Services.Rentals
             const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC";
             var p = new[] { new SqliteParameter("@ItemID", itemID) };
             using var conn = _dbService.CreateConnection();
+            await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
@@ -369,6 +370,7 @@ namespace InventoryManagementApp.Services.Rentals
             const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC";
             var p = new[] { new SqliteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
+            await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
@@ -420,6 +422,28 @@ namespace InventoryManagementApp.Services.Rentals
                 throw new InvalidOperationException("Item not found.");
 
             return Convert.ToInt32(result);
+        }
+
+        private static async Task EnsureItemExistsAsync(SqliteConnection conn, int itemID)
+        {
+            var itemCmd = new SqliteCommand(
+                "SELECT COUNT(*) FROM Items WHERE ItemID=@ItemID",
+                conn);
+            itemCmd.Parameters.AddWithValue("@ItemID", itemID);
+            var itemCount = Convert.ToInt32(await itemCmd.ExecuteScalarAsync() ?? 0);
+            if (itemCount < 1)
+                throw new InvalidOperationException("Item not found.");
+        }
+
+        private static async Task EnsureCustomerExistsAsync(SqliteConnection conn, int customerID)
+        {
+            var customerCmd = new SqliteCommand(
+                "SELECT COUNT(*) FROM Customers WHERE CustomerID=@CustomerID",
+                conn);
+            customerCmd.Parameters.AddWithValue("@CustomerID", customerID);
+            var customerCount = Convert.ToInt32(await customerCmd.ExecuteScalarAsync() ?? 0);
+            if (customerCount < 1)
+                throw new InvalidOperationException("Customer not found.");
         }
 
         private static async Task EnsureCustomerExistsAsync(SqliteConnection conn, SqliteTransaction tx, int customerID)
