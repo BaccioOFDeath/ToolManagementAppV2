@@ -45,6 +45,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ApplyTablePolish", codeBehind, StringComparison.Ordinal);
             Assert.Contains("isKeyValueTable", codeBehind, StringComparison.Ordinal);
             Assert.Contains("table.Tag as string, \"KeyValue\"", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("else if (!isKeyValueTable && rowIndex % 2 == 0)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("foreach (var rowGroup in table.RowGroups)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("Generated from InventoryManagementApp print preview", codeBehind, StringComparison.Ordinal);
         }
