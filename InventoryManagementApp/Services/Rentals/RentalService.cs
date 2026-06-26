@@ -1,4 +1,4 @@
-﻿// Services/Rentals/RentalService.cs
+// Services/Rentals/RentalService.cs
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -351,6 +351,9 @@ namespace InventoryManagementApp.Services.Rentals
 
         public async Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID)
         {
+            if (itemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
+
             const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC";
             var p = new[] { new SqliteParameter("@ItemID", itemID) };
             using var conn = _dbService.CreateConnection();
@@ -360,6 +363,9 @@ namespace InventoryManagementApp.Services.Rentals
 
         public async Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID)
         {
+            if (customerID < 1)
+                throw new ArgumentOutOfRangeException(nameof(customerID), "Customer ID must be greater than 0.");
+
             const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC";
             var p = new[] { new SqliteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
@@ -369,6 +375,9 @@ namespace InventoryManagementApp.Services.Rentals
 
         public async Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync(int topN = 10)
         {
+            if (topN < 1)
+                throw new ArgumentOutOfRangeException(nameof(topN), "Top rental frequency count must be greater than 0.");
+
             const string sql = @"
                 SELECT t.ItemID, t.ItemNumber, t.NameDescription, COUNT(r.RentalID) AS RentalCount
                 FROM Items t
