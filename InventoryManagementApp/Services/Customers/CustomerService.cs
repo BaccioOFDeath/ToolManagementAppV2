@@ -61,11 +61,14 @@ namespace InventoryManagementApp.Services.Customers
         /// <param name="customer">The customer with updated information.</param>
         /// <param name="cancellationToken">Cancellation token for the operation.</param>
         /// <exception cref="ArgumentNullException">Thrown if customer is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if customer ID is less than 1.</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown if user lacks admin privileges.</exception>
         public Task UpdateCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default)
         {
             if (customer is null)
                 throw new ArgumentNullException(nameof(customer));
+            if (customer.CustomerID < 1)
+                throw new ArgumentOutOfRangeException(nameof(customer), "Customer ID must be greater than 0.");
             
             _auth.EnsureAdmin();
             return UpdateCustomerInternalAsync(customer, cancellationToken);
@@ -195,6 +198,7 @@ namespace InventoryManagementApp.Services.Customers
             using var conn = _dbService.CreateConnection();
             try
             {
+                await EnsureCustomerRowExistsAsync(conn, customer.CustomerID, cancellationToken);
                 await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
             }
             catch (Exception ex)
@@ -211,6 +215,7 @@ namespace InventoryManagementApp.Services.Customers
             using var conn = _dbService.CreateConnection();
             try
             {
+                await EnsureCustomerRowExistsAsync(conn, customerID, cancellationToken);
                 await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
             }
             catch (Exception ex)
@@ -391,6 +396,18 @@ namespace InventoryManagementApp.Services.Customers
                 _logger.LogError(ex, "Failed to check if customer exists");
                 throw;
             }
+        }
+
+        static async Task EnsureCustomerRowExistsAsync(SqliteConnection conn, int customerID, CancellationToken cancellationToken)
+        {
+            const string sql = "SELECT COUNT(*) FROM Customers WHERE CustomerID = @CustomerID";
+            var count = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql, new[]
+            {
+                new SqliteParameter("@CustomerID", customerID)
+            }, cancellationToken) ?? 0);
+
+            if (count == 0)
+                throw new KeyNotFoundException($"Customer {customerID} not found.");
         }
 
         static string? GetSkipReason(CustomerModel c)
