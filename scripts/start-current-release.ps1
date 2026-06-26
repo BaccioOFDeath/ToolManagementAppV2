@@ -89,6 +89,8 @@ if (Test-Path -LiteralPath $currentReleaseMarker) {
 }
 
 if (-not [string]::IsNullOrWhiteSpace($releaseName)) {
+    $releaseName = $releaseName.Trim()
+
     if ($releaseName.EndsWith(".") -or $releaseName.EndsWith(" ") -or (Test-ReleaseNameHasInvalidWindowsFileNameCharacter -ReleaseName $releaseName) -or $releaseName -eq "." -or $releaseName -eq ".." -or (Test-ReleaseNameIsReservedDeviceName -ReleaseName $releaseName)) {
         throw "ReleaseName in current-release.txt must be a folder-safe Windows name that does not contain invalid filename characters, end with a dot or space, or use a reserved device name."
     }
