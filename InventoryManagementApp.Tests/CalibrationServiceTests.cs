@@ -60,6 +60,24 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task CreateCalibrationRecord_WithMissingItem_ShouldThrow()
+        {
+            var record = new CalibrationRecord
+            {
+                ItemID = 999,
+                CalibrationDate = DateTime.Now,
+                NextCalibrationDue = DateTime.Now.AddYears(1),
+                CalibratedBy = "Test Lab",
+                Result = "Pass",
+                Cost = 150.00m
+            };
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _calibrationService.CreateCalibrationRecordAsync(record));
+
+            Assert.Equal("Item not found.", ex.Message);
+        }
+
+        [Fact]
         public async Task GetAllCalibrationRecords_ShouldReturnList()
         {
             var record = new CalibrationRecord
@@ -113,6 +131,42 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task UpdateCalibrationRecord_WithMissingItem_ShouldThrow()
+        {
+            var record = new CalibrationRecord
+            {
+                ItemID = 1,
+                CalibrationDate = DateTime.Now,
+                NextCalibrationDue = DateTime.Now.AddYears(1),
+                Result = "Pass"
+            };
+            var id = await _calibrationService.CreateCalibrationRecordAsync(record);
+            record.CalibrationID = id;
+            record.ItemID = 999;
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _calibrationService.UpdateCalibrationRecordAsync(record));
+
+            Assert.Equal("Item not found.", ex.Message);
+        }
+
+        [Fact]
+        public async Task UpdateCalibrationRecord_WithMissingRecord_ShouldThrow()
+        {
+            var record = new CalibrationRecord
+            {
+                CalibrationID = 999,
+                ItemID = 1,
+                CalibrationDate = DateTime.Now,
+                NextCalibrationDue = DateTime.Now.AddYears(1),
+                Result = "Pass"
+            };
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _calibrationService.UpdateCalibrationRecordAsync(record));
+
+            Assert.Equal("Calibration record not found.", ex.Message);
+        }
+
+        [Fact]
         public async Task DeleteCalibrationRecord_ShouldSucceed()
         {
             var record = new CalibrationRecord
@@ -127,6 +181,14 @@ namespace InventoryManagementApp.Tests
             var result = await _calibrationService.DeleteCalibrationRecordAsync(id);
 
             Assert.True(result);
+        }
+
+        [Fact]
+        public async Task DeleteCalibrationRecord_WithMissingRecord_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _calibrationService.DeleteCalibrationRecordAsync(999));
+
+            Assert.Equal("Calibration record not found.", ex.Message);
         }
     }
 }
