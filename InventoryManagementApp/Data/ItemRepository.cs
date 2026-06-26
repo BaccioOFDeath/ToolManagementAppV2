@@ -71,14 +71,16 @@ public sealed class ItemRepository : IItemRepository
         foreach (var item in changes)
         {
             ct.ThrowIfCancellationRequested();
-            await conn.ExecuteAsync(sql, new
+            var rows = await conn.ExecuteAsync(new CommandDefinition(sql, new
             {
                 item.Name,
                 item.Location,
                 QuantityOnHand = item.QuantityOnHand,
                 item.Price,
                 item.ItemID
-            }, tx);
+            }, tx, cancellationToken: ct)).ConfigureAwait(false);
+            if (rows == 0)
+                throw new InvalidOperationException($"Failed to save item {item.ItemID}.");
         }
         tx.Commit();
     }
