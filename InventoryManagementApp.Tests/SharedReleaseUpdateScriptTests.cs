@@ -157,13 +157,17 @@ namespace InventoryManagementApp.Tests
         public void DesktopShortcutScriptUsesStableAppIcon()
         {
             var script = ReadRepositoryFile("scripts", "create-shared-desktop-shortcut.ps1");
+            var normalizedScript = script.Replace("\r\n", "\n", StringComparison.Ordinal);
 
             Assert.Contains("$currentReleaseMarker = Join-Path $destinationPath \"current-release.txt\"", script, StringComparison.Ordinal);
             Assert.Contains("function Convert-ToUncPathIfMappedDrive", script, StringComparison.Ordinal);
             Assert.Contains("function Get-CurrentReleaseExecutablePath", script, StringComparison.Ordinal);
             Assert.Contains("$network.EnumNetworkDrives()", script, StringComparison.Ordinal);
-            Assert.Contains("$releaseExecutablePath = Join-Path (Join-Path (Join-Path $destinationPath \"_releases\") $currentRelease.Trim()) \"InventoryManagementApp.exe\"", script, StringComparison.Ordinal);
+            Assert.Contains("$currentReleaseName = $currentRelease.Trim()", script, StringComparison.Ordinal);
+            Assert.Contains("$releaseExecutablePath = Join-Path (Join-Path (Join-Path $destinationPath \"_releases\") $currentReleaseName) \"InventoryManagementApp.exe\"", script, StringComparison.Ordinal);
+            Assert.DoesNotContain("$releaseExecutablePath = Join-Path (Join-Path (Join-Path $destinationPath \"_releases\") $currentRelease.Trim()) \"InventoryManagementApp.exe\"", script, StringComparison.Ordinal);
             Assert.Contains("$appIconPath = Join-Path $destinationPath \"Resources\\AppIcon.ico\"", script, StringComparison.Ordinal);
+            Assert.Contains("if (Test-Path -LiteralPath $appIconPath) {\n    $iconPath = $appIconPath\n} else {\n    $iconPath = $currentReleaseExecutablePath\n}", normalizedScript, StringComparison.Ordinal);
             Assert.Contains("[switch]$PointToSharedShortcut", script, StringComparison.Ordinal);
             Assert.Contains("$shortcut.TargetPath = Convert-ToUncPathIfMappedDrive -Path $targetPath", script, StringComparison.Ordinal);
             Assert.Contains("$shortcut.IconLocation = \"$(Convert-ToUncPathIfMappedDrive -Path $iconPath),0\"", script, StringComparison.Ordinal);

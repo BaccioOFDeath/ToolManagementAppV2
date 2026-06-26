@@ -110,7 +110,7 @@ function Get-CurrentReleaseExecutablePath {
         if (-not [string]::IsNullOrWhiteSpace($currentRelease)) {
             $currentReleaseName = $currentRelease.Trim()
             Assert-CurrentReleaseNameIsSafe -ReleaseName $currentReleaseName
-            $releaseExecutablePath = Join-Path (Join-Path (Join-Path $destinationPath "_releases") $currentRelease.Trim()) "InventoryManagementApp.exe"
+            $releaseExecutablePath = Join-Path (Join-Path (Join-Path $destinationPath "_releases") $currentReleaseName) "InventoryManagementApp.exe"
             if (Test-Path -LiteralPath $releaseExecutablePath) {
                 return $releaseExecutablePath
             }
@@ -142,20 +142,11 @@ if ($PointToSharedShortcut -and
     $workingDirectory = $destinationPath
 }
 
-$iconPath = $currentReleaseExecutablePath
-
-if ([string]::IsNullOrWhiteSpace($iconPath)) {
-    $appIconPath = Join-Path $destinationPath "Resources\AppIcon.ico"
-    if (Test-Path -LiteralPath $appIconPath) {
-        $iconPath = $appIconPath
-    }
-}
-
-if ([string]::IsNullOrWhiteSpace($iconPath)) {
-    $rootExecutablePath = Join-Path $destinationPath "InventoryManagementApp.exe"
-    if (Test-Path -LiteralPath $rootExecutablePath) {
-        $iconPath = $rootExecutablePath
-    }
+$appIconPath = Join-Path $destinationPath "Resources\AppIcon.ico"
+if (Test-Path -LiteralPath $appIconPath) {
+    $iconPath = $appIconPath
+} else {
+    $iconPath = $currentReleaseExecutablePath
 }
 
 $shell = New-Object -ComObject WScript.Shell
