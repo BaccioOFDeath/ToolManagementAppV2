@@ -66,6 +66,7 @@ namespace InventoryManagementApp.Services.Calibration
             {
                 var records = new List<CalibrationRecord>();
                 using var conn = _databaseService.CreateConnection();
+                EnsureItemExists(conn, itemID);
                 var sql = @"
                     SELECT c.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM CalibrationRecords c
@@ -142,6 +143,7 @@ namespace InventoryManagementApp.Services.Calibration
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureItemExists(conn, itemID);
                 var sql = @"
                     SELECT c.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM CalibrationRecords c
