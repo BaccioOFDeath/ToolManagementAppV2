@@ -49,6 +49,36 @@ namespace InventoryManagementApp.Tests
             }
         }
 
+        [Fact]
+        public void CsvImportRejectsOutOfRangeQuantitiesBeforeInsert()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
+            var method = ExtractMethod(
+                source,
+                "private async Task<List<int>> ImportItemsFromCsvInternalAsync",
+                "protected virtual async Task<int> InsertItemAsync");
+
+            Assert.Contains("var parsedQuantity = TryParseInt(quantity);", method, StringComparison.Ordinal);
+            Assert.Contains("if (!skip && (parsedQuantity < 0 || parsedQuantity > MaxQuantityOnHand))", method, StringComparison.Ordinal);
+            Assert.Contains("_logger.LogWarning(\"Skipping row {Row}: AvailableQuantity {Quantity} is outside the allowed range.\", row, parsedQuantity);", method, StringComparison.Ordinal);
+            Assert.Contains("invalidRows.Add(row);", method, StringComparison.Ordinal);
+            Assert.Contains("QuantityOnHand = parsedQuantity", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("QuantityOnHand = TryParseInt(quantity)", method, StringComparison.Ordinal);
+
+            Assert.True(
+                method.IndexOf("var parsedQuantity = TryParseInt(quantity);", StringComparison.Ordinal) <
+                method.IndexOf("var item = new ItemModel", StringComparison.Ordinal),
+                "CSV import should parse quantity before building the item row.");
+            Assert.True(
+                method.IndexOf("if (!skip && (parsedQuantity < 0 || parsedQuantity > MaxQuantityOnHand))", StringComparison.Ordinal) <
+                method.IndexOf("var item = new ItemModel", StringComparison.Ordinal),
+                "CSV import should reject out-of-range quantities before building the item row.");
+            Assert.True(
+                method.IndexOf("if (!skip && (parsedQuantity < 0 || parsedQuantity > MaxQuantityOnHand))", StringComparison.Ordinal) <
+                method.IndexOf("await InsertItemAsync", StringComparison.Ordinal),
+                "CSV import should reject out-of-range quantities before direct insert work.");
+        }
+
         private static ItemModel CreateItem(string itemNumber, string name) => new()
         {
             ItemNumber = itemNumber,
@@ -95,6 +125,37 @@ namespace InventoryManagementApp.Tests
             {
                 return Task.FromResult((_items, new List<int>()));
             }
+        }
+
+        private static string ExtractMethod(string source, string startMarker, string endMarker)
+        {
+            var start = source.IndexOf(startMarker, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Could not find method start marker: {startMarker}");
+
+            var end = source.IndexOf(endMarker, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Could not find method end marker: {endMarker}");
+
+            return source[start..end];
+        }
+
+        private static string ReadRepoFile(params string[] parts)
+        {
+            var directory = AppContext.BaseDirectory;
+
+            while (!string.IsNullOrEmpty(directory))
+            {
+                var candidate = Path.Combine(directory, Path.Combine(parts));
+                if (File.Exists(candidate))
+                    return File.ReadAllText(candidate);
+
+                var parent = Directory.GetParent(directory);
+                if (parent is null)
+                    break;
+
+                directory = parent.FullName;
+            }
+
+            throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
         }
     }
 }
