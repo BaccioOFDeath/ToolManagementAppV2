@@ -45,6 +45,42 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void AuthenticationStateWritesGuardAffectedRowsBeforeInMemoryMutation()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");
+            var authenticate = ExtractMethod(
+                source,
+                "public async Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync",
+                "static bool IsLockoutActive");
+            var helpers = ExtractMethod(
+                source,
+                "async Task<bool> RecordFailedLoginAsync",
+                "public async Task<User?> GetCurrentUserAsync");
+
+            const string upgradeWrite = "var upgradedRows = await SqliteHelper.ExecuteNonQueryAsync";
+            const string upgradeGuard = "EnsureUserWriteSucceeded(upgradedRows, u.UserID);";
+            Assert.Contains(upgradeWrite, authenticate, StringComparison.Ordinal);
+            Assert.Contains(upgradeGuard, authenticate, StringComparison.Ordinal);
+            Assert.True(
+                authenticate.IndexOf(upgradeWrite, StringComparison.Ordinal) < authenticate.IndexOf(upgradeGuard, StringComparison.Ordinal),
+                "Legacy password upgrades should capture affected rows before checking the write result.");
+            Assert.True(
+                authenticate.IndexOf(upgradeGuard, StringComparison.Ordinal) < authenticate.IndexOf("u.PasswordHash = upgradedResult.hash;", StringComparison.Ordinal),
+                "Legacy password upgrades should guard stale rows before mutating the in-memory user.");
+
+            Assert.Contains("var recordedRows = await SqliteHelper.ExecuteNonQueryAsync", helpers, StringComparison.Ordinal);
+            Assert.Contains("EnsureUserWriteSucceeded(recordedRows, user.UserID);", helpers, StringComparison.Ordinal);
+            Assert.True(
+                helpers.IndexOf("EnsureUserWriteSucceeded(recordedRows, user.UserID);", StringComparison.Ordinal) < helpers.IndexOf("user.FailedLoginAttempts = failedAttempts;", StringComparison.Ordinal),
+                "Failed-login state should guard stale rows before mutating the in-memory user.");
+
+            Assert.Contains("var clearedRows = await SqliteHelper.ExecuteNonQueryAsync", helpers, StringComparison.Ordinal);
+            Assert.Contains("EnsureUserWriteSucceeded(clearedRows, userID);", helpers, StringComparison.Ordinal);
+            Assert.Contains("static void EnsureUserWriteSucceeded(int rows, int userID)", helpers, StringComparison.Ordinal);
+            Assert.Contains("throw new KeyNotFoundException($\"User {userID} not found.\");", helpers, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ChangePasswordRejectsInvalidUserIdsBeforeAuthorizationPasswordAndSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");
