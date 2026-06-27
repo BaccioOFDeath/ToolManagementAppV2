@@ -203,7 +203,8 @@ namespace InventoryManagementApp.Services.Customers
             try
             {
                 await EnsureCustomerRowExistsAsync(conn, customer.CustomerID, cancellationToken);
-                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
+                var updatedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
+                EnsureCustomerWriteSucceeded(updatedRows, customer.CustomerID);
             }
             catch (Exception ex)
             {
@@ -222,7 +223,8 @@ namespace InventoryManagementApp.Services.Customers
             try
             {
                 await EnsureCustomerRowExistsAsync(conn, customerID, cancellationToken);
-                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
+                var deletedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
+                EnsureCustomerWriteSucceeded(deletedRows, customerID);
             }
             catch (Exception ex)
             {
@@ -433,6 +435,12 @@ namespace InventoryManagementApp.Services.Customers
             }, cancellationToken) ?? 0);
 
             if (count == 0)
+                throw new KeyNotFoundException($"Customer {customerID} not found.");
+        }
+
+        static void EnsureCustomerWriteSucceeded(int affectedRows, int customerID)
+        {
+            if (affectedRows == 0)
                 throw new KeyNotFoundException($"Customer {customerID} not found.");
         }
 
