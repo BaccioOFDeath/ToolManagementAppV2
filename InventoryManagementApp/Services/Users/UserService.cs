@@ -112,6 +112,8 @@ namespace InventoryManagementApp.Services.Users
 
         public async Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var conn = _dbService.CreateConnection();
             const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired, FailedLoginAttempts, LockoutEndUtc, Permissions FROM Users";
             return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapUser, cancellationToken: cancellationToken);
@@ -119,6 +121,8 @@ namespace InventoryManagementApp.Services.Users
 
         public async Task<int> CountUsersAsync(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var conn = _dbService.CreateConnection();
             const string sql = "SELECT COUNT(*) FROM Users";
             var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, cancellationToken: cancellationToken);
@@ -127,6 +131,10 @@ namespace InventoryManagementApp.Services.Users
 
         public async Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default)
         {
+            if (userID < 1)
+                throw new ArgumentOutOfRangeException(nameof(userID), "User ID must be greater than 0.");
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, "SELECT * FROM Users WHERE UserID=@ID",
                 MapUser,
@@ -389,6 +397,9 @@ namespace InventoryManagementApp.Services.Users
 
         public async Task<bool> ChangeUserPasswordAsync(int userID, string newPassword)
         {
+            if (userID < 1)
+                throw new ArgumentOutOfRangeException(nameof(userID), "User ID must be greater than 0.");
+
             if (_context.CurrentUser?.UserID != userID)
                 _auth.EnsurePermission(User.PermissionManageUsers);
 
@@ -426,6 +437,9 @@ namespace InventoryManagementApp.Services.Users
 
         public async Task<bool> TryDeleteUserAsync(int userID)
         {
+            if (userID < 1)
+                return false;
+
             _auth.EnsurePermission(User.PermissionManageUsers);
             var user = await GetUserByIDAsync(userID, CancellationToken.None);
             if (user == null) return false;
