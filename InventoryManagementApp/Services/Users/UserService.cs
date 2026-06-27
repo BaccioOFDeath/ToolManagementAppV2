@@ -444,11 +444,12 @@ namespace InventoryManagementApp.Services.Users
             return rows > 0;
         }
 
-        async Task DeleteUserInternalAsync(int userID)
+        async Task<bool> DeleteUserInternalAsync(int userID)
         {
             var sql = "DELETE FROM Users WHERE UserID=@ID";
             using var conn = _dbService.CreateConnection();
-            await SqliteHelper.ExecuteNonQueryAsync(conn, sql, new[] { new SqliteParameter("@ID", userID) });
+            var deletedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, new[] { new SqliteParameter("@ID", userID) });
+            return deletedRows > 0;
         }
 
         public async Task<bool> TryDeleteUserAsync(int userID)
@@ -466,8 +467,7 @@ namespace InventoryManagementApp.Services.Users
                 var adminCount = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql) ?? 0);
                 if (adminCount <= 1) return false;
             }
-            await DeleteUserInternalAsync(userID);
-            return true;
+            return await DeleteUserInternalAsync(userID);
         }
     }
 }
