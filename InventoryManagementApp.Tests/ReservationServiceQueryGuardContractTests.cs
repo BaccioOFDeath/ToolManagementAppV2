@@ -53,6 +53,30 @@ namespace InventoryManagementApp.Tests
                 "Expected customer reservation history to confirm the customer row exists before building/executing the history query.");
         }
 
+        [Fact]
+        public void ReservationAvailabilityValidatesItemRowBeforeAvailabilityQuery()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Reservations", "ReservationService.cs");
+
+            var availabilityMethod = ExtractMethod(
+                source,
+                "public async Task<bool> CheckAvailabilityAsync(int itemID, DateTime startDate, DateTime endDate, int quantity)",
+                "private Reservation MapReservation");
+
+            AssertContainsAll(
+                availabilityMethod,
+                "if (itemID < 1)",
+                "throw new ArgumentOutOfRangeException(nameof(itemID), \"Item ID must be greater than 0.\");",
+                "using var conn = _databaseService.CreateConnection();",
+                "EnsureReservationItemExists(conn, itemID);",
+                "SELECT i.AvailableQuantity",
+                "WHERE i.ItemID = @ItemID");
+            Assert.True(
+                availabilityMethod.IndexOf("EnsureReservationItemExists(conn, itemID);", StringComparison.Ordinal) <
+                availabilityMethod.IndexOf("var sql = @\"", StringComparison.Ordinal),
+                "Expected reservation availability checks to confirm the item row exists before building/executing the availability query.");
+        }
+
         private static void AssertContainsAll(string source, params string[] expectedSnippets)
         {
             foreach (var snippet in expectedSnippets)
