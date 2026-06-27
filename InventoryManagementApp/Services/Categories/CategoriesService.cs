@@ -30,6 +30,8 @@ namespace InventoryManagementApp.Services.Categories
         /// <param name="ct">Cancellation token for the operation.</param>
         public async Task EnsureSchemaAsync(CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             await using var conn = _db.CreateConnection();
             var sql = @"
 CREATE TABLE IF NOT EXISTS Categories (
@@ -62,6 +64,8 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
         {
             name = (name ?? string.Empty).Trim();
             if (name.Length == 0) throw new ArgumentException("Category name cannot be empty.", nameof(name));
+            ct.ThrowIfCancellationRequested();
+
             await using var conn = _db.CreateConnection();
             var tx = conn.BeginTransaction();
             try
@@ -101,6 +105,7 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
                 throw new ArgumentOutOfRangeException(nameof(categoryId), "Category ID must be greater than 0.");
             if (inventoryId < 1)
                 throw new ArgumentOutOfRangeException(nameof(inventoryId), "Inventory ID must be greater than 0.");
+            ct.ThrowIfCancellationRequested();
             
             await using var conn = _db.CreateConnection();
             await EnsureInventoryExistsAsync(conn, inventoryId);
@@ -122,6 +127,8 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
         {
             if (inventoryId < 1)
                 throw new ArgumentOutOfRangeException(nameof(inventoryId), "Inventory ID must be greater than 0.");
+            ct.ThrowIfCancellationRequested();
+
             await using var conn = _db.CreateConnection();
             await EnsureInventoryExistsAsync(conn, inventoryId);
             var list = await conn.QueryAsync<CategoryDto>(
@@ -151,6 +158,8 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
             
             newName = (newName ?? string.Empty).Trim();
             if (newName.Length == 0) throw new ArgumentException("Category name cannot be empty.", nameof(newName));
+            ct.ThrowIfCancellationRequested();
+
             await using var conn = _db.CreateConnection();
             await EnsureCategoryExistsAsync(conn, categoryId);
             var exists = await conn.ExecuteScalarAsync<long>(
@@ -177,6 +186,8 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
         {
             if (categoryId < 1)
                 throw new ArgumentOutOfRangeException(nameof(categoryId), "Category ID must be greater than 0.");
+            ct.ThrowIfCancellationRequested();
+
             await using var conn = _db.CreateConnection();
             var tx = conn.BeginTransaction();
             try
