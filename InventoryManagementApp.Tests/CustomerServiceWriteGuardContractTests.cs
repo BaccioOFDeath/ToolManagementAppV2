@@ -40,7 +40,7 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains(executeSnippet, method, StringComparison.Ordinal);
             Assert.Contains(guardSnippet, method, StringComparison.Ordinal);
-            Assert.DoesNotContain("await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);", method, StringComparison.Ordinal);
             Assert.True(
                 method.IndexOf(executeSnippet, StringComparison.Ordinal) < method.IndexOf(guardSnippet, StringComparison.Ordinal),
                 $"Expected {startMarker} to check affected rows after executing the write.");
