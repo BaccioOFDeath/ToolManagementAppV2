@@ -186,7 +186,8 @@ namespace InventoryManagementApp.Services.Users
                         new SqliteParameter("@Salt", upgradedResult.salt),
                         new SqliteParameter("@ID", u.UserID)
                     };
-                    await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET PasswordHash=@Pwd, PasswordSalt=@Salt WHERE UserID=@ID", p);
+                    var upgradedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, "UPDATE Users SET PasswordHash=@Pwd, PasswordSalt=@Salt WHERE UserID=@ID", p).ConfigureAwait(false);
+                    EnsureUserWriteSucceeded(upgradedRows, u.UserID);
                     u.PasswordHash = upgradedResult.hash;
                     u.PasswordSalt = upgradedResult.salt;
                 }
@@ -229,9 +230,10 @@ namespace InventoryManagementApp.Services.Users
                 new SqliteParameter("@LockoutEndUtc", (object?)lockoutEndUtc ?? DBNull.Value),
                 new SqliteParameter("@ID", user.UserID)
             };
-            await SqliteHelper.ExecuteNonQueryAsync(conn,
+            var recordedRows = await SqliteHelper.ExecuteNonQueryAsync(conn,
                 "UPDATE Users SET FailedLoginAttempts=@Attempts, LockoutEndUtc=@LockoutEndUtc WHERE UserID=@ID",
                 p).ConfigureAwait(false);
+            EnsureUserWriteSucceeded(recordedRows, user.UserID);
 
             user.FailedLoginAttempts = failedAttempts;
             user.LockoutEndUtc = lockoutEndUtc;
@@ -246,12 +248,19 @@ namespace InventoryManagementApp.Services.Users
             return lockoutEndUtc.HasValue;
         }
 
-        static Task ClearLoginFailureStateAsync(SqliteConnection conn, int userID)
+        static async Task ClearLoginFailureStateAsync(SqliteConnection conn, int userID)
         {
             var p = new[] { new SqliteParameter("@ID", userID) };
-            return SqliteHelper.ExecuteNonQueryAsync(conn,
+            var clearedRows = await SqliteHelper.ExecuteNonQueryAsync(conn,
                 "UPDATE Users SET FailedLoginAttempts=0, LockoutEndUtc=NULL WHERE UserID=@ID",
-                p);
+                p).ConfigureAwait(false);
+            EnsureUserWriteSucceeded(clearedRows, userID);
+        }
+
+        static void EnsureUserWriteSucceeded(int rows, int userID)
+        {
+            if (rows == 0)
+                throw new KeyNotFoundException($"User {userID} not found.");
         }
 
         public async Task<User?> GetCurrentUserAsync()
