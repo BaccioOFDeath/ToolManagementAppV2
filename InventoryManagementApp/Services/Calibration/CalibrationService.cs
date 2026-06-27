@@ -40,7 +40,7 @@ namespace InventoryManagementApp.Services.Calibration
                 var sql = @"
                     SELECT c.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM CalibrationRecords c
-                    LEFT JOIN Items i ON c.ItemID = i.ItemID
+                    JOIN Items i ON c.ItemID = i.ItemID
                     ORDER BY c.CalibrationDate DESC";
                 using var cmd = new SqliteCommand(sql, conn);
                 using var reader = cmd.ExecuteReader();
@@ -70,7 +70,7 @@ namespace InventoryManagementApp.Services.Calibration
                 var sql = @"
                     SELECT c.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM CalibrationRecords c
-                    LEFT JOIN Items i ON c.ItemID = i.ItemID
+                    JOIN Items i ON c.ItemID = i.ItemID
                     WHERE c.ItemID = @ItemID
                     ORDER BY c.CalibrationDate DESC";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -93,7 +93,7 @@ namespace InventoryManagementApp.Services.Calibration
                 var sql = @"
                     SELECT c.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM CalibrationRecords c
-                    LEFT JOIN Items i ON c.ItemID = i.ItemID
+                    JOIN Items i ON c.ItemID = i.ItemID
                     WHERE c.NextCalibrationDue < @Now
                     ORDER BY c.NextCalibrationDue ASC";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -119,7 +119,7 @@ namespace InventoryManagementApp.Services.Calibration
                 var sql = @"
                     SELECT c.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM CalibrationRecords c
-                    LEFT JOIN Items i ON c.ItemID = i.ItemID
+                    JOIN Items i ON c.ItemID = i.ItemID
                     WHERE c.NextCalibrationDue >= @Now 
                     AND c.NextCalibrationDue <= @FutureDate
                     ORDER BY c.NextCalibrationDue ASC";
@@ -147,7 +147,7 @@ namespace InventoryManagementApp.Services.Calibration
                 var sql = @"
                     SELECT c.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM CalibrationRecords c
-                    LEFT JOIN Items i ON c.ItemID = i.ItemID
+                    JOIN Items i ON c.ItemID = i.ItemID
                     WHERE c.ItemID = @ItemID
                     ORDER BY c.CalibrationDate DESC
                     LIMIT 1";
@@ -173,7 +173,7 @@ namespace InventoryManagementApp.Services.Calibration
                 var sql = @"
                     SELECT c.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM CalibrationRecords c
-                    LEFT JOIN Items i ON c.ItemID = i.ItemID
+                    JOIN Items i ON c.ItemID = i.ItemID
                     WHERE c.CalibrationID = @CalibrationID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@CalibrationID", calibrationID);
