@@ -358,6 +358,7 @@ namespace InventoryManagementApp.Services.Reservations
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureReservationItemExists(conn, itemID);
                 var sql = @"
                     SELECT i.AvailableQuantity,
                     COALESCE(SUM(r.Quantity), 0) as ReservedQuantity
