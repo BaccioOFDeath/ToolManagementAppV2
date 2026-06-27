@@ -70,6 +70,35 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ChangePasswordChecksUserExistsBeforePasswordValidationAndHashing()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task<bool> ChangeUserPasswordAsync",
+                "async Task DeleteUserInternalAsync");
+
+            const string lookupSnippet = "var existing = await GetUserByIDAsync(userID, CancellationToken.None);";
+            const string missingSnippet = "if (existing is null)";
+
+            Assert.Contains(lookupSnippet, method, StringComparison.Ordinal);
+            Assert.Contains(missingSnippet, method, StringComparison.Ordinal);
+            Assert.Contains("return false;", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf(lookupSnippet, StringComparison.Ordinal) < method.IndexOf(missingSnippet, StringComparison.Ordinal),
+                "Password changes should inspect the target user before handling a missing account.");
+            Assert.True(
+                method.IndexOf(missingSnippet, StringComparison.Ordinal) < method.IndexOf("PasswordValidator.IsValid", StringComparison.Ordinal),
+                "Missing password-change users should fail before password validation work.");
+            Assert.True(
+                method.IndexOf(missingSnippet, StringComparison.Ordinal) < method.IndexOf("SecurityHelper.HashPasswordAsync", StringComparison.Ordinal),
+                "Missing password-change users should fail before password hashing work.");
+            Assert.True(
+                method.IndexOf(missingSnippet, StringComparison.Ordinal) < method.IndexOf("var sql = \"UPDATE Users SET PasswordHash=@Pwd", StringComparison.Ordinal),
+                "Missing password-change users should fail before update SQL is prepared.");
+        }
+
+        [Fact]
         public void TryDeleteUserReturnsFalseForInvalidUserIdsBeforeAuthorizationAndLookup()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");

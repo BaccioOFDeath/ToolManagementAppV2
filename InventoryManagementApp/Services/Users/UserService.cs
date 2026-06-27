@@ -403,6 +403,13 @@ namespace InventoryManagementApp.Services.Users
             if (_context.CurrentUser?.UserID != userID)
                 _auth.EnsurePermission(User.PermissionManageUsers);
 
+            var existing = await GetUserByIDAsync(userID, CancellationToken.None);
+            if (existing is null)
+            {
+                _logger.LogWarning("Password update requested for missing UserID {UserID}", userID);
+                return false;
+            }
+
             newPassword = (newPassword ?? string.Empty).Trim();
             if (!PasswordValidator.IsValid(newPassword, out var error))
                 throw new ArgumentException(error, nameof(newPassword));
