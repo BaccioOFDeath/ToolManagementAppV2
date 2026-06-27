@@ -166,6 +166,8 @@ namespace InventoryManagementApp.Services.Customers
 
         async Task AddCustomerInternalAsync(CustomerModel customer, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var conn = _dbService.CreateConnection();
             try
             {
@@ -180,6 +182,8 @@ namespace InventoryManagementApp.Services.Customers
 
         async Task UpdateCustomerInternalAsync(CustomerModel customer, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             const string sql = @"
                 UPDATE Customers
                 SET Company = @Company, Email = @Email, Contact = @Contact,
@@ -210,6 +214,8 @@ namespace InventoryManagementApp.Services.Customers
 
         async Task DeleteCustomerInternalAsync(int customerID, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             const string sql = "DELETE FROM Customers WHERE CustomerID = @CustomerID";
             var p = new[] { new SqliteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
@@ -227,6 +233,8 @@ namespace InventoryManagementApp.Services.Customers
 
         async Task<CustomerModel?> GetCustomerByIDInternalAsync(int customerID, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             const string sql = "SELECT * FROM Customers WHERE CustomerID = @id";
             var p = new[] { new SqliteParameter("@id", customerID) };
             using var conn = _dbService.CreateConnection();
@@ -248,6 +256,8 @@ namespace InventoryManagementApp.Services.Customers
 
         async Task<List<CustomerModel>> GetAllCustomersInternalAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             const string sql = "SELECT * FROM Customers";
             using var conn = _dbService.CreateConnection();
             try
@@ -263,6 +273,8 @@ namespace InventoryManagementApp.Services.Customers
 
         async Task<int> CountCustomersInternalAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             const string sql = "SELECT COUNT(*) FROM Customers";
             using var conn = _dbService.CreateConnection();
             try
@@ -279,6 +291,8 @@ namespace InventoryManagementApp.Services.Customers
 
         async Task<List<CustomerModel>> SearchCustomersInternalAsync(string searchTerm, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             const string sql = @"
                 SELECT * FROM Customers
                 WHERE Company LIKE @t OR Contact LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
@@ -297,7 +311,11 @@ namespace InventoryManagementApp.Services.Customers
 
         async Task<CustomerImportResult> ImportCustomersFromCsvInternalAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var customers = await CsvHelperUtil.LoadCustomersFromCsvAsync(filePath, map, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
             var result = new CustomerImportResult();
             using var conn = _dbService.CreateConnection();
             using var tran = conn.BeginTransaction();
@@ -341,12 +359,16 @@ namespace InventoryManagementApp.Services.Customers
 
         async Task ExportCustomersToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var all = await GetAllCustomersInternalAsync(cancellationToken);
             await Task.Run(() => CsvHelperUtil.ExportCustomersToCsv(filePath, all), cancellationToken);
         }
 
         async Task InsertCustomerAsync(SqliteConnection conn, SqliteTransaction? tran, CustomerModel customer, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             const string sql = @"
         INSERT INTO Customers (Company, Email, Contact, Phone, Mobile, Address)
         VALUES (@Company, @Email, @Contact, @Phone, @Mobile, @Address);
@@ -377,6 +399,8 @@ namespace InventoryManagementApp.Services.Customers
 
         async Task<bool> CustomerExistsAsync(string contact, string phone, string mobile, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             const string sql = @"
         SELECT COUNT(*) FROM Customers
          WHERE Contact = @Contact AND (Phone = @Phone OR Mobile = @Mobile)";
@@ -400,6 +424,8 @@ namespace InventoryManagementApp.Services.Customers
 
         static async Task EnsureCustomerRowExistsAsync(SqliteConnection conn, int customerID, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             const string sql = "SELECT COUNT(*) FROM Customers WHERE CustomerID = @CustomerID";
             var count = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql, new[]
             {
@@ -433,14 +459,18 @@ namespace InventoryManagementApp.Services.Customers
         public async Task<int> ImportCustomersAsync(string filePath, IDataImporter<Customer> importer, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAdmin();
+            cancellationToken.ThrowIfCancellationRequested();
             
             var (customers, skippedRows) = await importer.ImportAsync(filePath, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
             
             int importedCount = 0;
             using var conn = _dbService.CreateConnection();
             
             foreach (var customer in customers)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var customerModel = new CustomerModel
                 {
                     Company = customer.Company ?? string.Empty,
@@ -468,6 +498,8 @@ namespace InventoryManagementApp.Services.Customers
 
         public async Task ExportCustomersAsync(string filePath, IDataExporter<Customer> exporter, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var all = await GetAllCustomersAsync(cancellationToken).ConfigureAwait(false);
             await exporter.ExportAsync(filePath, all, cancellationToken).ConfigureAwait(false);
         }
