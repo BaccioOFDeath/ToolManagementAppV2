@@ -31,7 +31,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void RentalHistoryQueriesValidateParentRowsBeforeExecutingHistoryQueries()
+        public void RentalHistoryQueriesValidateParentRowsBeforePreparingHistoryQueries()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
 
@@ -42,18 +42,45 @@ namespace InventoryManagementApp.Tests
                 "throw new InvalidOperationException(\"Item not found.\");",
                 "private static async Task EnsureCustomerExistsAsync(SqliteConnection conn, int customerID)",
                 "SELECT COUNT(*) FROM Customers WHERE CustomerID=@CustomerID",
-                "throw new InvalidOperationException(\"Customer not found.\");",
-                "await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);",
-                "await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);");
+                "throw new InvalidOperationException(\"Customer not found.\");");
 
+            var itemMethod = ExtractMethod(
+                source,
+                "public async Task<List<Rental>> GetRentalHistoryForItemAsync(int itemID)",
+                "public async Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID)");
+            AssertContainsAll(
+                itemMethod,
+                "using var conn = _dbService.CreateConnection();",
+                "await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);",
+                "const string sql = BaseSelect + @\" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC\";",
+                "var p = new[] { new SqliteParameter(\"@ItemID\", itemID) };");
             Assert.True(
-                source.IndexOf("await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);", StringComparison.Ordinal) <
-                source.IndexOf("var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);", StringComparison.Ordinal),
-                "Expected item rental history to confirm the item row exists before executing the history query.");
+                itemMethod.IndexOf("await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);", StringComparison.Ordinal) <
+                itemMethod.IndexOf("const string sql = BaseSelect", StringComparison.Ordinal),
+                "Expected item rental history to confirm the item row exists before preparing the history query.");
             Assert.True(
-                source.IndexOf("await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);", StringComparison.Ordinal) <
-                source.LastIndexOf("var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);", StringComparison.Ordinal),
-                "Expected customer rental history to confirm the customer row exists before executing the history query.");
+                itemMethod.IndexOf("await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);", StringComparison.Ordinal) <
+                itemMethod.IndexOf("new SqliteParameter(\"@ItemID\", itemID)", StringComparison.Ordinal),
+                "Expected item rental history to confirm the item row exists before preparing query parameters.");
+
+            var customerMethod = ExtractMethod(
+                source,
+                "public async Task<List<Rental>> GetRentalHistoryForCustomerAsync(int customerID)",
+                "public async Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync");
+            AssertContainsAll(
+                customerMethod,
+                "using var conn = _dbService.CreateConnection();",
+                "await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);",
+                "const string sql = BaseSelect + @\" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC\";",
+                "var p = new[] { new SqliteParameter(\"@CustomerID\", customerID) };");
+            Assert.True(
+                customerMethod.IndexOf("await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);", StringComparison.Ordinal) <
+                customerMethod.IndexOf("const string sql = BaseSelect", StringComparison.Ordinal),
+                "Expected customer rental history to confirm the customer row exists before preparing the history query.");
+            Assert.True(
+                customerMethod.IndexOf("await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);", StringComparison.Ordinal) <
+                customerMethod.IndexOf("new SqliteParameter(\"@CustomerID\", customerID)", StringComparison.Ordinal),
+                "Expected customer rental history to confirm the customer row exists before preparing query parameters.");
         }
 
         [Fact]
@@ -80,6 +107,17 @@ namespace InventoryManagementApp.Tests
             {
                 Assert.Contains(snippet, source, StringComparison.Ordinal);
             }
+        }
+
+        private static string ExtractMethod(string source, string startMarker, string endMarker)
+        {
+            var start = source.IndexOf(startMarker, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Could not find method start marker: {startMarker}");
+
+            var end = source.IndexOf(endMarker, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Could not find method end marker: {endMarker}");
+
+            return source[start..end];
         }
 
         private static string ReadRepoFile(params string[] parts)
