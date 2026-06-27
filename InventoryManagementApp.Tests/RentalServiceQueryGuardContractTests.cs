@@ -84,6 +84,28 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ActiveRentalCountUsesVisibleRentalProjectionJoins()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+
+            var countMethod = ExtractMethod(
+                source,
+                "public async Task<int> CountActiveRentalsAsync()",
+                "public async Task<List<Rental>> GetActiveRentalsAsync()");
+            AssertContainsAll(
+                countMethod,
+                "SELECT COUNT(r.RentalID)",
+                "FROM Rentals r",
+                "JOIN Items t ON r.ItemID = t.ItemID",
+                "JOIN Customers c ON r.CustomerID = c.CustomerID",
+                "WHERE r.Status='Rented'");
+            Assert.DoesNotContain(
+                "SELECT COUNT(*) FROM Rentals WHERE Status='Rented'",
+                countMethod,
+                StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void RentalFrequencyValidatesPositiveLimitBeforeSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
