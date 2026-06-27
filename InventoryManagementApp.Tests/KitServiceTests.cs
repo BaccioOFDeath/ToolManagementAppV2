@@ -172,6 +172,12 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task GetKitItems_WithMissingKit_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _kitService.GetKitItemsAsync(999));
+        }
+
+        [Fact]
         public async Task RemoveKitItem_ShouldSucceed()
         {
             var kit = new Kit
