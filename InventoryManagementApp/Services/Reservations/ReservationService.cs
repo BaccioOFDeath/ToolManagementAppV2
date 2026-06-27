@@ -257,7 +257,9 @@ namespace InventoryManagementApp.Services.Reservations
                 cmd.Parameters.AddWithValue("@Status", NormalizeStatus(reservation.Status));
                 cmd.Parameters.AddWithValue("@Notes", ToDbNullableText(reservation.Notes));
                 cmd.Parameters.AddWithValue("@RentalID", reservation.RentalID.HasValue ? (object)reservation.RentalID.Value : DBNull.Value);
-                return cmd.ExecuteNonQuery() > 0;
+                var updatedRows = cmd.ExecuteNonQuery();
+                EnsureReservationWriteSucceeded(updatedRows);
+                return true;
             });
         }
 
@@ -274,7 +276,9 @@ namespace InventoryManagementApp.Services.Reservations
                 var sql = "UPDATE Reservations SET Status = 'Confirmed' WHERE ReservationID = @ReservationID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ReservationID", reservationID);
-                return cmd.ExecuteNonQuery() > 0;
+                var confirmedRows = cmd.ExecuteNonQuery();
+                EnsureReservationWriteSucceeded(confirmedRows);
+                return true;
             });
         }
 
@@ -291,7 +295,9 @@ namespace InventoryManagementApp.Services.Reservations
                 var sql = "UPDATE Reservations SET Status = 'Cancelled' WHERE ReservationID = @ReservationID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ReservationID", reservationID);
-                return cmd.ExecuteNonQuery() > 0;
+                var cancelledRows = cmd.ExecuteNonQuery();
+                EnsureReservationWriteSucceeded(cancelledRows);
+                return true;
             });
         }
 
@@ -313,7 +319,9 @@ namespace InventoryManagementApp.Services.Reservations
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ReservationID", reservationID);
                 cmd.Parameters.AddWithValue("@RentalID", rentalID);
-                return cmd.ExecuteNonQuery() > 0;
+                var fulfilledRows = cmd.ExecuteNonQuery();
+                EnsureReservationWriteSucceeded(fulfilledRows);
+                return true;
             });
         }
 
@@ -330,7 +338,9 @@ namespace InventoryManagementApp.Services.Reservations
                 var sql = "DELETE FROM Reservations WHERE ReservationID = @ReservationID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ReservationID", reservationID);
-                return cmd.ExecuteNonQuery() > 0;
+                var deletedRows = cmd.ExecuteNonQuery();
+                EnsureReservationWriteSucceeded(deletedRows);
+                return true;
             });
         }
 
@@ -412,6 +422,12 @@ namespace InventoryManagementApp.Services.Reservations
         private static void EnsureReservationExists(SqliteConnection conn, int reservationID)
         {
             if (!RecordExists(conn, "SELECT COUNT(*) FROM Reservations WHERE ReservationID = @ID", reservationID))
+                throw new InvalidOperationException("Reservation not found.");
+        }
+
+        private static void EnsureReservationWriteSucceeded(int affectedRows)
+        {
+            if (affectedRows == 0)
                 throw new InvalidOperationException("Reservation not found.");
         }
 
