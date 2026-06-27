@@ -94,6 +94,7 @@ namespace InventoryManagementApp.Services.Reservations
             {
                 var reservations = new List<Reservation>();
                 using var conn = _databaseService.CreateConnection();
+                EnsureReservationItemExists(conn, itemID);
                 var sql = @"
                     SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
@@ -121,6 +122,7 @@ namespace InventoryManagementApp.Services.Reservations
             {
                 var reservations = new List<Reservation>();
                 using var conn = _databaseService.CreateConnection();
+                EnsureReservationCustomerExists(conn, customerID);
                 var sql = @"
                     SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
@@ -429,6 +431,18 @@ namespace InventoryManagementApp.Services.Reservations
         {
             if (affectedRows == 0)
                 throw new InvalidOperationException("Reservation not found.");
+        }
+
+        private static void EnsureReservationItemExists(SqliteConnection conn, int itemID)
+        {
+            if (!RecordExists(conn, "SELECT COUNT(*) FROM Items WHERE ItemID = @ID", itemID))
+                throw new InvalidOperationException("Item not found.");
+        }
+
+        private static void EnsureReservationCustomerExists(SqliteConnection conn, int customerID)
+        {
+            if (!RecordExists(conn, "SELECT COUNT(*) FROM Customers WHERE CustomerID = @ID", customerID))
+                throw new InvalidOperationException("Customer not found.");
         }
 
         private static void EnsureReservationReferencesExist(SqliteConnection conn, Reservation reservation)
