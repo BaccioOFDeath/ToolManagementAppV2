@@ -485,6 +485,13 @@ namespace InventoryManagementApp.Services.Items
                         }
                     }
 
+                    var parsedQuantity = TryParseInt(quantity);
+                    if (!skip && (parsedQuantity < 0 || parsedQuantity > MaxQuantityOnHand))
+                    {
+                        _logger.LogWarning("Skipping row {Row}: AvailableQuantity {Quantity} is outside the allowed range.", row, parsedQuantity);
+                        skip = true;
+                    }
+
                     if (skip)
                     {
                         invalidRows.Add(row);
@@ -502,7 +509,7 @@ namespace InventoryManagementApp.Services.Items
                         PurchasedDate = TryParseDate(purchased),
                         Notes = notes ?? string.Empty,
                         Keywords = keywords ?? string.Empty,
-                        QuantityOnHand = TryParseInt(quantity),
+                        QuantityOnHand = parsedQuantity,
                         IsPowered = TryParseBool(powered),
                         IsRentalItem = TryParseBool(rental)
                     };
