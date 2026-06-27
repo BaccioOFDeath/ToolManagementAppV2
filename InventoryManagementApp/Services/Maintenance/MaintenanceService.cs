@@ -66,6 +66,7 @@ namespace InventoryManagementApp.Services.Maintenance
             {
                 var records = new List<MaintenanceRecord>();
                 using var conn = _databaseService.CreateConnection();
+                EnsureItemExists(conn, itemID);
                 var sql = @"
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
