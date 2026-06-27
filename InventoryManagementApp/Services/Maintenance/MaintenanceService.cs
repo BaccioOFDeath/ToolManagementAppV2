@@ -40,7 +40,7 @@ namespace InventoryManagementApp.Services.Maintenance
                 var sql = @"
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
-                    LEFT JOIN Items i ON m.ItemID = i.ItemID
+                    JOIN Items i ON m.ItemID = i.ItemID
                     ORDER BY m.ScheduledDate DESC";
                 using var cmd = new SqliteCommand(sql, conn);
                 using var reader = cmd.ExecuteReader();
@@ -70,7 +70,7 @@ namespace InventoryManagementApp.Services.Maintenance
                 var sql = @"
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
-                    LEFT JOIN Items i ON m.ItemID = i.ItemID
+                    JOIN Items i ON m.ItemID = i.ItemID
                     WHERE m.ItemID = @ItemID
                     ORDER BY m.ScheduledDate DESC";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -97,7 +97,7 @@ namespace InventoryManagementApp.Services.Maintenance
                 var sql = @"
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
-                    LEFT JOIN Items i ON m.ItemID = i.ItemID
+                    JOIN Items i ON m.ItemID = i.ItemID
                     WHERE m.Status = 'Scheduled' AND m.ScheduledDate < @Now
                     ORDER BY m.ScheduledDate ASC";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -123,7 +123,7 @@ namespace InventoryManagementApp.Services.Maintenance
                 var sql = @"
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
-                    LEFT JOIN Items i ON m.ItemID = i.ItemID
+                    JOIN Items i ON m.ItemID = i.ItemID
                     WHERE m.Status = 'Scheduled' 
                     AND m.ScheduledDate >= @Now 
                     AND m.ScheduledDate <= @FutureDate
@@ -151,7 +151,7 @@ namespace InventoryManagementApp.Services.Maintenance
                 var sql = @"
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
-                    LEFT JOIN Items i ON m.ItemID = i.ItemID
+                    JOIN Items i ON m.ItemID = i.ItemID
                     WHERE m.MaintenanceID = @MaintenanceID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@MaintenanceID", maintenanceID);
