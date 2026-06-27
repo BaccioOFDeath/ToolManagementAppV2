@@ -14,20 +14,30 @@ namespace InventoryManagementApp.Tests
     public class MaintenanceCalibrationOrphanReadBehaviorTests
     {
         [Fact]
-        public async Task MaintenanceReadModels_WithLegacyMissingItemReference_ShouldHideOrphanRecords()
+        public async Task MaintenanceReadModels_WithLegacyMissingItemReference_ShouldReturnValidRowsAndHideOrphanRecords()
         {
             using var databaseService = CreateDatabaseService("maintenance_orphan_reads");
             SeedRequiredData(databaseService);
             var maintenanceService = new MaintenanceService(databaseService, CreateUserContext());
-            var overdueOrphanId = InsertLegacyMaintenanceRecord(databaseService, 999, DateTime.Now.AddDays(-7), "Scheduled");
-            var upcomingOrphanId = InsertLegacyMaintenanceRecord(databaseService, 999, DateTime.Now.AddDays(7), "Scheduled");
+            var now = DateTime.Now;
+            var validOverdueId = InsertLegacyMaintenanceRecord(databaseService, 1, now.AddDays(-3), "Scheduled");
+            var validUpcomingId = InsertLegacyMaintenanceRecord(databaseService, 1, now.AddDays(3), "Scheduled");
+            var overdueOrphanId = InsertLegacyMaintenanceRecord(databaseService, 999, now.AddDays(-7), "Scheduled");
+            var upcomingOrphanId = InsertLegacyMaintenanceRecord(databaseService, 999, now.AddDays(7), "Scheduled");
 
             var allRecords = await maintenanceService.GetAllMaintenanceRecordsAsync();
             var overdueRecords = await maintenanceService.GetOverdueMaintenanceAsync();
             var upcomingRecords = await maintenanceService.GetUpcomingMaintenanceAsync(30);
+            var validById = await maintenanceService.GetMaintenanceRecordByIdAsync(validOverdueId);
             var overdueById = await maintenanceService.GetMaintenanceRecordByIdAsync(overdueOrphanId);
             var upcomingById = await maintenanceService.GetMaintenanceRecordByIdAsync(upcomingOrphanId);
 
+            Assert.Contains(allRecords, record => record.MaintenanceID == validOverdueId);
+            Assert.Contains(allRecords, record => record.MaintenanceID == validUpcomingId);
+            Assert.Contains(overdueRecords, record => record.MaintenanceID == validOverdueId);
+            Assert.Contains(upcomingRecords, record => record.MaintenanceID == validUpcomingId);
+            Assert.NotNull(validById);
+            Assert.Equal("ITEM-001", validById!.ItemNumber);
             Assert.DoesNotContain(allRecords, record => record.ItemID == 999);
             Assert.DoesNotContain(overdueRecords, record => record.ItemID == 999);
             Assert.DoesNotContain(upcomingRecords, record => record.ItemID == 999);
@@ -36,20 +46,30 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public async Task CalibrationReadModels_WithLegacyMissingItemReference_ShouldHideOrphanRecords()
+        public async Task CalibrationReadModels_WithLegacyMissingItemReference_ShouldReturnValidRowsAndHideOrphanRecords()
         {
             using var databaseService = CreateDatabaseService("calibration_orphan_reads");
             SeedRequiredData(databaseService);
             var calibrationService = new CalibrationService(databaseService, CreateUserContext());
-            var overdueOrphanId = InsertLegacyCalibrationRecord(databaseService, 999, DateTime.Now.AddYears(-2), DateTime.Now.AddDays(-7));
-            var upcomingOrphanId = InsertLegacyCalibrationRecord(databaseService, 999, DateTime.Now.AddDays(-7), DateTime.Now.AddDays(7));
+            var now = DateTime.Now;
+            var validOverdueId = InsertLegacyCalibrationRecord(databaseService, 1, now.AddYears(-2), now.AddDays(-3));
+            var validUpcomingId = InsertLegacyCalibrationRecord(databaseService, 1, now.AddDays(-7), now.AddDays(3));
+            var overdueOrphanId = InsertLegacyCalibrationRecord(databaseService, 999, now.AddYears(-2), now.AddDays(-7));
+            var upcomingOrphanId = InsertLegacyCalibrationRecord(databaseService, 999, now.AddDays(-7), now.AddDays(7));
 
             var allRecords = await calibrationService.GetAllCalibrationRecordsAsync();
             var overdueRecords = await calibrationService.GetOverdueCalibrationAsync();
             var upcomingRecords = await calibrationService.GetUpcomingCalibrationAsync(30);
+            var validById = await calibrationService.GetCalibrationRecordByIdAsync(validOverdueId);
             var overdueById = await calibrationService.GetCalibrationRecordByIdAsync(overdueOrphanId);
             var upcomingById = await calibrationService.GetCalibrationRecordByIdAsync(upcomingOrphanId);
 
+            Assert.Contains(allRecords, record => record.CalibrationID == validOverdueId);
+            Assert.Contains(allRecords, record => record.CalibrationID == validUpcomingId);
+            Assert.Contains(overdueRecords, record => record.CalibrationID == validOverdueId);
+            Assert.Contains(upcomingRecords, record => record.CalibrationID == validUpcomingId);
+            Assert.NotNull(validById);
+            Assert.Equal("ITEM-001", validById!.ItemNumber);
             Assert.DoesNotContain(allRecords, record => record.ItemID == 999);
             Assert.DoesNotContain(overdueRecords, record => record.ItemID == 999);
             Assert.DoesNotContain(upcomingRecords, record => record.ItemID == 999);
