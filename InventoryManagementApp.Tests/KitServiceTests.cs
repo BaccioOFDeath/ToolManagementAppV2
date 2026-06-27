@@ -373,6 +373,12 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task CheckKitAvailability_WithMissingKit_ShouldThrow()
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _kitService.CheckKitAvailabilityAsync(999));
+        }
+
+        [Fact]
         public async Task CheckKitAvailability_WithInsufficientRequiredItemQuantity_ShouldReturnFalse()
         {
             var kit = new Kit

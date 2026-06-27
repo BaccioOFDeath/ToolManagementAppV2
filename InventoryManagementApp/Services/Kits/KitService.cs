@@ -303,6 +303,8 @@ namespace InventoryManagementApp.Services.Kits
             return await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
+                EnsureKitExists(conn, kitID);
+
                 var sql = @"
                     SELECT COUNT(*) as MissingItems
                     FROM KitItems ki
