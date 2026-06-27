@@ -227,20 +227,7 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public async Task DeleteKit_WithMissingKit_ShouldThrowWithoutDeletingLegacyKitItems()
         {
-            var builder = new SqliteConnectionStringBuilder(_databaseService.ConnectionString)
-            {
-                ForeignKeys = false
-            };
-
-            using (var conn = new SqliteConnection(builder.ToString()))
-            using (var cmd = conn.CreateCommand())
-            {
-                conn.Open();
-                cmd.CommandText = @"
-                    INSERT INTO KitItems (KitID, ItemID, Quantity, IsOptional)
-                    VALUES (999, 1, 1, 0);";
-                cmd.ExecuteNonQuery();
-            }
+            InsertLegacyKitItem(999, itemID: 1, quantity: 1, isOptional: false);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _kitService.DeleteKitAsync(999));
 
@@ -411,6 +398,60 @@ namespace InventoryManagementApp.Tests
             var isAvailable = await _kitService.CheckKitAvailabilityAsync(kitId);
 
             Assert.False(isAvailable);
+        }
+
+        [Fact]
+        public async Task CheckKitAvailability_WithMissingRequiredItemReference_ShouldReturnFalse()
+        {
+            var kit = new Kit
+            {
+                KitNumber = "KIT-015",
+                Name = "Kit with Missing Required Item",
+                IsActive = true
+            };
+            var kitId = await _kitService.CreateKitAsync(kit);
+            InsertLegacyKitItem(kitId, itemID: 999, quantity: 1, isOptional: false);
+
+            var isAvailable = await _kitService.CheckKitAvailabilityAsync(kitId);
+
+            Assert.False(isAvailable);
+        }
+
+        [Fact]
+        public async Task CheckKitAvailability_WithMissingOptionalItemReference_ShouldReturnTrue()
+        {
+            var kit = new Kit
+            {
+                KitNumber = "KIT-016",
+                Name = "Kit with Missing Optional Item",
+                IsActive = true
+            };
+            var kitId = await _kitService.CreateKitAsync(kit);
+            InsertLegacyKitItem(kitId, itemID: 999, quantity: 1, isOptional: true);
+
+            var isAvailable = await _kitService.CheckKitAvailabilityAsync(kitId);
+
+            Assert.True(isAvailable);
+        }
+
+        private void InsertLegacyKitItem(int kitID, int itemID, int quantity, bool isOptional)
+        {
+            var builder = new SqliteConnectionStringBuilder(_databaseService.ConnectionString)
+            {
+                ForeignKeys = false
+            };
+
+            using var conn = new SqliteConnection(builder.ToString());
+            using var cmd = conn.CreateCommand();
+            conn.Open();
+            cmd.CommandText = @"
+                INSERT INTO KitItems (KitID, ItemID, Quantity, IsOptional)
+                VALUES (@KitID, @ItemID, @Quantity, @IsOptional);";
+            cmd.Parameters.AddWithValue("@KitID", kitID);
+            cmd.Parameters.AddWithValue("@ItemID", itemID);
+            cmd.Parameters.AddWithValue("@Quantity", quantity);
+            cmd.Parameters.AddWithValue("@IsOptional", isOptional ? 1 : 0);
+            cmd.ExecuteNonQuery();
         }
 
         private int CountKitItemsForKit(int kitID)
