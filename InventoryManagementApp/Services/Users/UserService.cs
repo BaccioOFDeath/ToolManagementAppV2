@@ -446,7 +446,10 @@ namespace InventoryManagementApp.Services.Users
 
         async Task<bool> DeleteUserInternalAsync(int userID)
         {
-            var sql = "DELETE FROM Users WHERE UserID=@ID";
+            var sql = @"
+                DELETE FROM Users
+                WHERE UserID=@ID
+                AND (IsAdmin = 0 OR (SELECT COUNT(*) FROM Users WHERE IsAdmin = 1) > 1)";
             using var conn = _dbService.CreateConnection();
             var deletedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, new[] { new SqliteParameter("@ID", userID) });
             return deletedRows > 0;
