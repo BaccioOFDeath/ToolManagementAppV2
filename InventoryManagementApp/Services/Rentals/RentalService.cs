@@ -357,10 +357,11 @@ namespace InventoryManagementApp.Services.Rentals
             if (itemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(itemID), "Item ID must be greater than 0.");
 
-            const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC";
-            var p = new[] { new SqliteParameter("@ItemID", itemID) };
             using var conn = _dbService.CreateConnection();
             await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);
+
+            const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC";
+            var p = new[] { new SqliteParameter("@ItemID", itemID) };
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
@@ -370,10 +371,11 @@ namespace InventoryManagementApp.Services.Rentals
             if (customerID < 1)
                 throw new ArgumentOutOfRangeException(nameof(customerID), "Customer ID must be greater than 0.");
 
-            const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC";
-            var p = new[] { new SqliteParameter("@CustomerID", customerID) };
             using var conn = _dbService.CreateConnection();
             await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);
+
+            const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC";
+            var p = new[] { new SqliteParameter("@CustomerID", customerID) };
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
