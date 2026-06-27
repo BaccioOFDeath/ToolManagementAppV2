@@ -86,6 +86,14 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task GetMaintenanceRecordsByItem_WithMissingItem_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _maintenanceService.GetMaintenanceRecordsByItemAsync(999));
+
+            Assert.Equal("Item not found.", ex.Message);
+        }
+
+        [Fact]
         public async Task GetAllMaintenanceRecords_ShouldReturnList()
         {
             var record = new MaintenanceRecord
