@@ -7,6 +7,30 @@ namespace InventoryManagementApp.Tests
     public class ReservationServiceQueryGuardContractTests
     {
         [Fact]
+        public void ReservationReadModelsRequireExistingItemAndCustomerRows()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Reservations", "ReservationService.cs");
+
+            AssertContainsAll(
+                source,
+                "FROM Reservations r\n                    JOIN Items i ON r.ItemID = i.ItemID\n                    JOIN Customers c ON r.CustomerID = c.CustomerID",
+                "public async Task<List<Reservation>> GetAllReservationsAsync()",
+                "public async Task<List<Reservation>> GetActiveReservationsAsync()",
+                "public async Task<List<Reservation>> GetReservationsByItemAsync(int itemID)",
+                "public async Task<List<Reservation>> GetReservationsByCustomerAsync(int customerID)",
+                "public async Task<List<Reservation>> GetUpcomingReservationsAsync(int days = 7)",
+                "public async Task<Reservation?> GetReservationByIdAsync(int reservationID)");
+            Assert.DoesNotContain(
+                "FROM Reservations r\n                    LEFT JOIN Items i ON r.ItemID = i.ItemID",
+                source,
+                StringComparison.Ordinal);
+            Assert.DoesNotContain(
+                "LEFT JOIN Customers c ON r.CustomerID = c.CustomerID",
+                source,
+                StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ReservationHistoryQueriesValidateParentRowsBeforeExecutingHistoryQueries()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Reservations", "ReservationService.cs");
