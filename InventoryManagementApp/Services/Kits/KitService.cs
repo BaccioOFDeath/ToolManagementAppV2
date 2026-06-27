@@ -184,7 +184,9 @@ namespace InventoryManagementApp.Services.Kits
                 cmd.Parameters.AddWithValue("@Category", ToDbNullableText(kit.Category));
                 cmd.Parameters.AddWithValue("@IsActive", kit.IsActive ? 1 : 0);
                 cmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
-                return cmd.ExecuteNonQuery() > 0;
+                var updatedRows = cmd.ExecuteNonQuery();
+                EnsureKitWriteSucceeded(updatedRows);
+                return true;
             });
         }
 
@@ -208,10 +210,11 @@ namespace InventoryManagementApp.Services.Kits
                     var deleteKitSql = "DELETE FROM Kits WHERE KitID = @KitID";
                     using var deleteKitCmd = new SqliteCommand(deleteKitSql, conn, transaction);
                     deleteKitCmd.Parameters.AddWithValue("@KitID", kitID);
-                    var result = deleteKitCmd.ExecuteNonQuery() > 0;
+                    var deletedRows = deleteKitCmd.ExecuteNonQuery();
+                    EnsureKitWriteSucceeded(deletedRows);
 
                     transaction.Commit();
-                    return result;
+                    return true;
                 }
                 catch
                 {
@@ -267,7 +270,9 @@ namespace InventoryManagementApp.Services.Kits
                 cmd.Parameters.AddWithValue("@ItemID", kitItem.ItemID);
                 cmd.Parameters.AddWithValue("@Quantity", kitItem.Quantity);
                 cmd.Parameters.AddWithValue("@IsOptional", kitItem.IsOptional ? 1 : 0);
-                return cmd.ExecuteNonQuery() > 0;
+                var updatedRows = cmd.ExecuteNonQuery();
+                EnsureKitItemWriteSucceeded(updatedRows);
+                return true;
             });
         }
 
@@ -284,7 +289,9 @@ namespace InventoryManagementApp.Services.Kits
                 var sql = "DELETE FROM KitItems WHERE KitItemID = @KitItemID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitItemID", kitItemID);
-                return cmd.ExecuteNonQuery() > 0;
+                var removedRows = cmd.ExecuteNonQuery();
+                EnsureKitItemWriteSucceeded(removedRows);
+                return true;
             });
         }
 
@@ -375,6 +382,18 @@ namespace InventoryManagementApp.Services.Kits
         private static void EnsureKitItemExists(SqliteConnection conn, int kitItemID)
         {
             if (!RecordExists(conn, "SELECT COUNT(*) FROM KitItems WHERE KitItemID = @ID", kitItemID))
+                throw new InvalidOperationException("Kit item not found.");
+        }
+
+        private static void EnsureKitWriteSucceeded(int affectedRows)
+        {
+            if (affectedRows == 0)
+                throw new InvalidOperationException("Kit not found.");
+        }
+
+        private static void EnsureKitItemWriteSucceeded(int affectedRows)
+        {
+            if (affectedRows == 0)
                 throw new InvalidOperationException("Kit item not found.");
         }
 
