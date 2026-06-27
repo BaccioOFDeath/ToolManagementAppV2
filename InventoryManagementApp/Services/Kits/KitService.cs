@@ -114,6 +114,8 @@ namespace InventoryManagementApp.Services.Kits
             {
                 var items = new List<KitItem>();
                 using var conn = _databaseService.CreateConnection();
+                EnsureKitExists(conn, kitID);
+
                 var sql = @"
                     SELECT ki.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM KitItems ki
