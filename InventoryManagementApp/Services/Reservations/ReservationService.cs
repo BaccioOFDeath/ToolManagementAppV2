@@ -40,8 +40,8 @@ namespace InventoryManagementApp.Services.Reservations
                 var sql = @"
                     SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
-                    LEFT JOIN Items i ON r.ItemID = i.ItemID
-                    LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID
                     ORDER BY r.StartDate DESC";
                 using var cmd = new SqliteCommand(sql, conn);
                 using var reader = cmd.ExecuteReader();
@@ -66,8 +66,8 @@ namespace InventoryManagementApp.Services.Reservations
                 var sql = @"
                     SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
-                    LEFT JOIN Items i ON r.ItemID = i.ItemID
-                    LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID
                     WHERE r.Status IN ('Pending', 'Confirmed')
                     ORDER BY r.StartDate ASC";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -98,8 +98,8 @@ namespace InventoryManagementApp.Services.Reservations
                 var sql = @"
                     SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
-                    LEFT JOIN Items i ON r.ItemID = i.ItemID
-                    LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID
                     WHERE r.ItemID = @ItemID
                     ORDER BY r.StartDate DESC";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -126,8 +126,8 @@ namespace InventoryManagementApp.Services.Reservations
                 var sql = @"
                     SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
-                    LEFT JOIN Items i ON r.ItemID = i.ItemID
-                    LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID
                     WHERE r.CustomerID = @CustomerID
                     ORDER BY r.StartDate DESC";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -153,8 +153,8 @@ namespace InventoryManagementApp.Services.Reservations
                 var sql = @"
                     SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
-                    LEFT JOIN Items i ON r.ItemID = i.ItemID
-                    LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID
                     WHERE r.Status IN ('Pending', 'Confirmed')
                     AND r.StartDate <= @FutureDate
                     ORDER BY r.StartDate ASC";
@@ -180,8 +180,8 @@ namespace InventoryManagementApp.Services.Reservations
                 var sql = @"
                     SELECT r.*, i.ItemNumber, i.NameDescription as ItemName, i.ImagePath, c.Company as CustomerName
                     FROM Reservations r
-                    LEFT JOIN Items i ON r.ItemID = i.ItemID
-                    LEFT JOIN Customers c ON r.CustomerID = c.CustomerID
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID
                     WHERE r.ReservationID = @ReservationID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ReservationID", reservationID);
