@@ -63,7 +63,7 @@ namespace InventoryManagementApp.Tests
                 "async Task ExportCustomersToCsvInternalAsync",
                 "async Task InsertCustomerAsync",
                 "GetAllCustomersInternalAsync");
-            AssertCancellationGuardBeforeSqlAndConnection(
+            AssertCancellationGuardBeforeSql(
                 source,
                 "async Task InsertCustomerAsync",
                 "async Task<bool> CustomerExistsAsync");
