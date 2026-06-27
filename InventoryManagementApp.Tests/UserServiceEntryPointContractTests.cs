@@ -87,7 +87,7 @@ namespace InventoryManagementApp.Tests
             var method = ExtractMethod(
                 source,
                 "public async Task<bool> ChangeUserPasswordAsync",
-                "async Task DeleteUserInternalAsync");
+                "async Task<bool> DeleteUserInternalAsync");
 
             Assert.Contains("if (userID < 1)", method, StringComparison.Ordinal);
             Assert.Contains("throw new ArgumentOutOfRangeException(nameof(userID), \"User ID must be greater than 0.\");", method, StringComparison.Ordinal);
@@ -112,7 +112,7 @@ namespace InventoryManagementApp.Tests
             var method = ExtractMethod(
                 source,
                 "public async Task<bool> ChangeUserPasswordAsync",
-                "async Task DeleteUserInternalAsync");
+                "async Task<bool> DeleteUserInternalAsync");
 
             const string lookupSnippet = "var existing = await GetUserByIDAsync(userID, CancellationToken.None);";
             const string missingSnippet = "if (existing is null)";
@@ -154,6 +154,28 @@ namespace InventoryManagementApp.Tests
             Assert.True(
                 method.IndexOf("if (userID < 1)", StringComparison.Ordinal) < method.IndexOf("DeleteUserInternalAsync", StringComparison.Ordinal),
                 "Invalid delete user IDs should fail before delete work.");
+        }
+
+        [Fact]
+        public void TryDeleteUserReturnsActualDeleteResultAfterPrecheck()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");
+            var deleteHelper = ExtractMethod(
+                source,
+                "async Task<bool> DeleteUserInternalAsync",
+                "public async Task<bool> TryDeleteUserAsync");
+            var tryDelete = ExtractMethod(
+                source,
+                "public async Task<bool> TryDeleteUserAsync",
+                "    }\n}");
+
+            Assert.Contains("var deletedRows = await SqliteHelper.ExecuteNonQueryAsync", deleteHelper, StringComparison.Ordinal);
+            Assert.Contains("return deletedRows > 0;", deleteHelper, StringComparison.Ordinal);
+            Assert.True(
+                deleteHelper.IndexOf("var deletedRows = await SqliteHelper.ExecuteNonQueryAsync", StringComparison.Ordinal) < deleteHelper.IndexOf("return deletedRows > 0;", StringComparison.Ordinal),
+                "User delete should derive its boolean result from the affected row count.");
+            Assert.Contains("return await DeleteUserInternalAsync(userID);", tryDelete, StringComparison.Ordinal);
+            Assert.DoesNotContain("await DeleteUserInternalAsync(userID);\n            return true;", tryDelete, StringComparison.Ordinal);
         }
 
         private static void AssertCancellationGuardBeforeConnection(string source, string startMarker, string endMarker)
