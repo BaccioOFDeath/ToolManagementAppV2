@@ -86,6 +86,22 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task GetCalibrationRecordsByItem_WithMissingItem_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _calibrationService.GetCalibrationRecordsByItemAsync(999));
+
+            Assert.Equal("Item not found.", ex.Message);
+        }
+
+        [Fact]
+        public async Task GetLatestCalibrationForItem_WithMissingItem_ShouldThrow()
+        {
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _calibrationService.GetLatestCalibrationForItemAsync(999));
+
+            Assert.Equal("Item not found.", ex.Message);
+        }
+
+        [Fact]
         public async Task GetAllCalibrationRecords_ShouldReturnList()
         {
             var record = new CalibrationRecord
