@@ -101,6 +101,24 @@ namespace InventoryManagementApp.Tests
                 "Expected reservation availability checks to confirm the item row exists before building/executing the availability query.");
         }
 
+        [Fact]
+        public void ReservationAvailabilityCountsOnlyVisibleCustomerBackedHolds()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Reservations", "ReservationService.cs");
+
+            var availabilityMethod = ExtractMethod(
+                source,
+                "public async Task<bool> CheckAvailabilityAsync(int itemID, DateTime startDate, DateTime endDate, int quantity)",
+                "private Reservation MapReservation");
+
+            AssertContainsAll(
+                availabilityMethod,
+                "LEFT JOIN Reservations r ON i.ItemID = r.ItemID",
+                "AND r.Status IN ('Pending', 'Confirmed')",
+                "AND EXISTS (SELECT 1 FROM Customers c WHERE c.CustomerID = r.CustomerID)",
+                "COALESCE(SUM(r.Quantity), 0) as ReservedQuantity");
+        }
+
         private static void AssertContainsAll(string source, params string[] expectedSnippets)
         {
             foreach (var snippet in expectedSnippets)
