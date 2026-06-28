@@ -135,7 +135,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)
@@ -146,5 +146,8 @@ namespace InventoryManagementApp.Tests
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
         }
+
+        private static string NormalizeLineEndings(string text) =>
+            text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\r", "\n", StringComparison.Ordinal);
     }
 }
