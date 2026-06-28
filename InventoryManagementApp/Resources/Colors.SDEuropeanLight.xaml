@@ -36,6 +36,9 @@
     <SolidColorBrush x:Key="GlassSurfaceAltBrush" Color="#D9F1F2F5"/>
     <SolidColorBrush x:Key="AppBackgroundTintBrush" Color="#22FFFFFF"/>
     <SolidColorBrush x:Key="ThemeShellHeaderBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="ThemeShellMenuBrush" Color="#FFDCDCDC"/>
+    <SolidColorBrush x:Key="NavigationSurfaceBrush" Color="#FFDCDCDC"/>
+    <SolidColorBrush x:Key="NavigationAltSurfaceBrush" Color="#FFDCDCDC"/>
     <SolidColorBrush x:Key="PageHeaderDashboardBrush" Color="{StaticResource Col.Surface}"/>
     <SolidColorBrush x:Key="PageHeaderSearchBrush" Color="{StaticResource Col.Surface}"/>
     <SolidColorBrush x:Key="PageHeaderManageItemsBrush" Color="{StaticResource Col.Surface}"/>
