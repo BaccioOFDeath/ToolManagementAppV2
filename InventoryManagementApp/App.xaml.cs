@@ -563,6 +563,16 @@ namespace InventoryManagementApp
                 main.WindowState = WindowState.Maximized;
                 LogStep("Maximized main window for fullscreen QA capture.");
             }
+            else if (options.WindowWidth.HasValue || options.WindowHeight.HasValue)
+            {
+                main.WindowState = WindowState.Normal;
+                main.Width = options.WindowWidth ?? main.Width;
+                main.Height = options.WindowHeight ?? main.Height;
+                main.Left = Math.Max(0, (SystemParameters.WorkArea.Width - main.Width) / 2);
+                main.Top = Math.Max(0, (SystemParameters.WorkArea.Height - main.Height) / 2);
+                main.UpdateLayout();
+                LogStep($"Sized main window for QA capture: {main.Width:0}x{main.Height:0}.");
+            }
 
             main.Activate();
             main.Focus();

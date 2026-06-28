@@ -112,6 +112,17 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void SetRentalDaysCommand_AcceptsQuickDayIntegerParameter()
+        {
+            var vm = new RentItemPopupViewModel(new ItemModel(), Array.Empty<CustomerModel>(), new RecordingCustomerService(), new StubDialogService());
+
+            vm.SetRentalDaysCommand.Execute(14);
+
+            Assert.Equal(14, vm.RentalDays);
+            Assert.Equal(DateTime.Today.AddDays(14), vm.SelectedDueDate);
+        }
+
+        [Fact]
         public async Task LoadQuickRentalDaysAsync_UsesConfiguredButtonsAndFirstDefault()
         {
             var dbPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.db");

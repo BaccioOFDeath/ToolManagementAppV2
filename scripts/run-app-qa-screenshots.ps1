@@ -12,7 +12,9 @@ param(
     [int]$ExpectedScreenshotCount = 76,
     [switch]$SkipBuild,
     [switch]$KeepRunDirectory,
-    [switch]$SkipFullScreen
+    [switch]$SkipFullScreen,
+    [switch]$SkipPhysicalResolutions,
+    [switch]$SkipBrowserViewports
 )
 
 Set-StrictMode -Version Latest
@@ -79,7 +81,7 @@ if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $repoRoot ".qa-screenshots"
 }
 if ([string]::IsNullOrWhiteSpace($ThemeProfilePath)) {
-    $ThemeProfilePath = Join-Path $repoRoot "Themes\Good.json"
+    $ThemeProfilePath = Join-Path $repoRoot "InventoryManagementApp\Assets\Themes\Good.json"
 }
 $ThemeProfilePath = (Resolve-Path -LiteralPath $ThemeProfilePath).Path
 [void](Get-Content -LiteralPath $ThemeProfilePath -Raw | ConvertFrom-Json)
@@ -187,6 +189,26 @@ $reviewChecklist = @(
     "Admin-only pages explain what the setting or permission change affects before saving.",
     "Technician and advisor flows can be completed from the current page or one visible drill-down."
 )
+$physicalResolutionRuns = @(
+    [pscustomobject]@{ Group = "physical-resolutions"; Name = "1366x768-old-small-laptop"; Width = 1366; Height = 768; Purpose = "Lowest supported desktop/laptop layout." },
+    [pscustomobject]@{ Group = "physical-resolutions"; Name = "1440x900-older-desktop-basic-laptop"; Width = 1440; Height = 900; Purpose = "Older widescreen monitors and laptops." },
+    [pscustomobject]@{ Group = "physical-resolutions"; Name = "1536x864-budget-modern-laptop"; Width = 1536; Height = 864; Purpose = "Common scaled Windows laptop viewport." },
+    [pscustomobject]@{ Group = "physical-resolutions"; Name = "1920x1080-standard-laptop-monitor"; Width = 1920; Height = 1080; Purpose = "Full HD baseline." },
+    [pscustomobject]@{ Group = "physical-resolutions"; Name = "1920x1200-business-laptop-16-10"; Width = 1920; Height = 1200; Purpose = "Modern productivity laptop height." },
+    [pscustomobject]@{ Group = "physical-resolutions"; Name = "2560x1440-27-inch-desktop"; Width = 2560; Height = 1440; Purpose = "Common QHD desktop monitor." },
+    [pscustomobject]@{ Group = "physical-resolutions"; Name = "2560x1600-16-inch-premium-laptop"; Width = 2560; Height = 1600; Purpose = "High-resolution 16:10 laptop." },
+    [pscustomobject]@{ Group = "physical-resolutions"; Name = "2880x1800-high-res-laptop"; Width = 2880; Height = 1800; Purpose = "Premium laptop resolution." },
+    [pscustomobject]@{ Group = "physical-resolutions"; Name = "3840x2160-4k-desktop"; Width = 3840; Height = 2160; Purpose = "High-end desktop monitor." }
+)
+$browserViewportRuns = @(
+    [pscustomobject]@{ Group = "browser-viewports"; Name = "1280x720-cramped-fallback"; Width = 1280; Height = 720; Purpose = "Absolute cramped fallback." },
+    [pscustomobject]@{ Group = "browser-viewports"; Name = "1366x650-old-laptop-chrome-taskbar"; Width = 1366; Height = 650; Purpose = "Old laptop with browser/taskbar space removed." },
+    [pscustomobject]@{ Group = "browser-viewports"; Name = "1440x800-older-desktop-browser-space"; Width = 1440; Height = 800; Purpose = "Older desktop/laptop browser space." },
+    [pscustomobject]@{ Group = "browser-viewports"; Name = "1536x760-modern-laptop-scaled"; Width = 1536; Height = 760; Purpose = "Modern laptop with scaling." },
+    [pscustomobject]@{ Group = "browser-viewports"; Name = "1920x920-full-hd-browser-chrome"; Width = 1920; Height = 920; Purpose = "Full HD monitor with browser chrome." },
+    [pscustomobject]@{ Group = "browser-viewports"; Name = "2560x1320-qhd-browser-space"; Width = 2560; Height = 1320; Purpose = "QHD desktop usable browser space." },
+    [pscustomobject]@{ Group = "browser-viewports"; Name = "3840x2000-4k-browser-space"; Width = 3840; Height = 2000; Purpose = "4K monitor usable browser space." }
+)
 $expectedScreenshotSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($expectedFile in $expectedScreenshotFiles) {
     [void]$expectedScreenshotSet.Add($expectedFile)
@@ -221,7 +243,9 @@ function Reset-RunDirectory {
 function Invoke-QaScreenshotRun {
     param(
         [Parameter(Mandatory = $true)][string]$RunOutput,
-        [switch]$FullScreen
+        [switch]$FullScreen,
+        [int]$WindowWidth = 0,
+        [int]$WindowHeight = 0
     )
 
     Reset-RunDirectory
@@ -238,6 +262,10 @@ function Invoke-QaScreenshotRun {
     )
     if ($FullScreen) {
         $arguments += "--qa-fullscreen"
+    }
+    elseif ($WindowWidth -gt 0 -and $WindowHeight -gt 0) {
+        $arguments += "--qa-window-width=$WindowWidth"
+        $arguments += "--qa-window-height=$WindowHeight"
     }
 
     $script:process = Start-Process -FilePath $runExe -ArgumentList $arguments -WorkingDirectory $runDirectory -PassThru
@@ -349,29 +377,74 @@ try {
         throw "Expected executable was not found at '$sourceExe'."
     }
 
-    Invoke-QaScreenshotRun -RunOutput $sessionOutput
-    $screenshots = @(Test-QaScreenshotOutput -RunOutput $sessionOutput)
+    $resolutionRuns = @()
+    if (-not $SkipPhysicalResolutions) {
+        $resolutionRuns += $physicalResolutionRuns
+    }
+    if (-not $SkipBrowserViewports) {
+        $resolutionRuns += $browserViewportRuns
+    }
+    if ($resolutionRuns.Count -eq 0) {
+        throw "No QA resolution groups are enabled."
+    }
 
     $captureRows = @()
-    foreach ($screenshot in ($screenshots | Sort-Object FullName)) {
-        $relativePath = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $screenshot.FullName
-        $relativeWebPath = $relativePath -replace '\\', '/'
-        $dimensions = Get-PngDimensions -File $screenshot
-        $captureRows += [pscustomobject]@{
-            Path = $relativePath
-            WebPath = $relativeWebPath
-            Folder = Split-Path $relativePath -Parent
-            Width = $dimensions.Width
-            Height = $dimensions.Height
-            Bytes = $screenshot.Length
+    $runRows = @()
+    foreach ($resolutionRun in $resolutionRuns) {
+        $runOutput = Join-Path (Join-Path $sessionOutput $resolutionRun.Group) $resolutionRun.Name
+        Ensure-Directory -Path $runOutput
+        Write-Step ("Running QA screenshots for {0}/{1} ({2}x{3})." -f $resolutionRun.Group, $resolutionRun.Name, $resolutionRun.Width, $resolutionRun.Height)
+        Invoke-QaScreenshotRun -RunOutput $runOutput -WindowWidth $resolutionRun.Width -WindowHeight $resolutionRun.Height
+        $runScreenshots = @(Test-QaScreenshotOutput -RunOutput $runOutput)
+        $runRows += [pscustomobject]@{
+            Group = $resolutionRun.Group
+            Name = $resolutionRun.Name
+            Width = $resolutionRun.Width
+            Height = $resolutionRun.Height
+            Purpose = $resolutionRun.Purpose
+            ScreenshotCount = $runScreenshots.Count
         }
+
+        foreach ($screenshot in ($runScreenshots | Sort-Object FullName)) {
+            $relativePath = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $screenshot.FullName
+            $relativeWebPath = $relativePath -replace '\\', '/'
+            $dimensions = Get-PngDimensions -File $screenshot
+            $pathParts = $relativePath -split '\\'
+            $captureRows += [pscustomobject]@{
+                Path = $relativePath
+                WebPath = $relativeWebPath
+                Group = $pathParts[0]
+                Resolution = $pathParts[1]
+                Folder = $pathParts[2]
+                Width = $dimensions.Width
+                Height = $dimensions.Height
+                Bytes = $screenshot.Length
+            }
+        }
+
+        Write-Step "QA screenshots saved to '$runOutput' ($($runScreenshots.Count) PNG files)."
+    }
+
+    if (-not $SkipFullScreen) {
+        $fullScreenOutput = Join-Path $OutputRoot "fullscreen"
+        Ensure-Directory -Path $fullScreenOutput
+        Invoke-QaScreenshotRun -RunOutput $fullScreenOutput -FullScreen
+        $fullScreenScreenshots = @(Test-QaScreenshotOutput -RunOutput $fullScreenOutput)
+        Write-Step "Fullscreen QA screenshots saved to '$fullScreenOutput' ($($fullScreenScreenshots.Count) PNG files)."
     }
 
     $readmePath = Join-Path $sessionOutput "README.md"
+    Add-Content -Path $readmePath -Value "# QA Screenshot Resolution Matrix"
     Add-Content -Path $readmePath -Value ""
-    Add-Content -Path $readmePath -Value ("Captured screenshots: {0}" -f $screenshots.Count)
-    Add-Content -Path $readmePath -Value ("Minimum PNG size checked: {0} bytes" -f $minimumScreenshotBytes)
-    Add-Content -Path $readmePath -Value ("Minimum PNG dimensions checked: {0}x{1}" -f $minimumScreenshotWidth, $minimumScreenshotHeight)
+    Add-Content -Path $readmePath -Value ("Generated: {0}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))
+    Add-Content -Path $readmePath -Value ("Captured screenshots: {0}" -f $captureRows.Count)
+    Add-Content -Path $readmePath -Value ("Minimum PNG size checked per capture: {0} bytes" -f $minimumScreenshotBytes)
+    Add-Content -Path $readmePath -Value ("Minimum PNG dimensions checked per capture: {0}x{1}" -f $minimumScreenshotWidth, $minimumScreenshotHeight)
+    Add-Content -Path $readmePath -Value ""
+    Add-Content -Path $readmePath -Value "Resolution runs:"
+    foreach ($run in $runRows) {
+        Add-Content -Path $readmePath -Value ("- `{0}\{1}` - {2}x{3}, {4} captures. {5}" -f $run.Group, $run.Name, $run.Width, $run.Height, $run.ScreenshotCount, $run.Purpose)
+    }
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value "Review checklist:"
     foreach ($reviewItem in $reviewChecklist) {
@@ -390,32 +463,42 @@ try {
     $html.Add('<head>')
     $html.Add('<meta charset="utf-8">'.Replace('\"', '"'))
     $html.Add('<meta name="viewport" content="width=device-width, initial-scale=1">'.Replace('\"', '"'))
-    $html.Add('<title>QA Screenshot Review</title>')
+    $html.Add('<title>QA Screenshot Resolution Review</title>')
     $html.Add('<style>')
-    $html.Add('body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f5f7fa;color:#17202a;}header{position:sticky;top:0;background:#ffffff;border-bottom:1px solid #d8dee8;padding:14px 20px;z-index:1;}h1{font-size:20px;margin:0 0 4px;}p{margin:0;color:#526071;}main{padding:20px;}section{margin:0 0 28px;}h2{font-size:16px;margin:0 0 10px;}.review{background:#fff;border:1px solid #d8dee8;border-radius:6px;padding:12px;margin:0 0 22px;}.review ul{margin:8px 0 0;padding-left:20px;color:#344154;line-height:1.45;}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;}figure{margin:0;background:#fff;border:1px solid #d8dee8;border-radius:6px;overflow:hidden;}img{display:block;width:100%;height:auto;background:#eef2f6;}figcaption{padding:8px 10px;font-size:12px;color:#526071;line-height:1.35;}code{color:#17202a;font-weight:600;}.meta{display:block;margin-top:3px;}@media (max-width:520px){main{padding:12px}.grid{grid-template-columns:1fr;}}')
+    $html.Add('body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#f5f7fa;color:#17202a;}header{position:sticky;top:0;background:#ffffff;border-bottom:1px solid #d8dee8;padding:14px 20px;z-index:1;}h1{font-size:20px;margin:0 0 4px;}p{margin:0;color:#526071;}main{padding:20px;}section{margin:0 0 28px;}h2{font-size:18px;margin:0 0 10px;}h3{font-size:15px;margin:18px 0 10px;}.review,.matrix{background:#fff;border:1px solid #d8dee8;border-radius:6px;padding:12px;margin:0 0 22px;}.review ul{margin:8px 0 0;padding-left:20px;color:#344154;line-height:1.45;}.matrix table{border-collapse:collapse;width:100%;font-size:12px;}.matrix th,.matrix td{border-bottom:1px solid #e2e7ef;text-align:left;padding:7px 8px;vertical-align:top;}.matrix th{color:#344154;background:#f8fafc;}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;}figure{margin:0;background:#fff;border:1px solid #d8dee8;border-radius:6px;overflow:hidden;}img{display:block;width:100%;height:auto;background:#eef2f6;}figcaption{padding:8px 10px;font-size:12px;color:#526071;line-height:1.35;}code{color:#17202a;font-weight:600;}.meta{display:block;margin-top:3px;}@media (max-width:520px){main{padding:12px}.grid{grid-template-columns:1fr;}.matrix{overflow-x:auto;}}')
     $html.Add('</style>')
     $html.Add('</head>')
     $html.Add('<body>')
-    $html.Add("<header><h1>QA Screenshot Review</h1><p>Generated $(Convert-ToHtmlAttribute (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) | $($captureRows.Count) captures | minimum $minimumScreenshotWidth x $minimumScreenshotHeight px and $minimumScreenshotBytes bytes</p></header>")
+    $html.Add("<header><h1>QA Screenshot Resolution Review</h1><p>Generated $(Convert-ToHtmlAttribute (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) | $($runRows.Count) resolution runs | $($captureRows.Count) captures</p></header>")
     $html.Add('<main>')
+    $html.Add('<section class="matrix"><h2>Resolution matrix</h2><table><thead><tr><th>Group</th><th>Folder</th><th>Size</th><th>Captures</th><th>Purpose</th></tr></thead><tbody>'.Replace('\"', '"'))
+    foreach ($run in $runRows) {
+        $html.Add(('<tr><td>{0}</td><td><code>{1}</code></td><td>{2}x{3}</td><td>{4}</td><td>{5}</td></tr>' -f (Convert-ToHtmlAttribute $run.Group), (Convert-ToHtmlAttribute $run.Name), $run.Width, $run.Height, $run.ScreenshotCount, (Convert-ToHtmlAttribute $run.Purpose)).Replace('\"', '"'))
+    }
+    $html.Add('</tbody></table></section>')
     $html.Add('<section class="review"><h2>Visual and workflow checklist</h2><ul>'.Replace('\"', '"'))
     foreach ($reviewItem in $reviewChecklist) {
         $html.Add("<li>$(Convert-ToHtmlAttribute $reviewItem)</li>")
     }
     $html.Add('</ul></section>')
-    foreach ($folder in $expectedFolders) {
-        $folderCaptures = @($captureRows | Where-Object { $_.Folder -eq $folder })
-        if ($folderCaptures.Count -eq 0) { continue }
+    foreach ($run in $runRows) {
+        $runCaptures = @($captureRows | Where-Object { $_.Group -eq $run.Group -and $_.Resolution -eq $run.Name })
+        if ($runCaptures.Count -eq 0) { continue }
         $html.Add('<section>')
-        $html.Add("<h2>$(Convert-ToHtmlAttribute $folder)</h2>")
-        $html.Add('<div class="grid">'.Replace('\"', '"'))
-        foreach ($capture in $folderCaptures) {
-            $html.Add('<figure>')
-            $html.Add(('<img src="{0}" alt="{1}">' -f (Convert-ToHtmlAttribute $capture.WebPath), (Convert-ToHtmlAttribute $capture.Path)).Replace('\"', '"'))
-            $html.Add(('<figcaption><code>{0}</code><span class="meta">{1}x{2}, {3} bytes</span></figcaption>' -f (Convert-ToHtmlAttribute $capture.Path), $capture.Width, $capture.Height, $capture.Bytes).Replace('\"', '"'))
-            $html.Add('</figure>')
+        $html.Add("<h2>$(Convert-ToHtmlAttribute $run.Group) / $(Convert-ToHtmlAttribute $run.Name)</h2>")
+        foreach ($folder in $expectedFolders) {
+            $folderCaptures = @($runCaptures | Where-Object { $_.Folder -eq $folder })
+            if ($folderCaptures.Count -eq 0) { continue }
+            $html.Add("<h3>$(Convert-ToHtmlAttribute $folder)</h3>")
+            $html.Add('<div class="grid">'.Replace('\"', '"'))
+            foreach ($capture in $folderCaptures) {
+                $html.Add('<figure>')
+                $html.Add(('<img src="{0}" alt="{1}">' -f (Convert-ToHtmlAttribute $capture.WebPath), (Convert-ToHtmlAttribute $capture.Path)).Replace('\"', '"'))
+                $html.Add(('<figcaption><code>{0}</code><span class="meta">{1}x{2}, {3} bytes</span></figcaption>' -f (Convert-ToHtmlAttribute $capture.Path), $capture.Width, $capture.Height, $capture.Bytes).Replace('\"', '"'))
+                $html.Add('</figure>')
+            }
+            $html.Add('</div>')
         }
-        $html.Add('</div>')
         $html.Add('</section>')
     }
     $html.Add('</main>')
@@ -423,16 +506,8 @@ try {
     $html.Add('</html>')
     Set-Content -Path $indexPath -Value $html -Encoding UTF8
 
-    Write-Step "QA screenshots saved to '$sessionOutput' ($($screenshots.Count) PNG files)."
+    Write-Step "QA resolution screenshots saved to '$sessionOutput' ($($captureRows.Count) PNG files)."
     Write-Step "Screenshot review index saved to '$indexPath'."
-
-    if (-not $SkipFullScreen) {
-        $fullScreenOutput = Join-Path $OutputRoot "fullscreen"
-        Ensure-Directory -Path $fullScreenOutput
-        Invoke-QaScreenshotRun -RunOutput $fullScreenOutput -FullScreen
-        $fullScreenScreenshots = @(Test-QaScreenshotOutput -RunOutput $fullScreenOutput)
-        Write-Step "Fullscreen QA screenshots saved to '$fullScreenOutput' ($($fullScreenScreenshots.Count) PNG files)."
-    }
 }
 finally {
     if ($process -and -not $process.HasExited) {

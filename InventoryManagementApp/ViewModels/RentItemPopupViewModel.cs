@@ -116,7 +116,7 @@ namespace InventoryManagementApp.ViewModels.Rental
             CheckOutCommand = new RelayCommand(Confirm, CanConfirm);
             CancelCommand = new RelayCommand(Cancel);
             AddCustomerCommand = new AsyncRelayCommand(AddCustomerAsync);
-            SetRentalDaysCommand = new RelayCommand<string>(SetRentalDays);
+            SetRentalDaysCommand = new RelayCommand<int>(SetRentalDays);
             ClearCustomerSearchCommand = new RelayCommand(ClearCustomerSearch, () => !string.IsNullOrWhiteSpace(CustomerSearchText));
         }
 
@@ -168,11 +168,11 @@ namespace InventoryManagementApp.ViewModels.Rental
             SelectedCustomer = customer;
         }
 
-        void SetRentalDays(string? days)
+        void SetRentalDays(int days)
         {
-            if (int.TryParse(days, out var d))
+            if (days > 0)
             {
-                RentalDays = d;
+                RentalDays = days;
             }
         }
 

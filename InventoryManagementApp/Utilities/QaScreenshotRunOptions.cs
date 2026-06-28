@@ -16,6 +16,8 @@ namespace InventoryManagementApp.Utilities
         public string AdminUserName { get; init; } = DefaultAdminUserName;
         public string ThemeProfilePath { get; init; } = string.Empty;
         public bool FullScreen { get; init; }
+        public int? WindowWidth { get; init; }
+        public int? WindowHeight { get; init; }
 
         public static QaScreenshotRunOptions? Parse(string[] args)
         {
@@ -30,6 +32,8 @@ namespace InventoryManagementApp.Utilities
             var adminPassword = "AdminQ123";
             var themeProfilePath = string.Empty;
             var fullScreen = false;
+            int? windowWidth = null;
+            int? windowHeight = null;
 
             foreach (var arg in args)
             {
@@ -75,6 +79,18 @@ namespace InventoryManagementApp.Utilities
                     continue;
                 }
 
+                if (TryReadPositiveInt(arg, "--qa-window-width=", out var width))
+                {
+                    windowWidth = width;
+                    continue;
+                }
+
+                if (TryReadPositiveInt(arg, "--qa-window-height=", out var height))
+                {
+                    windowHeight = height;
+                    continue;
+                }
+
                 if (string.Equals(arg, "--qa-fullscreen", StringComparison.OrdinalIgnoreCase))
                 {
                     fullScreen = true;
@@ -95,7 +111,9 @@ namespace InventoryManagementApp.Utilities
                 ItemLabelPlural = itemLabelPlural,
                 AdminPassword = adminPassword,
                 ThemeProfilePath = themeProfilePath,
-                FullScreen = fullScreen
+                FullScreen = fullScreen,
+                WindowWidth = windowWidth,
+                WindowHeight = windowHeight
             };
         }
 
@@ -114,6 +132,19 @@ namespace InventoryManagementApp.Utilities
             }
 
             value = string.Empty;
+            return false;
+        }
+
+        static bool TryReadPositiveInt(string argument, string prefix, out int value)
+        {
+            if (TryReadValue(argument, prefix, out var rawValue) &&
+                int.TryParse(rawValue, out value) &&
+                value > 0)
+            {
+                return true;
+            }
+
+            value = 0;
             return false;
         }
     }
