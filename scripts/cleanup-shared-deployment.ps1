@@ -2,6 +2,7 @@ param(
     [string]$Destination = "X:\V2",
     [int]$KeepReleases = 3,
     [int]$KeepBackups = 3,
+    [switch]$FailOnCleanupError,
     [switch]$RemoveRootLegacyFiles
 )
 
@@ -19,6 +20,7 @@ if (-not (Test-Path -LiteralPath $Destination)) {
     throw "Destination '$Destination' does not exist."
 }
 
+$cleanupWarningCount = 0
 $destinationPath = (Resolve-Path -LiteralPath $Destination).Path.TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
 $currentReleasePath = Join-Path $destinationPath "current-release.txt"
 $currentRelease = $null
@@ -54,7 +56,16 @@ function Remove-DeploymentItem {
 
     Assert-ChildPath -Path $Path
     Write-Host "Removing $Path"
-    Remove-Item -LiteralPath $Path -Recurse -Force
+    try {
+        Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop
+    } catch {
+        if ($FailOnCleanupError) {
+            throw
+        }
+
+        $script:cleanupWarningCount++
+        Write-Warning "Could not remove '$Path'. It may still be in use by a workstation or the file share. The staged release remains valid; rerun cleanup later. $($_.Exception.Message)"
+    }
 }
 
 Write-Host "Cleaning InventoryManagementApp shared deployment"
@@ -62,6 +73,7 @@ Write-Host "Destination:   $destinationPath"
 Write-Host "Current:       $currentRelease"
 Write-Host "Keep releases: $KeepReleases"
 Write-Host "Keep backups:  $KeepBackups"
+Write-Host "Strict cleanup: $FailOnCleanupError"
 
 $releaseRoot = Join-Path $destinationPath "_releases"
 if (Test-Path -LiteralPath $releaseRoot) {
@@ -149,4 +161,8 @@ if ($RemoveRootLegacyFiles) {
     }
 }
 
-Write-Host "Cleanup complete."
+if ($cleanupWarningCount -gt 0) {
+    Write-Warning "Cleanup completed with $cleanupWarningCount warning(s). Old locked items were left in place."
+} else {
+    Write-Host "Cleanup complete."
+}

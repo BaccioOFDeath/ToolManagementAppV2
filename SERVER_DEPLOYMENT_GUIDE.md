@@ -101,14 +101,17 @@ Recommended active-user update flow:
 
    Use a folder-safe Windows release name that does not end with a dot or space. Do not use Windows filename characters such as `\`, `/`, `:`, `*`, `?`, `"`, `<`, `>`, or `|`. Avoid Windows reserved device names such as `CON`, `CONIN$`, `CONOUT$`, `NUL`, `COM1`, or `LPT1`, because those names are invalid deployment folder targets on Windows.
 
-   The update script also refreshes the launcher at `X:\V2\scripts\start-current-release.ps1`, writes `X:\V2\Start Inventory Management.cmd`, and removes the old shared `Inventory Management.lnk` shortcut if it exists. The command launcher resolves the app relative to the folder it is in, so it works even when different workstations map the share to different drive letters.
+   The update script also refreshes the launcher at `X:\V2\scripts\start-current-release.ps1`, writes `X:\V2\Start Inventory Management.cmd`, and removes the old shared `Inventory Management.lnk` shortcut if it exists. The command launcher resolves the deployment relative to the folder it is in, so it works even when different workstations map the share to different drive letters.
 3. For mixed workstation mappings, have users run `Start Inventory Management.cmd` from the shared `V2` folder or create each user's desktop shortcut from their own workstation. Do not use a shared `.lnk` from the server folder, because shortcuts store machine-specific paths.
-4. Ask users to restart the app when convenient. Users already running the previous release can continue current rentals/check-ins because the SQLite database and preserved asset folders remain shared. When an older side-by-side release reaches the login screen after `current-release.txt` has moved forward, it shows an update message asking the user to close and reopen the app.
-5. After confirming nobody is running older release folders, prune old releases and backups with the cleanup helper:
+4. Ask users to restart the app when convenient. The launcher copies the selected release binaries into `%LOCALAPPDATA%\InventoryManagementApp\ReleaseCache\<release>` and starts the local cached executable, while setting the shared deployment root so SQLite data, uploaded photos, themes, and other operational asset paths still resolve to `X:\V2`. This avoids loading WPF binaries and resource dictionaries over Wi-Fi on every launch. For troubleshooting, run the launcher with `-DisableLocalCache` to start directly from the shared release.
+5. Users already running the previous release can continue current rentals/check-ins because the SQLite database and preserved asset folders remain shared. When an older side-by-side release reaches the login screen after `current-release.txt` has moved forward, it shows an update message asking the user to close and reopen the app.
+6. After confirming nobody is running older release folders, prune old releases and backups with the cleanup helper:
 
    ```powershell
    ./scripts/cleanup-shared-deployment.ps1 -Destination X:\V2 -KeepReleases 3 -KeepBackups 3
    ```
+
+   If an old release is still locked by a workstation or the share, cleanup logs a warning and leaves that folder in place so the already-staged update remains successful. Rerun cleanup later, or add `-FailOnCleanupError` when you specifically want locked cleanup items to fail the command.
 
    Use `-RemoveRootLegacyFiles` only after the deployment has moved to side-by-side releases and the root folder no longer needs old in-place binaries.
 
@@ -128,7 +131,7 @@ Do not run it with `-ShortcutDirectory X:\V2` for normal deployments, because th
 
 If a site prefers direct UNC shortcuts, add `-UseUncPaths`. Do not use that switch when users can open the mapped drive but Windows prompts for credentials to `\\ServerName`.
 
-In side-by-side mode, the script copies the preserved `appsettings.json` into the staged release and links the release-local data, photo, theme, and log folders back to the shared destination folders. That keeps versioned binaries isolated while the operational SQLite database, uploaded photos, theme files, and logs continue to use the shared location.
+In side-by-side mode, the script copies the preserved `appsettings.json` into the staged release and links the release-local data, photo, theme, and log folders back to the shared destination folders. Workstation launches then copy only the executable release files into the local cache and use the shared deployment root for operational data. That keeps versioned binaries fast and local while the SQLite database, uploaded photos, theme files, and logs continue to use the shared location.
 
 Use the default in-place mode only for maintenance windows when all users are closed:
 

@@ -21,9 +21,14 @@ namespace InventoryManagementApp.Tests
             Assert.True(normalizationIndex >= 0, "The launcher should normalize the current-release marker before applying folder-safety validation.");
 
             var pathResolutionIndex = normalizedLauncher.IndexOf(
-                "$releasePath = Join-Path $releaseRoot $releaseName\n    $executablePath = Join-Path $releasePath $ExecutableName",
+                "$releasePath = Join-Path $releaseRoot $releaseName\n    $sharedExecutablePath = Join-Path $releasePath $ExecutableName",
                 StringComparison.Ordinal);
             Assert.True(pathResolutionIndex > normalizationIndex, "The launcher should resolve the side-by-side release path from the normalized marker value.");
+
+            var cacheResolutionIndex = normalizedLauncher.IndexOf(
+                "$executablePath = Resolve-LocalCachedExecutable -SharedExecutablePath $sharedExecutablePath -SharedDeploymentRoot $destinationPath -ReleaseName $releaseName",
+                StringComparison.Ordinal);
+            Assert.True(cacheResolutionIndex > pathResolutionIndex, "The launcher should pick the shared release from the normalized marker before resolving the local cache executable.");
         }
 
         private static string ReadRepositoryFile(params string[] relativePathParts)

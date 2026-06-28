@@ -30,6 +30,27 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void MainWindow_UsesCompactShellLayoutForShortLaptopScreens()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
+            var codeBehind = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml.cs");
+
+            Assert.Contains("MinHeight=\"540\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"ShellHeader\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"ShellMenu\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"PageHeaderBand\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"WorkflowGuideText\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"ShellStatusFooter\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"ShellFooterRow\"", xaml, StringComparison.Ordinal);
+
+            Assert.Contains("CompactShellHeightThreshold = 760", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("SystemParameters.WorkArea.Height < CompactShellHeightThreshold", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ShellStatusFooter.Visibility = compact ? Visibility.Collapsed : Visibility.Visible", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("WorkflowGuideText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("MainFrame.Margin = new Thickness(4)", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void MainWindow_RendersUploadedBackgroundOnlyOnRootShell()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");

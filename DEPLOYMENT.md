@@ -116,7 +116,9 @@ For repeat updates during the day, prefer the one-command side-by-side wrapper:
 
 It validates, publishes, stages a timestamped side-by-side release, updates `current-release.txt`, and lets older running copies show an update-available message on the login screen.
 
-The updater also writes `Start Inventory Management.cmd` into the shared root. Use that launcher when different workstations map the same server folder to different drive letters, because it resolves the app relative to the folder it is run from.
+The updater also writes `Start Inventory Management.cmd` into the shared root. Use that launcher when different workstations map the same server folder to different drive letters, because it resolves the deployment relative to the folder it is run from.
+
+On each workstation, the launcher syncs the selected release binaries into `%LOCALAPPDATA%\InventoryManagementApp\ReleaseCache\<release>` and starts the local cached executable. The app still receives the shared deployment root, so SQLite data, uploaded images, themes, and other operational assets continue to resolve under `X:\V2`. This avoids running the WPF binaries directly across Wi-Fi. For troubleshooting only, pass `-DisableLocalCache` to the launcher to start the shared executable directly.
 
 Create an icon-bearing desktop shortcut on each workstation with:
 
@@ -133,6 +135,8 @@ When the server folder has too many old side-by-side releases or pre-update back
 ```powershell
 .\scripts\cleanup-shared-deployment.ps1 -Destination X:\V2 -KeepReleases 3 -KeepBackups 3
 ```
+
+If an old release is still locked by a workstation or the share, cleanup logs a warning and leaves it in place so the staged update remains successful. Rerun cleanup later, or add `-FailOnCleanupError` when you specifically want locked cleanup items to fail the command.
 
 ### 4. First-Time Setup
 

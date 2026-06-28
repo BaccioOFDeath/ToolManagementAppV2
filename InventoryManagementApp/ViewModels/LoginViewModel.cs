@@ -19,6 +19,7 @@ using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Settings;
 using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.Utilities.Extensions;
+using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.Views.Pages;
 using InventoryManagementApp.Views.Windows;
@@ -228,6 +229,14 @@ namespace InventoryManagementApp.ViewModels
         static string? GetRunningSharedReleaseName(string baseDirectory, out string? deploymentRoot)
         {
             deploymentRoot = null;
+            var configuredDeploymentRoot = Environment.GetEnvironmentVariable(DeploymentPathResolver.DeploymentRootEnvironmentVariable);
+            if (!string.IsNullOrWhiteSpace(configuredDeploymentRoot))
+            {
+                deploymentRoot = Path.GetFullPath(configuredDeploymentRoot.Trim());
+                var runningRelease = Environment.GetEnvironmentVariable("INVENTORYMANAGEMENTAPP_RUNNING_RELEASE");
+                return string.IsNullOrWhiteSpace(runningRelease) ? null : runningRelease.Trim();
+            }
+
             var releaseDirectory = new DirectoryInfo(baseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
             if (releaseDirectory.Parent?.Name.Equals("_releases", StringComparison.OrdinalIgnoreCase) == true)
             {

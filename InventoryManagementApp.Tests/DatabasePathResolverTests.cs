@@ -28,6 +28,27 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void Resolve_RelativePathWithDeploymentRootEnvironment_UsesSharedDeploymentRoot()
+        {
+            var deploymentRoot = Path.Combine(Path.GetTempPath(), "InventoryManagementAppTests", "SharedV2");
+            var localCacheDirectory = Path.Combine(Path.GetTempPath(), "InventoryManagementAppTests", "LocalCache");
+            var original = System.Environment.GetEnvironmentVariable(DeploymentPathResolver.DeploymentRootEnvironmentVariable);
+
+            try
+            {
+                System.Environment.SetEnvironmentVariable(DeploymentPathResolver.DeploymentRootEnvironmentVariable, deploymentRoot);
+
+                var resolved = DatabasePathResolver.Resolve("Assets/Data/inventory.db", localCacheDirectory);
+
+                Assert.Equal(Path.GetFullPath(Path.Combine(deploymentRoot, "Assets/Data/inventory.db")), resolved);
+            }
+            finally
+            {
+                System.Environment.SetEnvironmentVariable(DeploymentPathResolver.DeploymentRootEnvironmentVariable, original);
+            }
+        }
+
+        [Fact]
         public void Resolve_AbsolutePath_KeepsConfiguredPath()
         {
             var configured = Path.Combine(Path.GetTempPath(), "inventory.db");

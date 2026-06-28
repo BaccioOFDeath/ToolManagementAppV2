@@ -13,8 +13,10 @@ namespace InventoryManagementApp
 {
     public partial class MainWindow : Window, IMainWindow
     {
+        const double CompactShellHeightThreshold = 760;
         readonly IDatabaseService? _ownedDb;
         MainViewModel? _mainViewModel;
+        bool? _isCompactShellLayout;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MainWindow"/> with the provided services.
@@ -30,6 +32,8 @@ namespace InventoryManagementApp
             DataContext = viewModel;
             _ownedDb = ownedDatabaseService;
             this.DisposeDataContextOnUnload();
+            Loaded += (_, __) => UpdateShellLayout();
+            SizeChanged += (_, __) => UpdateShellLayout();
 
             Closed += (_, __) =>
             {
@@ -51,6 +55,45 @@ namespace InventoryManagementApp
         void IMainWindow.Activate() => base.Activate();
 
         void IMainWindow.Focus() => base.Focus();
+
+        void UpdateShellLayout()
+        {
+            var availableHeight = ActualHeight > 0 ? ActualHeight : SystemParameters.WorkArea.Height;
+            var compact = availableHeight < CompactShellHeightThreshold ||
+                          SystemParameters.WorkArea.Height < CompactShellHeightThreshold;
+
+            if (_isCompactShellLayout == compact)
+                return;
+
+            _isCompactShellLayout = compact;
+            ApplyShellLayout(compact);
+        }
+
+        void ApplyShellLayout(bool compact)
+        {
+            ShellHeader.Padding = compact ? new Thickness(6, 3, 6, 3) : new Thickness(8, 5, 8, 5);
+            ShellMenu.Padding = compact ? new Thickness(4, 1, 4, 1) : new Thickness(4, 3, 4, 3);
+            PageHeaderBand.Padding = compact ? new Thickness(8, 3, 8, 3) : new Thickness(8, 6, 8, 6);
+
+            ShellTitleButton.Width = compact ? 190 : 250;
+            ShellTitleButton.MinWidth = compact ? 160 : 210;
+            ShellSearchBar.MinWidth = compact ? 220 : 320;
+            ShellSearchBar.MaxWidth = compact ? 620 : 760;
+
+            ShellSubtitle.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+            WorkflowGuideText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+            ShellStatusFooter.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+            ShellFooterRow.Height = compact ? new GridLength(0) : GridLength.Auto;
+
+            if (compact)
+            {
+                MainFrame.Margin = new Thickness(4);
+            }
+            else if (TryFindResource("PagePadding") is Thickness pagePadding)
+            {
+                MainFrame.Margin = pagePadding;
+            }
+        }
 
         void MainViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {

@@ -201,6 +201,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("[string]$Destination", launcher, StringComparison.Ordinal);
             Assert.Contains("$Destination = Split-Path -Parent $scriptDirectory", launcher, StringComparison.Ordinal);
             Assert.Contains("$ExecutableName = \"InventoryManagementApp.exe\"", launcher, StringComparison.Ordinal);
+            Assert.Contains("[string]$LocalCacheRoot = (Join-Path $env:LOCALAPPDATA \"InventoryManagementApp\\ReleaseCache\")", launcher, StringComparison.Ordinal);
+            Assert.Contains("[switch]$DisableLocalCache", launcher, StringComparison.Ordinal);
             Assert.Contains("$currentReleaseMarker = Join-Path $destinationPath \"current-release.txt\"", launcher, StringComparison.Ordinal);
             Assert.Contains("Get-Content -LiteralPath $currentReleaseMarker", launcher, StringComparison.Ordinal);
             Assert.Contains("$releaseRoot = Join-Path $destinationPath \"_releases\"", launcher, StringComparison.Ordinal);
@@ -222,6 +224,34 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Start-Sleep -Milliseconds 1500", launcher, StringComparison.Ordinal);
             Assert.Contains("exited immediately with code", launcher, StringComparison.Ordinal);
             Assert.Contains("Start-Process -FilePath $executablePath", launcher, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CurrentReleaseLauncherRunsExecutableFromLocalCacheWithSharedDeploymentContext()
+        {
+            var launcher = ReadRepositoryFile("scripts", "start-current-release.ps1");
+            var normalizedLauncher = launcher.Replace("\r\n", "\n", StringComparison.Ordinal);
+            var resolver = ReadRepositoryFile("InventoryManagementApp", "Utilities", "DeploymentPathResolver.cs");
+            var loginViewModel = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "LoginViewModel.cs");
+
+            Assert.Contains("function Invoke-LocalCacheMirror", launcher, StringComparison.Ordinal);
+            Assert.Contains("function Resolve-LocalCachedExecutable", launcher, StringComparison.Ordinal);
+            Assert.Contains("function Remove-OldLocalReleaseCaches", launcher, StringComparison.Ordinal);
+            Assert.Contains("robocopy @robocopyArgs", launcher, StringComparison.Ordinal);
+            Assert.Contains("Invoke-LocalCacheMirror -From $sharedWorkingDirectory -To $localReleasePath -ExcludedDirectories @(\"Assets\", \"Logs\")", launcher, StringComparison.Ordinal);
+            Assert.Contains("& robocopy @robocopyArgs | Out-Host", launcher, StringComparison.Ordinal);
+            Assert.Contains("Remove-OldLocalReleaseCaches -CacheRoot $LocalCacheRoot -CurrentCachePath $localReleasePath", launcher, StringComparison.Ordinal);
+            Assert.Contains("$executablePath = Resolve-LocalCachedExecutable -SharedExecutablePath $sharedExecutablePath -SharedDeploymentRoot $destinationPath -ReleaseName $releaseName", launcher, StringComparison.Ordinal);
+            Assert.Contains("$env:INVENTORYMANAGEMENTAPP_DEPLOYMENT_ROOT = $destinationPath", launcher, StringComparison.Ordinal);
+            Assert.Contains("$env:INVENTORYMANAGEMENTAPP_RUNNING_RELEASE", launcher, StringComparison.Ordinal);
+            Assert.Contains("$env:INVENTORYMANAGEMENTAPP_SHARED_EXECUTABLE = $sharedExecutablePath", launcher, StringComparison.Ordinal);
+            Assert.Contains("$env:INVENTORYMANAGEMENTAPP_LOCAL_CACHE", launcher, StringComparison.Ordinal);
+            Assert.Contains("if ($DisableLocalCache) {\n        return $SharedExecutablePath\n    }", normalizedLauncher, StringComparison.Ordinal);
+
+            Assert.Contains("DeploymentRootEnvironmentVariable = \"INVENTORYMANAGEMENTAPP_DEPLOYMENT_ROOT\"", resolver, StringComparison.Ordinal);
+            Assert.Contains("Environment.GetEnvironmentVariable(DeploymentRootEnvironmentVariable)", resolver, StringComparison.Ordinal);
+            Assert.Contains("Environment.GetEnvironmentVariable(DeploymentPathResolver.DeploymentRootEnvironmentVariable)", loginViewModel, StringComparison.Ordinal);
+            Assert.Contains("Environment.GetEnvironmentVariable(\"INVENTORYMANAGEMENTAPP_RUNNING_RELEASE\")", loginViewModel, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -259,6 +289,19 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void CleanupSharedDeploymentWarnsInsteadOfFailingOnLockedOldItems()
+        {
+            var script = ReadRepositoryFile("scripts", "cleanup-shared-deployment.ps1");
+
+            Assert.Contains("[switch]$FailOnCleanupError", script, StringComparison.Ordinal);
+            Assert.Contains("Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop", script, StringComparison.Ordinal);
+            Assert.Contains("if ($FailOnCleanupError) {\n            throw\n        }", script.Replace("\r\n", "\n"), StringComparison.Ordinal);
+            Assert.Contains("$script:cleanupWarningCount++", script, StringComparison.Ordinal);
+            Assert.Contains("The staged release remains valid; rerun cleanup later", script, StringComparison.Ordinal);
+            Assert.Contains("Cleanup completed with $cleanupWarningCount warning(s)", script, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void LoginScreenSurfacesSharedReleaseUpdateMessage()
         {
             var viewModel = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "LoginViewModel.cs");
@@ -277,6 +320,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("RefreshUpdateAvailability();", viewModel, StringComparison.Ordinal);
             Assert.Contains("current-release.txt", viewModel, StringComparison.Ordinal);
             Assert.Contains("releaseDirectory.Parent?.Name.Equals(\"_releases\"", viewModel, StringComparison.Ordinal);
+            Assert.Contains("INVENTORYMANAGEMENTAPP_RUNNING_RELEASE", viewModel, StringComparison.Ordinal);
             Assert.Contains("Please close and reopen Inventory Management", viewModel, StringComparison.Ordinal);
 
             Assert.Contains("Visibility=\"{Binding IsUpdateAvailable, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
@@ -297,7 +341,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Inventory Management.lnk", guide, StringComparison.Ordinal);
             Assert.Contains("removes the old shared `Inventory Management.lnk` shortcut", guide, StringComparison.Ordinal);
             Assert.Contains("Start Inventory Management.cmd", guide, StringComparison.Ordinal);
-            Assert.Contains("resolves the app relative to the folder it is in", guide, StringComparison.Ordinal);
+            Assert.Contains("resolves the deployment relative to the folder it is in", guide, StringComparison.Ordinal);
+            Assert.Contains("%LOCALAPPDATA%\\InventoryManagementApp\\ReleaseCache", guide, StringComparison.Ordinal);
+            Assert.Contains("-DisableLocalCache", guide, StringComparison.Ordinal);
             Assert.Contains("-UseUncPaths", guide, StringComparison.Ordinal);
             Assert.Contains("different drive letters", guide, StringComparison.Ordinal);
             Assert.Contains("database migration", guide, StringComparison.OrdinalIgnoreCase);
