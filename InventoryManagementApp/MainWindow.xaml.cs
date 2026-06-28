@@ -1,5 +1,6 @@
 // MainWindow.xaml.cs
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,6 +18,8 @@ namespace InventoryManagementApp
         readonly IDatabaseService? _ownedDb;
         MainViewModel? _mainViewModel;
         bool? _isCompactShellLayout;
+        readonly Dictionary<string, double> _baseAdaptiveDoubleResources = new(StringComparer.Ordinal);
+        readonly Dictionary<string, Thickness> _baseAdaptiveThicknessResources = new(StringComparer.Ordinal);
 
         /// <summary>
         /// Initializes a new instance of <see cref="MainWindow"/> with the provided services.
@@ -67,6 +70,7 @@ namespace InventoryManagementApp
 
             _isCompactShellLayout = compact;
             ApplyShellLayout(compact);
+            ApplyAdaptiveResourceScale();
         }
 
         void ApplyShellLayout(bool compact)
@@ -93,6 +97,65 @@ namespace InventoryManagementApp
             {
                 MainFrame.Margin = pagePadding;
             }
+        }
+
+        void ApplyAdaptiveResourceScale()
+        {
+            var scale = GetAdaptiveResourceScale(ActualWidth > 0 ? ActualWidth : Width);
+
+            SetScaledDoubleResource("ThemeCaptionFontSize", scale);
+            SetScaledDoubleResource("ThemeBodyFontSize", scale);
+            SetScaledDoubleResource("ThemeSectionFontSize", scale);
+            SetScaledDoubleResource("ThemeTitleFontSize", scale);
+            SetScaledDoubleResource("ThemeControlMinHeight", scale);
+            SetScaledDoubleResource("ThemeDataGridRowHeight", scale);
+            SetScaledDoubleResource("ThemeDataGridHeaderHeight", scale);
+            SetScaledThicknessResource("CardPadding", scale);
+            SetScaledThicknessResource("ToolbarPadding", scale);
+            SetScaledThicknessResource("ControlPadding", scale);
+        }
+
+        static double GetAdaptiveResourceScale(double width)
+        {
+            if (width >= 3400)
+                return 1.22;
+            if (width >= 2800)
+                return 1.16;
+            if (width >= 2560)
+                return 1.08;
+            return 1;
+        }
+
+        void SetScaledDoubleResource(string key, double scale)
+        {
+            if (!_baseAdaptiveDoubleResources.TryGetValue(key, out var baseValue))
+            {
+                if (TryFindResource(key) is not double currentValue)
+                    return;
+
+                baseValue = currentValue;
+                _baseAdaptiveDoubleResources[key] = baseValue;
+            }
+
+            Resources[key] = Math.Round(baseValue * scale, 1);
+        }
+
+        void SetScaledThicknessResource(string key, double scale)
+        {
+            if (!_baseAdaptiveThicknessResources.TryGetValue(key, out var baseValue))
+            {
+                if (TryFindResource(key) is not Thickness currentValue)
+                    return;
+
+                baseValue = currentValue;
+                _baseAdaptiveThicknessResources[key] = baseValue;
+            }
+
+            Resources[key] = new Thickness(
+                Math.Round(baseValue.Left * scale, 1),
+                Math.Round(baseValue.Top * scale, 1),
+                Math.Round(baseValue.Right * scale, 1),
+                Math.Round(baseValue.Bottom * scale, 1));
         }
 
         void MainViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
