@@ -249,7 +249,7 @@ namespace InventoryManagementApp.Services.Items
             {
                 var items = await _kitService.GetKitItemsAsync(kit.KitID).ConfigureAwait(false);
                 var itemCount = items.Count;
-                lines.Add($"Kit: {kit.KitNumber} - {kit.Name} | Category: {kit.Category} | Items: {itemCount} | Status: {(kit.IsActive ? "Active" : "Inactive")}");
+                lines.Add($"Kit Number: {kit.KitNumber} | Kit Name: {kit.Name} | Category: {kit.Category} | Item Count: {itemCount} | Status: {(kit.IsActive ? "Active" : "Inactive")}");
             }
 
             return BuildReport("Active Kits Report", lines);
