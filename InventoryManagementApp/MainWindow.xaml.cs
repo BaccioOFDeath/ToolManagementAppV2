@@ -65,11 +65,12 @@ namespace InventoryManagementApp
             var compact = availableHeight < CompactShellHeightThreshold ||
                           SystemParameters.WorkArea.Height < CompactShellHeightThreshold;
 
-            if (_isCompactShellLayout == compact)
-                return;
+            if (_isCompactShellLayout != compact)
+            {
+                _isCompactShellLayout = compact;
+                ApplyShellLayout(compact);
+            }
 
-            _isCompactShellLayout = compact;
-            ApplyShellLayout(compact);
             ApplyAdaptiveResourceScale();
         }
 
