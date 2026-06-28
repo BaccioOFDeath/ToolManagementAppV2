@@ -179,7 +179,7 @@ namespace InventoryManagementApp.Services.Rentals
                 if (avail < 1)
                     throw new InvalidOperationException("Insufficient quantity.");
 
-                await SqliteHelper.ExecuteNonQueryAsync(conn, tx,
+                var insertedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, tx,
                     "INSERT INTO Rentals (ItemID, CustomerID, RentalDate, DueDate, Status) " +
                     "VALUES (@ItemID, @CustomerID, @RentalDate, @DueDate, 'Rented')",
                     new[]
@@ -189,6 +189,8 @@ namespace InventoryManagementApp.Services.Rentals
                         new SqliteParameter("@RentalDate", rentalDate),
                         new SqliteParameter("@DueDate", dueDate)
                     });
+                if (insertedRows == 0)
+                    throw new InvalidOperationException("Unable to create rental.");
 
                 if (_itemService != null)
                     await _itemService.UpdateItemQuantitiesAsync(itemID, 1, true, conn, tx);
