@@ -53,6 +53,24 @@ namespace InventoryManagementApp.Tests
                 deleteMethod.IndexOf("if (rows == 0)", StringComparison.Ordinal),
                 "Expected item deletes to inspect affected rows after executing the delete.");
 
+            var toggleMethod = ExtractMethod(
+                source,
+                "public async Task<bool> ToggleCheckOutStatusAsync",
+                "public async Task<List<Item>> GetItemsCheckedOutByAsync");
+            AssertContainsAll(
+                toggleMethod,
+                "var rows = await conn.ExecuteAsync(new CommandDefinition(@\"UPDATE Items SET",
+                "if (rows == 0)",
+                "throw new InvalidOperationException(\"Check-out status update failed.\");");
+            Assert.True(
+                toggleMethod.IndexOf("var rows = await conn.ExecuteAsync", StringComparison.Ordinal) <
+                toggleMethod.IndexOf("if (rows == 0)", StringComparison.Ordinal),
+                "Expected checkout toggles to inspect affected rows after executing the status update.");
+            Assert.True(
+                toggleMethod.IndexOf("if (rows == 0)", StringComparison.Ordinal) <
+                toggleMethod.IndexOf("return true;", StringComparison.Ordinal),
+                "Expected checkout toggles to fail stale writes before reporting success.");
+
             var imageMethod = ExtractMethod(
                 source,
                 "public async Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken ct)",
