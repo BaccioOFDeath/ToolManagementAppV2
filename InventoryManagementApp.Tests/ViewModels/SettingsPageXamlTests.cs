@@ -30,6 +30,10 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             Assert.Contains("TestDbCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("TestEmailCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("SendReminderEmailPreviewCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("SendOverdueEmailPreviewCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("Send Reminder Preview", xaml, StringComparison.Ordinal);
+            Assert.Contains("Send Overdue Preview", xaml, StringComparison.Ordinal);
             Assert.Contains("SaveEmailSettingsCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("SaveMessagingSettingsCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("SaveBackupSettingsCommand", xaml, StringComparison.Ordinal);

@@ -78,6 +78,8 @@ namespace InventoryManagementApp.ViewModels
             SaveCompanyLogoCommand = new AsyncRelayCommand(SaveCompanyLogoAsync);
             SaveEmailSettingsCommand = new AsyncRelayCommand(SaveEmailSettingsAsync);
             TestEmailCommand = new AsyncRelayCommand(TestEmailConnectionAsync);
+            SendReminderEmailPreviewCommand = new AsyncRelayCommand(SendReminderEmailPreviewAsync);
+            SendOverdueEmailPreviewCommand = new AsyncRelayCommand(SendOverdueEmailPreviewAsync);
             RefreshOutlookAccountsCommand = new AsyncRelayCommand(LoadOutlookAccountsAsync);
             AddFromEmailCommand = new RelayCommand(AddFromEmailOption);
             RemoveFromEmailCommand = new RelayCommand(RemoveFromEmailOption);
@@ -824,6 +826,8 @@ namespace InventoryManagementApp.ViewModels
 
         public IAsyncRelayCommand SaveEmailSettingsCommand { get; }
         public IAsyncRelayCommand TestEmailCommand { get; }
+        public IAsyncRelayCommand SendReminderEmailPreviewCommand { get; }
+        public IAsyncRelayCommand SendOverdueEmailPreviewCommand { get; }
         public IAsyncRelayCommand RefreshOutlookAccountsCommand { get; }
 
         public string EmailConfigurationStatus
@@ -1119,6 +1123,106 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Email test failed.");
                 await _dialogService.ShowInfoAsync($"Email test failed: {ex.Message}", "Test Failed").ConfigureAwait(false);
             }
+        }
+
+        private async Task SendReminderEmailPreviewAsync(CancellationToken token = default)
+        {
+            if (!CanSendEmailPreview(out var message))
+            {
+                await _dialogService.ShowInfoAsync(message, "Invalid Configuration").ConfigureAwait(false);
+                return;
+            }
+
+            try
+            {
+                await VerifySmtpPortReachableAsync(SmtpHost, SmtpPort, token).ConfigureAwait(false);
+                using var emailService = CreateEmailService();
+                await emailService.SendRentalReminderAsync(
+                    FromEmail,
+                    "Sample Customer",
+                    "TL-101",
+                    DateTime.Today.AddDays(1),
+                    BuildPreviewContactInfo()).ConfigureAwait(false);
+
+                await _dialogService.ShowInfoAsync($"Rental reminder preview sent to {FromEmail}.", "Preview Sent").ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send rental reminder preview.");
+                await _dialogService.ShowInfoAsync($"Rental reminder preview failed: {ex.Message}", "Preview Failed").ConfigureAwait(false);
+            }
+        }
+
+        private async Task SendOverdueEmailPreviewAsync(CancellationToken token = default)
+        {
+            if (!CanSendEmailPreview(out var message))
+            {
+                await _dialogService.ShowInfoAsync(message, "Invalid Configuration").ConfigureAwait(false);
+                return;
+            }
+
+            try
+            {
+                await VerifySmtpPortReachableAsync(SmtpHost, SmtpPort, token).ConfigureAwait(false);
+                using var emailService = CreateEmailService();
+                var dueDate = DateTime.Today.AddDays(-3);
+                await emailService.SendEmailAsync(
+                    FromEmail,
+                    "Overdue Rental Notice: Item TL-318",
+                    BuildOverdueRentalPreviewBody("Sample Customer", "TL-318", dueDate, BuildPreviewContactInfo())).ConfigureAwait(false);
+
+                await _dialogService.ShowInfoAsync($"Overdue rental preview sent to {FromEmail}.", "Preview Sent").ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send overdue rental preview.");
+                await _dialogService.ShowInfoAsync($"Overdue rental preview failed: {ex.Message}", "Preview Failed").ConfigureAwait(false);
+            }
+        }
+
+        private bool CanSendEmailPreview(out string message)
+        {
+            if (!EmailConfigurationStatus.Equals("Ready to test email delivery.", StringComparison.Ordinal))
+            {
+                message = EmailConfigurationStatus;
+                return false;
+            }
+
+            if (SmtpHost.Contains("example.com", StringComparison.OrdinalIgnoreCase))
+            {
+                message = "Please enter a valid SMTP host.";
+                return false;
+            }
+
+            message = string.Empty;
+            return true;
+        }
+
+        private EmailService CreateEmailService()
+            => new(SmtpHost, SmtpPort, SmtpUsername, SmtpPassword, FromEmail, FromName, EnableSsl);
+
+        private string BuildPreviewContactInfo()
+            => string.IsNullOrWhiteSpace(FromEmail)
+                ? "your rental team"
+                : $"{FromName} at {FromEmail}";
+
+        internal static string BuildOverdueRentalPreviewBody(string customerName, string itemNumber, DateTime dueDate, string contactInfo)
+        {
+            var daysOverdue = Math.Max(1, (DateTime.Today.Date - dueDate.Date).Days);
+            return $@"Dear {customerName},
+
+Our records show that the following rental item is overdue:
+
+Item Number: {itemNumber}
+Due Date: {dueDate:yyyy-MM-dd}
+Days Overdue: {daysOverdue}
+
+Please return the item as soon as possible to avoid further late fees.
+
+If you have already returned this item or need to extend your rental, please contact us at {contactInfo}.
+
+Thank you,
+The Equipment Rental Team";
         }
 
         private static async Task VerifySmtpPortReachableAsync(string host, int port, CancellationToken token)

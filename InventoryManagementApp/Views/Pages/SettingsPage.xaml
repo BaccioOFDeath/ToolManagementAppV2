@@ -467,10 +467,12 @@
                                         <CheckBox Grid.Row="10" Grid.Column="1" IsChecked="{Binding EnableSsl}" Margin="8,0,0,8"/>
                                         <StackPanel Grid.Row="11" Grid.Column="1" Margin="8,0,0,0">
                                             <TextBlock Text="{Binding EmailConfigurationStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                                            <StackPanel Orientation="Horizontal">
+                                            <WrapPanel>
                                                 <Button Style="{StaticResource GhostButton}" Content="Test Email" Command="{Binding TestEmailCommand}" Margin="0,0,4,0"/>
+                                                <Button Style="{StaticResource GhostButton}" Content="Send Reminder Preview" Command="{Binding SendReminderEmailPreviewCommand}" Margin="0,0,4,0"/>
+                                                <Button Style="{StaticResource GhostButton}" Content="Send Overdue Preview" Command="{Binding SendOverdueEmailPreviewCommand}" Margin="0,0,4,0"/>
                                                 <Button Style="{StaticResource PrimaryButton}" Content="Save Email Settings" Command="{Binding SaveEmailSettingsCommand}"/>
-                                            </StackPanel>
+                                            </WrapPanel>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -489,8 +491,8 @@
                                     </Border>
                                     <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,12">
                                         <StackPanel>
-                                            <TextBlock Text="Test before saving" Style="{StaticResource SectionHeader}"/>
-                                            <TextBlock Text="Testing sends through the configured host. Use a real sender address and credentials before enabling reminders for staff." TextWrapping="Wrap"/>
+                                            <TextBlock Text="Preview before enabling" Style="{StaticResource SectionHeader}"/>
+                                            <TextBlock Text="Send the basic connection test, rental reminder preview, and overdue rental preview to the configured sender inbox before enabling reminders for staff." TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </Border>
                                     <Border Style="{StaticResource DesktopSummaryCard}">

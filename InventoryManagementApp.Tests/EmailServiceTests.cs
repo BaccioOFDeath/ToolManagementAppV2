@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using InventoryManagementApp.Services.Notifications;
+using InventoryManagementApp.ViewModels;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -49,6 +50,20 @@ namespace InventoryManagementApp.Tests
             var service = new EmailService("smtp.test.com", 587, "user", "pass", "from@test.com", "Test");
             
             await service.SendEmailAsync("", "Subject", "Body");
+        }
+
+        [Fact]
+        public void BuildOverdueRentalPreviewBody_IncludesCustomerItemDueDateAndContact()
+        {
+            var dueDate = DateTime.Today.AddDays(-3);
+
+            var body = SettingsViewModel.BuildOverdueRentalPreviewBody("Sample Customer", "TL-318", dueDate, "rentals@example.com");
+
+            Assert.Contains("Dear Sample Customer", body, StringComparison.Ordinal);
+            Assert.Contains("Item Number: TL-318", body, StringComparison.Ordinal);
+            Assert.Contains($"Due Date: {dueDate:yyyy-MM-dd}", body, StringComparison.Ordinal);
+            Assert.Contains("Days Overdue: 3", body, StringComparison.Ordinal);
+            Assert.Contains("rentals@example.com", body, StringComparison.Ordinal);
         }
 
         [Fact]
