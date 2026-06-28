@@ -90,7 +90,9 @@ namespace InventoryManagementApp.Services.Items
         public async Task<FlowDocument> GenerateActivityLogReport()
         {
             var result = await _activityLogService.GetRecentLogsAsync(100).ConfigureAwait(false);
-            var logs = result?.Data ?? new List<ActivityLog>();
+            var logs = result?.Success == true && result.Value != null
+                ? result.Value
+                : new List<ActivityLog>();
             var lines = logs.Select(l =>
                 $"LogID: {l.LogID} | UserID: {l.UserID} | User: {l.UserName} | Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
             return BuildReport("Activity Log Report", lines);
