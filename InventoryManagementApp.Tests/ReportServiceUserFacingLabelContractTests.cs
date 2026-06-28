@@ -22,11 +22,64 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("BuildReport(\"Inventory Report\", lines)", inventoryReport, StringComparison.Ordinal);
             Assert.Contains("Item ID: {t.ItemID}", inventoryReport, StringComparison.Ordinal);
+            Assert.Contains("Item Number: {t.ItemNumber}", inventoryReport, StringComparison.Ordinal);
             Assert.Contains("Item ID: {r.ItemID}", rentalReport, StringComparison.Ordinal);
 
             Assert.DoesNotContain("ItemModel Inventory Report", inventoryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("ItemModel ID:", inventoryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("ItemModel ID:", rentalReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("ItemNumber:", inventoryReport, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void GeneratedReportsUseReadableIdLabels()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
+
+            var activityLogReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateActivityLogReport()",
+                "public async Task<FlowDocument> GenerateCustomerReport()");
+            var customerReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateCustomerReport()",
+                "public async Task<FlowDocument> GenerateUserReport()");
+            var userReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateUserReport()",
+                "public async Task<FlowDocument> GenerateSummaryReport()");
+            var maintenanceReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)",
+                "public async Task<FlowDocument> GenerateCalibrationReport(bool overdueOnly = false)");
+            var calibrationReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateCalibrationReport(bool overdueOnly = false)",
+                "public async Task<FlowDocument> GenerateReservationReport(bool activeOnly = true)");
+            var reservationReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateReservationReport(bool activeOnly = true)",
+                "public async Task<FlowDocument> GenerateKitReport()");
+
+            Assert.Contains("Log ID: {l.LogID}", activityLogReport, StringComparison.Ordinal);
+            Assert.Contains("User ID: {l.UserID}", activityLogReport, StringComparison.Ordinal);
+            Assert.Contains("Customer ID: {c.CustomerID}", customerReport, StringComparison.Ordinal);
+            Assert.Contains("User ID: {u.UserID}", userReport, StringComparison.Ordinal);
+            Assert.Contains("User Name: {u.UserName}", userReport, StringComparison.Ordinal);
+            Assert.Contains("Admin: {u.IsAdmin}", userReport, StringComparison.Ordinal);
+            Assert.Contains("Maintenance ID: {m.MaintenanceID}", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains("Calibration ID: {c.CalibrationID}", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("Reservation ID: {r.ReservationID}", reservationReport, StringComparison.Ordinal);
+
+            Assert.DoesNotContain("LogID:", activityLogReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("UserID:", activityLogReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("CustomerID:", customerReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("UserID:", userReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("UserName:", userReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("IsAdmin:", userReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("ID: {m.MaintenanceID}", maintenanceReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("ID: {c.CalibrationID}", calibrationReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("ID: {r.ReservationID}", reservationReport, StringComparison.Ordinal);
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)

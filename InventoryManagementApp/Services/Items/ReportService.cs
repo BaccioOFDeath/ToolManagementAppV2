@@ -61,7 +61,7 @@ namespace InventoryManagementApp.Services.Items
                 .WithCancellation(CancellationToken.None).ConfigureAwait(false))
                 items.Add(item);
             var lines = items.Select(t =>
-                $"Item ID: {t.ItemID} | ItemNumber: {t.ItemNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
+                $"Item ID: {t.ItemID} | Item Number: {t.ItemNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
             return BuildReport("Inventory Report", lines);
         }
 
@@ -94,7 +94,7 @@ namespace InventoryManagementApp.Services.Items
                 ? result.Value
                 : new List<ActivityLog>();
             var lines = logs.Select(l =>
-                $"LogID: {l.LogID} | UserID: {l.UserID} | User: {l.UserName} | Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
+                $"Log ID: {l.LogID} | User ID: {l.UserID} | User: {l.UserName} | Action: {l.Action} | Timestamp: {l.Timestamp:yyyy-MM-dd HH:mm:ss}");
             return BuildReport("Activity Log Report", lines);
         }
 
@@ -102,7 +102,7 @@ namespace InventoryManagementApp.Services.Items
         {
             var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
             var lines = customers.Select(c =>
-                $"CustomerID: {c.CustomerID} | Company: {c.Company} | Email: {c.Email} | Contact: {c.Contact} | Phone: {c.Phone} | Mobile: {c.Mobile} | Address: {c.Address}");
+                $"Customer ID: {c.CustomerID} | Company: {c.Company} | Email: {c.Email} | Contact: {c.Contact} | Phone: {c.Phone} | Mobile: {c.Mobile} | Address: {c.Address}");
             return BuildReport("Customer Report", lines);
         }
 
@@ -110,7 +110,7 @@ namespace InventoryManagementApp.Services.Items
         {
             var users = await _userService.GetAllUsersAsync(CancellationToken.None).ConfigureAwait(false);
             var lines = users.Select(u =>
-                $"UserID: {u.UserID} | UserName: {u.UserName} | IsAdmin: {u.IsAdmin}");
+                $"User ID: {u.UserID} | User Name: {u.UserName} | Admin: {u.IsAdmin}");
             return BuildReport("User Report", lines);
         }
 
@@ -198,7 +198,7 @@ namespace InventoryManagementApp.Services.Items
             var title = overdueOnly ? "Overdue Maintenance Report" : "Maintenance Schedule Report";
 
             var lines = records.Select(m =>
-                $"ID: {m.MaintenanceID} | Item: {m.ItemNumber} - {m.ItemName} | Type: {m.MaintenanceType} | Scheduled: {m.ScheduledDate:yyyy-MM-dd} | Status: {m.StatusDisplay} | Cost: ${m.Cost:F2}");
+                $"Maintenance ID: {m.MaintenanceID} | Item: {m.ItemNumber} - {m.ItemName} | Type: {m.MaintenanceType} | Scheduled: {m.ScheduledDate:yyyy-MM-dd} | Status: {m.StatusDisplay} | Cost: ${m.Cost:F2}");
 
             return BuildReport(title, lines);
         }
@@ -215,7 +215,7 @@ namespace InventoryManagementApp.Services.Items
             var title = overdueOnly ? "Overdue Calibration Report" : "Calibration Records Report";
 
             var lines = records.Select(c =>
-                $"ID: {c.CalibrationID} | Item: {c.ItemNumber} - {c.ItemName} | Date: {c.CalibrationDate:yyyy-MM-dd} | Next Due: {c.NextCalibrationDue:yyyy-MM-dd} | Status: {c.StatusDisplay} | Cert#: {c.CertificateNumber}");
+                $"Calibration ID: {c.CalibrationID} | Item: {c.ItemNumber} - {c.ItemName} | Date: {c.CalibrationDate:yyyy-MM-dd} | Next Due: {c.NextCalibrationDue:yyyy-MM-dd} | Status: {c.StatusDisplay} | Cert#: {c.CertificateNumber}");
 
             return BuildReport(title, lines);
         }
@@ -232,7 +232,7 @@ namespace InventoryManagementApp.Services.Items
             var title = activeOnly ? "Active Reservations Report" : "All Reservations Report";
 
             var lines = reservations.Select(r =>
-                $"ID: {r.ReservationID} | Item: {r.ItemNumber} - {r.ItemName} | Customer: {r.CustomerName} | Start: {r.StartDate:yyyy-MM-dd} | End: {r.EndDate:yyyy-MM-dd} | Qty: {r.Quantity} | Status: {r.StatusDisplay}");
+                $"Reservation ID: {r.ReservationID} | Item: {r.ItemNumber} - {r.ItemName} | Customer: {r.CustomerName} | Start: {r.StartDate:yyyy-MM-dd} | End: {r.EndDate:yyyy-MM-dd} | Qty: {r.Quantity} | Status: {r.StatusDisplay}");
 
             return BuildReport(title, lines);
         }
