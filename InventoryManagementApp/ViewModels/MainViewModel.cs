@@ -654,11 +654,6 @@ namespace InventoryManagementApp.ViewModels
                     var idStr = await _settingsService.GetSettingAsync("DefaultInventoryId");
                     var inventoryId = int.TryParse(idStr, out var i) ? i : 1;
                     var page = new CategoriesPage(inventoryId) { Title = "Manage Categories" };
-                    if (page.DataContext is CategoryManagementViewModel vm)
-                    {
-                        await vm.InitializeAsync();
-                        vm.SelectedInventoryId = inventoryId;
-                    }
                     CurrentPage = page;
                 }
                 catch (Exception ex)

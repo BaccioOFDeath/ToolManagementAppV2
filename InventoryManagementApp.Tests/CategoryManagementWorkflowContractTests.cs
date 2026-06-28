@@ -24,6 +24,7 @@ namespace InventoryManagementApp.Tests
                 "_saveCommand = new AsyncCommand(SaveAsync, () => SelectedCategory != null && !string.IsNullOrWhiteSpace(CategoryName));",
                 "_deleteCommand = new AsyncCommand(DeleteAsync, () => SelectedCategory != null);",
                 "if (_schemaInitialized)",
+                "await _service.EnsureInventoryAsync(SelectedInventoryId, \"Main\");",
                 "private void ShowCategoryLoadFailureDialogOnce()",
                 "if (_loadFailureDialogShown) return;",
                 "_loadFailureDialogShown = false;",
@@ -59,6 +60,27 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("The category was not deleted. Refresh and try again.", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void CategoriesPageOwnsSingleInitializationPath()
+        {
+            var pageSource = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs");
+            var mainViewModelSource = ReadRepoFile("InventoryManagementApp", "ViewModels", "MainViewModel.cs");
+            var openCategoriesCommand = ExtractSourceBlock(
+                mainViewModelSource,
+                "OpenCategoriesCommand = new AsyncRelayCommand",
+                "OpenSettingsCommand = new AsyncRelayCommand");
+
+            AssertContainsAll(
+                pageSource,
+                "private bool _hasInitialized;",
+                "if (_hasInitialized) return;",
+                "_hasInitialized = true;",
+                "vm.SelectedInventoryId = inventoryId;",
+                "await vm.InitializeAsync().ConfigureAwait(false);");
+
+            Assert.DoesNotContain("await vm.InitializeAsync();", openCategoriesCommand, StringComparison.Ordinal);
+        }
+
         private static void AssertContainsAll(string source, params string[] expectedSnippets)
         {
             foreach (var snippet in expectedSnippets)
@@ -68,6 +90,17 @@ namespace InventoryManagementApp.Tests
         }
 
         private static string NormalizeNewlines(string source) => source.Replace("\r\n", "\n");
+
+        private static string ExtractSourceBlock(string source, string startMarker, string endMarker)
+        {
+            var start = source.IndexOf(startMarker, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Could not find source block start marker: {startMarker}");
+
+            var end = source.IndexOf(endMarker, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Could not find source block end marker: {endMarker}");
+
+            return source[start..end];
+        }
 
         private static string ReadRepoFile(params string[] parts)
         {

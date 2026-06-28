@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -149,6 +150,11 @@ namespace InventoryManagementApp.ViewModels
                     _fromName = await _rentalConfigService.GetFromNameAsync().ConfigureAwait(false);
                     _enableSsl = await _rentalConfigService.GetEnableSslAsync().ConfigureAwait(false);
                     var fromEmailOptions = await _rentalConfigService.GetFromEmailOptionsAsync().ConfigureAwait(false);
+                    _emailSignature = await _rentalConfigService.GetEmailSignatureAsync().ConfigureAwait(false);
+                    _reminderSubjectTemplate = await _rentalConfigService.GetReminderSubjectTemplateAsync().ConfigureAwait(false);
+                    _reminderBodyTemplate = await _rentalConfigService.GetReminderBodyTemplateAsync().ConfigureAwait(false);
+                    _overdueSubjectTemplate = await _rentalConfigService.GetOverdueSubjectTemplateAsync().ConfigureAwait(false);
+                    _overdueBodyTemplate = await _rentalConfigService.GetOverdueBodyTemplateAsync().ConfigureAwait(false);
                     var quickRentalDays = await _rentalConfigService.GetQuickRentalDaysAsync().ConfigureAwait(false);
                     _rentalQuickDaysText = string.Join(", ", quickRentalDays);
                     _backupDirectory = await _rentalConfigService.GetBackupDirectoryAsync().ConfigureAwait(false);
@@ -183,6 +189,11 @@ namespace InventoryManagementApp.ViewModels
                     OnPropertyChanged(nameof(FromName));
                     OnPropertyChanged(nameof(EnableSsl));
                     OnPropertyChanged(nameof(SelectedFromEmail));
+                    OnPropertyChanged(nameof(EmailSignature));
+                    OnPropertyChanged(nameof(ReminderSubjectTemplate));
+                    OnPropertyChanged(nameof(ReminderBodyTemplate));
+                    OnPropertyChanged(nameof(OverdueSubjectTemplate));
+                    OnPropertyChanged(nameof(OverdueBodyTemplate));
                     OnPropertyChanged(nameof(RentalQuickDaysText));
                     OnPropertyChanged(nameof(BackupDirectory));
                     OnPropertyChanged(nameof(SelectedSmsProvider));
@@ -824,6 +835,41 @@ namespace InventoryManagementApp.ViewModels
             set => SetProperty(ref _enableSsl, value);
         }
 
+        private string _emailSignature = RentalConfigurationService.DefaultEmailSignature;
+        public string EmailSignature
+        {
+            get => _emailSignature;
+            set => SetProperty(ref _emailSignature, value);
+        }
+
+        private string _reminderSubjectTemplate = RentalConfigurationService.DefaultReminderSubjectTemplate;
+        public string ReminderSubjectTemplate
+        {
+            get => _reminderSubjectTemplate;
+            set => SetProperty(ref _reminderSubjectTemplate, value);
+        }
+
+        private string _reminderBodyTemplate = RentalConfigurationService.DefaultReminderBodyTemplate;
+        public string ReminderBodyTemplate
+        {
+            get => _reminderBodyTemplate;
+            set => SetProperty(ref _reminderBodyTemplate, value);
+        }
+
+        private string _overdueSubjectTemplate = RentalConfigurationService.DefaultOverdueSubjectTemplate;
+        public string OverdueSubjectTemplate
+        {
+            get => _overdueSubjectTemplate;
+            set => SetProperty(ref _overdueSubjectTemplate, value);
+        }
+
+        private string _overdueBodyTemplate = RentalConfigurationService.DefaultOverdueBodyTemplate;
+        public string OverdueBodyTemplate
+        {
+            get => _overdueBodyTemplate;
+            set => SetProperty(ref _overdueBodyTemplate, value);
+        }
+
         public IAsyncRelayCommand SaveEmailSettingsCommand { get; }
         public IAsyncRelayCommand TestEmailCommand { get; }
         public IAsyncRelayCommand SendReminderEmailPreviewCommand { get; }
@@ -984,6 +1030,11 @@ namespace InventoryManagementApp.ViewModels
                 await _rentalConfigService.SetFromEmailAsync(FromEmail, token);
                 await _rentalConfigService.SetFromNameAsync(FromName, token);
                 await _rentalConfigService.SetEnableSslAsync(EnableSsl, token);
+                await _rentalConfigService.SetEmailSignatureAsync(EmailSignature, token);
+                await _rentalConfigService.SetReminderSubjectTemplateAsync(ReminderSubjectTemplate, token);
+                await _rentalConfigService.SetReminderBodyTemplateAsync(ReminderBodyTemplate, token);
+                await _rentalConfigService.SetOverdueSubjectTemplateAsync(OverdueSubjectTemplate, token);
+                await _rentalConfigService.SetOverdueBodyTemplateAsync(OverdueBodyTemplate, token);
 
                 _dialogService.ShowInfo("Email settings saved successfully. Restart the application for changes to take effect.", "Settings Saved");
             }
@@ -1137,12 +1188,19 @@ namespace InventoryManagementApp.ViewModels
             {
                 await VerifySmtpPortReachableAsync(SmtpHost, SmtpPort, token).ConfigureAwait(false);
                 using var emailService = CreateEmailService();
+                var values = BuildPreviewTemplateValues("Sample Customer", "TL-101", DateTime.Today.AddDays(1));
                 await emailService.SendRentalReminderAsync(
                     FromEmail,
-                    "Sample Customer",
-                    "TL-101",
+                    values["CustomerName"],
+                    values["ItemNumber"],
                     DateTime.Today.AddDays(1),
-                    BuildPreviewContactInfo()).ConfigureAwait(false);
+                    values["ContactInfo"],
+                    FromName,
+                    EmailSignature,
+                    CompanyLogoPath,
+                    ResolveSampleItemImagePath(),
+                    ReminderSubjectTemplate,
+                    ReminderBodyTemplate).ConfigureAwait(false);
 
                 await _dialogService.ShowInfoAsync($"Rental reminder preview sent to {FromEmail}.", "Preview Sent").ConfigureAwait(false);
             }
@@ -1166,10 +1224,15 @@ namespace InventoryManagementApp.ViewModels
                 await VerifySmtpPortReachableAsync(SmtpHost, SmtpPort, token).ConfigureAwait(false);
                 using var emailService = CreateEmailService();
                 var dueDate = DateTime.Today.AddDays(-3);
-                await emailService.SendEmailAsync(
+                var values = BuildPreviewTemplateValues("Sample Customer", "TL-318", dueDate);
+                await emailService.SendBrandedEmailAsync(
                     FromEmail,
-                    "Overdue Rental Notice: Item TL-318",
-                    BuildOverdueRentalPreviewBody("Sample Customer", "TL-318", dueDate, BuildPreviewContactInfo())).ConfigureAwait(false);
+                    EmailService.ApplyTemplate(OverdueSubjectTemplate, values),
+                    EmailService.ApplyTemplate(OverdueBodyTemplate, values),
+                    FromName,
+                    EmailSignature,
+                    CompanyLogoPath,
+                    ResolveSampleItemImagePath()).ConfigureAwait(false);
 
                 await _dialogService.ShowInfoAsync($"Overdue rental preview sent to {FromEmail}.", "Preview Sent").ConfigureAwait(false);
             }
@@ -1206,23 +1269,45 @@ namespace InventoryManagementApp.ViewModels
                 ? "your rental team"
                 : $"{FromName} at {FromEmail}";
 
+        private Dictionary<string, string> BuildPreviewTemplateValues(string customerName, string itemNumber, DateTime dueDate)
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["CustomerName"] = customerName,
+                ["ItemNumber"] = itemNumber,
+                ["DueDate"] = dueDate.ToString("yyyy-MM-dd"),
+                ["DaysOverdue"] = Math.Max(1, (DateTime.Today.Date - dueDate.Date).Days).ToString(),
+                ["ContactInfo"] = BuildPreviewContactInfo()
+            };
+        }
+
+        private static string? ResolveSampleItemImagePath()
+        {
+            var itemImagesDir = Path.Combine(AppContext.BaseDirectory, "Assets", "ItemImages");
+            if (!Directory.Exists(itemImagesDir))
+            {
+                return null;
+            }
+
+            return Directory.EnumerateFiles(itemImagesDir)
+                .FirstOrDefault(path =>
+                    path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase));
+        }
+
         internal static string BuildOverdueRentalPreviewBody(string customerName, string itemNumber, DateTime dueDate, string contactInfo)
         {
-            var daysOverdue = Math.Max(1, (DateTime.Today.Date - dueDate.Date).Days);
-            return $@"Dear {customerName},
-
-Our records show that the following rental item is overdue:
-
-Item Number: {itemNumber}
-Due Date: {dueDate:yyyy-MM-dd}
-Days Overdue: {daysOverdue}
-
-Please return the item as soon as possible to avoid further late fees.
-
-If you have already returned this item or need to extend your rental, please contact us at {contactInfo}.
-
-Thank you,
-The Equipment Rental Team";
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["CustomerName"] = customerName,
+                ["ItemNumber"] = itemNumber,
+                ["DueDate"] = dueDate.ToString("yyyy-MM-dd"),
+                ["DaysOverdue"] = Math.Max(1, (DateTime.Today.Date - dueDate.Date).Days).ToString(),
+                ["ContactInfo"] = contactInfo
+            };
+            return EmailService.ApplyTemplate(RentalConfigurationService.DefaultOverdueBodyTemplate, values);
         }
 
         private static async Task VerifySmtpPortReachableAsync(string host, int port, CancellationToken token)

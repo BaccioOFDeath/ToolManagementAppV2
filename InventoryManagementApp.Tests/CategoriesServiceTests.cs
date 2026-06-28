@@ -38,6 +38,34 @@ public class CategoriesServiceTests
     }
 
     [Fact]
+    public async Task EnsureInventoryAsync_CreatesMissingInventoryRow()
+    {
+        await using var db = new DatabaseService(":memory:");
+        var svc = new CategoriesService(db);
+        await svc.EnsureSchemaAsync();
+
+        await svc.EnsureInventoryAsync(1, "Main");
+
+        await using var conn = db.CreateConnection();
+        var location = await conn.ExecuteScalarAsync<string>(
+            "SELECT Location FROM Inventories WHERE InventoryID=1");
+        Assert.Equal("Main", location);
+    }
+
+    [Fact]
+    public async Task GetCategoriesForInventory_ReturnsEmptyListAfterInventoryIsEnsured()
+    {
+        await using var db = new DatabaseService(":memory:");
+        var svc = new CategoriesService(db);
+        await svc.EnsureSchemaAsync();
+        await svc.EnsureInventoryAsync(1, "Main");
+
+        var categories = await svc.GetCategoriesForInventoryAsync(1);
+
+        Assert.Empty(categories);
+    }
+
+    [Fact]
     public async Task EnsureCategoryAsync_HonorsCancellationBeforeCreatingCategory()
     {
         await using var db = new DatabaseService(":memory:");

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Services.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -17,6 +18,8 @@ namespace InventoryManagementApp.Services.Notifications
     {
         private readonly IRentalService _rentalService;
         private readonly EmailService? _emailService;
+        private readonly RentalConfigurationService? _rentalConfigService;
+        private readonly ISettingsService? _settingsService;
         private readonly ILogger<RentalReminderService> _logger;
         private readonly string _contactInfo;
         private System.Threading.Timer? _timer;
@@ -26,10 +29,14 @@ namespace InventoryManagementApp.Services.Notifications
             IRentalService rentalService,
             EmailService? emailService,
             string contactInfo = "your rental team",
-            ILogger<RentalReminderService>? logger = null)
+            ILogger<RentalReminderService>? logger = null,
+            RentalConfigurationService? rentalConfigService = null,
+            ISettingsService? settingsService = null)
         {
             _rentalService = rentalService ?? throw new ArgumentNullException(nameof(rentalService));
             _emailService = emailService;
+            _rentalConfigService = rentalConfigService;
+            _settingsService = settingsService;
             _contactInfo = contactInfo;
             _logger = logger ?? NullLogger<RentalReminderService>.Instance;
         }
@@ -91,6 +98,11 @@ namespace InventoryManagementApp.Services.Notifications
 
                 var activeRentals = await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false);
                 var tomorrow = DateTime.Today.AddDays(1);
+                var emailSignature = _rentalConfigService == null ? RentalConfigurationService.DefaultEmailSignature : await _rentalConfigService.GetEmailSignatureAsync().ConfigureAwait(false);
+                var reminderSubjectTemplate = _rentalConfigService == null ? RentalConfigurationService.DefaultReminderSubjectTemplate : await _rentalConfigService.GetReminderSubjectTemplateAsync().ConfigureAwait(false);
+                var reminderBodyTemplate = _rentalConfigService == null ? RentalConfigurationService.DefaultReminderBodyTemplate : await _rentalConfigService.GetReminderBodyTemplateAsync().ConfigureAwait(false);
+                var companyName = _rentalConfigService == null ? "Equipment Rentals" : await _rentalConfigService.GetCompanyNameAsync().ConfigureAwait(false);
+                var logoPath = _settingsService == null ? null : await _settingsService.GetSettingAsync("CompanyLogoPath").ConfigureAwait(false);
                 
                 var rentalsDueTomorrow = activeRentals
                     .Where(r => r.DueDate.Date == tomorrow)
@@ -114,7 +126,13 @@ namespace InventoryManagementApp.Services.Notifications
                             rental.CustomerName,
                             rental.ItemNumber,
                             rental.DueDate,
-                            _contactInfo).ConfigureAwait(false);
+                            _contactInfo,
+                            companyName,
+                            emailSignature,
+                            logoPath,
+                            rental.ImagePath,
+                            reminderSubjectTemplate,
+                            reminderBodyTemplate).ConfigureAwait(false);
 
                         _logger.LogInformation("Sent reminder for rental {RentalID} to {Email}",
                             rental.RentalID, rental.CustomerEmail);

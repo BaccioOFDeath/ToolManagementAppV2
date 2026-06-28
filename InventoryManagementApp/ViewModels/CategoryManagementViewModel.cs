@@ -229,6 +229,11 @@ namespace InventoryManagementApp.ViewModels
                 _schemaInitialized = true;
             }
 
+            if (SelectedInventoryId > 0)
+            {
+                await _service.EnsureInventoryAsync(SelectedInventoryId, "Main");
+            }
+
             await LoadAsync();
         }
 

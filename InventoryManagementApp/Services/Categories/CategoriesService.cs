@@ -115,6 +115,21 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
                 new { i = inventoryId, c = categoryId });
         }
 
+        public async Task EnsureInventoryAsync(int inventoryId, string location, CancellationToken ct = default)
+        {
+            if (inventoryId < 1)
+                throw new ArgumentOutOfRangeException(nameof(inventoryId), "Inventory ID must be greater than 0.");
+
+            location = string.IsNullOrWhiteSpace(location) ? "Main" : location.Trim();
+            ct.ThrowIfCancellationRequested();
+
+            await using var conn = _db.CreateConnection();
+            await conn.ExecuteAsync(
+                @"INSERT OR IGNORE INTO Inventories(InventoryID, Location)
+                  VALUES(@i, @location);",
+                new { i = inventoryId, location });
+        }
+
         /// <summary>
         /// Gets all categories associated with a specific inventory location.
         /// </summary>

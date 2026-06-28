@@ -16,6 +16,8 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class CategoriesPage : Page
     {
+        private bool _hasInitialized;
+
         public CategoriesPage(int inventoryId)
         {
             InitializeComponent();
@@ -24,6 +26,8 @@ namespace InventoryManagementApp.Views.Pages
             DataContext = vm;
             Loaded += async (_, __) =>
             {
+                if (_hasInitialized) return;
+                _hasInitialized = true;
                 vm.SelectedInventoryId = inventoryId;
                 await vm.InitializeAsync().ConfigureAwait(false);
             };

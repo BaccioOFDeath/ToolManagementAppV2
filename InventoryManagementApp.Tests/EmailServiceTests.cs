@@ -67,6 +67,24 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void BuildBrandedHtml_IncludesLogoItemImageAndSignature()
+        {
+            var html = EmailService.BuildBrandedHtml(
+                "Reminder: Item TL-101 Due Tomorrow",
+                "Dear Customer,\n\nItem Number: TL-101",
+                "SD European",
+                "Regards,\nRental Team",
+                "company-logo",
+                "item-image");
+
+            Assert.Contains("cid:company-logo", html, StringComparison.Ordinal);
+            Assert.Contains("cid:item-image", html, StringComparison.Ordinal);
+            Assert.Contains("SD European", html, StringComparison.Ordinal);
+            Assert.Contains("Rental Team", html, StringComparison.Ordinal);
+            Assert.Contains("Item Number: TL-101", html, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void Dispose_DisposesResourcesProperly()
         {
             var service = new EmailService("smtp.test.com", 587, "user", "pass", "from@test.com", "Test");

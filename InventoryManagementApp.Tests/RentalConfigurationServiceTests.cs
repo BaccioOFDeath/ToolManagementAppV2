@@ -236,5 +236,21 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("first@example.com", stored, StringComparer.OrdinalIgnoreCase);
             Assert.Contains("second@example.com", stored, StringComparer.OrdinalIgnoreCase);
         }
+
+        [Fact]
+        public async Task SetAndGetEmailTemplates_StoresAndRetrievesValues()
+        {
+            await _configService.SetEmailSignatureAsync("Regards,\nService Desk");
+            await _configService.SetReminderSubjectTemplateAsync("Reminder {ItemNumber}");
+            await _configService.SetReminderBodyTemplateAsync("Reminder body {CustomerName}");
+            await _configService.SetOverdueSubjectTemplateAsync("Overdue {ItemNumber}");
+            await _configService.SetOverdueBodyTemplateAsync("Overdue body {DaysOverdue}");
+
+            Assert.Equal("Regards,\nService Desk", await _configService.GetEmailSignatureAsync());
+            Assert.Equal("Reminder {ItemNumber}", await _configService.GetReminderSubjectTemplateAsync());
+            Assert.Equal("Reminder body {CustomerName}", await _configService.GetReminderBodyTemplateAsync());
+            Assert.Equal("Overdue {ItemNumber}", await _configService.GetOverdueSubjectTemplateAsync());
+            Assert.Equal("Overdue body {DaysOverdue}", await _configService.GetOverdueBodyTemplateAsync());
+        }
     }
 }

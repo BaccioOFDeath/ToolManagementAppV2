@@ -504,6 +504,23 @@
                                             <TextBlock Text="{Binding EmailConfigurationStatus}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                         </StackPanel>
                                     </Border>
+                                    <Border Style="{StaticResource DesktopInsetCard}" Margin="0,12,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Email templates" Style="{StaticResource SectionHeader}"/>
+                                            <TextBlock Text="Placeholders: {CustomerName}, {ItemNumber}, {DueDate}, {DaysOverdue}, {ContactInfo}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                            <TextBlock Text="Signature" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBox Text="{Binding EmailSignature, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="58" Margin="0,2,0,8"/>
+                                            <TextBlock Text="Reminder subject" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBox Text="{Binding ReminderSubjectTemplate, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
+                                            <TextBlock Text="Reminder body" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBox Text="{Binding ReminderBodyTemplate, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="150" VerticalScrollBarVisibility="Auto" Margin="0,2,0,8"/>
+                                            <TextBlock Text="Overdue subject" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBox Text="{Binding OverdueSubjectTemplate, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
+                                            <TextBlock Text="Overdue body" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBox Text="{Binding OverdueBodyTemplate, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="150" VerticalScrollBarVisibility="Auto" Margin="0,2,0,8"/>
+                                            <Button Style="{StaticResource PrimaryButton}" Content="Save Email Settings" Command="{Binding SaveEmailSettingsCommand}" HorizontalAlignment="Left"/>
+                                        </StackPanel>
+                                    </Border>
                                 </StackPanel>
                             </Grid>
                         </ScrollViewer>

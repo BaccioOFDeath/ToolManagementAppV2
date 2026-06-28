@@ -29,6 +29,11 @@ namespace InventoryManagementApp.Services.Settings
         private const string FromNameKey = "Email.FromName";
         private const string EnableSslKey = "Email.EnableSsl";
         private const string FromEmailOptionsKey = "Email.FromEmailOptions";
+        private const string EmailSignatureKey = "Email.Signature";
+        private const string ReminderSubjectTemplateKey = "Email.Template.Reminder.Subject";
+        private const string ReminderBodyTemplateKey = "Email.Template.Reminder.Body";
+        private const string OverdueSubjectTemplateKey = "Email.Template.Overdue.Subject";
+        private const string OverdueBodyTemplateKey = "Email.Template.Overdue.Body";
         private const string ContactInfoKey = "Company.ContactInfo";
         private const string CompanyNameKey = "Company.Name";
         private const string CompanyAddressKey = "Company.Address";
@@ -267,6 +272,88 @@ namespace InventoryManagementApp.Services.Settings
             var json = JsonSerializer.Serialize(normalized);
             await _settingsService.SaveSettingAsync(FromEmailOptionsKey, json, cancellationToken).ConfigureAwait(false);
         }
+
+        public async Task<string> GetEmailSignatureAsync(CancellationToken cancellationToken = default)
+        {
+            return await _settingsService.GetSettingAsync(EmailSignatureKey, cancellationToken).ConfigureAwait(false)
+                ?? DefaultEmailSignature;
+        }
+
+        public async Task SetEmailSignatureAsync(string signature, CancellationToken cancellationToken = default)
+        {
+            await _settingsService.SaveSettingAsync(EmailSignatureKey, signature ?? string.Empty, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetReminderSubjectTemplateAsync(CancellationToken cancellationToken = default)
+        {
+            return await _settingsService.GetSettingAsync(ReminderSubjectTemplateKey, cancellationToken).ConfigureAwait(false)
+                ?? DefaultReminderSubjectTemplate;
+        }
+
+        public async Task SetReminderSubjectTemplateAsync(string template, CancellationToken cancellationToken = default)
+        {
+            await _settingsService.SaveSettingAsync(ReminderSubjectTemplateKey, template ?? string.Empty, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetReminderBodyTemplateAsync(CancellationToken cancellationToken = default)
+        {
+            return await _settingsService.GetSettingAsync(ReminderBodyTemplateKey, cancellationToken).ConfigureAwait(false)
+                ?? DefaultReminderBodyTemplate;
+        }
+
+        public async Task SetReminderBodyTemplateAsync(string template, CancellationToken cancellationToken = default)
+        {
+            await _settingsService.SaveSettingAsync(ReminderBodyTemplateKey, template ?? string.Empty, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetOverdueSubjectTemplateAsync(CancellationToken cancellationToken = default)
+        {
+            return await _settingsService.GetSettingAsync(OverdueSubjectTemplateKey, cancellationToken).ConfigureAwait(false)
+                ?? DefaultOverdueSubjectTemplate;
+        }
+
+        public async Task SetOverdueSubjectTemplateAsync(string template, CancellationToken cancellationToken = default)
+        {
+            await _settingsService.SaveSettingAsync(OverdueSubjectTemplateKey, template ?? string.Empty, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetOverdueBodyTemplateAsync(CancellationToken cancellationToken = default)
+        {
+            return await _settingsService.GetSettingAsync(OverdueBodyTemplateKey, cancellationToken).ConfigureAwait(false)
+                ?? DefaultOverdueBodyTemplate;
+        }
+
+        public async Task SetOverdueBodyTemplateAsync(string template, CancellationToken cancellationToken = default)
+        {
+            await _settingsService.SaveSettingAsync(OverdueBodyTemplateKey, template ?? string.Empty, cancellationToken).ConfigureAwait(false);
+        }
+
+        public const string DefaultEmailSignature = "Best regards,\nThe Equipment Rental Team";
+        public const string DefaultReminderSubjectTemplate = "Reminder: Item {ItemNumber} Due Tomorrow";
+        public const string DefaultReminderBodyTemplate = @"Dear {CustomerName},
+
+This is a friendly reminder that the following item is due back tomorrow:
+
+Item Number: {ItemNumber}
+Due Date: {DueDate}
+
+Please return the item on or before the due date to avoid late fees.
+
+If you have any questions or need to extend your rental, please contact us at {ContactInfo}.
+
+Thank you for your business!";
+        public const string DefaultOverdueSubjectTemplate = "Overdue Rental Notice: Item {ItemNumber}";
+        public const string DefaultOverdueBodyTemplate = @"Dear {CustomerName},
+
+Our records show that the following rental item is overdue:
+
+Item Number: {ItemNumber}
+Due Date: {DueDate}
+Days Overdue: {DaysOverdue}
+
+Please return the item as soon as possible to avoid further late fees.
+
+If you have already returned this item or need to extend your rental, please contact us at {ContactInfo}.";
 
         public async Task<string> GetContactInfoAsync(CancellationToken cancellationToken = default)
         {

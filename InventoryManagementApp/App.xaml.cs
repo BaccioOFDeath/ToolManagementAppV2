@@ -261,7 +261,9 @@ namespace InventoryManagementApp
                         rentalService,
                         emailService,
                         contactInfo,
-                        logger);
+                        logger,
+                        sp.GetRequiredService<RentalConfigurationService>(),
+                        sp.GetRequiredService<ISettingsService>());
                 });
             })
             .Build();
