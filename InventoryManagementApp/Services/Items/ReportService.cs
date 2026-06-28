@@ -61,8 +61,8 @@ namespace InventoryManagementApp.Services.Items
                 .WithCancellation(CancellationToken.None).ConfigureAwait(false))
                 items.Add(item);
             var lines = items.Select(t =>
-                $"ItemModel ID: {t.ItemID} | ItemNumber: {t.ItemNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
-            return BuildReport("ItemModel Inventory Report", lines);
+                $"Item ID: {t.ItemID} | ItemNumber: {t.ItemNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
+            return BuildReport("Inventory Report", lines);
         }
 
         public async Task<FlowDocument> GenerateRentalReport(bool activeOnly = true)
@@ -74,7 +74,7 @@ namespace InventoryManagementApp.Services.Items
             var title = activeOnly ? "Active Rental Report" : "Full Rental History Report";
 
             var lines = rentals.Select(r =>
-                $"Rental ID: {r.RentalID} | ItemModel ID: {r.ItemID} | Customer ID: {r.CustomerID} | Rental Date: {r.RentalDate:yyyy-MM-dd} | Due Date: {r.DueDate:yyyy-MM-dd} | Return Date: {(r.ReturnDate.HasValue ? r.ReturnDate.Value.ToString("yyyy-MM-dd") : "N/A")} | Status: {r.Status}");
+                $"Rental ID: {r.RentalID} | Item ID: {r.ItemID} | Customer ID: {r.CustomerID} | Rental Date: {r.RentalDate:yyyy-MM-dd} | Due Date: {r.DueDate:yyyy-MM-dd} | Return Date: {(r.ReturnDate.HasValue ? r.ReturnDate.Value.ToString("yyyy-MM-dd") : "N/A")} | Status: {r.Status}");
 
             return BuildReport(title, lines);
         }
