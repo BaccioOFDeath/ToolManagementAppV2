@@ -17,6 +17,7 @@ namespace InventoryManagementApp.Services.Settings
         private readonly ISettingsService _settingsService;
         private const string DefaultDailyRateKey = "Rental.DefaultDailyRate";
         private const string DefaultLateFeeKey = "Rental.DefaultLateFee";
+        private const string QuickRentalDaysKey = "Rental.QuickRentalDays";
         private const string ReminderEnabledKey = "Rental.ReminderEnabled";
         private const string InvoiceEnabledKey = "Rental.InvoiceEnabled";
         private const string EmailEnabledKey = "Email.Enabled";
@@ -42,6 +43,18 @@ namespace InventoryManagementApp.Services.Settings
             _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         }
 
+        public async Task<IReadOnlyList<int>> GetQuickRentalDaysAsync(CancellationToken cancellationToken = default)
+        {
+            var value = await _settingsService.GetSettingAsync(QuickRentalDaysKey, cancellationToken).ConfigureAwait(false);
+            return ParseQuickRentalDays(value);
+        }
+
+        public async Task SetQuickRentalDaysAsync(IEnumerable<int> days, CancellationToken cancellationToken = default)
+        {
+            var normalized = NormalizeQuickRentalDays(days);
+            await _settingsService.SaveSettingAsync(QuickRentalDaysKey, string.Join(",", normalized), cancellationToken).ConfigureAwait(false);
+        }
+
         public async Task<decimal> GetDefaultDailyRateAsync(CancellationToken cancellationToken = default)
         {
             var value = await _settingsService.GetSettingAsync(DefaultDailyRateKey, cancellationToken).ConfigureAwait(false);
@@ -52,6 +65,45 @@ namespace InventoryManagementApp.Services.Settings
         {
             await _settingsService.SaveSettingAsync(DefaultDailyRateKey, rate.ToString("F2"), cancellationToken).ConfigureAwait(false);
         }
+
+        public static IReadOnlyList<int> ParseQuickRentalDays(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return DefaultQuickRentalDays();
+            }
+
+            try
+            {
+                if (value.TrimStart().StartsWith("[", StringComparison.Ordinal))
+                {
+                    var parsed = JsonSerializer.Deserialize<List<int>>(value) ?? new List<int>();
+                    return NormalizeQuickRentalDays(parsed);
+                }
+            }
+            catch (JsonException)
+            {
+                return DefaultQuickRentalDays();
+            }
+
+            var days = value
+                .Split(new[] { ',', ';', '|' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(part => int.TryParse(part, out var day) ? day : 0);
+
+            return NormalizeQuickRentalDays(days);
+        }
+
+        public static IReadOnlyList<int> NormalizeQuickRentalDays(IEnumerable<int> days)
+        {
+            var normalized = days
+                .Where(day => day > 0 && day <= 365)
+                .Distinct()
+                .ToList();
+
+            return normalized.Count == 0 ? DefaultQuickRentalDays() : normalized;
+        }
+
+        private static IReadOnlyList<int> DefaultQuickRentalDays() => new[] { 7, 14, 30 };
 
         public async Task<decimal> GetDefaultLateFeeAsync(CancellationToken cancellationToken = default)
         {

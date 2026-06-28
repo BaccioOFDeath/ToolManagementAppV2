@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Services.Settings;
 
 namespace InventoryManagementApp.ViewModels.Rental
 {
@@ -14,9 +15,11 @@ namespace InventoryManagementApp.ViewModels.Rental
     {
         readonly ICustomerService _customerService;
         readonly IDialogService _dialogService;
+        readonly RentalConfigurationService? _rentalConfigService;
 
         public ObservableCollection<CustomerModel> Customers { get; }
         public ObservableCollection<CustomerModel> FilteredCustomers { get; }
+        public ObservableCollection<int> QuickRentalDays { get; } = new(RentalConfigurationService.ParseQuickRentalDays(null));
 
         public string CustomerCountSummary => FilteredCustomers.Count == Customers.Count
             ? $"{Customers.Count} customer{(Customers.Count == 1 ? string.Empty : "s")} available"
@@ -103,10 +106,11 @@ namespace InventoryManagementApp.ViewModels.Rental
         public IRelayCommand SetRentalDaysCommand { get; }
         public IRelayCommand ClearCustomerSearchCommand { get; }
 
-        public RentItemPopupViewModel(ItemModel item, IEnumerable<CustomerModel> customers, ICustomerService customerService, IDialogService dialogService)
+        public RentItemPopupViewModel(ItemModel item, IEnumerable<CustomerModel> customers, ICustomerService customerService, IDialogService dialogService, RentalConfigurationService? rentalConfigService = null)
         {
             _customerService = customerService;
             _dialogService = dialogService;
+            _rentalConfigService = rentalConfigService;
             Customers = new ObservableCollection<CustomerModel>(customers.OrderBy(c => c.Company).ThenBy(c => c.Contact));
             FilteredCustomers = new ObservableCollection<CustomerModel>(Customers);
             CheckOutCommand = new RelayCommand(Confirm, CanConfirm);
@@ -114,6 +118,29 @@ namespace InventoryManagementApp.ViewModels.Rental
             AddCustomerCommand = new AsyncRelayCommand(AddCustomerAsync);
             SetRentalDaysCommand = new RelayCommand<string>(SetRentalDays);
             ClearCustomerSearchCommand = new RelayCommand(ClearCustomerSearch, () => !string.IsNullOrWhiteSpace(CustomerSearchText));
+        }
+
+        internal async Task LoadQuickRentalDaysAsync()
+        {
+            if (_rentalConfigService == null)
+            {
+                return;
+            }
+
+            var days = await _rentalConfigService.GetQuickRentalDaysAsync();
+            ApplyQuickRentalDays(days);
+        }
+
+        internal void ApplyQuickRentalDays(IEnumerable<int> days)
+        {
+            var normalizedDays = RentalConfigurationService.NormalizeQuickRentalDays(days);
+            QuickRentalDays.Clear();
+            foreach (var day in normalizedDays)
+            {
+                QuickRentalDays.Add(day);
+            }
+
+            RentalDays = QuickRentalDays.FirstOrDefault(7);
         }
 
         bool CanConfirm() => SelectedCustomer != null;

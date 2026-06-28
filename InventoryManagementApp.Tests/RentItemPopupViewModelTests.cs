@@ -7,7 +7,10 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.ViewModels.Rental;
 using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Services.Core;
+using InventoryManagementApp.Services.Settings;
 using System.Windows.Documents;
+using System.IO;
 
 namespace InventoryManagementApp.Tests
 {
@@ -106,6 +109,34 @@ namespace InventoryManagementApp.Tests
 
             Assert.Same(customer, vm.SelectedCustomerResult);
             Assert.Equal(dueDate, vm.SelectedDueDateResult);
+        }
+
+        [Fact]
+        public async Task LoadQuickRentalDaysAsync_UsesConfiguredButtonsAndFirstDefault()
+        {
+            var dbPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.db");
+            try
+            {
+                await using var db = new DatabaseService(dbPath);
+                var settings = new SettingsService(db);
+                var rentalConfig = new RentalConfigurationService(settings);
+                await rentalConfig.SetQuickRentalDaysAsync(new[] { 5, 10, 21 });
+
+                var vm = new RentItemPopupViewModel(new ItemModel(), Array.Empty<CustomerModel>(), new RecordingCustomerService(), new StubDialogService(), rentalConfig);
+
+                await vm.LoadQuickRentalDaysAsync();
+
+                Assert.Equal(new[] { 5, 10, 21 }, vm.QuickRentalDays);
+                Assert.Equal(5, vm.RentalDays);
+                Assert.Equal(DateTime.Today.AddDays(5), vm.SelectedDueDate);
+            }
+            finally
+            {
+                if (File.Exists(dbPath))
+                {
+                    File.Delete(dbPath);
+                }
+            }
         }
 
         private sealed class RecordingCustomerService : ICustomerService

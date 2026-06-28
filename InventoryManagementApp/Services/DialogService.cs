@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Documents;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Services.Settings;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.ViewModels.Rental;
 using InventoryManagementApp.Views.Pages;
@@ -104,6 +105,19 @@ namespace InventoryManagementApp.Services
         (CustomerModel customer, DateTime dueDate)? ShowRentItemDialogCore(ItemModel item, IEnumerable<CustomerModel> customers)
         {
             var vm = ActivatorUtilities.CreateInstance<RentItemPopupViewModel>(_serviceProvider, item, customers, this);
+            var rentalConfigService = _serviceProvider.GetService<RentalConfigurationService>();
+            if (rentalConfigService != null)
+            {
+                try
+                {
+                    var quickRentalDays = rentalConfigService.GetQuickRentalDaysAsync().GetAwaiter().GetResult();
+                    vm.ApplyQuickRentalDays(quickRentalDays);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load rental quick-day buttons; using defaults.");
+                }
+            }
             var win = new RentItemPopupWindow { DataContext = vm };
 
             EventHandler handler = (_, _) => win.Close();

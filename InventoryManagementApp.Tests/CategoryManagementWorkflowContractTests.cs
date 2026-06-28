@@ -23,6 +23,10 @@ namespace InventoryManagementApp.Tests
                 "RaiseDirectoryProperties();",
                 "_saveCommand = new AsyncCommand(SaveAsync, () => SelectedCategory != null && !string.IsNullOrWhiteSpace(CategoryName));",
                 "_deleteCommand = new AsyncCommand(DeleteAsync, () => SelectedCategory != null);",
+                "if (_schemaInitialized)",
+                "private void ShowCategoryLoadFailureDialogOnce()",
+                "if (_loadFailureDialogShown) return;",
+                "_loadFailureDialogShown = false;",
                 "WpfMessageBox.Show(\"Categories could not be loaded. Category rows were cleared until reload succeeds. Please retry or check the application log.");
             Assert.DoesNotContain("Categories could not be loaded. Review logs or retry refresh.\";\n                WpfMessageBox.Show(\"Categories could not be loaded. Please retry", NormalizeNewlines(source), StringComparison.Ordinal);
         }

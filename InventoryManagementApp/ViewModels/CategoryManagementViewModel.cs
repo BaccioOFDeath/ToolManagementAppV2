@@ -24,6 +24,8 @@ namespace InventoryManagementApp.ViewModels
         private string _searchText = "";
         private string _statusMessage = "Ready to manage category setup.";
         private bool _isBusy;
+        private bool _schemaInitialized;
+        private bool _loadFailureDialogShown;
 
         public ObservableCollection<CategoryItem> Categories { get; } = new();
         public ObservableCollection<CategoryItem> FilteredCategories { get; } = new();
@@ -37,7 +39,10 @@ namespace InventoryManagementApp.ViewModels
                 _selectedInventoryId = value;
                 OnPropertyChanged();
                 _addCommand.RaiseCanExecuteChanged();
-                LoadCategoriesAsync();
+                if (_schemaInitialized)
+                {
+                    LoadCategoriesAsync();
+                }
             }
         }
 
@@ -218,7 +223,12 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task InitializeAsync()
         {
-            await _service.EnsureSchemaAsync();
+            if (!_schemaInitialized)
+            {
+                await _service.EnsureSchemaAsync();
+                _schemaInitialized = true;
+            }
+
             await LoadAsync();
         }
 
@@ -234,15 +244,23 @@ namespace InventoryManagementApp.ViewModels
                 foreach (var c in list) Categories.Add(new CategoryItem { CategoryID = c.CategoryID, Name = c.Name });
                 ApplyFilter(selectedId);
                 StatusMessage = $"Loaded {Categories.Count} categor{(Categories.Count == 1 ? "y" : "ies")}.";
+                _loadFailureDialogShown = false;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load categories for inventory {InventoryId}", SelectedInventoryId);
                 ClearCategoryStateAfterLoadFailure();
                 StatusMessage = "Categories could not be loaded. Category rows were cleared until reload succeeds.";
-                WpfMessageBox.Show("Categories could not be loaded. Category rows were cleared until reload succeeds. Please retry or check the application log.", "Category Management", MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowCategoryLoadFailureDialogOnce();
             }
             finally { IsBusy = false; }
+        }
+
+        private void ShowCategoryLoadFailureDialogOnce()
+        {
+            if (_loadFailureDialogShown) return;
+            _loadFailureDialogShown = true;
+            WpfMessageBox.Show("Categories could not be loaded. Category rows were cleared until reload succeeds. Please retry or check the application log.", "Category Management", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         private void ClearCategoryStateAfterLoadFailure()

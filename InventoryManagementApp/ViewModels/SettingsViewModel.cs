@@ -147,6 +147,8 @@ namespace InventoryManagementApp.ViewModels
                     _fromName = await _rentalConfigService.GetFromNameAsync().ConfigureAwait(false);
                     _enableSsl = await _rentalConfigService.GetEnableSslAsync().ConfigureAwait(false);
                     var fromEmailOptions = await _rentalConfigService.GetFromEmailOptionsAsync().ConfigureAwait(false);
+                    var quickRentalDays = await _rentalConfigService.GetQuickRentalDaysAsync().ConfigureAwait(false);
+                    _rentalQuickDaysText = string.Join(", ", quickRentalDays);
                     _backupDirectory = await _rentalConfigService.GetBackupDirectoryAsync().ConfigureAwait(false);
                     _selectedSmsProvider = await _rentalConfigService.GetSmsProviderAsync().ConfigureAwait(false);
                     _smsApiKey = await _rentalConfigService.GetSmsApiKeyAsync().ConfigureAwait(false);
@@ -179,6 +181,7 @@ namespace InventoryManagementApp.ViewModels
                     OnPropertyChanged(nameof(FromName));
                     OnPropertyChanged(nameof(EnableSsl));
                     OnPropertyChanged(nameof(SelectedFromEmail));
+                    OnPropertyChanged(nameof(RentalQuickDaysText));
                     OnPropertyChanged(nameof(BackupDirectory));
                     OnPropertyChanged(nameof(SelectedSmsProvider));
                     OnPropertyChanged(nameof(SmsApiKey));
@@ -303,6 +306,46 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _defaultRentalDuration;
             set => SetProperty(ref _defaultRentalDuration, value);
+        }
+
+        private string _rentalQuickDaysText = "7, 14, 30";
+        public string RentalQuickDaysText
+        {
+            get => _rentalQuickDaysText;
+            set
+            {
+                if (SetProperty(ref _rentalQuickDaysText, value) && _initialized)
+                {
+                    _ = SaveRentalQuickDaysAsync(value);
+                }
+            }
+        }
+
+        private async Task SaveRentalQuickDaysAsync(string value, CancellationToken token = default)
+        {
+            if (_rentalConfigService == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var days = RentalConfigurationService.ParseQuickRentalDays(value);
+                await _rentalConfigService.SetQuickRentalDaysAsync(days, token).ConfigureAwait(false);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized to change rental quick days.");
+                _dialogService.ShowInfo("You are not authorized to change settings.", "Unauthorized");
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.LogInformation(ex, "Saving rental quick days was canceled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save rental quick days.");
+            }
         }
 
         private string _connectionString = string.Empty;

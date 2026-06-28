@@ -71,6 +71,31 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task GetQuickRentalDaysAsync_WithNoSetting_ReturnsDefaultValues()
+        {
+            var days = await _configService.GetQuickRentalDaysAsync();
+
+            Assert.Equal(new[] { 7, 14, 30 }, days);
+        }
+
+        [Fact]
+        public async Task SetAndGetQuickRentalDays_StoresNormalizedValues()
+        {
+            await _configService.SetQuickRentalDaysAsync(new[] { 3, 7, 7, 14, 0, 400 });
+            var days = await _configService.GetQuickRentalDaysAsync();
+
+            Assert.Equal(new[] { 3, 7, 14 }, days);
+        }
+
+        [Fact]
+        public void ParseQuickRentalDays_WithInvalidValue_ReturnsDefaultValues()
+        {
+            var days = RentalConfigurationService.ParseQuickRentalDays("not a number");
+
+            Assert.Equal(new[] { 7, 14, 30 }, days);
+        }
+
+        [Fact]
         public async Task GetReminderEnabledAsync_WithNoSetting_ReturnsTrue()
         {
             var enabled = await _configService.GetReminderEnabledAsync();
