@@ -394,6 +394,7 @@ namespace InventoryManagementApp.Services.Rentals
                 SELECT t.ItemID, t.ItemNumber, t.NameDescription, COUNT(r.RentalID) AS RentalCount
                 FROM Items t
                 LEFT JOIN Rentals r ON t.ItemID = r.ItemID
+                    AND EXISTS (SELECT 1 FROM Customers c WHERE c.CustomerID = r.CustomerID)
                 GROUP BY t.ItemID, t.ItemNumber, t.NameDescription
                 HAVING RentalCount > 0
                 ORDER BY RentalCount DESC

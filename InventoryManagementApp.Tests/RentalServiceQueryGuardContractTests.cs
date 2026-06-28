@@ -123,6 +123,24 @@ namespace InventoryManagementApp.Tests
                 "Expected rental frequency to validate the limit before building/executing SQL.");
         }
 
+        [Fact]
+        public void RentalFrequencyCountsOnlyCustomerBackedVisibleRentals()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+
+            var frequencyMethod = ExtractMethod(
+                source,
+                "public async Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync(int topN = 10)",
+                "private static async Task<int> GetAvailableQuantityForExistingItemAsync");
+            AssertContainsAll(
+                frequencyMethod,
+                "SELECT t.ItemID, t.ItemNumber, t.NameDescription, COUNT(r.RentalID) AS RentalCount",
+                "FROM Items t",
+                "LEFT JOIN Rentals r ON t.ItemID = r.ItemID",
+                "AND EXISTS (SELECT 1 FROM Customers c WHERE c.CustomerID = r.CustomerID)",
+                "HAVING RentalCount > 0");
+        }
+
         private static void AssertContainsAll(string source, params string[] expectedSnippets)
         {
             foreach (var snippet in expectedSnippets)
