@@ -404,7 +404,7 @@
                             <DockPanel LastChildFill="False">
                                 <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
                                     <TextBlock Text="Email Reminder Channel" Style="{StaticResource SubheadingTextBlock}"/>
-                                    <TextBlock Text="Configure SMTP delivery, sender identity, and reusable sender addresses for rental reminders." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Configure SMTP delivery, sender identity, and campaign-style rental reminder templates." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                                     <Button Style="{StaticResource GhostButton}" Content="Test Email" Command="{Binding TestEmailCommand}" Margin="0,0,4,0"/>
@@ -417,7 +417,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="2*" MinWidth="500"/>
                                     <ColumnDefinition Width="12"/>
-                                    <ColumnDefinition Width="1.15*" MinWidth="300"/>
+                                    <ColumnDefinition Width="1.45*" MinWidth="380"/>
                                 </Grid.ColumnDefinitions>
                                 <Border Grid.Column="0" Style="{StaticResource DesktopInsetCard}">
                                     <Grid>
@@ -469,8 +469,6 @@
                                             <TextBlock Text="{Binding EmailConfigurationStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,6"/>
                                             <WrapPanel>
                                                 <Button Style="{StaticResource GhostButton}" Content="Test Email" Command="{Binding TestEmailCommand}" Margin="0,0,4,0"/>
-                                                <Button Style="{StaticResource GhostButton}" Content="Send Reminder Preview" Command="{Binding SendReminderEmailPreviewCommand}" Margin="0,0,4,0"/>
-                                                <Button Style="{StaticResource GhostButton}" Content="Send Overdue Preview" Command="{Binding SendOverdueEmailPreviewCommand}" Margin="0,0,4,0"/>
                                                 <Button Style="{StaticResource PrimaryButton}" Content="Save Email Settings" Command="{Binding SaveEmailSettingsCommand}"/>
                                             </WrapPanel>
                                         </StackPanel>
@@ -489,10 +487,36 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
-                                    <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,12">
+                                    <Border Style="{StaticResource DesktopInsetCard}" Margin="0,0,0,12">
                                         <StackPanel>
-                                            <TextBlock Text="Preview before enabling" Style="{StaticResource SectionHeader}"/>
-                                            <TextBlock Text="Send the basic connection test, rental reminder preview, and overdue rental preview to the configured sender inbox before enabling reminders for staff." TextWrapping="Wrap"/>
+                                            <TextBlock Text="Template editor" Style="{StaticResource SectionHeader}"/>
+                                            <TextBlock Text="Edit one customer email at a time. Presets update the selected template only." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+                                            <TextBlock Text="Template" Style="{StaticResource LabelTextBlock}"/>
+                                            <ComboBox ItemsSource="{Binding EmailTemplates}" SelectedItem="{Binding SelectedEmailTemplate}" DisplayMemberPath="Name" ItemContainerStyle="{StaticResource DropdownItemStyle}" Margin="0,2,0,6"/>
+                                            <TextBlock Text="{Binding SelectedEmailTemplateDescription}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                                            <TextBlock Text="Themed preset" Style="{StaticResource LabelTextBlock}"/>
+                                            <DockPanel LastChildFill="True" Margin="0,2,0,10">
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Apply" Command="{Binding ApplySelectedEmailTemplateThemeCommand}" Margin="6,0,0,0"/>
+                                                <ComboBox ItemsSource="{Binding EmailTemplateThemes}" SelectedItem="{Binding SelectedEmailTemplateTheme}" ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
+                                            </DockPanel>
+
+                                            <TextBlock Text="Subject" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBox Text="{Binding SelectedEmailTemplateSubject, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
+
+                                            <TextBlock Text="Body" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBox Text="{Binding SelectedEmailTemplateBody, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="190" VerticalScrollBarVisibility="Auto" Margin="0,2,0,8"/>
+
+                                            <TextBlock Text="Signature" Style="{StaticResource LabelTextBlock}"/>
+                                            <TextBox Text="{Binding EmailSignature, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="58" Margin="0,2,0,8"/>
+
+                                            <TextBlock Text="Placeholders: {CustomerName}, {ItemNumber}, {DueDate}, {DaysOverdue}, {ContactInfo}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+                                            <WrapPanel>
+                                                <Button Style="{StaticResource GhostButton}" Content="Preview Selected" Command="{Binding SendSelectedEmailPreviewCommand}" Margin="0,0,4,0"/>
+                                                <Button Style="{StaticResource PrimaryButton}" Content="Save Email Settings" Command="{Binding SaveEmailSettingsCommand}"/>
+                                            </WrapPanel>
                                         </StackPanel>
                                     </Border>
                                     <Border Style="{StaticResource DesktopSummaryCard}">
@@ -502,23 +526,6 @@
                                             <TextBlock Text="{Binding SmtpHost, StringFormat='Host: {0}'}" TextWrapping="Wrap"/>
                                             <TextBlock Text="{Binding FromEmail, StringFormat='Sender: {0}'}" TextWrapping="Wrap"/>
                                             <TextBlock Text="{Binding EmailConfigurationStatus}" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                                        </StackPanel>
-                                    </Border>
-                                    <Border Style="{StaticResource DesktopInsetCard}" Margin="0,12,0,0">
-                                        <StackPanel>
-                                            <TextBlock Text="Email templates" Style="{StaticResource SectionHeader}"/>
-                                            <TextBlock Text="Placeholders: {CustomerName}, {ItemNumber}, {DueDate}, {DaysOverdue}, {ContactInfo}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                                            <TextBlock Text="Signature" Style="{StaticResource LabelTextBlock}"/>
-                                            <TextBox Text="{Binding EmailSignature, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="58" Margin="0,2,0,8"/>
-                                            <TextBlock Text="Reminder subject" Style="{StaticResource LabelTextBlock}"/>
-                                            <TextBox Text="{Binding ReminderSubjectTemplate, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
-                                            <TextBlock Text="Reminder body" Style="{StaticResource LabelTextBlock}"/>
-                                            <TextBox Text="{Binding ReminderBodyTemplate, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="150" VerticalScrollBarVisibility="Auto" Margin="0,2,0,8"/>
-                                            <TextBlock Text="Overdue subject" Style="{StaticResource LabelTextBlock}"/>
-                                            <TextBox Text="{Binding OverdueSubjectTemplate, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
-                                            <TextBlock Text="Overdue body" Style="{StaticResource LabelTextBlock}"/>
-                                            <TextBox Text="{Binding OverdueBodyTemplate, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="150" VerticalScrollBarVisibility="Auto" Margin="0,2,0,8"/>
-                                            <Button Style="{StaticResource PrimaryButton}" Content="Save Email Settings" Command="{Binding SaveEmailSettingsCommand}" HorizontalAlignment="Left"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>

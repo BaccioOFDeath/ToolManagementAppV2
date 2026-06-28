@@ -38,6 +38,8 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<ItemDetailOption> ItemDetailOptions { get; } = new();
         public ObservableCollection<string> FromEmailOptions { get; } = new();
         public ObservableCollection<EmailAccountOption> OutlookAccountOptions { get; } = new();
+        public ObservableCollection<EmailTemplateOption> EmailTemplates { get; } = new();
+        public ObservableCollection<string> EmailTemplateThemes { get; } = new();
         public ObservableCollection<string> SmsProviders { get; }
         bool _bulkUpdating;
 
@@ -59,6 +61,15 @@ namespace InventoryManagementApp.ViewModels
             // Email provider options
             EmailProviders = new ObservableCollection<string> { "Custom", "Gmail", "Outlook/Office 365", "Yahoo", "iCloud" };
             _selectedEmailProvider = EmailProviders[0];
+            EmailTemplates.Add(new EmailTemplateOption("Reminder", "Reminder - Due Tomorrow", "Friendly due-back notice"));
+            EmailTemplates.Add(new EmailTemplateOption("Overdue", "Overdue - Return Required", "Late return notice"));
+            _selectedEmailTemplate = EmailTemplates[0];
+            EmailTemplateThemes.Add("Campaign");
+            EmailTemplateThemes.Add("Professional");
+            EmailTemplateThemes.Add("Friendly");
+            EmailTemplateThemes.Add("Urgent");
+            EmailTemplateThemes.Add("Service Desk");
+            _selectedEmailTemplateTheme = EmailTemplateThemes[0];
 
             SmsProviders = new ObservableCollection<string> { "None", "Twilio", "Vonage", "AWS SNS", "Custom" };
             _selectedSmsProvider = SmsProviders[0];
@@ -81,6 +92,8 @@ namespace InventoryManagementApp.ViewModels
             TestEmailCommand = new AsyncRelayCommand(TestEmailConnectionAsync);
             SendReminderEmailPreviewCommand = new AsyncRelayCommand(SendReminderEmailPreviewAsync);
             SendOverdueEmailPreviewCommand = new AsyncRelayCommand(SendOverdueEmailPreviewAsync);
+            SendSelectedEmailPreviewCommand = new AsyncRelayCommand(SendSelectedEmailPreviewAsync);
+            ApplySelectedEmailTemplateThemeCommand = new RelayCommand(ApplySelectedEmailTemplateTheme);
             RefreshOutlookAccountsCommand = new AsyncRelayCommand(LoadOutlookAccountsAsync);
             AddFromEmailCommand = new RelayCommand(AddFromEmailOption);
             RemoveFromEmailCommand = new RelayCommand(RemoveFromEmailOption);
@@ -194,6 +207,9 @@ namespace InventoryManagementApp.ViewModels
                     OnPropertyChanged(nameof(ReminderBodyTemplate));
                     OnPropertyChanged(nameof(OverdueSubjectTemplate));
                     OnPropertyChanged(nameof(OverdueBodyTemplate));
+                    OnPropertyChanged(nameof(SelectedEmailTemplateSubject));
+                    OnPropertyChanged(nameof(SelectedEmailTemplateBody));
+                    OnPropertyChanged(nameof(SelectedEmailTemplateDescription));
                     OnPropertyChanged(nameof(RentalQuickDaysText));
                     OnPropertyChanged(nameof(BackupDirectory));
                     OnPropertyChanged(nameof(SelectedSmsProvider));
@@ -842,38 +858,120 @@ namespace InventoryManagementApp.ViewModels
             set => SetProperty(ref _emailSignature, value);
         }
 
+        private EmailTemplateOption? _selectedEmailTemplate;
+        public EmailTemplateOption? SelectedEmailTemplate
+        {
+            get => _selectedEmailTemplate;
+            set
+            {
+                if (SetProperty(ref _selectedEmailTemplate, value))
+                {
+                    OnPropertyChanged(nameof(SelectedEmailTemplateSubject));
+                    OnPropertyChanged(nameof(SelectedEmailTemplateBody));
+                    OnPropertyChanged(nameof(SelectedEmailTemplateDescription));
+                }
+            }
+        }
+
+        public string SelectedEmailTemplateDescription => SelectedEmailTemplate?.Description ?? string.Empty;
+
+        public string SelectedEmailTemplateSubject
+        {
+            get => SelectedEmailTemplate?.Key == "Overdue" ? OverdueSubjectTemplate : ReminderSubjectTemplate;
+            set
+            {
+                if (SelectedEmailTemplate?.Key == "Overdue")
+                {
+                    OverdueSubjectTemplate = value;
+                }
+                else
+                {
+                    ReminderSubjectTemplate = value;
+                }
+            }
+        }
+
+        public string SelectedEmailTemplateBody
+        {
+            get => SelectedEmailTemplate?.Key == "Overdue" ? OverdueBodyTemplate : ReminderBodyTemplate;
+            set
+            {
+                if (SelectedEmailTemplate?.Key == "Overdue")
+                {
+                    OverdueBodyTemplate = value;
+                }
+                else
+                {
+                    ReminderBodyTemplate = value;
+                }
+            }
+        }
+
+        private string _selectedEmailTemplateTheme = "Campaign";
+        public string SelectedEmailTemplateTheme
+        {
+            get => _selectedEmailTemplateTheme;
+            set => SetProperty(ref _selectedEmailTemplateTheme, value);
+        }
+
         private string _reminderSubjectTemplate = RentalConfigurationService.DefaultReminderSubjectTemplate;
         public string ReminderSubjectTemplate
         {
             get => _reminderSubjectTemplate;
-            set => SetProperty(ref _reminderSubjectTemplate, value);
+            set
+            {
+                if (SetProperty(ref _reminderSubjectTemplate, value) && SelectedEmailTemplate?.Key == "Reminder")
+                {
+                    OnPropertyChanged(nameof(SelectedEmailTemplateSubject));
+                }
+            }
         }
 
         private string _reminderBodyTemplate = RentalConfigurationService.DefaultReminderBodyTemplate;
         public string ReminderBodyTemplate
         {
             get => _reminderBodyTemplate;
-            set => SetProperty(ref _reminderBodyTemplate, value);
+            set
+            {
+                if (SetProperty(ref _reminderBodyTemplate, value) && SelectedEmailTemplate?.Key == "Reminder")
+                {
+                    OnPropertyChanged(nameof(SelectedEmailTemplateBody));
+                }
+            }
         }
 
         private string _overdueSubjectTemplate = RentalConfigurationService.DefaultOverdueSubjectTemplate;
         public string OverdueSubjectTemplate
         {
             get => _overdueSubjectTemplate;
-            set => SetProperty(ref _overdueSubjectTemplate, value);
+            set
+            {
+                if (SetProperty(ref _overdueSubjectTemplate, value) && SelectedEmailTemplate?.Key == "Overdue")
+                {
+                    OnPropertyChanged(nameof(SelectedEmailTemplateSubject));
+                }
+            }
         }
 
         private string _overdueBodyTemplate = RentalConfigurationService.DefaultOverdueBodyTemplate;
         public string OverdueBodyTemplate
         {
             get => _overdueBodyTemplate;
-            set => SetProperty(ref _overdueBodyTemplate, value);
+            set
+            {
+                if (SetProperty(ref _overdueBodyTemplate, value) && SelectedEmailTemplate?.Key == "Overdue")
+                {
+                    OnPropertyChanged(nameof(SelectedEmailTemplateBody));
+                }
+            }
         }
 
         public IAsyncRelayCommand SaveEmailSettingsCommand { get; }
         public IAsyncRelayCommand TestEmailCommand { get; }
         public IAsyncRelayCommand SendReminderEmailPreviewCommand { get; }
         public IAsyncRelayCommand SendOverdueEmailPreviewCommand { get; }
+        public IAsyncRelayCommand SendSelectedEmailPreviewCommand { get; }
+        public IRelayCommand ApplySelectedEmailTemplateThemeCommand { get; }
         public IAsyncRelayCommand RefreshOutlookAccountsCommand { get; }
 
         public string EmailConfigurationStatus
@@ -1243,6 +1341,62 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        private Task SendSelectedEmailPreviewAsync(CancellationToken token = default)
+        {
+            return SelectedEmailTemplate?.Key == "Overdue"
+                ? SendOverdueEmailPreviewAsync(token)
+                : SendReminderEmailPreviewAsync(token);
+        }
+
+        private void ApplySelectedEmailTemplateTheme()
+        {
+            var theme = string.IsNullOrWhiteSpace(SelectedEmailTemplateTheme)
+                ? "Campaign"
+                : SelectedEmailTemplateTheme;
+
+            var overdue = SelectedEmailTemplate?.Key == "Overdue";
+            var template = GetEmailTemplatePreset(theme, overdue);
+            SelectedEmailTemplateSubject = template.Subject;
+            SelectedEmailTemplateBody = template.Body;
+        }
+
+        private static EmailTemplatePreset GetEmailTemplatePreset(string theme, bool overdue)
+        {
+            return (theme, overdue) switch
+            {
+                ("Campaign", false) => new EmailTemplatePreset(
+                    "Your rental item is due back tomorrow",
+                    "Dear {CustomerName},\n\nA quick reminder from the rental desk: the item below is due back tomorrow.\n\nItem Number: {ItemNumber}\nDue Date: {DueDate}\n\nPlease return it by the due date so it is ready for the next booking. If you need an extension, contact {ContactInfo}."),
+                ("Campaign", true) => new EmailTemplatePreset(
+                    "Your rental item is overdue",
+                    "Dear {CustomerName},\n\nThe rental item below is now overdue and needs to be returned.\n\nItem Number: {ItemNumber}\nDue Date: {DueDate}\nDays Overdue: {DaysOverdue}\n\nPlease return the item as soon as possible. If it has already been returned or you need an extension, contact {ContactInfo}."),
+                ("Friendly", false) => new EmailTemplatePreset(
+                    "Friendly reminder: {ItemNumber} is due tomorrow",
+                    "Hi {CustomerName},\n\nJust a quick reminder that this rental item is due back tomorrow:\n\nItem Number: {ItemNumber}\nDue Date: {DueDate}\n\nPlease return it on or before the due date so the next booking can stay on schedule.\n\nQuestions or need an extension? Contact {ContactInfo}."),
+                ("Friendly", true) => new EmailTemplatePreset(
+                    "Can you return {ItemNumber} today?",
+                    "Hi {CustomerName},\n\nOur records show this rental item is now overdue:\n\nItem Number: {ItemNumber}\nDue Date: {DueDate}\nDays Overdue: {DaysOverdue}\n\nPlease return it as soon as possible, or contact {ContactInfo} if you need help arranging an extension."),
+                ("Urgent", false) => new EmailTemplatePreset(
+                    "Action needed: {ItemNumber} due tomorrow",
+                    "Dear {CustomerName},\n\nThe following rental item is due back tomorrow:\n\nItem Number: {ItemNumber}\nDue Date: {DueDate}\n\nPlease return the item by the due date to avoid late fees and availability issues.\n\nFor extensions or questions, contact {ContactInfo}."),
+                ("Urgent", true) => new EmailTemplatePreset(
+                    "Overdue rental: immediate return required for {ItemNumber}",
+                    "Dear {CustomerName},\n\nThis rental item is overdue and requires immediate attention:\n\nItem Number: {ItemNumber}\nDue Date: {DueDate}\nDays Overdue: {DaysOverdue}\n\nPlease return the item immediately to avoid further late fees. If this has already been returned, contact {ContactInfo}."),
+                ("Service Desk", false) => new EmailTemplatePreset(
+                    "Rental due tomorrow - {ItemNumber}",
+                    "Dear {CustomerName},\n\nThis is an automated service desk reminder for the following rental:\n\nItem Number: {ItemNumber}\nDue Date: {DueDate}\n\nPlease return the item by the due date or contact {ContactInfo} to update the rental record."),
+                ("Service Desk", true) => new EmailTemplatePreset(
+                    "Overdue rental notice - {ItemNumber}",
+                    "Dear {CustomerName},\n\nThe rental record below is currently overdue:\n\nItem Number: {ItemNumber}\nDue Date: {DueDate}\nDays Overdue: {DaysOverdue}\n\nPlease return the item or contact {ContactInfo} so the rental record can be updated."),
+                (_, false) => new EmailTemplatePreset(
+                    RentalConfigurationService.DefaultReminderSubjectTemplate,
+                    RentalConfigurationService.DefaultReminderBodyTemplate),
+                _ => new EmailTemplatePreset(
+                    RentalConfigurationService.DefaultOverdueSubjectTemplate,
+                    RentalConfigurationService.DefaultOverdueBodyTemplate)
+            };
+        }
+
         private bool CanSendEmailPreview(out string message)
         {
             if (!EmailConfigurationStatus.Equals("Ready to test email delivery.", StringComparison.Ordinal))
@@ -1443,4 +1597,20 @@ namespace InventoryManagementApp.ViewModels
             }
         }
     }
+
+    public sealed class EmailTemplateOption
+    {
+        public EmailTemplateOption(string key, string name, string description)
+        {
+            Key = key;
+            Name = name;
+            Description = description;
+        }
+
+        public string Key { get; }
+        public string Name { get; }
+        public string Description { get; }
+    }
+
+    internal readonly record struct EmailTemplatePreset(string Subject, string Body);
 }

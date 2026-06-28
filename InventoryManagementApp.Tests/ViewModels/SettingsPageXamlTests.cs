@@ -30,15 +30,16 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             Assert.Contains("TestDbCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("TestEmailCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("SendReminderEmailPreviewCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("SendOverdueEmailPreviewCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("Send Reminder Preview", xaml, StringComparison.Ordinal);
-            Assert.Contains("Send Overdue Preview", xaml, StringComparison.Ordinal);
+            Assert.Contains("SendSelectedEmailPreviewCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("Preview Selected", xaml, StringComparison.Ordinal);
             Assert.Contains("EmailSignature", xaml, StringComparison.Ordinal);
-            Assert.Contains("ReminderSubjectTemplate", xaml, StringComparison.Ordinal);
-            Assert.Contains("ReminderBodyTemplate", xaml, StringComparison.Ordinal);
-            Assert.Contains("OverdueSubjectTemplate", xaml, StringComparison.Ordinal);
-            Assert.Contains("OverdueBodyTemplate", xaml, StringComparison.Ordinal);
+            Assert.Contains("EmailTemplates", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedEmailTemplate", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedEmailTemplateSubject", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedEmailTemplateBody", xaml, StringComparison.Ordinal);
+            Assert.Contains("EmailTemplateThemes", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedEmailTemplateTheme", xaml, StringComparison.Ordinal);
+            Assert.Contains("ApplySelectedEmailTemplateThemeCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("{CustomerName}, {ItemNumber}, {DueDate}, {DaysOverdue}, {ContactInfo}", xaml, StringComparison.Ordinal);
             Assert.Contains("SaveEmailSettingsCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("SaveMessagingSettingsCommand", xaml, StringComparison.Ordinal);

@@ -67,21 +67,33 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void BuildBrandedHtml_IncludesLogoItemImageAndSignature()
+        public void BuildBrandedHtml_UsesCampaignLayoutForRentalItemsWithoutLogo()
         {
             var html = EmailService.BuildBrandedHtml(
                 "Reminder: Item TL-101 Due Tomorrow",
-                "Dear Customer,\n\nItem Number: TL-101",
+                "Dear Customer,\n\nItem Number: TL-101\nDue Date: 2026-06-30",
                 "SD European",
                 "Regards,\nRental Team",
                 "company-logo",
                 "item-image");
 
-            Assert.Contains("cid:company-logo", html, StringComparison.Ordinal);
+            Assert.DoesNotContain("cid:company-logo", html, StringComparison.Ordinal);
             Assert.Contains("cid:item-image", html, StringComparison.Ordinal);
             Assert.Contains("SD European", html, StringComparison.Ordinal);
             Assert.Contains("Rental Team", html, StringComparison.Ordinal);
-            Assert.Contains("Item Number: TL-101", html, StringComparison.Ordinal);
+            Assert.Contains("Rental item notice", html, StringComparison.Ordinal);
+            Assert.Contains("Contact the rental team", html, StringComparison.Ordinal);
+            Assert.Contains("background:#0f0f0f", html, StringComparison.Ordinal);
+            Assert.Contains("background:#f5b700", html, StringComparison.Ordinal);
+            Assert.Contains("border-radius:20px", html, StringComparison.Ordinal);
+            Assert.Contains("width=\"640\"", html, StringComparison.Ordinal);
+            Assert.Contains("style=\"width:640px;max-width:640px", html, StringComparison.Ordinal);
+            Assert.Contains("max-width:520px", html, StringComparison.Ordinal);
+            Assert.Contains("max-width:190px", html, StringComparison.Ordinal);
+            Assert.Contains("max-height:190px", html, StringComparison.Ordinal);
+            Assert.Contains("<span class=\"fact-label\">Item Number</span><span class=\"fact-value\">TL-101</span>", html, StringComparison.Ordinal);
+            Assert.Contains("<span class=\"fact-label\">Due Date</span><span class=\"fact-value\">2026-06-30</span>", html, StringComparison.Ordinal);
+            Assert.DoesNotContain("WOF", html, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
