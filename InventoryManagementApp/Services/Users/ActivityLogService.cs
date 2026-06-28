@@ -36,14 +36,17 @@ namespace InventoryManagementApp.Services.Users
                 if (string.IsNullOrWhiteSpace(action))
                     return new Result(false, "Action is required.");
 
+                var normalizedUserName = userName.Trim();
+                var normalizedAction = action.Trim();
+
                 const string sql = @"
                     INSERT INTO ActivityLogs (UserID, UserName, Action)
                     VALUES (@UserID, @UserName, @Action)";
                 var p = new[]
                 {
                     new SqliteParameter("@UserID",   userID),
-                    new SqliteParameter("@UserName", userName),
-                    new SqliteParameter("@Action",   action)
+                    new SqliteParameter("@UserName", normalizedUserName),
+                    new SqliteParameter("@Action",   normalizedAction)
                 };
                 using var conn = _dbService.CreateConnection();
                 await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
