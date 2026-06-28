@@ -23,12 +23,14 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("BuildReport(\"Inventory Report\", lines)", inventoryReport, StringComparison.Ordinal);
             Assert.Contains("Item ID: {t.ItemID}", inventoryReport, StringComparison.Ordinal);
             Assert.Contains("Item Number: {t.ItemNumber}", inventoryReport, StringComparison.Ordinal);
+            Assert.Contains("Quantity: {t.QuantityOnHand}", inventoryReport, StringComparison.Ordinal);
             Assert.Contains("Item ID: {r.ItemID}", rentalReport, StringComparison.Ordinal);
 
             Assert.DoesNotContain("ItemModel Inventory Report", inventoryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("ItemModel ID:", inventoryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("ItemModel ID:", rentalReport, StringComparison.Ordinal);
             Assert.DoesNotContain("ItemNumber:", inventoryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("Qty:", inventoryReport, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -69,7 +71,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Admin: {u.IsAdmin}", userReport, StringComparison.Ordinal);
             Assert.Contains("Maintenance ID: {m.MaintenanceID}", maintenanceReport, StringComparison.Ordinal);
             Assert.Contains("Calibration ID: {c.CalibrationID}", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("Certificate Number: {c.CertificateNumber}", calibrationReport, StringComparison.Ordinal);
             Assert.Contains("Reservation ID: {r.ReservationID}", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("Quantity: {r.Quantity}", reservationReport, StringComparison.Ordinal);
 
             Assert.DoesNotContain("LogID:", activityLogReport, StringComparison.Ordinal);
             Assert.DoesNotContain("UserID:", activityLogReport, StringComparison.Ordinal);
@@ -80,6 +84,8 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("$\"ID: {m.MaintenanceID}", maintenanceReport, StringComparison.Ordinal);
             Assert.DoesNotContain("$\"ID: {c.CalibrationID}", calibrationReport, StringComparison.Ordinal);
             Assert.DoesNotContain("$\"ID: {r.ReservationID}", reservationReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("Cert#:", calibrationReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("Qty:", reservationReport, StringComparison.Ordinal);
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)
