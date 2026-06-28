@@ -50,7 +50,7 @@ namespace InventoryManagementApp.Tests
                 method.IndexOf("if (string.IsNullOrWhiteSpace(userName))", StringComparison.Ordinal) < method.IndexOf("const string sql =", StringComparison.Ordinal),
                 "The blank-user guard should run before activity-log SQL text is prepared.");
             Assert.True(
-                method.IndexOf("if (string.IsNullOrWhiteSpace(userName))", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@UserName\", userName)", StringComparison.Ordinal),
+                method.IndexOf("if (string.IsNullOrWhiteSpace(userName))", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@UserName\", normalizedUserName)", StringComparison.Ordinal),
                 "The blank-user guard should run before user-name parameters are prepared.");
             Assert.True(
                 method.IndexOf("if (string.IsNullOrWhiteSpace(userName))", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection()", StringComparison.Ordinal),
@@ -75,11 +75,34 @@ namespace InventoryManagementApp.Tests
                 method.IndexOf("if (string.IsNullOrWhiteSpace(action))", StringComparison.Ordinal) < method.IndexOf("const string sql =", StringComparison.Ordinal),
                 "The blank-action guard should run before activity-log SQL text is prepared.");
             Assert.True(
-                method.IndexOf("if (string.IsNullOrWhiteSpace(action))", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@Action\",   action)", StringComparison.Ordinal),
+                method.IndexOf("if (string.IsNullOrWhiteSpace(action))", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@Action\",   normalizedAction)", StringComparison.Ordinal),
                 "The blank-action guard should run before action parameters are prepared.");
             Assert.True(
                 method.IndexOf("if (string.IsNullOrWhiteSpace(action))", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection()", StringComparison.Ordinal),
                 "The blank-action guard should run before opening a database connection.");
+        }
+
+        [Fact]
+        public void LogActionNormalizesAuditFieldsBeforePersisting()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
+            var method = ExtractMethod(
+                source,
+                "public virtual async Task<Result> LogActionAsync",
+                "public virtual async Task<Result<List<ActivityLog>>> GetRecentLogsAsync");
+
+            Assert.Contains("var normalizedUserName = userName.Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("var normalizedAction = action.Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("new SqliteParameter(\"@UserName\", normalizedUserName)", method, StringComparison.Ordinal);
+            Assert.Contains("new SqliteParameter(\"@Action\",   normalizedAction)", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("new SqliteParameter(\"@UserName\", userName)", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("new SqliteParameter(\"@Action\",   action)", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("if (string.IsNullOrWhiteSpace(action))", StringComparison.Ordinal) < method.IndexOf("var normalizedUserName = userName.Trim();", StringComparison.Ordinal),
+                "Audit fields should be normalized only after the blank-input guards pass.");
+            Assert.True(
+                method.IndexOf("var normalizedAction = action.Trim();", StringComparison.Ordinal) < method.IndexOf("const string sql =", StringComparison.Ordinal),
+                "Audit fields should be normalized before activity-log SQL work starts.");
         }
 
         [Fact]
