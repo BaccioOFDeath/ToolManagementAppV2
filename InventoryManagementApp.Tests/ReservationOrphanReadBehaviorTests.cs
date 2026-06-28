@@ -53,6 +53,24 @@ namespace InventoryManagementApp.Tests
             Assert.Null(missingCustomerById);
         }
 
+        [Fact]
+        public async Task CheckAvailability_WithLegacyMissingCustomerHold_ShouldIgnoreInvisibleReservationAndCountValidHold()
+        {
+            using var databaseService = CreateDatabaseService("reservation_availability_orphan_customer");
+            SeedRequiredData(databaseService);
+            var reservationService = new ReservationService(databaseService, CreateUserContext());
+            var startDate = DateTime.Today.AddDays(1);
+            var endDate = DateTime.Today.AddDays(3);
+            InsertLegacyReservation(databaseService, 1, 999, startDate, endDate, "Pending");
+
+            var availableWithOnlyInvisibleHold = await reservationService.CheckAvailabilityAsync(1, startDate, endDate, 1);
+            InsertLegacyReservation(databaseService, 1, 1, startDate, endDate, "Confirmed");
+            var availableWithValidHold = await reservationService.CheckAvailabilityAsync(1, startDate, endDate, 1);
+
+            Assert.True(availableWithOnlyInvisibleHold);
+            Assert.False(availableWithValidHold);
+        }
+
         private static DatabaseService CreateDatabaseService(string prefix)
         {
             return new DatabaseService($"test_{prefix}_{Guid.NewGuid()}.db");

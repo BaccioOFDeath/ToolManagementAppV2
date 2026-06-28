@@ -366,6 +366,7 @@ namespace InventoryManagementApp.Services.Reservations
                     LEFT JOIN Reservations r ON i.ItemID = r.ItemID
                         AND r.Status IN ('Pending', 'Confirmed')
                         AND ((r.StartDate <= @EndDate AND r.EndDate >= @StartDate))
+                        AND EXISTS (SELECT 1 FROM Customers c WHERE c.CustomerID = r.CustomerID)
                     WHERE i.ItemID = @ItemID
                     GROUP BY i.ItemID, i.AvailableQuantity";
                 using var cmd = new SqliteCommand(sql, conn);
