@@ -283,7 +283,11 @@ namespace InventoryManagementApp.Services.Items
             };
             doc.Blocks.Add(header);
 
-            foreach (var line in lines)
+            var reportLines = lines as IReadOnlyCollection<string> ?? lines.ToList();
+            if (reportLines.Count == 0)
+                reportLines = new[] { "No report records found." };
+
+            foreach (var line in reportLines)
             {
                 var p = new Paragraph(new Run(line)) { Margin = new Thickness(0, 0, 0, 10) };
                 doc.Blocks.Add(p);

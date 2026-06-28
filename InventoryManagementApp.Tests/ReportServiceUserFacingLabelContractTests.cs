@@ -97,6 +97,25 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("Items: {itemCount}", kitReport, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void BuildReportAddsReadableEmptyStateWhenNoRowsExist()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
+
+            var buildReport = ExtractMethod(
+                source,
+                "FlowDocument BuildReport(string title, IEnumerable<string> lines)",
+                "    }\n}");
+
+            Assert.Contains("var reportLines = lines as IReadOnlyCollection<string> ?? lines.ToList();", buildReport, StringComparison.Ordinal);
+            Assert.Contains("if (reportLines.Count == 0)", buildReport, StringComparison.Ordinal);
+            Assert.Contains("No report records found.", buildReport, StringComparison.Ordinal);
+            Assert.True(
+                buildReport.IndexOf("if (reportLines.Count == 0)", StringComparison.Ordinal) <
+                buildReport.IndexOf("foreach (var line in reportLines)", StringComparison.Ordinal),
+                "Expected empty report output to be filled before report paragraphs are rendered.");
+        }
+
         private static string ExtractMethod(string source, string startMarker, string endMarker)
         {
             var start = source.IndexOf(startMarker, StringComparison.Ordinal);
