@@ -13,7 +13,7 @@ namespace InventoryManagementApp
 {
     public partial class MainWindow : Window, IMainWindow
     {
-        const double CompactShellHeightThreshold = 760;
+        const double CompactShellHeightThreshold = 820;
         readonly IDatabaseService? _ownedDb;
         MainViewModel? _mainViewModel;
         bool? _isCompactShellLayout;

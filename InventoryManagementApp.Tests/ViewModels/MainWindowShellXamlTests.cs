@@ -43,7 +43,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("x:Name=\"ShellStatusFooter\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"ShellFooterRow\"", xaml, StringComparison.Ordinal);
 
-            Assert.Contains("CompactShellHeightThreshold = 760", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("CompactShellHeightThreshold = 820", codeBehind, StringComparison.Ordinal);
             Assert.Contains("SystemParameters.WorkArea.Height < CompactShellHeightThreshold", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ShellStatusFooter.Visibility = compact ? Visibility.Collapsed : Visibility.Visible", codeBehind, StringComparison.Ordinal);
             Assert.Contains("WorkflowGuideText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible", codeBehind, StringComparison.Ordinal);
