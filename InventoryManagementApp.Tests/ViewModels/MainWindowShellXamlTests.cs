@@ -51,6 +51,19 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void MainWindow_UsesAdaptiveThemeScaleForWideScreens()
+        {
+            var codeBehind = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml.cs");
+
+            Assert.Contains("ApplyAdaptiveResourceScale();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("width >= 3400", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("width >= 2560", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("SetScaledDoubleResource(\"ThemeBodyFontSize\", scale)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("SetScaledDoubleResource(\"ThemeDataGridRowHeight\", scale)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("SetScaledThicknessResource(\"CardPadding\", scale)", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void MainWindow_RendersUploadedBackgroundOnlyOnRootShell()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
