@@ -30,6 +30,9 @@ namespace InventoryManagementApp.Services.Users
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                if (string.IsNullOrWhiteSpace(userName))
+                    return new Result(false, "User name is required.");
+
                 if (string.IsNullOrWhiteSpace(action))
                     return new Result(false, "Action is required.");
 

@@ -30,6 +30,34 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void LogActionRejectsBlankUserNamesBeforeSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
+            var method = ExtractMethod(
+                source,
+                "public virtual async Task<Result> LogActionAsync",
+                "public virtual async Task<Result<List<ActivityLog>>> GetRecentLogsAsync");
+
+            Assert.Contains("if (string.IsNullOrWhiteSpace(userName))", method, StringComparison.Ordinal);
+            Assert.Contains("return new Result(false, \"User name is required.\");", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("if (string.IsNullOrWhiteSpace(userName))", StringComparison.Ordinal),
+                "Cancellation should still be honored before blank-user validation.");
+            Assert.True(
+                method.IndexOf("if (string.IsNullOrWhiteSpace(userName))", StringComparison.Ordinal) < method.IndexOf("if (string.IsNullOrWhiteSpace(action))", StringComparison.Ordinal),
+                "The blank-user guard should run before blank-action validation.");
+            Assert.True(
+                method.IndexOf("if (string.IsNullOrWhiteSpace(userName))", StringComparison.Ordinal) < method.IndexOf("const string sql =", StringComparison.Ordinal),
+                "The blank-user guard should run before activity-log SQL text is prepared.");
+            Assert.True(
+                method.IndexOf("if (string.IsNullOrWhiteSpace(userName))", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@UserName\", userName)", StringComparison.Ordinal),
+                "The blank-user guard should run before user-name parameters are prepared.");
+            Assert.True(
+                method.IndexOf("if (string.IsNullOrWhiteSpace(userName))", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection()", StringComparison.Ordinal),
+                "The blank-user guard should run before opening a database connection.");
+        }
+
+        [Fact]
         public void LogActionRejectsBlankActionsBeforeSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
