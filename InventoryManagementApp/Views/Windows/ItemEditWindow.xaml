@@ -6,9 +6,9 @@
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}}"
         Width="840"
-        Height="840"
+        Height="720"
         MinWidth="760"
-        MinHeight="780"
+        MinHeight="620"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="16">
