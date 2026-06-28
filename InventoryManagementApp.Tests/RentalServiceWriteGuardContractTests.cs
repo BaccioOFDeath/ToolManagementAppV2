@@ -36,8 +36,19 @@ namespace InventoryManagementApp.Tests
                 "public async Task DeleteRentalAsync");
             AssertContainsAll(
                 extendMethod,
+                "var updateCmd = new SqliteCommand(",
+                "UPDATE Rentals SET DueDate=@NewDueDate WHERE RentalID=@RentalID AND Status='Rented'",
                 "if (await updateCmd.ExecuteNonQueryAsync() == 0)",
-                "throw new InvalidOperationException(\"Unable to extend rental. Rental not found or already returned.\");");
+                "throw new InvalidOperationException(\"Unable to extend rental. Rental not found or already returned.\");",
+                "await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $\"Extended rental {rentalID}\").ConfigureAwait(false);");
+            Assert.True(
+                extendMethod.IndexOf("var updateCmd = new SqliteCommand(", StringComparison.Ordinal) <
+                extendMethod.IndexOf("if (await updateCmd.ExecuteNonQueryAsync() == 0)", StringComparison.Ordinal),
+                "Expected extension writes to inspect affected rows after preparing and executing the due-date update.");
+            Assert.True(
+                extendMethod.IndexOf("if (await updateCmd.ExecuteNonQueryAsync() == 0)", StringComparison.Ordinal) <
+                extendMethod.IndexOf("await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $\"Extended rental {rentalID}\").ConfigureAwait(false);", StringComparison.Ordinal),
+                "Expected stale extension writes to fail before activity logging can report success.");
 
             var deleteMethod = ExtractMethod(
                 source,
