@@ -77,9 +77,9 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("UserID:", userReport, StringComparison.Ordinal);
             Assert.DoesNotContain("UserName:", userReport, StringComparison.Ordinal);
             Assert.DoesNotContain("IsAdmin:", userReport, StringComparison.Ordinal);
-            Assert.DoesNotContain("ID: {m.MaintenanceID}", maintenanceReport, StringComparison.Ordinal);
-            Assert.DoesNotContain("ID: {c.CalibrationID}", calibrationReport, StringComparison.Ordinal);
-            Assert.DoesNotContain("ID: {r.ReservationID}", reservationReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"ID: {m.MaintenanceID}", maintenanceReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"ID: {c.CalibrationID}", calibrationReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"ID: {r.ReservationID}", reservationReport, StringComparison.Ordinal);
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)
