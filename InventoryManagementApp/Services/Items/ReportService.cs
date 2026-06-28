@@ -61,7 +61,7 @@ namespace InventoryManagementApp.Services.Items
                 .WithCancellation(CancellationToken.None).ConfigureAwait(false))
                 items.Add(item);
             var lines = items.Select(t =>
-                $"Item ID: {t.ItemID} | Item Number: {t.ItemNumber} | Qty: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
+                $"Item ID: {t.ItemID} | Item Number: {t.ItemNumber} | Quantity: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
             return BuildReport("Inventory Report", lines);
         }
 
@@ -215,7 +215,7 @@ namespace InventoryManagementApp.Services.Items
             var title = overdueOnly ? "Overdue Calibration Report" : "Calibration Records Report";
 
             var lines = records.Select(c =>
-                $"Calibration ID: {c.CalibrationID} | Item: {c.ItemNumber} - {c.ItemName} | Date: {c.CalibrationDate:yyyy-MM-dd} | Next Due: {c.NextCalibrationDue:yyyy-MM-dd} | Status: {c.StatusDisplay} | Cert#: {c.CertificateNumber}");
+                $"Calibration ID: {c.CalibrationID} | Item: {c.ItemNumber} - {c.ItemName} | Date: {c.CalibrationDate:yyyy-MM-dd} | Next Due: {c.NextCalibrationDue:yyyy-MM-dd} | Status: {c.StatusDisplay} | Certificate Number: {c.CertificateNumber}");
 
             return BuildReport(title, lines);
         }
@@ -232,7 +232,7 @@ namespace InventoryManagementApp.Services.Items
             var title = activeOnly ? "Active Reservations Report" : "All Reservations Report";
 
             var lines = reservations.Select(r =>
-                $"Reservation ID: {r.ReservationID} | Item: {r.ItemNumber} - {r.ItemName} | Customer: {r.CustomerName} | Start: {r.StartDate:yyyy-MM-dd} | End: {r.EndDate:yyyy-MM-dd} | Qty: {r.Quantity} | Status: {r.StatusDisplay}");
+                $"Reservation ID: {r.ReservationID} | Item: {r.ItemNumber} - {r.ItemName} | Customer: {r.CustomerName} | Start: {r.StartDate:yyyy-MM-dd} | End: {r.EndDate:yyyy-MM-dd} | Quantity: {r.Quantity} | Status: {r.StatusDisplay}");
 
             return BuildReport(title, lines);
         }
