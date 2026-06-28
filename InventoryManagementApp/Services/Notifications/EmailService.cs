@@ -261,16 +261,24 @@ Thank you for your business!", values);
             var encodedCompanyName = HtmlEncoder.Default.Encode(string.IsNullOrWhiteSpace(companyName) ? "Equipment Rentals" : companyName);
             var encodedTitle = HtmlEncoder.Default.Encode(title);
             var encodedPreheader = HtmlEncoder.Default.Encode(BuildPreheader(body));
-            var bodyHtml = ConvertPlainTextToHtml(body);
+            var isOverdue = title?.IndexOf("overdue", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            body?.IndexOf("Days Overdue", StringComparison.OrdinalIgnoreCase) >= 0;
+            var noticeLabel = isOverdue ? "Return required" : "Rental item notice";
+            var noticeColor = isOverdue ? "#b91c1c" : "#f5b700";
+            var noticeBackground = isOverdue ? "#fff1f2" : "#fff7d6";
+            var noticeText = isOverdue
+                ? "Please return the item or contact the rental team to arrange an extension."
+                : "A reminder from the rental desk so the item is ready for the next booking.";
+            var bodyHtml = ConvertPlainTextToHtml(body ?? string.Empty);
             var signatureHtml = string.IsNullOrWhiteSpace(signature)
                 ? string.Empty
-                : $"<div class=\"signature\" style=\"max-width:520px;margin:28px auto 0;padding-top:18px;border-top:1px solid #e2e4e8;color:#6b7280;font-size:14px;text-align:center;\">{ConvertPlainTextToHtml(signature)}</div>";
+                : $"<div class=\"signature\" style=\"margin:28px 0 0;padding-top:18px;border-top:1px solid #e2e4e8;color:#6b7280;font-size:14px;line-height:1.55;\">{ConvertPlainTextToHtml(signature!)}</div>";
             var itemImageHtml = string.IsNullOrWhiteSpace(itemImageContentId)
                 ? string.Empty
-                : $@"<table role=""presentation"" width=""300"" align=""center"" cellpadding=""0"" cellspacing=""0"" style=""width:300px;margin:0 auto 28px;background:#f1f2f5;border:1px solid #e2e4e8;border-radius:14px;"">
+                : $@"<table role=""presentation"" width=""240"" align=""center"" cellpadding=""0"" cellspacing=""0"" style=""width:240px;margin:0 auto 24px;background:#f7f8fa;border:1px solid #e2e4e8;border-radius:14px;"">
             <tr>
-              <td align=""center"" style=""padding:16px;text-align:center;"">
-                <img src=""cid:{itemImageContentId}"" width=""190"" alt=""Rental item"" style=""display:block;width:190px;max-width:190px;height:auto;max-height:190px;margin:0 auto;border:0;outline:none;text-decoration:none;"" />
+              <td align=""center"" style=""padding:14px;text-align:center;"">
+                <img src=""cid:{itemImageContentId}"" width=""180"" alt=""Rental item"" style=""display:block;width:180px;max-width:180px;height:auto;max-height:180px;margin:0 auto;border:0;outline:none;text-decoration:none;border-radius:10px;"" />
               </td>
             </tr>
           </table>";
@@ -282,49 +290,57 @@ Thank you for your business!", values);
   <style>
     body {{ margin:0; padding:0; background:#f7f8fa; color:#1c1c1e; font-family:Inter, Segoe UI, Arial, Helvetica, sans-serif; font-size:16px; }}
     .preheader {{ display:none; max-height:0; overflow:hidden; opacity:0; color:transparent; }}
-    p {{ margin:0 0 16px; line-height:1.72; }}
-    .body {{ color:#4b5560; font-size:16px; }}
-    .facts {{ margin:26px auto; border:1px solid #e2e4e8; border-radius:12px; background:#ffffff; overflow:hidden; text-align:left; }}
-    .fact-row {{ padding:14px 18px; border-top:1px solid #e2e4e8; }}
-    .fact-row:first-child {{ border-top:0; }}
-    .fact-label {{ display:inline-block; min-width:124px; color:#6b7280; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; }}
+    p {{ margin:0 0 15px; line-height:1.66; }}
+    .body {{ color:#374151; font-size:15px; }}
+    .facts {{ margin:22px 0; border:1px solid #e2e4e8; border-radius:12px; background:#ffffff; overflow:hidden; text-align:left; }}
+    .fact-label {{ color:#6b7280; font-size:12px; font-weight:700; }}
     .fact-value {{ color:#1c1c1e; font-weight:800; }}
-    .cta {{ margin:28px 0 8px; text-align:center; }}
-    .cta span {{ display:inline-block; background:#f5b700; color:#0f0f0f; padding:14px 26px; border-radius:100px; font-size:14px; font-weight:800; }}
+    .cta {{ margin:26px 0 4px; text-align:left; }}
+    .cta span {{ display:inline-block; background:#f5b700; color:#0f0f0f; padding:13px 20px; border-radius:100px; font-size:14px; font-weight:800; }}
   </style>
 </head>
 <body style=""margin:0;padding:0;background:#f7f8fa;color:#1c1c1e;font-family:Inter, Segoe UI, Arial, Helvetica, sans-serif;font-size:16px;"">
   <div class=""preheader"">{encodedPreheader}</div>
   <table role=""presentation"" width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""width:100%;background:#f7f8fa;margin:0;padding:0;"">
     <tr>
-      <td align=""center"" style=""padding:42px 24px;"">
-        <table role=""presentation"" width=""640"" cellpadding=""0"" cellspacing=""0"" style=""width:640px;max-width:640px;background:#ffffff;border:1px solid #e2e4e8;border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.10);"">
+      <td align=""center"" style=""padding:32px 16px;"">
+        <table role=""presentation"" width=""600"" cellpadding=""0"" cellspacing=""0"" style=""width:600px;max-width:600px;background:#ffffff;border:1px solid #e2e4e8;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(15,15,15,0.08);"">
           <tr>
             <td style=""height:8px;background:#f5b700;font-size:0;line-height:0;"">&nbsp;</td>
           </tr>
           <tr>
-            <td align=""center"" style=""background:#0f0f0f;padding:38px 48px 42px;text-align:center;"">
-              <div style=""color:#ffffff;font-size:18px;font-weight:900;margin:0 0 18px;"">{encodedCompanyName}</div>
-              <div style=""display:inline-block;background:#2b240d;border:1px solid rgba(245,183,0,0.36);color:#f5b700;border-radius:100px;padding:7px 16px;font-size:12px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;"">Rental item notice</div>
-              <h1 style=""max-width:520px;margin:20px auto 0;color:#ffffff;font-size:38px;line-height:1.1;font-weight:900;letter-spacing:-.5px;"">{encodedTitle}</h1>
+            <td style=""background:#0f0f0f;padding:26px 30px 28px;text-align:left;"">
+              <div style=""color:#ffffff;font-size:18px;font-weight:900;margin:0 0 14px;"">{encodedCompanyName}</div>
+              <div style=""display:inline-block;background:{noticeBackground};border:1px solid {noticeColor};color:{noticeColor};border-radius:100px;padding:6px 13px;font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;"">{HtmlEncoder.Default.Encode(noticeLabel)}</div>
+              <h1 style=""margin:18px 0 0;color:#ffffff;font-size:28px;line-height:1.18;font-weight:900;"">{encodedTitle}</h1>
+              <p style=""margin:10px 0 0;color:#d1d5db;font-size:14px;line-height:1.5;"">{HtmlEncoder.Default.Encode(noticeText)}</p>
             </td>
           </tr>
           <tr>
-            <td align=""center"" style=""padding:34px 52px 40px;text-align:center;"">
-              <table role=""presentation"" width=""520"" align=""center"" cellpadding=""0"" cellspacing=""0"" style=""width:520px;max-width:520px;margin:0 auto;"">
+            <td align=""center"" style=""padding:30px;text-align:left;"">
+              <table role=""presentation"" width=""540"" align=""center"" cellpadding=""0"" cellspacing=""0"" style=""width:540px;max-width:540px;margin:0 auto;"">
                 <tr>
-                  <td align=""center"" style=""text-align:center;"">
+                  <td style=""text-align:left;"">
                     {itemImageHtml}
-                    <div class=""body"" style=""color:#4b5560;font-size:16px;text-align:left;"">{bodyHtml}</div>
-                    <div class=""cta"" style=""margin:28px 0 8px;text-align:center;""><span style=""display:inline-block;background:#f5b700;color:#0f0f0f;padding:14px 26px;border-radius:100px;font-size:14px;font-weight:800;"">Contact the rental team</span></div>
+                    <div class=""body"" style=""color:#374151;font-size:15px;text-align:left;"">{bodyHtml}</div>
+                    <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" style=""margin:24px 0 4px;"">
+                      <tr>
+                        <td style=""background:#f5b700;border-radius:100px;"">
+                          <span style=""display:inline-block;color:#0f0f0f;padding:13px 20px;font-size:14px;font-weight:800;"">Contact the rental team</span>
+                        </td>
+                      </tr>
+                    </table>
+                    {signatureHtml}
                   </td>
                 </tr>
               </table>
-              {signatureHtml}
             </td>
           </tr>
           <tr>
-            <td align=""center"" style=""padding:22px 48px 28px;background:#1c1c1e;color:rgba(255,255,255,0.62);font-size:12px;line-height:1.55;text-align:center;"">This message was sent by {encodedCompanyName}. Please reply to this email if the rental record needs to be updated.</td>
+            <td style=""padding:18px 30px;background:#f7f8fa;border-top:1px solid #e2e4e8;color:#6b7280;font-size:12px;line-height:1.55;text-align:left;"">
+              <strong style=""color:#1c1c1e;"">{encodedCompanyName}</strong><br>
+              Please reply to this email if the rental record needs to be updated.
+            </td>
           </tr>
         </table>
       </td>
@@ -367,15 +383,21 @@ Thank you for your business!", values);
 
             if (lines.Count > 0 && lines.All(IsFactLine))
             {
-                var rows = lines.Select(line =>
+                var rows = lines.Select((line, index) =>
                 {
                     var separator = line.IndexOf(':', StringComparison.Ordinal);
                     var label = HtmlEncoder.Default.Encode(line[..separator].Trim());
                     var value = HtmlEncoder.Default.Encode(line[(separator + 1)..].Trim());
-                    return $"<div class=\"fact-row\"><span class=\"fact-label\">{label}</span><span class=\"fact-value\">{value}</span></div>";
+                    var topBorder = index == 0 ? "border-top:0;" : "border-top:1px solid #e2e4e8;";
+                    return $@"<tr>
+              <td style=""width:38%;padding:13px 16px;background:#f7f8fa;{topBorder}color:#6b7280;font-size:12px;font-weight:700;"">{label}</td>
+              <td style=""padding:13px 16px;{topBorder}color:#1c1c1e;font-size:15px;font-weight:800;"">{value}</td>
+            </tr>";
                 });
 
-                return $"<div class=\"facts\">{string.Join(Environment.NewLine, rows)}</div>";
+                return $@"<table role=""presentation"" width=""100%"" cellpadding=""0"" cellspacing=""0"" class=""facts"" style=""width:100%;margin:22px 0;border:1px solid #e2e4e8;border-radius:12px;background:#ffffff;overflow:hidden;text-align:left;border-collapse:separate;border-spacing:0;"">
+          {string.Join(Environment.NewLine, rows)}
+        </table>";
             }
 
             return $"<p>{HtmlEncoder.Default.Encode(paragraph).Replace("\n", "<br>", StringComparison.Ordinal)}</p>";

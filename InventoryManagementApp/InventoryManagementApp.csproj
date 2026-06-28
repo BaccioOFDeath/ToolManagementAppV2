@@ -64,6 +64,8 @@
   <ItemGroup>
     <Page Remove="Resources\Colors.Dark.xaml" />
     <Page Remove="Resources\Colors.Light.xaml" />
+    <Page Remove="Resources\Colors.SDEuropeanDark.xaml" />
+    <Page Remove="Resources\Colors.SDEuropeanLight.xaml" />
     <Page Remove="Resources\Theme.Customization.xaml" />
   </ItemGroup>
 
@@ -114,6 +116,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Resource>
     <Resource Include="Resources\Colors.Light.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
+    <Resource Include="Resources\Colors.SDEuropeanDark.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
+    <Resource Include="Resources\Colors.SDEuropeanLight.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Generator>MSBuild:Compile</Generator>
     </Resource>

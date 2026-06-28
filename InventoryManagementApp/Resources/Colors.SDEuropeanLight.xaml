@@ -1,0 +1,84 @@
+<!-- Resources/Colors.SDEuropeanLight.xaml -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="Col.Background">#F7F8FA</Color>
+    <Color x:Key="Col.BackgroundAlt">#F1F2F5</Color>
+    <Color x:Key="Col.Surface">#FFFFFF</Color>
+    <Color x:Key="Col.SurfaceAlt">#F1F2F5</Color>
+    <Color x:Key="Col.Border">#E2E4E8</Color>
+    <Color x:Key="Col.BorderAlt">#D7DAE0</Color>
+    <Color x:Key="Col.Fg">#1C1C1E</Color>
+    <Color x:Key="Col.FgMuted">#6B7280</Color>
+    <Color x:Key="Col.Success">#15803D</Color>
+    <Color x:Key="Col.Error">#DC2626</Color>
+    <Color x:Key="Col.Warning">#C99500</Color>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource Col.Background}"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="SurfaceAltBrush" Color="{StaticResource Col.SurfaceAlt}"/>
+    <SolidColorBrush x:Key="BorderBrushBase" Color="{StaticResource Col.Border}"/>
+    <SolidColorBrush x:Key="BorderBrushAlt" Color="{StaticResource Col.BorderAlt}"/>
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource Col.Fg}"/>
+    <SolidColorBrush x:Key="ForegroundMutedBrush" Color="{StaticResource Col.FgMuted}"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Col.Success}"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Col.Error}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Col.Warning}"/>
+    <Color x:Key="Col.Accent">#F5B700</Color>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Col.Accent}"/>
+    <Color x:Key="Col.OnAccent">#0F0F0F</Color>
+    <SolidColorBrush x:Key="OnAccentForegroundBrush" Color="{StaticResource Col.OnAccent}"/>
+    <Color x:Key="Col.CardBackground">#FFFFFF</Color>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource Col.CardBackground}"/>
+    <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="ComboBoxPopupBackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="OverlayBrush" Color="#33000000"/>
+    <SolidColorBrush x:Key="TransparentSurfaceBrush" Color="#00FFFFFF"/>
+    <SolidColorBrush x:Key="GlassSurfaceBrush" Color="#E8FFFFFF"/>
+    <SolidColorBrush x:Key="GlassSurfaceAltBrush" Color="#D9F1F2F5"/>
+    <SolidColorBrush x:Key="AppBackgroundTintBrush" Color="#22FFFFFF"/>
+    <SolidColorBrush x:Key="ThemeShellHeaderBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderDashboardBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderSearchBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderManageItemsBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderRentalsBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderCustomersBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderReservationsBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderMaintenanceBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderCalibrationBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderKitsBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderCategoriesBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderReportsBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderActivityLogsBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderImportExportBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderUsersBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderSettingsBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="NavButtonHoverBrush" Color="#FFF4CC"/>
+    <SolidColorBrush x:Key="NavButtonHoverBorderBrush" Color="#F5B700"/>
+    <SolidColorBrush x:Key="NavButtonPressedBrush" Color="#F5B700"/>
+    <SolidColorBrush x:Key="NavButtonPressedBorderBrush" Color="#C99500"/>
+    <SolidColorBrush x:Key="NavButtonDisabledBrush" Color="#F1F2F5"/>
+    <SolidColorBrush x:Key="NavButtonDisabledBorderBrush" Color="#E2E4E8"/>
+    <SolidColorBrush x:Key="BtnBg" Color="#F5B700"/>
+    <SolidColorBrush x:Key="BtnBgHover" Color="#C99500"/>
+    <SolidColorBrush x:Key="BtnBorder" Color="#C99500"/>
+    <SolidColorBrush x:Key="BtnFg" Color="#0F0F0F"/>
+    <SolidColorBrush x:Key="FocusVisualStrokeBrush" Color="{StaticResource Col.Accent}"/>
+    <SolidColorBrush x:Key="ItemHoverBrush" Color="#FFF4CC"/>
+    <SolidColorBrush x:Key="ItemSelectedBrush" Color="#F5B700"/>
+    <SolidColorBrush x:Key="ItemHoverForegroundBrush" Color="{StaticResource Col.Fg}"/>
+    <SolidColorBrush x:Key="ItemSelectedForegroundBrush" Color="#0F0F0F"/>
+    <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#8B96A3"/>
+    <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#F1F2F5"/>
+    <SolidColorBrush x:Key="DataGridRowBackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="DataGridAlternatingRowBackgroundBrush" Color="#F7F8FA"/>
+    <SolidColorBrush x:Key="ProgressBarBackgroundBrush" Color="#E2E4E8"/>
+    <x:Array x:Key="UserInitialsBrushes" Type="SolidColorBrush">
+        <SolidColorBrush Color="#FFF5B700"/>
+        <SolidColorBrush Color="#FF0F0F0F"/>
+        <SolidColorBrush Color="#FF1C1C1E"/>
+        <SolidColorBrush Color="#FFC99500"/>
+        <SolidColorBrush Color="#FF6B7280"/>
+        <SolidColorBrush Color="#FF15803D"/>
+        <SolidColorBrush Color="#FFDC2626"/>
+        <SolidColorBrush Color="#FF3A506B"/>
+    </x:Array>
+</ResourceDictionary>

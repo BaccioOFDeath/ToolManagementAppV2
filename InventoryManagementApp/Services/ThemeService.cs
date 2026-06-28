@@ -20,6 +20,8 @@ namespace InventoryManagementApp.Services
     {
         private static readonly Uri LightThemeUri = new("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Light.xaml", UriKind.Absolute);
         private static readonly Uri DarkThemeUri = new("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.Dark.xaml", UriKind.Absolute);
+        private static readonly Uri SDEuropeanLightThemeUri = new("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.SDEuropeanLight.xaml", UriKind.Absolute);
+        private static readonly Uri SDEuropeanDarkThemeUri = new("pack://application:,,,/InventoryManagementApp;component/Resources/Colors.SDEuropeanDark.xaml", UriKind.Absolute);
         private readonly ISettingsService? _settingsService;
         private bool _applyingCustomTheme;
 
@@ -248,7 +250,7 @@ namespace InventoryManagementApp.Services
         private static void ApplyBaseThemeDictionary(Application app, string? theme)
         {
             var dictionaries = app.Resources.MergedDictionaries;
-            var themeUri = IsDarkBaseTheme(theme) ? DarkThemeUri : LightThemeUri;
+            var themeUri = GetThemeUri(theme);
             var insertIndex = 0;
             var existingTheme = FindThemeDictionary(dictionaries);
 
@@ -301,10 +303,19 @@ namespace InventoryManagementApp.Services
 
             var leftText = left.OriginalString.Replace('\\', '/');
             var rightText = right.OriginalString.Replace('\\', '/');
-            return leftText.EndsWith("Resources/Colors.Dark.xaml", StringComparison.OrdinalIgnoreCase) &&
-                   rightText.EndsWith("Resources/Colors.Dark.xaml", StringComparison.OrdinalIgnoreCase) ||
-                   leftText.EndsWith("Resources/Colors.Light.xaml", StringComparison.OrdinalIgnoreCase) &&
-                   rightText.EndsWith("Resources/Colors.Light.xaml", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(GetThemeResourceName(leftText), GetThemeResourceName(rightText), StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static Uri GetThemeUri(string? theme)
+        {
+            var normalized = AppThemeSettings.CreateDefault(theme).BaseTheme;
+            return normalized switch
+            {
+                "SD European Dark" => SDEuropeanDarkThemeUri,
+                "SD European Light" => SDEuropeanLightThemeUri,
+                _ when IsDarkBaseTheme(normalized) => DarkThemeUri,
+                _ => LightThemeUri
+            };
         }
 
         private static bool IsDarkBaseTheme(string? theme)
@@ -318,7 +329,20 @@ namespace InventoryManagementApp.Services
         {
             var source = dictionary.Source?.OriginalString.Replace('\\', '/');
             return source?.EndsWith("Resources/Colors.Light.xaml", StringComparison.OrdinalIgnoreCase) == true ||
-                   source?.EndsWith("Resources/Colors.Dark.xaml", StringComparison.OrdinalIgnoreCase) == true;
+                   source?.EndsWith("Resources/Colors.Dark.xaml", StringComparison.OrdinalIgnoreCase) == true ||
+                   source?.EndsWith("Resources/Colors.SDEuropeanLight.xaml", StringComparison.OrdinalIgnoreCase) == true ||
+                   source?.EndsWith("Resources/Colors.SDEuropeanDark.xaml", StringComparison.OrdinalIgnoreCase) == true;
+        }
+
+        private static string? GetThemeResourceName(string? source)
+        {
+            if (string.IsNullOrWhiteSpace(source))
+                return null;
+
+            var normalized = source.Replace('\\', '/');
+            var marker = "Resources/";
+            var markerIndex = normalized.LastIndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            return markerIndex >= 0 ? normalized[(markerIndex + marker.Length)..] : normalized;
         }
 
         private static void Set(ResourceDictionary resources, string key, object value)

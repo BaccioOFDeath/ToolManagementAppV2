@@ -166,6 +166,24 @@ namespace InventoryManagementApp.Tests.Models
         }
 
         [Theory]
+        [InlineData("SD European Light", "#FFF7F8FA", "#FFF5B700", "#FFFFFFFF")]
+        [InlineData("SD European Dark", "#FF0F0F0F", "#FFF5B700", "#FF1C1C1E")]
+        public void CreateDefault_BuildsSDEuropeanThemePalettes(string theme, string background, string button, string surface)
+        {
+            var settings = AppThemeSettings.CreateDefault(theme);
+
+            Assert.Equal(theme, settings.BaseTheme);
+            Assert.Equal(background, settings.BackgroundColor);
+            Assert.Equal(surface, settings.SurfaceColor);
+            Assert.Equal("#FFF5B700", settings.AccentColor);
+            Assert.Equal(button, settings.ButtonColor);
+            Assert.Equal("#FF0F0F0F", settings.SelectedTextColor);
+            Assert.Equal(12, settings.CardCornerRadius);
+            Assert.Equal(20, settings.ButtonCornerRadius);
+            Assert.Equal(32, settings.ControlHeight);
+        }
+
+        [Theory]
         [InlineData("None")]
         [InlineData("Fill")]
         [InlineData("Uniform")]

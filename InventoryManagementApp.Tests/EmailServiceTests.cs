@@ -85,15 +85,35 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Contact the rental team", html, StringComparison.Ordinal);
             Assert.Contains("background:#0f0f0f", html, StringComparison.Ordinal);
             Assert.Contains("background:#f5b700", html, StringComparison.Ordinal);
-            Assert.Contains("border-radius:20px", html, StringComparison.Ordinal);
-            Assert.Contains("width=\"640\"", html, StringComparison.Ordinal);
-            Assert.Contains("style=\"width:640px;max-width:640px", html, StringComparison.Ordinal);
-            Assert.Contains("max-width:520px", html, StringComparison.Ordinal);
-            Assert.Contains("max-width:190px", html, StringComparison.Ordinal);
-            Assert.Contains("max-height:190px", html, StringComparison.Ordinal);
-            Assert.Contains("<span class=\"fact-label\">Item Number</span><span class=\"fact-value\">TL-101</span>", html, StringComparison.Ordinal);
-            Assert.Contains("<span class=\"fact-label\">Due Date</span><span class=\"fact-value\">2026-06-30</span>", html, StringComparison.Ordinal);
+            Assert.Contains("border-radius:16px", html, StringComparison.Ordinal);
+            Assert.Contains("width=\"600\"", html, StringComparison.Ordinal);
+            Assert.Contains("style=\"width:600px;max-width:600px", html, StringComparison.Ordinal);
+            Assert.Contains("max-width:540px", html, StringComparison.Ordinal);
+            Assert.Contains("max-width:180px", html, StringComparison.Ordinal);
+            Assert.Contains("max-height:180px", html, StringComparison.Ordinal);
+            Assert.Contains("<td style=\"width:38%;padding:13px 16px;background:#f7f8fa;border-top:0;color:#6b7280;font-size:12px;font-weight:700;\">Item Number</td>", html, StringComparison.Ordinal);
+            Assert.Contains("<td style=\"padding:13px 16px;border-top:0;color:#1c1c1e;font-size:15px;font-weight:800;\">TL-101</td>", html, StringComparison.Ordinal);
+            Assert.Contains("<td style=\"width:38%;padding:13px 16px;background:#f7f8fa;border-top:1px solid #e2e4e8;color:#6b7280;font-size:12px;font-weight:700;\">Due Date</td>", html, StringComparison.Ordinal);
+            Assert.Contains("<td style=\"padding:13px 16px;border-top:1px solid #e2e4e8;color:#1c1c1e;font-size:15px;font-weight:800;\">2026-06-30</td>", html, StringComparison.Ordinal);
             Assert.DoesNotContain("WOF", html, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void BuildBrandedHtml_UsesReturnRequiredTreatmentForOverdueItems()
+        {
+            var html = EmailService.BuildBrandedHtml(
+                "Overdue: Item TL-318",
+                "Dear Customer,\n\nItem Number: TL-318\nDue Date: 2026-06-26\nDays Overdue: 3",
+                "SD European",
+                null,
+                null,
+                null);
+
+            Assert.Contains("Return required", html, StringComparison.Ordinal);
+            Assert.Contains("Please return the item or contact the rental team to arrange an extension.", html, StringComparison.Ordinal);
+            Assert.Contains("#b91c1c", html, StringComparison.Ordinal);
+            Assert.Contains("Days Overdue", html, StringComparison.Ordinal);
+            Assert.Contains(">3</td>", html, StringComparison.Ordinal);
         }
 
         [Fact]

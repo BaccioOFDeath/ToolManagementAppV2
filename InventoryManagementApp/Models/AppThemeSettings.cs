@@ -96,7 +96,109 @@ namespace InventoryManagementApp.Models
             if (!string.IsNullOrWhiteSpace(baseTheme))
                 settings.BaseTheme = NormalizeBaseTheme(baseTheme);
 
-            if (string.Equals(settings.BaseTheme, "Dark", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(settings.BaseTheme, "SD European Light", StringComparison.OrdinalIgnoreCase))
+            {
+                settings.BackgroundColor = "#FFF7F8FA";
+                settings.BackgroundOverlayColor = "#00FFFFFF";
+                settings.SurfaceColor = "#FFFFFFFF";
+                settings.SurfaceAltColor = "#FFF1F2F5";
+                settings.NavigationColor = "#FF0F0F0F";
+                settings.InputColor = "#FFFFFFFF";
+                settings.ButtonColor = "#FFF5B700";
+                settings.BorderColor = "#FFE2E4E8";
+                settings.TextColor = "#FF1C1C1E";
+                settings.MutedTextColor = "#FF6B7280";
+                settings.AccentColor = "#FFF5B700";
+                settings.HoverColor = "#FFFFF4CC";
+                settings.HoverTextColor = "#FF0F0F0F";
+                settings.SelectedColor = "#FFF5B700";
+                settings.SelectedTextColor = "#FF0F0F0F";
+                settings.SuccessColor = "#FF15803D";
+                settings.WarningColor = "#FFC99500";
+                settings.ErrorColor = "#FFDC2626";
+                settings.ShadowColor = "#33000000";
+                settings.DashboardHeaderColor = settings.SurfaceColor;
+                settings.SearchHeaderColor = settings.SurfaceColor;
+                settings.ManageItemsHeaderColor = settings.SurfaceColor;
+                settings.RentalsHeaderColor = settings.SurfaceColor;
+                settings.CustomersHeaderColor = settings.SurfaceColor;
+                settings.ReservationsHeaderColor = settings.SurfaceColor;
+                settings.MaintenanceHeaderColor = settings.SurfaceColor;
+                settings.CalibrationHeaderColor = settings.SurfaceColor;
+                settings.KitsHeaderColor = settings.SurfaceColor;
+                settings.CategoriesHeaderColor = settings.SurfaceColor;
+                settings.ReportsHeaderColor = settings.SurfaceColor;
+                settings.ActivityLogsHeaderColor = settings.SurfaceColor;
+                settings.ImportExportHeaderColor = settings.SurfaceColor;
+                settings.UsersHeaderColor = settings.SurfaceColor;
+                settings.SettingsHeaderColor = settings.SurfaceColor;
+                settings.CardCornerRadius = 12;
+                settings.PanelCornerRadius = 12;
+                settings.ButtonCornerRadius = 20;
+                settings.InputCornerRadius = 8;
+                settings.ShadowBlurRadius = 20;
+                settings.ShadowDepth = 3;
+                settings.ShadowOpacity = 0.08;
+                settings.PagePadding = 10;
+                settings.CardPadding = 12;
+                settings.FontFamily = "Inter, Segoe UI";
+                settings.ControlHeight = 32;
+                settings.DataGridRowHeight = 34;
+                settings.DataGridHeaderHeight = 34;
+                settings.GridLineOpacity = 0.34;
+            }
+            else if (string.Equals(settings.BaseTheme, "SD European Dark", StringComparison.OrdinalIgnoreCase))
+            {
+                settings.BackgroundColor = "#FF0F0F0F";
+                settings.BackgroundOverlayColor = "#000F0F0F";
+                settings.SurfaceColor = "#FF1C1C1E";
+                settings.SurfaceAltColor = "#FF242426";
+                settings.NavigationColor = "#FF0F0F0F";
+                settings.InputColor = "#FF242426";
+                settings.ButtonColor = "#FFF5B700";
+                settings.BorderColor = "#FF343438";
+                settings.TextColor = "#FFFFFFFF";
+                settings.MutedTextColor = "#FFB8BDC7";
+                settings.AccentColor = "#FFF5B700";
+                settings.HoverColor = "#FF2F2B18";
+                settings.HoverTextColor = "#FFFFFFFF";
+                settings.SelectedColor = "#FFF5B700";
+                settings.SelectedTextColor = "#FF0F0F0F";
+                settings.SuccessColor = "#FF4ADE80";
+                settings.WarningColor = "#FFF5B700";
+                settings.ErrorColor = "#FFF87171";
+                settings.ShadowColor = "#99000000";
+                settings.DashboardHeaderColor = settings.SurfaceColor;
+                settings.SearchHeaderColor = settings.SurfaceColor;
+                settings.ManageItemsHeaderColor = settings.SurfaceColor;
+                settings.RentalsHeaderColor = settings.SurfaceColor;
+                settings.CustomersHeaderColor = settings.SurfaceColor;
+                settings.ReservationsHeaderColor = settings.SurfaceColor;
+                settings.MaintenanceHeaderColor = settings.SurfaceColor;
+                settings.CalibrationHeaderColor = settings.SurfaceColor;
+                settings.KitsHeaderColor = settings.SurfaceColor;
+                settings.CategoriesHeaderColor = settings.SurfaceColor;
+                settings.ReportsHeaderColor = settings.SurfaceColor;
+                settings.ActivityLogsHeaderColor = settings.SurfaceColor;
+                settings.ImportExportHeaderColor = settings.SurfaceColor;
+                settings.UsersHeaderColor = settings.SurfaceColor;
+                settings.SettingsHeaderColor = settings.SurfaceColor;
+                settings.CardCornerRadius = 12;
+                settings.PanelCornerRadius = 12;
+                settings.ButtonCornerRadius = 20;
+                settings.InputCornerRadius = 8;
+                settings.ShadowBlurRadius = 24;
+                settings.ShadowDepth = 4;
+                settings.ShadowOpacity = 0.28;
+                settings.PagePadding = 10;
+                settings.CardPadding = 12;
+                settings.FontFamily = "Inter, Segoe UI";
+                settings.ControlHeight = 32;
+                settings.DataGridRowHeight = 34;
+                settings.DataGridHeaderHeight = 34;
+                settings.GridLineOpacity = 0.5;
+            }
+            else if (string.Equals(settings.BaseTheme, "Dark", StringComparison.OrdinalIgnoreCase))
             {
                 settings.BackgroundColor = "#FF101418";
                 settings.BackgroundOverlayColor = "#CC101418";
@@ -369,6 +471,17 @@ namespace InventoryManagementApp.Models
 
         private static string NormalizeBaseTheme(string? value)
         {
+            if (value?.IndexOf("SD European", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                value?.IndexOf("Dark", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "SD European Dark";
+            }
+
+            if (value?.IndexOf("SD European", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "SD European Light";
+            }
+
             if ((value?.IndexOf("VS Code", StringComparison.OrdinalIgnoreCase) >= 0 ||
                  value?.IndexOf("VSCode", StringComparison.OrdinalIgnoreCase) >= 0 ||
                  value?.IndexOf("Visual Studio Code", StringComparison.OrdinalIgnoreCase) >= 0) &&

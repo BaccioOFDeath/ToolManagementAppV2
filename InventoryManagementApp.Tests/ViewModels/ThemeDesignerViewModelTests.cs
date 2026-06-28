@@ -114,6 +114,8 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             Assert.Contains("VS Code", viewModel.ThemeOptions);
             Assert.Contains("VS Code Light", viewModel.ThemeOptions);
+            Assert.Contains("SD European Light", viewModel.ThemeOptions);
+            Assert.Contains("SD European Dark", viewModel.ThemeOptions);
 
             viewModel.BaseTheme = "VS Code";
 
@@ -147,6 +149,35 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.NotNull(themeService.LastCustomTheme);
             Assert.Equal("VS Code Light", themeService.LastCustomTheme!.BaseTheme);
             Assert.Equal("VS Code Light theme previewed. Save to keep it.", viewModel.Status);
+        }
+
+        [Fact]
+        public async Task ThemeOptions_ExposeSDEuropeanBaseThemes()
+        {
+            var settingsService = new FakeSettingsService();
+            var themeService = new RecordingThemeService();
+            var viewModel = CreateViewModel(settingsService, themeService);
+            await viewModel.InitializeAsync();
+
+            viewModel.BaseTheme = "SD European Dark";
+
+            var darkDefaults = AppThemeSettings.CreateDefault("SD European Dark");
+            Assert.Equal("SD European Dark", viewModel.BaseTheme);
+            Assert.Equal(darkDefaults.BackgroundColor, viewModel.BackgroundColor);
+            Assert.Equal(darkDefaults.NavigationColor, viewModel.NavigationColor);
+            Assert.Equal(darkDefaults.AccentColor, viewModel.AccentColor);
+            Assert.NotNull(themeService.LastCustomTheme);
+            Assert.Equal("SD European Dark", themeService.LastCustomTheme!.BaseTheme);
+            Assert.Equal("SD European Dark theme previewed. Save to keep it.", viewModel.Status);
+
+            viewModel.BaseTheme = "SD European Light";
+
+            var lightDefaults = AppThemeSettings.CreateDefault("SD European Light");
+            Assert.Equal("SD European Light", viewModel.BaseTheme);
+            Assert.Equal(lightDefaults.BackgroundColor, viewModel.BackgroundColor);
+            Assert.Equal(lightDefaults.NavigationColor, viewModel.NavigationColor);
+            Assert.Equal(lightDefaults.AccentColor, viewModel.AccentColor);
+            Assert.Equal("SD European Light", themeService.LastCustomTheme!.BaseTheme);
         }
 
         [Fact]

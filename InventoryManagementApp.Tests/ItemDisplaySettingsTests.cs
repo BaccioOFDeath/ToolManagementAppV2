@@ -348,7 +348,7 @@ public class ItemDisplaySettingsTests
     }
 
     [Fact]
-    public async Task SettingsViewModel_ThemeOptionsIncludeVSCodeAndPersistDefaultPalette()
+    public async Task SettingsViewModel_ThemeOptionsIncludePresetThemesAndPersistDefaultPalette()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         await using var db = new DatabaseService(dbPath);
@@ -359,14 +359,16 @@ public class ItemDisplaySettingsTests
 
         Assert.Contains("VS Code", vm.ThemeOptions);
         Assert.Contains("VS Code Light", vm.ThemeOptions);
+        Assert.Contains("SD European Light", vm.ThemeOptions);
+        Assert.Contains("SD European Dark", vm.ThemeOptions);
 
-        vm.Theme = "VS Code Light";
+        vm.Theme = "SD European Light";
         await Task.Delay(100);
 
         var saved = await ((ISettingsService)settings).GetAppThemeSettingsAsync();
-        var defaults = AppThemeSettings.CreateDefault("VS Code Light");
-        Assert.Equal("VS Code Light", await settings.GetThemeAsync());
-        Assert.Equal("VS Code Light", saved.BaseTheme);
+        var defaults = AppThemeSettings.CreateDefault("SD European Light");
+        Assert.Equal("SD European Light", await settings.GetThemeAsync());
+        Assert.Equal("SD European Light", saved.BaseTheme);
         Assert.Equal(defaults.NavigationColor, saved.NavigationColor);
         Assert.Equal(defaults.SelectedColor, saved.SelectedColor);
         Assert.NotNull(theme.LastCustomTheme);

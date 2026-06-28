@@ -237,6 +237,23 @@ namespace InventoryManagementApp.Tests
             });
         }
 
+        [Theory]
+        [InlineData("SD European Light", "Colors.SDEuropeanLight.xaml")]
+        [InlineData("SD European Dark", "Colors.SDEuropeanDark.xaml")]
+        public async Task ApplyTheme_LoadsSDEuropeanDictionaries(string theme, string resourceName)
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                service.ApplyTheme(theme);
+                Assert.Contains(resourceName, app.Resources.MergedDictionaries[0].Source.OriginalString);
+                Assert.Equal(Color.FromRgb(0xF5, 0xB7, 0x00), (Color)app.Resources["Col.Accent"]);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
         [Fact]
         public async Task ApplyCustomTheme_UsesSeparateHoverAndSelectedColors()
         {
@@ -354,6 +371,27 @@ namespace InventoryManagementApp.Tests
                 var selected = ((SolidColorBrush)app.Resources["ItemSelectedBrush"]).Color;
                 Assert.Equal((0xAD, 0xD6, 0xFF), (selected.R, selected.G, selected.B));
                 Assert.Equal(new CornerRadius(2), (CornerRadius)app.Resources["ThemeInputCornerRadius"]);
+                WpfTestHelper.ShutdownApplication();
+                await Task.CompletedTask;
+            });
+        }
+
+        [Fact]
+        public async Task ApplyCustomTheme_AppliesSDEuropeanDarkPaletteToRuntimeResources()
+        {
+            await RunOnStaThread(async () =>
+            {
+                var app = WpfTestHelper.CreateApplication();
+                var service = new ThemeService();
+                var settings = AppThemeSettings.CreateDefault("SD European Dark");
+
+                service.ApplyCustomTheme(settings);
+
+                Assert.Contains("Colors.SDEuropeanDark.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
+                Assert.Equal(Color.FromRgb(0x0F, 0x0F, 0x0F), ((SolidColorBrush)app.Resources["BackgroundBrush"]).Color);
+                Assert.Equal(Color.FromRgb(0xF5, 0xB7, 0x00), ((SolidColorBrush)app.Resources["AccentBrush"]).Color);
+                Assert.Equal(Color.FromRgb(0x24, 0x24, 0x26), ((SolidColorBrush)app.Resources["TextBoxBackgroundBrush"]).Color);
+                Assert.Equal(new CornerRadius(8), (CornerRadius)app.Resources["ThemeInputCornerRadius"]);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });
