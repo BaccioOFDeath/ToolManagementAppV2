@@ -62,6 +62,10 @@ namespace InventoryManagementApp.Tests
                 source,
                 "public async Task<FlowDocument> GenerateReservationReport(bool activeOnly = true)",
                 "public async Task<FlowDocument> GenerateKitReport()");
+            var kitReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateKitReport()",
+                "private async Task<int> CountItemsAsync()");
 
             Assert.Contains("Log ID: {l.LogID}", activityLogReport, StringComparison.Ordinal);
             Assert.Contains("User ID: {l.UserID}", activityLogReport, StringComparison.Ordinal);
@@ -74,6 +78,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Certificate Number: {c.CertificateNumber}", calibrationReport, StringComparison.Ordinal);
             Assert.Contains("Reservation ID: {r.ReservationID}", reservationReport, StringComparison.Ordinal);
             Assert.Contains("Quantity: {r.Quantity}", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("Kit Number: {kit.KitNumber}", kitReport, StringComparison.Ordinal);
+            Assert.Contains("Kit Name: {kit.Name}", kitReport, StringComparison.Ordinal);
+            Assert.Contains("Item Count: {itemCount}", kitReport, StringComparison.Ordinal);
 
             Assert.DoesNotContain("LogID:", activityLogReport, StringComparison.Ordinal);
             Assert.DoesNotContain("UserID:", activityLogReport, StringComparison.Ordinal);
@@ -86,6 +93,8 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("$\"ID: {r.ReservationID}", reservationReport, StringComparison.Ordinal);
             Assert.DoesNotContain("Cert#:", calibrationReport, StringComparison.Ordinal);
             Assert.DoesNotContain("Qty:", reservationReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("Kit: {kit.KitNumber}", kitReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("Items: {itemCount}", kitReport, StringComparison.Ordinal);
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)
