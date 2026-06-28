@@ -11,6 +11,30 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
 
+            var rentMethod = ExtractMethod(
+                source,
+                "public async Task RentItemAsync(int itemID, int customerID, DateTime rentalDate, DateTime dueDate)",
+                "public async Task ReturnItemAsync");
+            AssertContainsAll(
+                rentMethod,
+                "var insertedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, tx,",
+                "INSERT INTO Rentals (ItemID, CustomerID, RentalDate, DueDate, Status)",
+                "if (insertedRows == 0)",
+                "throw new InvalidOperationException(\"Unable to create rental.\");",
+                "await _itemService.UpdateItemQuantitiesAsync(itemID, 1, true, conn, tx);");
+            Assert.True(
+                rentMethod.IndexOf("var insertedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, tx,", StringComparison.Ordinal) <
+                rentMethod.IndexOf("if (insertedRows == 0)", StringComparison.Ordinal),
+                "Expected rental create writes to inspect affected rows after executing the insert.");
+            Assert.True(
+                rentMethod.IndexOf("if (insertedRows == 0)", StringComparison.Ordinal) <
+                rentMethod.IndexOf("await _itemService.UpdateItemQuantitiesAsync(itemID, 1, true, conn, tx);", StringComparison.Ordinal),
+                "Expected failed rental creates to stop before inventory quantity sync.");
+            Assert.True(
+                rentMethod.IndexOf("if (insertedRows == 0)", StringComparison.Ordinal) <
+                rentMethod.IndexOf("await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $\"Rented item {itemID} to customer {customerID}\").ConfigureAwait(false);", StringComparison.Ordinal),
+                "Expected failed rental creates to stop before activity logging can report success.");
+
             var returnMethod = ExtractMethod(
                 source,
                 "public async Task ReturnItemAsync(int rentalID, DateTime returnDate)",
