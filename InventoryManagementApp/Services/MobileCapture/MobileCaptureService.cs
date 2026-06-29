@@ -33,8 +33,10 @@ namespace InventoryManagementApp.Services.MobileCapture
         private readonly IConfiguration _configuration;
         private readonly ILogger<MobileCaptureService> _logger;
         private readonly SemaphoreSlim _gate = new(1, 1);
+        private static readonly TimeSpan SessionDuration = TimeSpan.FromHours(12);
         private WebApplication? _app;
         private string _token = string.Empty;
+        private User? _sessionUser;
         private DateTime _expiresAt;
         private int _port;
 
@@ -53,7 +55,8 @@ namespace InventoryManagementApp.Services.MobileCapture
             try
             {
                 _token = CreateToken();
-                _expiresAt = DateTime.Now.AddHours(4);
+                _sessionUser = _services.GetService<IUserContext>()?.CurrentUser;
+                _expiresAt = DateTime.Now.Add(SessionDuration);
                 _port = GetPort();
 
                 if (_app == null)
@@ -97,6 +100,7 @@ namespace InventoryManagementApp.Services.MobileCapture
                 await _app.DisposeAsync().ConfigureAwait(false);
                 _app = null;
                 _token = string.Empty;
+                _sessionUser = null;
                 _logger.LogInformation("Mobile capture server stopped");
             }
             finally
@@ -162,7 +166,9 @@ namespace InventoryManagementApp.Services.MobileCapture
             if (image is { Length: > 0 })
                 item.ImagePath = await SaveUploadAsync(image, "ItemImages", item.ItemNumber, cancellationToken).ConfigureAwait(false);
 
-            await itemService.AddItemAsync(item, cancellationToken).ConfigureAwait(false);
+            await RunAsSessionUserAsync(
+                () => itemService.AddItemAsync(item, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
             return Results.Content(CreateResultHtml("Item added", $"{Escape(item.ItemNumber)} {Escape(item.Name)} was saved.", _token), "text/html", Encoding.UTF8);
         }
 
@@ -187,9 +193,33 @@ namespace InventoryManagementApp.Services.MobileCapture
             var stage = NormalizeStage(form["photoStage"]);
             var rentalId = ParseNullableInt(form["rentalId"]);
             var filePath = await SaveUploadAsync(photo, "RentalPhotos", $"{item.ItemNumber}-{stage}", cancellationToken).ConfigureAwait(false);
-            await InsertRentalPhotoAsync(item.ItemID, rentalId, stage, filePath, form["rentalPhotoNotes"].ToString(), cancellationToken).ConfigureAwait(false);
+            await RunAsSessionUserAsync(
+                () => InsertRentalPhotoAsync(item.ItemID, rentalId, stage, filePath, form["rentalPhotoNotes"].ToString(), cancellationToken),
+                cancellationToken).ConfigureAwait(false);
 
             return Results.Content(CreateResultHtml("Rental photo saved", $"{Escape(stage)} photo saved for {Escape(item.ItemNumber)}.", _token), "text/html", Encoding.UTF8);
+        }
+
+        private async Task RunAsSessionUserAsync(Func<Task> action, CancellationToken cancellationToken)
+        {
+            var context = _services.GetService<IUserContext>();
+            if (context == null || _sessionUser == null)
+            {
+                await action().ConfigureAwait(false);
+                return;
+            }
+
+            var previousUser = context.CurrentUser;
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                context.CurrentUser = _sessionUser;
+                await action().ConfigureAwait(false);
+            }
+            finally
+            {
+                context.CurrentUser = previousUser;
+            }
         }
 
         private async Task<ItemModel?> FindItemByNumberAsync(string itemNumber, CancellationToken cancellationToken)

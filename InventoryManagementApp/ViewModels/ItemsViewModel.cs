@@ -523,20 +523,13 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var session = await _mobileCaptureService.StartSessionAsync(ct).ConfigureAwait(false);
-                try
+                await InvokeOnUiThreadAsync(() =>
                 {
-                    await InvokeOnUiThreadAsync(() =>
-                    {
-                        var window = new MobileCaptureWindow(session);
-                        try { window.Owner = Application.Current?.MainWindow; }
-                        catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for MobileCaptureWindow"); }
-                        window.ShowDialog();
-                    }).ConfigureAwait(false);
-                }
-                finally
-                {
-                    await _mobileCaptureService.StopAsync(CancellationToken.None).ConfigureAwait(false);
-                }
+                    var window = new MobileCaptureWindow(session);
+                    try { window.Owner = Application.Current?.MainWindow; }
+                    catch (Exception ex) { _logger.LogError(ex, "Failed to set owner for MobileCaptureWindow"); }
+                    window.ShowDialog();
+                }).ConfigureAwait(false);
 
                 InvokeOnUiThread(Items.Reset);
                 await Items.LoadMoreAsync(ct).ConfigureAwait(false);
