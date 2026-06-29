@@ -373,8 +373,7 @@ namespace InventoryManagementApp.Services.Customers
 
             const string sql = @"
         INSERT INTO Customers (Company, Email, Contact, Phone, Mobile, Address)
-        VALUES (@Company, @Email, @Contact, @Phone, @Mobile, @Address);
-        SELECT last_insert_rowid();";
+        VALUES (@Company, @Email, @Contact, @Phone, @Mobile, @Address);";
 
             var p = new[]
             {
@@ -390,7 +389,13 @@ namespace InventoryManagementApp.Services.Customers
             {
                 using var cmd = new SqliteCommand(sql, conn, tran);
                 cmd.Parameters.AddRange(p);
-                customer.CustomerID = Convert.ToInt32(await cmd.ExecuteScalarAsync(cancellationToken));
+                var insertedRows = await cmd.ExecuteNonQueryAsync(cancellationToken);
+                EnsureCustomerCreateSucceeded(insertedRows);
+
+                using var idCmd = new SqliteCommand("SELECT last_insert_rowid();", conn, tran);
+                customer.CustomerID = Convert.ToInt32(await idCmd.ExecuteScalarAsync(cancellationToken));
+                if (customer.CustomerID < 1)
+                    throw new InvalidOperationException("Unable to create customer.");
             }
             catch (Exception ex)
             {
@@ -436,6 +441,12 @@ namespace InventoryManagementApp.Services.Customers
 
             if (count == 0)
                 throw new KeyNotFoundException($"Customer {customerID} not found.");
+        }
+
+        static void EnsureCustomerCreateSucceeded(int affectedRows)
+        {
+            if (affectedRows == 0)
+                throw new InvalidOperationException("Unable to create customer.");
         }
 
         static void EnsureCustomerWriteSucceeded(int affectedRows, int customerID)
