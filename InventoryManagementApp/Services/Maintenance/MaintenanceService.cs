@@ -182,8 +182,7 @@ namespace InventoryManagementApp.Services.Maintenance
                      PerformedBy, Cost, Status, Notes, UserID, CreatedAt)
                     VALUES 
                     (@ItemID, @ScheduledDate, @CompletedDate, @MaintenanceType, @Description, 
-                     @PerformedBy, @Cost, @Status, @Notes, @UserID, @CreatedAt);
-                    SELECT last_insert_rowid();";
+                     @PerformedBy, @Cost, @Status, @Notes, @UserID, @CreatedAt)";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ItemID", record.ItemID);
                 cmd.Parameters.AddWithValue("@ScheduledDate", record.ScheduledDate);
@@ -196,7 +195,14 @@ namespace InventoryManagementApp.Services.Maintenance
                 cmd.Parameters.AddWithValue("@Notes", record.Notes);
                 cmd.Parameters.AddWithValue("@UserID", _userContext.CurrentUser?.UserID ?? 0);
                 cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
-                var id = Convert.ToInt32(cmd.ExecuteScalar());
+                var insertedRows = cmd.ExecuteNonQuery();
+                EnsureMaintenanceCreateSucceeded(insertedRows);
+
+                using var idCmd = new SqliteCommand("SELECT last_insert_rowid();", conn);
+                var id = Convert.ToInt32(idCmd.ExecuteScalar());
+                if (id < 1)
+                    throw new InvalidOperationException("Unable to create maintenance record.");
+
                 return id;
             });
         }
@@ -314,6 +320,12 @@ namespace InventoryManagementApp.Services.Maintenance
                 UserID = reader.IsDBNull(reader.GetOrdinal("UserID")) ? 0 : reader.GetInt32(reader.GetOrdinal("UserID")),
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
             };
+        }
+
+        private static void EnsureMaintenanceCreateSucceeded(int affectedRows)
+        {
+            if (affectedRows == 0)
+                throw new InvalidOperationException("Unable to create maintenance record.");
         }
 
         private static void EnsureItemExists(SqliteConnection conn, int itemID)
