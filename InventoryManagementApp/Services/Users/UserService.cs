@@ -473,9 +473,8 @@ namespace InventoryManagementApp.Services.Users
             };
             using var conn = _dbService.CreateConnection();
             int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
-            if (rows == 0)
-                _logger.LogWarning("Password update affected 0 rows for UserID {UserID}", userID);
-            return rows > 0;
+            EnsureUserWriteSucceeded(rows, userID);
+            return true;
         }
 
         async Task<bool> DeleteUserInternalAsync(int userID)
