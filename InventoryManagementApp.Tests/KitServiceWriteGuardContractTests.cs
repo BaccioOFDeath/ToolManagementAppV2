@@ -7,6 +7,38 @@ namespace InventoryManagementApp.Tests
     public class KitServiceWriteGuardContractTests
     {
         [Fact]
+        public void KitCreateChecksInsertedRowsBeforeReturningId()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Kits", "KitService.cs");
+            var createMethod = ExtractMethod(
+                source,
+                "public async Task<int> CreateKitAsync",
+                "public async Task<bool> UpdateKitAsync");
+
+            AssertCreateGuard(
+                createMethod,
+                "EnsureKitCreateSucceeded(insertedRows);",
+                "Unable to create kit.");
+            Assert.Contains("private static void EnsureKitCreateSucceeded(int affectedRows)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void KitItemCreateChecksInsertedRowsBeforeReturningId()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Kits", "KitService.cs");
+            var createMethod = ExtractMethod(
+                source,
+                "public async Task<int> AddKitItemAsync",
+                "public async Task<bool> UpdateKitItemAsync");
+
+            AssertCreateGuard(
+                createMethod,
+                "EnsureKitItemCreateSucceeded(insertedRows);",
+                "Unable to add kit item.");
+            Assert.Contains("private static void EnsureKitItemCreateSucceeded(int affectedRows)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void KitWritesThrowWhenNoRowsAreAffected()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Kits", "KitService.cs");
@@ -48,6 +80,34 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("private static void EnsureKitItemWriteSucceeded(int affectedRows)", source, StringComparison.Ordinal);
             Assert.Contains("throw new InvalidOperationException(\"Kit item not found.\");", source, StringComparison.Ordinal);
+        }
+
+        private static void AssertCreateGuard(
+            string createMethod,
+            string guardSnippet,
+            string failureMessage)
+        {
+            Assert.Contains("var insertedRows = cmd.ExecuteNonQuery();", createMethod, StringComparison.Ordinal);
+            Assert.Contains(guardSnippet, createMethod, StringComparison.Ordinal);
+            Assert.Contains("using var idCmd = new SqliteCommand(\"SELECT last_insert_rowid();\", conn);", createMethod, StringComparison.Ordinal);
+            Assert.Contains("if (id < 1)", createMethod, StringComparison.Ordinal);
+            Assert.Contains($"throw new InvalidOperationException(\"{failureMessage}\");", createMethod, StringComparison.Ordinal);
+            Assert.Contains("return id;", createMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("cmd.ExecuteScalar()", createMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("SELECT last_insert_rowid();\";", createMethod, StringComparison.Ordinal);
+
+            Assert.True(
+                createMethod.IndexOf("var insertedRows = cmd.ExecuteNonQuery();", StringComparison.Ordinal) <
+                createMethod.IndexOf(guardSnippet, StringComparison.Ordinal),
+                "Expected create methods to inspect affected rows immediately after executing the insert.");
+            Assert.True(
+                createMethod.IndexOf(guardSnippet, StringComparison.Ordinal) <
+                createMethod.IndexOf("using var idCmd = new SqliteCommand(\"SELECT last_insert_rowid();\", conn);", StringComparison.Ordinal),
+                "Expected failed creates to stop before reading the inserted id.");
+            Assert.True(
+                createMethod.IndexOf("if (id < 1)", StringComparison.Ordinal) <
+                createMethod.IndexOf("return id;", StringComparison.Ordinal),
+                "Expected create methods to reject invalid inserted ids before reporting success.");
         }
 
         private static void AssertWriteGuard(

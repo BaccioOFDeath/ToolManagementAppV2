@@ -144,8 +144,7 @@ namespace InventoryManagementApp.Services.Kits
                     INSERT INTO Kits 
                     (KitNumber, Name, Description, Category, IsActive, CreatedByUserID, CreatedAt, UpdatedAt)
                     VALUES 
-                    (@KitNumber, @Name, @Description, @Category, @IsActive, @CreatedByUserID, @CreatedAt, @UpdatedAt);
-                    SELECT last_insert_rowid();";
+                    (@KitNumber, @Name, @Description, @Category, @IsActive, @CreatedByUserID, @CreatedAt, @UpdatedAt)";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber.Trim());
                 cmd.Parameters.AddWithValue("@Name", kit.Name.Trim());
@@ -155,7 +154,13 @@ namespace InventoryManagementApp.Services.Kits
                 cmd.Parameters.AddWithValue("@CreatedByUserID", _userContext.CurrentUser?.UserID ?? 0);
                 cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
                 cmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
-                var id = Convert.ToInt32(cmd.ExecuteScalar());
+                var insertedRows = cmd.ExecuteNonQuery();
+                EnsureKitCreateSucceeded(insertedRows);
+
+                using var idCmd = new SqliteCommand("SELECT last_insert_rowid();", conn);
+                var id = Convert.ToInt32(idCmd.ExecuteScalar());
+                if (id < 1)
+                    throw new InvalidOperationException("Unable to create kit.");
                 return id;
             });
         }
@@ -239,14 +244,19 @@ namespace InventoryManagementApp.Services.Kits
                     INSERT INTO KitItems 
                     (KitID, ItemID, Quantity, IsOptional)
                     VALUES 
-                    (@KitID, @ItemID, @Quantity, @IsOptional);
-                    SELECT last_insert_rowid();";
+                    (@KitID, @ItemID, @Quantity, @IsOptional)";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitID", kitItem.KitID);
                 cmd.Parameters.AddWithValue("@ItemID", kitItem.ItemID);
                 cmd.Parameters.AddWithValue("@Quantity", kitItem.Quantity);
                 cmd.Parameters.AddWithValue("@IsOptional", kitItem.IsOptional ? 1 : 0);
-                var id = Convert.ToInt32(cmd.ExecuteScalar());
+                var insertedRows = cmd.ExecuteNonQuery();
+                EnsureKitItemCreateSucceeded(insertedRows);
+
+                using var idCmd = new SqliteCommand("SELECT last_insert_rowid();", conn);
+                var id = Convert.ToInt32(idCmd.ExecuteScalar());
+                if (id < 1)
+                    throw new InvalidOperationException("Unable to add kit item.");
                 return id;
             });
         }
@@ -389,10 +399,22 @@ namespace InventoryManagementApp.Services.Kits
                 throw new InvalidOperationException("Kit item not found.");
         }
 
+        private static void EnsureKitCreateSucceeded(int affectedRows)
+        {
+            if (affectedRows == 0)
+                throw new InvalidOperationException("Unable to create kit.");
+        }
+
         private static void EnsureKitWriteSucceeded(int affectedRows)
         {
             if (affectedRows == 0)
                 throw new InvalidOperationException("Kit not found.");
+        }
+
+        private static void EnsureKitItemCreateSucceeded(int affectedRows)
+        {
+            if (affectedRows == 0)
+                throw new InvalidOperationException("Unable to add kit item.");
         }
 
         private static void EnsureKitItemWriteSucceeded(int affectedRows)
