@@ -52,8 +52,9 @@ namespace InventoryManagementApp.Tests
                 itemMethod,
                 "using var conn = _dbService.CreateConnection();",
                 "await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);",
-                "const string sql = BaseSelect + @\" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC\";",
-                "var p = new[] { new SqliteParameter(\"@ItemID\", itemID) };");
+                "const string sql = BaseSelect + @\" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC LIMIT @RentalHistoryLimit\";",
+                "new SqliteParameter(\"@ItemID\", itemID)",
+                "new SqliteParameter(\"@RentalHistoryLimit\", MaxRentalHistoryCount)");
             Assert.True(
                 itemMethod.IndexOf("await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);", StringComparison.Ordinal) <
                 itemMethod.IndexOf("const string sql = BaseSelect", StringComparison.Ordinal),
@@ -71,8 +72,9 @@ namespace InventoryManagementApp.Tests
                 customerMethod,
                 "using var conn = _dbService.CreateConnection();",
                 "await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);",
-                "const string sql = BaseSelect + @\" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC\";",
-                "var p = new[] { new SqliteParameter(\"@CustomerID\", customerID) };");
+                "const string sql = BaseSelect + @\" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC LIMIT @RentalHistoryLimit\";",
+                "new SqliteParameter(\"@CustomerID\", customerID)",
+                "new SqliteParameter(\"@RentalHistoryLimit\", MaxRentalHistoryCount)");
             Assert.True(
                 customerMethod.IndexOf("await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);", StringComparison.Ordinal) <
                 customerMethod.IndexOf("const string sql = BaseSelect", StringComparison.Ordinal),
@@ -81,6 +83,23 @@ namespace InventoryManagementApp.Tests
                 customerMethod.IndexOf("await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);", StringComparison.Ordinal) <
                 customerMethod.IndexOf("new SqliteParameter(\"@CustomerID\", customerID)", StringComparison.Ordinal),
                 "Expected customer rental history to confirm the customer row exists before preparing query parameters.");
+        }
+
+        [Fact]
+        public void RentalHistoryQueriesCapReturnedRows()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+
+            AssertContainsAll(
+                source,
+                "private const int MaxRentalHistoryCount = 500;",
+                "ORDER BY r.RentalDate DESC LIMIT @RentalHistoryLimit",
+                "new SqliteParameter(\"@RentalHistoryLimit\", MaxRentalHistoryCount)");
+
+            Assert.True(
+                source.IndexOf("private const int MaxRentalHistoryCount = 500;", StringComparison.Ordinal) <
+                source.IndexOf("ORDER BY r.RentalDate DESC LIMIT @RentalHistoryLimit", StringComparison.Ordinal),
+                "Expected rental history queries to use the shared max-history cap.");
         }
 
         [Fact]
@@ -121,6 +140,28 @@ namespace InventoryManagementApp.Tests
                 source.IndexOf("throw new ArgumentOutOfRangeException(nameof(topN)", StringComparison.Ordinal) <
                 source.IndexOf("LIMIT @TopN", StringComparison.Ordinal),
                 "Expected rental frequency to validate the limit before building/executing SQL.");
+        }
+
+        [Fact]
+        public void RentalFrequencyRejectsOversizedLimitsBeforeSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+
+            AssertContainsAll(
+                source,
+                "private const int MaxRentalFrequencyCount = 100;",
+                "if (topN > MaxRentalFrequencyCount)",
+                "throw new ArgumentOutOfRangeException(nameof(topN), $\"Top rental frequency count cannot exceed {MaxRentalFrequencyCount}.\");",
+                "LIMIT @TopN");
+
+            Assert.True(
+                source.IndexOf("if (topN > MaxRentalFrequencyCount)", StringComparison.Ordinal) <
+                source.IndexOf("const string sql = @\"", StringComparison.Ordinal),
+                "Expected oversized rental frequency requests to fail before SQL text is prepared.");
+            Assert.True(
+                source.IndexOf("if (topN > MaxRentalFrequencyCount)", StringComparison.Ordinal) <
+                source.IndexOf("new SqliteParameter(\"@TopN\", topN)", StringComparison.Ordinal),
+                "Expected oversized rental frequency requests to fail before query parameters are prepared.");
         }
 
         [Fact]
