@@ -101,10 +101,9 @@ public sealed class ItemRepository : IItemRepository
         ct.ThrowIfCancellationRequested();
 
         const string sql = @"INSERT INTO Items (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, IsPowered, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount)
-                             VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@Price,@ImagePath,0,@IsPowered,0,'','',0);
-                             SELECT last_insert_rowid();";
+                             VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@Price,@ImagePath,0,@IsPowered,0,'','',0);";
         await using var conn = (DbConnection)_factory.Create();
-        var id = await conn.ExecuteScalarAsync<long>(new CommandDefinition(sql, new
+        var insertedRows = await conn.ExecuteAsync(new CommandDefinition(sql, new
         {
             item.ItemNumber,
             Name = item.Name,
@@ -122,6 +121,13 @@ public sealed class ItemRepository : IItemRepository
             item.ImagePath,
             IsPowered = item.IsPowered ? 1 : 0
         }, cancellationToken: ct));
+        if (insertedRows == 0)
+            throw new InvalidOperationException("Failed to create item.");
+
+        var id = await conn.ExecuteScalarAsync<long>(new CommandDefinition("SELECT last_insert_rowid();", cancellationToken: ct));
+        if (id < 1)
+            throw new InvalidOperationException("Failed to create item.");
+
         return (int)id;
     }
 

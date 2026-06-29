@@ -78,9 +78,19 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
                     tx.Commit();
                     return (int)id;
                 }
-                id = await conn.ExecuteScalarAsync<long>(
-                    "INSERT INTO Categories(Name) VALUES(@n); SELECT last_insert_rowid();",
+
+                var insertedRows = await conn.ExecuteAsync(
+                    "INSERT INTO Categories(Name) VALUES(@n);",
                     new { n = name }, tx);
+                if (insertedRows == 0)
+                    throw new InvalidOperationException("Unable to create category.");
+
+                id = await conn.ExecuteScalarAsync<long>(
+                    "SELECT last_insert_rowid();",
+                    transaction: tx);
+                if (id < 1)
+                    throw new InvalidOperationException("Unable to create category.");
+
                 tx.Commit();
                 return (int)id;
             }
@@ -96,7 +106,6 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
         /// </summary>
         /// <param name="categoryId">The category ID.</param>
         /// <param name="inventoryId">The inventory ID.</param>
-        /// <param name="ct">Cancellation token for the operation.</param>
         /// <exception cref="InvalidOperationException">Thrown if inventory not found.</exception>
         /// <exception cref="KeyNotFoundException">Thrown if category not found.</exception>
         public async Task LinkCategoryToInventoryAsync(int categoryId, int inventoryId, CancellationToken ct = default)

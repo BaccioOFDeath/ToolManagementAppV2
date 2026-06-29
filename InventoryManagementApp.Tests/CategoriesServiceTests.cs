@@ -82,6 +82,36 @@ public class CategoriesServiceTests
     }
 
     [Fact]
+    public void EnsureCategoryAsyncChecksInsertRowsBeforeReadingCreatedId()
+    {
+        var source = ReadRepoFile("InventoryManagementApp", "Services", "Categories", "CategoriesService.cs");
+        var method = ExtractMethod(
+            source,
+            "public async Task<int> EnsureCategoryAsync(string name, CancellationToken ct = default)",
+            "public async Task LinkCategoryToInventoryAsync");
+
+        Assert.Contains("var insertedRows = await conn.ExecuteAsync(", method, StringComparison.Ordinal);
+        Assert.Contains("if (insertedRows == 0)", method, StringComparison.Ordinal);
+        Assert.Contains("throw new InvalidOperationException(\"Unable to create category.\");", method, StringComparison.Ordinal);
+        Assert.Contains("SELECT last_insert_rowid();", method, StringComparison.Ordinal);
+        Assert.Contains("if (id < 1)", method, StringComparison.Ordinal);
+        Assert.DoesNotContain("INSERT INTO Categories(Name) VALUES(@n); SELECT last_insert_rowid();", method, StringComparison.Ordinal);
+
+        Assert.True(
+            method.IndexOf("var insertedRows = await conn.ExecuteAsync(", StringComparison.Ordinal) <
+            method.IndexOf("if (insertedRows == 0)", StringComparison.Ordinal),
+            "Category creation should inspect the insert affected-row count immediately after insert execution.");
+        Assert.True(
+            method.IndexOf("if (insertedRows == 0)", StringComparison.Ordinal) <
+            method.IndexOf("SELECT last_insert_rowid();", StringComparison.Ordinal),
+            "Category creation should not read a generated id until the insert is known to have affected a row.");
+        Assert.True(
+            method.IndexOf("if (id < 1)", StringComparison.Ordinal) <
+            method.IndexOf("tx.Commit();", StringComparison.Ordinal),
+            "Category creation should fail invalid generated ids before committing.");
+    }
+
+    [Fact]
     public void CategoryServiceHonorsCancellationBeforeConnectionWork()
     {
         var source = ReadRepoFile("InventoryManagementApp", "Services", "Categories", "CategoriesService.cs");
@@ -97,7 +127,7 @@ public class CategoriesServiceTests
         AssertCancellationGuardBeforeConnection(
             source,
             "public async Task LinkCategoryToInventoryAsync(int categoryId, int inventoryId, CancellationToken ct = default)",
-            "public async Task<List<CategoryDto>> GetCategoriesForInventoryAsync");
+            "public async Task EnsureInventoryAsync");
         AssertCancellationGuardBeforeConnection(
             source,
             "public async Task<List<CategoryDto>> GetCategoriesForInventoryAsync(int inventoryId, CancellationToken ct = default)",
