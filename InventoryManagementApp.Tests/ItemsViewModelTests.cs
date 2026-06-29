@@ -318,7 +318,7 @@ namespace InventoryManagementApp.Tests
             var loaded = vm.Items[0];
             loaded.QuantityOnHand = 5;
             loaded.Price = 2m;
-            Assert.Equal(1, vm.PendingEdits.Count);
+            Assert.Single(vm.PendingEdits);
         }
 
         [Fact]
