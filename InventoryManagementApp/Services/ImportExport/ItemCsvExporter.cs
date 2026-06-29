@@ -26,7 +26,10 @@ namespace InventoryManagementApp.Services.ImportExport
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
+            cancellationToken.ThrowIfCancellationRequested();
             var items = data.ToList();
+            cancellationToken.ThrowIfCancellationRequested();
+
             await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items).ConfigureAwait(false);
         }
     }
