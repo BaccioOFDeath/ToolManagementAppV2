@@ -140,6 +140,32 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void RecentLogsCapsRequestedCountsBeforeSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
+            var method = ExtractMethod(
+                source,
+                "public virtual async Task<Result<List<ActivityLog>>> GetRecentLogsAsync",
+                "public virtual async Task<Result<List<ActivityLog>>> GetCheckoutHistoryForItemAsync");
+
+            Assert.Contains("const int MaxRecentLogCount = 500;", source, StringComparison.Ordinal);
+            Assert.Contains("if (count > MaxRecentLogCount)", method, StringComparison.Ordinal);
+            Assert.Contains("return new Result<List<ActivityLog>>(null, false, $\"Count cannot exceed {MaxRecentLogCount}.\");", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("if (count < 1)", StringComparison.Ordinal) < method.IndexOf("if (count > MaxRecentLogCount)", StringComparison.Ordinal),
+                "The positive-count guard should still run before the maximum-count guard.");
+            Assert.True(
+                method.IndexOf("if (count > MaxRecentLogCount)", StringComparison.Ordinal) < method.IndexOf("const string sql =", StringComparison.Ordinal),
+                "Oversized recent-log requests should be rejected before SQL text is prepared.");
+            Assert.True(
+                method.IndexOf("if (count > MaxRecentLogCount)", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@Count\", count)", StringComparison.Ordinal),
+                "Oversized recent-log requests should be rejected before parameters are prepared.");
+            Assert.True(
+                method.IndexOf("if (count > MaxRecentLogCount)", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection()", StringComparison.Ordinal),
+                "Oversized recent-log requests should be rejected before opening a database connection.");
+        }
+
+        [Fact]
         public void RecentLogsStillOrdersByTimestampAndAppliesTheRequestedLimit()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");

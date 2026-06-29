@@ -15,6 +15,8 @@ namespace InventoryManagementApp.Services.Users
 {
     public class ActivityLogService
     {
+        const int MaxRecentLogCount = 500;
+
         readonly DatabaseService _dbService;
         readonly ILogger<ActivityLogService> _logger;
 
@@ -80,6 +82,9 @@ namespace InventoryManagementApp.Services.Users
 
                 if (count < 1)
                     return new Result<List<ActivityLog>>(null, false, "Count must be positive.");
+
+                if (count > MaxRecentLogCount)
+                    return new Result<List<ActivityLog>>(null, false, $"Count cannot exceed {MaxRecentLogCount}.");
 
                 const string sql = @"
                     SELECT * FROM ActivityLogs
