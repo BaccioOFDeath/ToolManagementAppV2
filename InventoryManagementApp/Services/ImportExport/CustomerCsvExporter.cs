@@ -26,6 +26,8 @@ namespace InventoryManagementApp.Services.ImportExport
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Convert Customer to CustomerModel for CSV export
             var customers = data.Select(c => new CustomerModel
             {
@@ -38,7 +40,13 @@ namespace InventoryManagementApp.Services.ImportExport
                 Address = c.Address
             }).ToList();
 
-            await Task.Run(() => CsvHelperUtil.ExportCustomersToCsv(filePath, customers), cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                CsvHelperUtil.ExportCustomersToCsv(filePath, customers);
+            }, cancellationToken).ConfigureAwait(false);
         }
     }
 }
