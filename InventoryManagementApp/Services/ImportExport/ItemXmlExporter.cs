@@ -27,9 +27,14 @@ namespace InventoryManagementApp.Services.ImportExport
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             await Task.Run(() =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var items = data.ToList();
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var serializer = new XmlSerializer(typeof(List<ItemModel>), new XmlRootAttribute("Items"));
                 using var writer = new StreamWriter(filePath);
                 serializer.Serialize(writer, items);
