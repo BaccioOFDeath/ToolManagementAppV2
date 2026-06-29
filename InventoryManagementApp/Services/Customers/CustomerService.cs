@@ -319,6 +319,7 @@ namespace InventoryManagementApp.Services.Customers
             cancellationToken.ThrowIfCancellationRequested();
 
             var result = new CustomerImportResult();
+            var importedCustomerKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             using var conn = _dbService.CreateConnection();
             using var tran = conn.BeginTransaction();
             try
@@ -340,6 +341,14 @@ namespace InventoryManagementApp.Services.Customers
                     if (await CustomerExistsAsync(c.Contact, c.Phone, c.Mobile, cancellationToken))
                     {
                         var msg = $"Row {row}: Duplicate customer";
+                        result.SkippedRows.Add(msg);
+                        _logger.LogInformation("{Message}", msg);
+                        continue;
+                    }
+
+                    if (!TryReserveImportedCustomer(importedCustomerKeys, c))
+                    {
+                        var msg = $"Row {row}: Duplicate customer in import file";
                         result.SkippedRows.Add(msg);
                         _logger.LogInformation("{Message}", msg);
                         continue;
@@ -455,6 +464,33 @@ namespace InventoryManagementApp.Services.Customers
                 throw new KeyNotFoundException($"Customer {customerID} not found.");
         }
 
+        static bool TryReserveImportedCustomer(HashSet<string> importedCustomerKeys, CustomerModel customer)
+        {
+            var duplicateKeys = BuildCustomerDuplicateKeys(customer).ToList();
+            if (duplicateKeys.Any(importedCustomerKeys.Contains))
+                return false;
+
+            foreach (var key in duplicateKeys)
+                importedCustomerKeys.Add(key);
+
+            return true;
+        }
+
+        static IEnumerable<string> BuildCustomerDuplicateKeys(CustomerModel customer)
+        {
+            var contact = (customer.Contact ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(contact))
+                yield break;
+
+            var phone = (customer.Phone ?? string.Empty).Trim();
+            if (!string.IsNullOrWhiteSpace(phone))
+                yield return $"{contact}|phone:{phone}";
+
+            var mobile = (customer.Mobile ?? string.Empty).Trim();
+            if (!string.IsNullOrWhiteSpace(mobile))
+                yield return $"{contact}|mobile:{mobile}";
+        }
+
         static string? GetSkipReason(CustomerModel c)
         {
             var reasons = new List<string>();
@@ -484,6 +520,7 @@ namespace InventoryManagementApp.Services.Customers
             cancellationToken.ThrowIfCancellationRequested();
             
             int importedCount = 0;
+            var importedCustomerKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             using var conn = _dbService.CreateConnection();
             
             foreach (var customer in customers)
@@ -506,6 +543,9 @@ namespace InventoryManagementApp.Services.Customers
 
                 bool exists = await CustomerExistsAsync(customerModel.Contact, customerModel.Phone, customerModel.Mobile, cancellationToken);
                 if (exists)
+                    continue;
+
+                if (!TryReserveImportedCustomer(importedCustomerKeys, customerModel))
                     continue;
 
                 await InsertCustomerAsync(conn, null, customerModel, cancellationToken);
