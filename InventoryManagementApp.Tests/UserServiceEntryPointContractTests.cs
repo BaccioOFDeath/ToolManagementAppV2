@@ -81,6 +81,42 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void AddUserValidatesInputsBeforeLookupPasswordHashingAndSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task AddUserAsync",
+                "public async Task UpdateUserAsync");
+
+            Assert.Contains("if (user is null)", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(user));", method, StringComparison.Ordinal);
+            Assert.Contains("user.UserName = (user.UserName ?? string.Empty).Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentException(\"Username cannot be empty.\", nameof(user.UserName));", method, StringComparison.Ordinal);
+            Assert.Contains("var password = (user.PasswordHash ?? string.Empty).Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentException(\"Password cannot be empty.\", nameof(user.PasswordHash));", method, StringComparison.Ordinal);
+
+            Assert.True(
+                method.IndexOf("if (user is null)", StringComparison.Ordinal) < method.IndexOf("var existingUsers = await GetAllUsersAsync", StringComparison.Ordinal),
+                "Null users should fail before loading existing users.");
+            Assert.True(
+                method.IndexOf("user.UserName = (user.UserName ?? string.Empty).Trim();", StringComparison.Ordinal) < method.IndexOf("var existingUsers = await GetAllUsersAsync", StringComparison.Ordinal),
+                "Usernames should be normalized before existing-user lookup and insert work.");
+            Assert.True(
+                method.IndexOf("throw new ArgumentException(\"Username cannot be empty.\", nameof(user.UserName));", StringComparison.Ordinal) < method.IndexOf("var existingUsers = await GetAllUsersAsync", StringComparison.Ordinal),
+                "Blank usernames should fail before existing-user lookup and authorization work.");
+            Assert.True(
+                method.IndexOf("var password = (user.PasswordHash ?? string.Empty).Trim();", StringComparison.Ordinal) < method.IndexOf("const string sql = @\"", StringComparison.Ordinal),
+                "Password validation should happen before insert SQL is prepared.");
+            Assert.True(
+                method.IndexOf("PasswordValidator.IsValid", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection();", StringComparison.Ordinal),
+                "Invalid user passwords should fail before opening a database connection.");
+            Assert.True(
+                method.IndexOf("PasswordValidator.IsValid", StringComparison.Ordinal) < method.IndexOf("SecurityHelper.HashPasswordAsync", StringComparison.Ordinal),
+                "Invalid user passwords should fail before password hashing work.");
+        }
+
+        [Fact]
         public void AddUserChecksInsertedRowsBeforeAssigningNewUserId()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");

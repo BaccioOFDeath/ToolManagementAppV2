@@ -278,6 +278,13 @@ namespace InventoryManagementApp.Services.Users
 
         public async Task AddUserAsync(User user)
         {
+            if (user is null)
+                throw new ArgumentNullException(nameof(user));
+
+            user.UserName = (user.UserName ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(user.UserName))
+                throw new ArgumentException("Username cannot be empty.", nameof(user.UserName));
+
             var existingUsers = await GetAllUsersAsync(CancellationToken.None);
             if (existingUsers.Count == 0)
             {
@@ -287,6 +294,13 @@ namespace InventoryManagementApp.Services.Users
             {
                 _auth.EnsurePermission(User.PermissionManageUsers);
             }
+
+            var password = (user.PasswordHash ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("Password cannot be empty.", nameof(user.PasswordHash));
+            if (!PasswordValidator.IsValid(password, out var error))
+                throw new ArgumentException(error, nameof(user.PasswordHash));
+
             const string sql = @"
                 INSERT INTO Users
                   (UserName, PasswordHash, PasswordSalt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired, Permissions)
@@ -295,12 +309,6 @@ namespace InventoryManagementApp.Services.Users
 
             using var conn = _dbService.CreateConnection();
             using var cmd = new SqliteCommand(sql, conn);
-
-            var password = (user.PasswordHash ?? string.Empty).Trim();
-            if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentException("Password cannot be empty.", nameof(user.PasswordHash));
-            if (!PasswordValidator.IsValid(password, out var error))
-                throw new ArgumentException(error, nameof(user.PasswordHash));
 
             var result = await SecurityHelper.HashPasswordAsync(password).ConfigureAwait(false);
             string hashed = result.hash;
