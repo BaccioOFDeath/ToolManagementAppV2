@@ -57,6 +57,16 @@ namespace InventoryManagementApp.Tests
                     Assert.Contains("Content=\"History\" Command=\"{Binding OpenHistoryCommand}\"", xaml);
                     Assert.Contains("Content=\"Print Rental\" Command=\"{Binding PrintRentalCommand}\"", xaml);
                     Assert.Contains("Content=\"Delete\" Command=\"{Binding DeleteRentalCommand}\"", xaml);
+                    Assert.Contains("x:Name=\"RentalStatsRow\"", xaml);
+                    Assert.Contains("x:Name=\"RentalStatsStrip\"", xaml);
+                    Assert.Contains("x:Name=\"RequestDetailColumn\"", xaml);
+                    Assert.Contains("x:Name=\"RequestDetailPanel\"", xaml);
+
+                    var codeBehindPath = Path.ChangeExtension(xamlPath, ".xaml.cs");
+                    var codeBehind = File.ReadAllText(codeBehindPath);
+                    Assert.Contains("CompactHeightThreshold = 650", codeBehind, StringComparison.Ordinal);
+                    Assert.Contains("RentalStatsStrip.Visibility", codeBehind, StringComparison.Ordinal);
+                    Assert.Contains("RequestDetailPanel.Visibility", codeBehind, StringComparison.Ordinal);
 
                     WpfTestHelper.ShutdownApplication();
                 }

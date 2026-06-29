@@ -10,10 +10,14 @@ namespace InventoryManagementApp.Views.Pages
     /// </summary>
     public partial class ManageRentalsPage : Page
     {
+        const double CompactHeightThreshold = 650;
+        bool _isCompactHeight;
+
         public ManageRentalsPage()
         {
             InitializeComponent();
             Loaded += ManageRentalsPage_Loaded;
+            SizeChanged += ManageRentalsPage_SizeChanged;
             PreviewKeyDown += ManageRentalsPage_PreviewKeyDown;
         }
 
@@ -27,6 +31,32 @@ namespace InventoryManagementApp.Views.Pages
 
             SearchTextBox.Focus();
             SearchTextBox.SelectAll();
+            UpdateCompactHeightMode();
+        }
+
+        private void ManageRentalsPage_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateCompactHeightMode();
+        }
+
+        private void UpdateCompactHeightMode()
+        {
+            var compactHeight = ActualHeight > 0 && ActualHeight < CompactHeightThreshold;
+            if (compactHeight == _isCompactHeight)
+                return;
+
+            _isCompactHeight = compactHeight;
+            RentalStatsStrip.Visibility = compactHeight ? Visibility.Collapsed : Visibility.Visible;
+            RentalStatsRow.Height = compactHeight ? new GridLength(0) : GridLength.Auto;
+            RentalMainRow.Height = compactHeight ? new GridLength(1.6, GridUnitType.Star) : new GridLength(1.55, GridUnitType.Star);
+            RentalSplitterRow.Height = compactHeight ? new GridLength(6) : new GridLength(8);
+            RequestQueueRow.Height = compactHeight ? new GridLength(1.15, GridUnitType.Star) : new GridLength(1.25, GridUnitType.Star);
+            RequestDetailPanel.Visibility = compactHeight ? Visibility.Collapsed : Visibility.Visible;
+            RequestDetailSplitter.Visibility = compactHeight ? Visibility.Collapsed : Visibility.Visible;
+            RequestListColumn.Width = compactHeight ? new GridLength(1, GridUnitType.Star) : new GridLength(1.65, GridUnitType.Star);
+            RequestDetailSplitterColumn.Width = compactHeight ? new GridLength(0) : new GridLength(8);
+            RequestDetailColumn.Width = compactHeight ? new GridLength(0) : new GridLength(1.05, GridUnitType.Star);
+            RequestDetailColumn.MinWidth = compactHeight ? 0 : 260;
         }
 
         private void RentalRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)

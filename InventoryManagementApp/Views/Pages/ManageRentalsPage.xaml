@@ -16,13 +16,13 @@
         </Style>
     </Page.Resources>
 
-    <Grid Margin="4">
+    <Grid x:Name="RootLayout" Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="1.55*"/>
-            <RowDefinition Height="8"/>
-            <RowDefinition Height="1.25*"/>
+            <RowDefinition x:Name="RentalStatsRow" Height="Auto"/>
+            <RowDefinition x:Name="RentalMainRow" Height="1.55*"/>
+            <RowDefinition x:Name="RentalSplitterRow" Height="8"/>
+            <RowDefinition x:Name="RequestQueueRow" Height="1.25*"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
@@ -44,7 +44,7 @@
             </DockPanel>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,0,0,6">
+        <Grid x:Name="RentalStatsStrip" Grid.Row="1" Margin="0,0,0,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -280,9 +280,9 @@
                 </Border>
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1.65*" MinWidth="430"/>
-                        <ColumnDefinition Width="8"/>
-                        <ColumnDefinition Width="1.05*" MinWidth="260"/>
+                        <ColumnDefinition x:Name="RequestListColumn" Width="1.65*" MinWidth="430"/>
+                        <ColumnDefinition x:Name="RequestDetailSplitterColumn" Width="8"/>
+                        <ColumnDefinition x:Name="RequestDetailColumn" Width="1.05*" MinWidth="260"/>
                     </Grid.ColumnDefinitions>
                     <DataGrid Grid.Column="0" ItemsSource="{Binding PendingRequests}" SelectedItem="{Binding SelectedRequest}" SelectionMode="Single" IsReadOnly="True" AutoGenerateColumns="False" Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowStyle>
@@ -321,8 +321,8 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
-                    <Border Grid.Column="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1,0,0,0" Padding="8">
+                    <GridSplitter x:Name="RequestDetailSplitter" Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+                    <Border x:Name="RequestDetailPanel" Grid.Column="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1,0,0,0" Padding="8">
                         <ScrollViewer VerticalScrollBarVisibility="Hidden">
                             <StackPanel>
                                 <TextBlock Text="Selected Request" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
