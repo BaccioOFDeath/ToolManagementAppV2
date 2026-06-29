@@ -20,6 +20,9 @@ namespace InventoryManagementApp.Services.Rentals
     /// </summary>
     public class RentalService : IRentalService
     {
+        private const int MaxRentalHistoryCount = 500;
+        private const int MaxRentalFrequencyCount = 100;
+
         private readonly DatabaseService _dbService;
         private readonly IItemService? _itemService;
         private readonly ILogger<RentalService> _logger;
@@ -367,8 +370,12 @@ namespace InventoryManagementApp.Services.Rentals
             using var conn = _dbService.CreateConnection();
             await EnsureItemExistsAsync(conn, itemID).ConfigureAwait(false);
 
-            const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC";
-            var p = new[] { new SqliteParameter("@ItemID", itemID) };
+            const string sql = BaseSelect + @" WHERE r.ItemID = @ItemID ORDER BY r.RentalDate DESC LIMIT @RentalHistoryLimit";
+            var p = new[]
+            {
+                new SqliteParameter("@ItemID", itemID),
+                new SqliteParameter("@RentalHistoryLimit", MaxRentalHistoryCount)
+            };
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
@@ -381,8 +388,12 @@ namespace InventoryManagementApp.Services.Rentals
             using var conn = _dbService.CreateConnection();
             await EnsureCustomerExistsAsync(conn, customerID).ConfigureAwait(false);
 
-            const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC";
-            var p = new[] { new SqliteParameter("@CustomerID", customerID) };
+            const string sql = BaseSelect + @" WHERE r.CustomerID = @CustomerID ORDER BY r.RentalDate DESC LIMIT @RentalHistoryLimit";
+            var p = new[]
+            {
+                new SqliteParameter("@CustomerID", customerID),
+                new SqliteParameter("@RentalHistoryLimit", MaxRentalHistoryCount)
+            };
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
@@ -391,6 +402,8 @@ namespace InventoryManagementApp.Services.Rentals
         {
             if (topN < 1)
                 throw new ArgumentOutOfRangeException(nameof(topN), "Top rental frequency count must be greater than 0.");
+            if (topN > MaxRentalFrequencyCount)
+                throw new ArgumentOutOfRangeException(nameof(topN), $"Top rental frequency count cannot exceed {MaxRentalFrequencyCount}.");
 
             const string sql = @"
                 SELECT t.ItemID, t.ItemNumber, t.NameDescription, COUNT(r.RentalID) AS RentalCount
