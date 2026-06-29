@@ -11,16 +11,28 @@ namespace InventoryManagementApp.Tests
         {
             var rootIgnoreFile = ReadRepoFile(".gitignore");
             var screenshotIgnoreFile = ReadRepoFile(".qa-screenshots", ".gitignore");
+            var targetedScreenshotIgnoreFile = ReadRepoFile(".qa-screenshots-targeted", ".gitignore");
 
             Assert.Contains(".qa-screenshots/*", rootIgnoreFile, StringComparison.Ordinal);
             Assert.Contains("!.qa-screenshots/.gitignore", rootIgnoreFile, StringComparison.Ordinal);
             Assert.DoesNotContain("!.qa-screenshots/latest", rootIgnoreFile, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("!.qa-screenshots/*.png", rootIgnoreFile, StringComparison.OrdinalIgnoreCase);
 
-            Assert.Contains("*", screenshotIgnoreFile, StringComparison.Ordinal);
-            Assert.Contains("!.gitignore", screenshotIgnoreFile, StringComparison.Ordinal);
-            Assert.DoesNotContain("!latest", screenshotIgnoreFile, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("!*.png", screenshotIgnoreFile, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(".qa-screenshots-targeted/*", rootIgnoreFile, StringComparison.Ordinal);
+            Assert.Contains("!.qa-screenshots-targeted/.gitignore", rootIgnoreFile, StringComparison.Ordinal);
+            Assert.DoesNotContain("!.qa-screenshots-targeted/latest", rootIgnoreFile, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("!.qa-screenshots-targeted/*.png", rootIgnoreFile, StringComparison.OrdinalIgnoreCase);
+
+            AssertScreenshotFolderIgnoreFile(screenshotIgnoreFile);
+            AssertScreenshotFolderIgnoreFile(targetedScreenshotIgnoreFile);
+        }
+
+        private static void AssertScreenshotFolderIgnoreFile(string ignoreFile)
+        {
+            Assert.Contains("*", ignoreFile, StringComparison.Ordinal);
+            Assert.Contains("!.gitignore", ignoreFile, StringComparison.Ordinal);
+            Assert.DoesNotContain("!latest", ignoreFile, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("!*.png", ignoreFile, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string ReadRepoFile(params string[] parts)
