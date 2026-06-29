@@ -1,6 +1,6 @@
 # QA Screenshot Run
 
-Generated: 2026-06-29 11:47:32
+Generated: 2026-06-29 12:00:04
 
 Folders:
 - `00-auth` login and authentication flow
