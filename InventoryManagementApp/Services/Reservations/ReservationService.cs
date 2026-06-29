@@ -209,8 +209,7 @@ namespace InventoryManagementApp.Services.Reservations
                      Quantity, Status, Notes, CreatedByUserID, CreatedAt)
                     VALUES 
                     (@ItemID, @CustomerID, @ReservationDate, @StartDate, @EndDate, 
-                     @Quantity, @Status, @Notes, @CreatedByUserID, @CreatedAt);
-                    SELECT last_insert_rowid();";
+                     @Quantity, @Status, @Notes, @CreatedByUserID, @CreatedAt)";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ItemID", reservation.ItemID);
                 cmd.Parameters.AddWithValue("@CustomerID", reservation.CustomerID);
@@ -222,7 +221,14 @@ namespace InventoryManagementApp.Services.Reservations
                 cmd.Parameters.AddWithValue("@Notes", ToDbNullableText(reservation.Notes));
                 cmd.Parameters.AddWithValue("@CreatedByUserID", _userContext.CurrentUser?.UserID ?? 0);
                 cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
-                var id = Convert.ToInt32(cmd.ExecuteScalar());
+                var insertedRows = cmd.ExecuteNonQuery();
+                EnsureReservationCreateSucceeded(insertedRows);
+
+                using var idCmd = new SqliteCommand("SELECT last_insert_rowid();", conn);
+                var id = Convert.ToInt32(idCmd.ExecuteScalar());
+                if (id < 1)
+                    throw new InvalidOperationException("Unable to create reservation.");
+
                 return id;
             });
         }
@@ -433,6 +439,12 @@ namespace InventoryManagementApp.Services.Reservations
         {
             if (affectedRows == 0)
                 throw new InvalidOperationException("Reservation not found.");
+        }
+
+        private static void EnsureReservationCreateSucceeded(int affectedRows)
+        {
+            if (affectedRows == 0)
+                throw new InvalidOperationException("Unable to create reservation.");
         }
 
         private static void EnsureReservationItemExists(SqliteConnection conn, int itemID)
