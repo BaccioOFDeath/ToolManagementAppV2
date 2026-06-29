@@ -7,12 +7,12 @@ Date: 2026-06-30
 - Hardened `UserService.AddUserAsync` so null user models fail immediately before existing-user lookup, authorization, SQL, or hashing work.
 - Normalized new-account usernames by trimming them before lookup and insert parameter binding.
 - Added an explicit blank-username failure before existing-user lookup and authorization work.
-- Moved create-password validation ahead of insert SQL preparation, SQLite connection creation, and password hashing.
+- Moved create-password validation ahead of insert SQL preparation, create-connection work, and password hashing while preserving the existing first-user/admin authorization flow.
 - Extended `UserServiceEntryPointContractTests` so the admin user creation workflow keeps the validation, normalization, password validation, and existing insert-result guard ordering.
 
 ## Why It Matters
 
-Admin user creation is a core setup and account-management workflow. Failing invalid inputs before database and hashing work prevents avoidable null-reference crashes, avoids storing usernames with accidental surrounding whitespace, and keeps user-facing validation errors close to the source of the bad input.
+Admin user creation is a core setup and account-management workflow. Failing invalid account models and usernames before database work prevents avoidable null-reference crashes, trimming avoids storing usernames with accidental surrounding whitespace, and validating create passwords before insert preparation keeps user-facing validation errors close to the source of the bad input.
 
 ## Validation
 
