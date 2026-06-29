@@ -42,6 +42,67 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void DirectCustomerSavesNormalizeAndValidateRequiredFieldsBeforeAuthorizationAndWriteWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Customers", "CustomerService.cs");
+            var addMethod = ExtractMethod(
+                source,
+                "public Task AddCustomerAsync",
+                "public Task UpdateCustomerAsync");
+            var updateMethod = ExtractMethod(
+                source,
+                "public Task UpdateCustomerAsync",
+                "public Task DeleteCustomerAsync");
+
+            Assert.Contains("NormalizeCustomerForSave(customer);", addMethod, StringComparison.Ordinal);
+            Assert.Contains("ValidateCustomerRequiredFields(customer);", addMethod, StringComparison.Ordinal);
+            Assert.Contains("NormalizeCustomerForSave(customer);", updateMethod, StringComparison.Ordinal);
+            Assert.Contains("ValidateCustomerRequiredFields(customer);", updateMethod, StringComparison.Ordinal);
+
+            Assert.True(
+                addMethod.IndexOf("NormalizeCustomerForSave(customer);", StringComparison.Ordinal) < addMethod.IndexOf("ValidateCustomerRequiredFields(customer);", StringComparison.Ordinal),
+                "Direct customer adds should normalize text before required-field validation.");
+            Assert.True(
+                addMethod.IndexOf("ValidateCustomerRequiredFields(customer);", StringComparison.Ordinal) < addMethod.IndexOf("_auth.EnsureAdmin();", StringComparison.Ordinal),
+                "Invalid direct customer adds should fail before authorization or database work.");
+            Assert.True(
+                addMethod.IndexOf("ValidateCustomerRequiredFields(customer);", StringComparison.Ordinal) < addMethod.IndexOf("return AddCustomerInternalAsync", StringComparison.Ordinal),
+                "Invalid direct customer adds should not reach insert work.");
+            Assert.True(
+                updateMethod.IndexOf("if (customer.CustomerID < 1)", StringComparison.Ordinal) < updateMethod.IndexOf("NormalizeCustomerForSave(customer);", StringComparison.Ordinal),
+                "Invalid update customer IDs should still fail before normalizing save fields.");
+            Assert.True(
+                updateMethod.IndexOf("NormalizeCustomerForSave(customer);", StringComparison.Ordinal) < updateMethod.IndexOf("ValidateCustomerRequiredFields(customer);", StringComparison.Ordinal),
+                "Direct customer updates should normalize text before required-field validation.");
+            Assert.True(
+                updateMethod.IndexOf("ValidateCustomerRequiredFields(customer);", StringComparison.Ordinal) < updateMethod.IndexOf("_auth.EnsureAdmin();", StringComparison.Ordinal),
+                "Invalid direct customer updates should fail before authorization or database work.");
+            Assert.True(
+                updateMethod.IndexOf("ValidateCustomerRequiredFields(customer);", StringComparison.Ordinal) < updateMethod.IndexOf("return UpdateCustomerInternalAsync", StringComparison.Ordinal),
+                "Invalid direct customer updates should not reach update write work.");
+        }
+
+        [Fact]
+        public void CustomerValidationReusesImportRequiredFieldRulesAndTrimsPersistedText()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Customers", "CustomerService.cs");
+
+            Assert.Contains("static void NormalizeCustomerForSave(CustomerModel customer)", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Company = (customer.Company ?? string.Empty).Trim();", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Email = (customer.Email ?? string.Empty).Trim();", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Contact = (customer.Contact ?? string.Empty).Trim();", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Phone = (customer.Phone ?? string.Empty).Trim();", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Mobile = (customer.Mobile ?? string.Empty).Trim();", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Address = (customer.Address ?? string.Empty).Trim();", source, StringComparison.Ordinal);
+            Assert.Contains("static void ValidateCustomerRequiredFields(CustomerModel customer)", source, StringComparison.Ordinal);
+            Assert.Contains("var reason = GetSkipReason(customer);", source, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentException(reason, nameof(customer));", source, StringComparison.Ordinal);
+            Assert.Contains("if (string.IsNullOrWhiteSpace(c.Company)) reasons.Add(\"Company missing\");", source, StringComparison.Ordinal);
+            Assert.Contains("if (string.IsNullOrWhiteSpace(c.Contact)) reasons.Add(\"Contact missing\");", source, StringComparison.Ordinal);
+            Assert.Contains("if (string.IsNullOrWhiteSpace(c.Phone) && string.IsNullOrWhiteSpace(c.Mobile)) reasons.Add(\"Phone and Mobile missing\");", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CustomerImportAndExportHelpersHonorCancellationBeforeDatabaseWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Customers", "CustomerService.cs");
@@ -164,6 +225,41 @@ namespace InventoryManagementApp.Tests
             Assert.True(
                 genericImportMethod.IndexOf("if (!TryReserveImportedCustomer(importedCustomerKeys, customerModel))", StringComparison.Ordinal) < genericImportMethod.IndexOf("await InsertCustomerAsync(conn, null, customerModel, cancellationToken);", StringComparison.Ordinal),
                 "Generic customer import should reject duplicate rows from the same import batch before inserting.");
+        }
+
+        [Fact]
+        public void CustomerImportsNormalizeRowsBeforeDuplicateChecksAndInsertWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Customers", "CustomerService.cs");
+            var csvImportMethod = ExtractMethod(
+                source,
+                "async Task<CustomerImportResult> ImportCustomersFromCsvInternalAsync",
+                "async Task ExportCustomersToCsvInternalAsync");
+            var genericImportMethod = ExtractMethod(
+                source,
+                "public async Task<int> ImportCustomersAsync",
+                "public async Task ExportCustomersAsync");
+
+            Assert.Contains("NormalizeCustomerForSave(c);", csvImportMethod, StringComparison.Ordinal);
+            Assert.Contains("NormalizeCustomerForSave(customerModel);", genericImportMethod, StringComparison.Ordinal);
+            Assert.True(
+                csvImportMethod.IndexOf("NormalizeCustomerForSave(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("var reason = GetSkipReason(c);", StringComparison.Ordinal),
+                "CSV imports should trim row text before required-field validation.");
+            Assert.True(
+                csvImportMethod.IndexOf("NormalizeCustomerForSave(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("CustomerExistsAsync(c.Contact, c.Phone, c.Mobile, cancellationToken)", StringComparison.Ordinal),
+                "CSV imports should check duplicates using normalized customer identity fields.");
+            Assert.True(
+                csvImportMethod.IndexOf("NormalizeCustomerForSave(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("await InsertCustomerAsync(conn, tran, c, cancellationToken);", StringComparison.Ordinal),
+                "CSV imports should insert normalized customer values.");
+            Assert.True(
+                genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("var skipReason = GetSkipReason(customerModel);", StringComparison.Ordinal),
+                "Generic imports should trim row text before required-field validation.");
+            Assert.True(
+                genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("CustomerExistsAsync(customerModel.Contact, customerModel.Phone, customerModel.Mobile, cancellationToken)", StringComparison.Ordinal),
+                "Generic imports should check duplicates using normalized customer identity fields.");
+            Assert.True(
+                genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("await InsertCustomerAsync(conn, null, customerModel, cancellationToken);", StringComparison.Ordinal),
+                "Generic imports should insert normalized customer values.");
         }
 
         private static void AssertCancellationGuardBeforeSqlAndConnection(string source, string startMarker, string endMarker)
