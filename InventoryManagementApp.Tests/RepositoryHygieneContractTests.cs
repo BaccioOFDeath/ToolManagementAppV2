@@ -9,12 +9,18 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void QaScreenshotArtifactsStayIgnoredByDefault()
         {
-            var ignoreFile = ReadRepoFile(".qa-screenshots", ".gitignore");
+            var rootIgnoreFile = ReadRepoFile(".gitignore");
+            var screenshotIgnoreFile = ReadRepoFile(".qa-screenshots", ".gitignore");
 
-            Assert.Contains("*", ignoreFile, StringComparison.Ordinal);
-            Assert.Contains("!.gitignore", ignoreFile, StringComparison.Ordinal);
-            Assert.DoesNotContain("!latest", ignoreFile, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("!*.png", ignoreFile, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(".qa-screenshots/*", rootIgnoreFile, StringComparison.Ordinal);
+            Assert.Contains("!.qa-screenshots/.gitignore", rootIgnoreFile, StringComparison.Ordinal);
+            Assert.DoesNotContain("!.qa-screenshots/latest", rootIgnoreFile, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("!.qa-screenshots/*.png", rootIgnoreFile, StringComparison.OrdinalIgnoreCase);
+
+            Assert.Contains("*", screenshotIgnoreFile, StringComparison.Ordinal);
+            Assert.Contains("!.gitignore", screenshotIgnoreFile, StringComparison.Ordinal);
+            Assert.DoesNotContain("!latest", screenshotIgnoreFile, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("!*.png", screenshotIgnoreFile, StringComparison.OrdinalIgnoreCase);
         }
 
         private static string ReadRepoFile(params string[] parts)
