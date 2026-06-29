@@ -74,7 +74,7 @@ namespace InventoryManagementApp.Tests
             AssertCancellationGuardBeforeSql(
                 source,
                 "static async Task EnsureCustomerRowExistsAsync",
-                "static string? GetSkipReason");
+                "static void EnsureCustomerCreateSucceeded");
         }
 
         [Fact]
@@ -99,6 +99,37 @@ namespace InventoryManagementApp.Tests
                 "public async Task ExportCustomersAsync",
                 "    }\n}",
                 "GetAllCustomersAsync");
+        }
+
+        [Fact]
+        public void CustomerCreatesCheckInsertedRowsBeforeAssigningNewCustomerId()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Customers", "CustomerService.cs");
+            var method = ExtractMethod(
+                source,
+                "async Task InsertCustomerAsync",
+                "async Task<bool> CustomerExistsAsync");
+            var insertSql = method[..method.IndexOf("var p = new[]", StringComparison.Ordinal)];
+
+            Assert.DoesNotContain("SELECT last_insert_rowid();", insertSql, StringComparison.Ordinal);
+            Assert.Contains("var insertedRows = await cmd.ExecuteNonQueryAsync(cancellationToken);", method, StringComparison.Ordinal);
+            Assert.Contains("EnsureCustomerCreateSucceeded(insertedRows);", method, StringComparison.Ordinal);
+            Assert.Contains("using var idCmd = new SqliteCommand(\"SELECT last_insert_rowid();\", conn, tran);", method, StringComparison.Ordinal);
+            Assert.Contains("customer.CustomerID = Convert.ToInt32(await idCmd.ExecuteScalarAsync(cancellationToken));", method, StringComparison.Ordinal);
+            Assert.Contains("if (customer.CustomerID < 1)", method, StringComparison.Ordinal);
+            Assert.Contains("throw new InvalidOperationException(\"Unable to create customer.\");", method, StringComparison.Ordinal);
+            Assert.Contains("static void EnsureCustomerCreateSucceeded(int affectedRows)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("customer.CustomerID = Convert.ToInt32(await cmd.ExecuteScalarAsync", method, StringComparison.Ordinal);
+
+            Assert.True(
+                method.IndexOf("var insertedRows = await cmd.ExecuteNonQueryAsync(cancellationToken);", StringComparison.Ordinal) < method.IndexOf("EnsureCustomerCreateSucceeded(insertedRows);", StringComparison.Ordinal),
+                "Customer creation should capture affected rows before checking the insert result.");
+            Assert.True(
+                method.IndexOf("EnsureCustomerCreateSucceeded(insertedRows);", StringComparison.Ordinal) < method.IndexOf("using var idCmd = new SqliteCommand(\"SELECT last_insert_rowid();\", conn, tran);", StringComparison.Ordinal),
+                "Failed customer creates should stop before reading a new customer id.");
+            Assert.True(
+                method.IndexOf("if (customer.CustomerID < 1)", StringComparison.Ordinal) > method.IndexOf("customer.CustomerID = Convert.ToInt32(await idCmd.ExecuteScalarAsync(cancellationToken));", StringComparison.Ordinal),
+                "Customer creation should reject invalid inserted ids before returning success.");
         }
 
         private static void AssertCancellationGuardBeforeSqlAndConnection(string source, string startMarker, string endMarker)
