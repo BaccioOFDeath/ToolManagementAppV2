@@ -380,4 +380,5 @@ Thumbs.db
 # QA automation artifacts
 .qa-screenshots/*
 !.qa-screenshots/.gitignore
-
+.qa-screenshots-targeted/*
+!.qa-screenshots-targeted/.gitignore
