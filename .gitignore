@@ -378,4 +378,6 @@ Thumbs.db
 *.pdf
 
 # QA automation artifacts
+.qa-screenshots/*
+!.qa-screenshots/.gitignore
 
