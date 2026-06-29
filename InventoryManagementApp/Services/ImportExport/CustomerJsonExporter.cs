@@ -35,7 +35,10 @@ namespace InventoryManagementApp.Services.ImportExport
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
+            cancellationToken.ThrowIfCancellationRequested();
             var customers = data.ToList();
+            cancellationToken.ThrowIfCancellationRequested();
+
             var json = JsonSerializer.Serialize(customers, JsonOptions);
             await File.WriteAllTextAsync(filePath, json, cancellationToken).ConfigureAwait(false);
         }
