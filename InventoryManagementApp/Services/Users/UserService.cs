@@ -257,6 +257,12 @@ namespace InventoryManagementApp.Services.Users
             EnsureUserWriteSucceeded(clearedRows, userID);
         }
 
+        static void EnsureUserCreateSucceeded(int rows)
+        {
+            if (rows == 0)
+                throw new InvalidOperationException("Unable to create user.");
+        }
+
         static void EnsureUserWriteSucceeded(int rows, int userID)
         {
             if (rows == 0)
@@ -285,8 +291,7 @@ namespace InventoryManagementApp.Services.Users
                 INSERT INTO Users
                   (UserName, PasswordHash, PasswordSalt, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired, Permissions)
                 VALUES
-                  (@UserName,@PasswordHash,@PasswordSalt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@PasswordExpired,@Permissions);
-                SELECT last_insert_rowid();";
+                  (@UserName,@PasswordHash,@PasswordSalt,@Photo,@Admin,@Email,@Phone,@Mobile,@Address,@Role,@IsActive,@CreatedAt,@PasswordExpired,@Permissions)";
 
             using var conn = _dbService.CreateConnection();
             using var cmd = new SqliteCommand(sql, conn);
@@ -322,7 +327,13 @@ namespace InventoryManagementApp.Services.Users
             });
             try
             {
-                user.UserID = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                var insertedRows = await cmd.ExecuteNonQueryAsync();
+                EnsureUserCreateSucceeded(insertedRows);
+
+                using var idCmd = new SqliteCommand("SELECT last_insert_rowid();", conn);
+                user.UserID = Convert.ToInt32(await idCmd.ExecuteScalarAsync());
+                if (user.UserID < 1)
+                    throw new InvalidOperationException("Unable to create user.");
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_CONSTRAINT &&
                                              ex.Message.Contains("Users.UserName", StringComparison.OrdinalIgnoreCase))
