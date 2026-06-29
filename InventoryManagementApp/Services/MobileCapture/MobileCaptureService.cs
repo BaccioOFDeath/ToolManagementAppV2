@@ -133,6 +133,7 @@ namespace InventoryManagementApp.Services.MobileCapture
                 return Results.Content(CreateCaptureHtml(_token), "text/html", Encoding.UTF8);
             });
             app.MapPost("/mobile-capture/items", SubmitItemAsync);
+            app.MapPost("/mobile-capture/item-image", SubmitItemImageAsync);
             app.MapPost("/mobile-capture/rental-photos", SubmitRentalPhotoAsync);
         }
 
@@ -163,13 +164,43 @@ namespace InventoryManagementApp.Services.MobileCapture
                 return Results.Content(CreateResultHtml("Missing details", "Name is required.", _token), "text/html", Encoding.UTF8, statusCode: StatusCodes.Status400BadRequest);
 
             var image = form.Files.GetFile("photo");
+            if (image is { Length: > 0 } && string.IsNullOrWhiteSpace(item.ItemNumber))
+                item.ItemNumber = await itemService.GenerateNextItemNumberAsync(cancellationToken).ConfigureAwait(false);
+
             if (image is { Length: > 0 })
-                item.ImagePath = await SaveUploadAsync(image, "ItemImages", item.ItemNumber, cancellationToken).ConfigureAwait(false);
+                item.ImagePath = await SaveUploadAsync(image, "ItemImages", item.ItemNumber, useExactName: true, cancellationToken).ConfigureAwait(false);
 
             await RunAsSessionUserAsync(
                 () => itemService.AddItemAsync(item, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             return Results.Content(CreateResultHtml("Item added", $"{Escape(item.ItemNumber)} {Escape(item.Name)} was saved.", _token), "text/html", Encoding.UTF8);
+        }
+
+        private async Task<IResult> SubmitItemImageAsync(HttpRequest request, CancellationToken cancellationToken)
+        {
+            var form = await request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            if (!IsValidToken(form["token"]))
+                return Results.Content(CreateExpiredHtml(), "text/html", Encoding.UTF8, statusCode: StatusCodes.Status403Forbidden);
+
+            var itemNumber = form["updateItemNumber"].ToString().Trim();
+            if (string.IsNullOrWhiteSpace(itemNumber))
+                return Results.Content(CreateResultHtml("Missing item", "Item number is required to update an existing photo.", _token), "text/html", Encoding.UTF8, statusCode: StatusCodes.Status400BadRequest);
+
+            var photo = form.Files.GetFile("existingItemPhoto");
+            if (photo is not { Length: > 0 })
+                return Results.Content(CreateResultHtml("Missing photo", "Choose a replacement item photo before submitting.", _token), "text/html", Encoding.UTF8, statusCode: StatusCodes.Status400BadRequest);
+
+            var item = await FindItemByNumberAsync(itemNumber, cancellationToken).ConfigureAwait(false);
+            if (item == null)
+                return Results.Content(CreateResultHtml("Item not found", $"No item exists with number {Escape(itemNumber)}.", _token), "text/html", Encoding.UTF8, statusCode: StatusCodes.Status404NotFound);
+
+            var imagePath = await SaveUploadAsync(photo, "ItemImages", item.ItemNumber, useExactName: true, cancellationToken).ConfigureAwait(false);
+            var itemService = _services.GetRequiredService<IItemService>();
+            await RunAsSessionUserAsync(
+                () => itemService.UpdateItemImageAsync(item.ItemID, imagePath, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            return Results.Content(CreateResultHtml("Item photo updated", $"Photo saved for {Escape(item.ItemNumber)}.", _token), "text/html", Encoding.UTF8);
         }
 
         private async Task<IResult> SubmitRentalPhotoAsync(HttpRequest request, CancellationToken cancellationToken)
@@ -192,7 +223,7 @@ namespace InventoryManagementApp.Services.MobileCapture
 
             var stage = NormalizeStage(form["photoStage"]);
             var rentalId = ParseNullableInt(form["rentalId"]);
-            var filePath = await SaveUploadAsync(photo, "RentalPhotos", $"{item.ItemNumber}-{stage}", cancellationToken).ConfigureAwait(false);
+            var filePath = await SaveUploadAsync(photo, "RentalPhotos", $"{item.ItemNumber}-{stage}", useExactName: false, cancellationToken).ConfigureAwait(false);
             await RunAsSessionUserAsync(
                 () => InsertRentalPhotoAsync(item.ItemID, rentalId, stage, filePath, form["rentalPhotoNotes"].ToString(), cancellationToken),
                 cancellationToken).ConfigureAwait(false);
@@ -257,19 +288,22 @@ namespace InventoryManagementApp.Services.MobileCapture
             await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<string> SaveUploadAsync(IFormFile file, string assetFolder, string nameSeed, CancellationToken cancellationToken)
+        private async Task<string> SaveUploadAsync(IFormFile file, string assetFolder, string nameSeed, bool useExactName, CancellationToken cancellationToken)
         {
             var extension = Path.GetExtension(file.FileName);
             if (string.IsNullOrWhiteSpace(extension) || !IsSupportedImage(extension))
                 extension = ".jpg";
 
             var safeSeed = MakeSafeFileName(string.IsNullOrWhiteSpace(nameSeed) ? "capture" : nameSeed);
-            var fileName = $"{safeSeed}-{DateTime.Now:yyyyMMdd-HHmmss}-{RandomNumberGenerator.GetInt32(1000, 9999)}{extension.ToLowerInvariant()}";
+            var fileName = useExactName
+                ? $"{safeSeed}{extension.ToLowerInvariant()}"
+                : $"{safeSeed}-{DateTime.Now:yyyyMMdd-HHmmss}-{RandomNumberGenerator.GetInt32(1000, 9999)}{extension.ToLowerInvariant()}";
             var relativePath = Path.Combine(AppAssetHelper.AssetsDirectoryName, assetFolder, fileName).Replace('\\', '/');
             var targetDir = AppAssetHelper.EnsureAssetFolder(assetFolder);
             var targetPath = Path.Combine(targetDir, fileName);
 
-            await using var stream = new FileStream(targetPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            var fileMode = useExactName ? FileMode.Create : FileMode.CreateNew;
+            await using var stream = new FileStream(targetPath, fileMode, FileAccess.Write, FileShare.None);
             await file.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
             return relativePath;
         }
@@ -389,6 +423,15 @@ namespace InventoryManagementApp.Services.MobileCapture
                        <label>Notes<textarea name="notes" rows="3"></textarea></label>
                        <div class="checks"><label><input name="isRentalItem" type="checkbox"> Rental item</label><label><input name="isPowered" type="checkbox"> Powered</label></div>
                        <button type="submit">Save item</button>
+                     </form>
+                   </section>
+                   <section>
+                     <h2>Update item photo</h2>
+                     <form method="post" action="/mobile-capture/item-image" enctype="multipart/form-data">
+                       <input type="hidden" name="token" value="{{Escape(token)}}">
+                       <label>Item number<input name="updateItemNumber" required autocomplete="off"></label>
+                       <label>Replacement photo<input name="existingItemPhoto" required type="file" accept="image/*" capture="environment"></label>
+                       <button type="submit">Update item photo</button>
                      </form>
                    </section>
                    <section>

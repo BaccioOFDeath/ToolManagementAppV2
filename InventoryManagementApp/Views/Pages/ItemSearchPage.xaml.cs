@@ -362,7 +362,7 @@ namespace InventoryManagementApp.Views.Pages
             });
 
             var table = new Table { CellSpacing = 0 };
-            foreach (var width in new[] { 80.0, 180.0, 90.0, 80.0, 70.0, 110.0, 110.0 })
+            foreach (var width in new[] { 72.0, 150.0, 90.0, 88.0, 86.0, 80.0, 72.0, 150.0 })
                 table.Columns.Add(new TableColumn { Width = new GridLength(width) });
 
             var rowGroup = new TableRowGroup();
@@ -371,11 +371,12 @@ namespace InventoryManagementApp.Views.Pages
             rowGroup.Rows.Add(header);
             AddCell(header, "Item #");
             AddCell(header, "Name");
+            AddCell(header, "Brand");
+            AddCell(header, "Part #");
             AddCell(header, "Status");
             AddCell(header, "Location");
-            AddCell(header, "On Hand");
-            AddCell(header, "Holder");
-            AddCell(header, "Out Since");
+            AddCell(header, "Stock");
+            AddCell(header, "Keywords");
 
             foreach (var item in items)
             {
@@ -383,11 +384,12 @@ namespace InventoryManagementApp.Views.Pages
                 rowGroup.Rows.Add(row);
                 AddCell(row, item.ItemNumber);
                 AddCell(row, item.Name);
+                AddCell(row, item.Brand);
+                AddCell(row, item.PartNumber);
                 AddCell(row, GetStatus(item));
                 AddCell(row, item.Location);
-                AddCell(row, item.QuantityOnHand.ToString());
-                AddCell(row, item.CheckedOutBy);
-                AddCell(row, item.CheckedOutTime?.ToString("g") ?? string.Empty);
+                AddCell(row, item.StockSummary);
+                AddCell(row, item.Keywords);
             }
 
             document.Blocks.Add(table);
@@ -415,7 +417,7 @@ namespace InventoryManagementApp.Views.Pages
             });
 
             var table = new Table { CellSpacing = 0 };
-            foreach (var width in new[] { 75.0, 150.0, 95.0, 105.0, 105.0, 85.0, 190.0 })
+            foreach (var width in new[] { 55.0, 105.0, 110.0, 70.0, 80.0, 80.0, 55.0, 135.0, 100.0 })
                 table.Columns.Add(new TableColumn { Width = new GridLength(width) });
 
             var rowGroup = new TableRowGroup();
@@ -424,11 +426,13 @@ namespace InventoryManagementApp.Views.Pages
             rowGroup.Rows.Add(header);
             AddCell(header, "Item #");
             AddCell(header, "Name");
+            AddCell(header, "Identifiers");
             AddCell(header, "Location");
             AddCell(header, "Holder");
             AddCell(header, "Out Since");
             AddCell(header, "Stock");
             AddCell(header, "Handoff");
+            AddCell(header, "Notes");
 
             foreach (var item in items)
             {
@@ -436,11 +440,13 @@ namespace InventoryManagementApp.Views.Pages
                 rowGroup.Rows.Add(row);
                 AddCell(row, item.ItemNumber);
                 AddCell(row, item.Name);
+                AddCell(row, BuildIdentifierSummary(item));
                 AddCell(row, ValueOrNotRecorded(item.Location));
                 AddCell(row, item.HolderDisplay);
                 AddCell(row, item.OutSinceDisplay);
                 AddCell(row, item.StockSummary);
                 AddCell(row, item.AvailabilityDetail);
+                AddCell(row, BuildNotesSummary(item));
             }
 
             document.Blocks.Add(table);
@@ -594,6 +600,32 @@ namespace InventoryManagementApp.Views.Pages
             if (item.HasNoOnHand)
                 return "Unavailable";
             return "Available";
+        }
+
+        private static string BuildIdentifierSummary(ItemModel item)
+        {
+            var values = new[]
+            {
+                string.IsNullOrWhiteSpace(item.Brand) ? null : $"Brand: {item.Brand}",
+                string.IsNullOrWhiteSpace(item.PartNumber) ? null : $"Part: {item.PartNumber}",
+                string.IsNullOrWhiteSpace(item.Keywords) ? null : $"Keywords: {item.Keywords}"
+            };
+
+            var summary = string.Join(" | ", values.Where(value => !string.IsNullOrWhiteSpace(value)));
+            return string.IsNullOrWhiteSpace(summary) ? "Not recorded" : summary;
+        }
+
+        private static string BuildNotesSummary(ItemModel item)
+        {
+            var values = new[]
+            {
+                string.IsNullOrWhiteSpace(item.Notes) ? null : item.Notes,
+                string.IsNullOrWhiteSpace(item.MissingComponentsNotes) ? null : $"Missing: {item.MissingComponentsNotes}",
+                string.IsNullOrWhiteSpace(item.IssuesNotes) ? null : $"Issues: {item.IssuesNotes}"
+            };
+
+            var summary = string.Join(" | ", values.Where(value => !string.IsNullOrWhiteSpace(value)));
+            return string.IsNullOrWhiteSpace(summary) ? "No notes recorded" : summary;
         }
 
         public sealed class SearchHistoryEntry

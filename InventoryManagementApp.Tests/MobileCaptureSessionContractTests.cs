@@ -36,6 +36,36 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("context.CurrentUser = previousUser;", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void MobileCaptureService_SavesNewItemPhotoUnderItemNumberFileName()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "Services", "MobileCapture", "MobileCaptureService.cs");
+            var submitMethod = ExtractMethod(source, "private async Task<IResult> SubmitItemAsync");
+            var saveMethod = ExtractMethod(source, "private async Task<string> SaveUploadAsync");
+
+            Assert.Contains("item.ItemNumber = await itemService.GenerateNextItemNumberAsync", submitMethod, StringComparison.Ordinal);
+            Assert.Contains("SaveUploadAsync(image, \"ItemImages\", item.ItemNumber, useExactName: true", submitMethod, StringComparison.Ordinal);
+            Assert.Contains("useExactName", saveMethod, StringComparison.Ordinal);
+            Assert.Contains("? $\"{safeSeed}{extension.ToLowerInvariant()}\"", saveMethod, StringComparison.Ordinal);
+            Assert.Contains("useExactName ? FileMode.Create : FileMode.CreateNew", saveMethod, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void MobileCaptureService_CanUpdateExistingItemPhotoByItemNumber()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "Services", "MobileCapture", "MobileCaptureService.cs");
+            var submitMethod = ExtractMethod(source, "private async Task<IResult> SubmitItemImageAsync");
+
+            Assert.Contains("app.MapPost(\"/mobile-capture/item-image\", SubmitItemImageAsync);", source, StringComparison.Ordinal);
+            Assert.Contains("action=\"/mobile-capture/item-image\"", source, StringComparison.Ordinal);
+            Assert.Contains("name=\"updateItemNumber\"", source, StringComparison.Ordinal);
+            Assert.Contains("name=\"existingItemPhoto\"", source, StringComparison.Ordinal);
+            Assert.Contains("FindItemByNumberAsync(itemNumber", submitMethod, StringComparison.Ordinal);
+            Assert.Contains("SaveUploadAsync(photo, \"ItemImages\", item.ItemNumber, useExactName: true", submitMethod, StringComparison.Ordinal);
+            Assert.Contains("itemService.UpdateItemImageAsync(item.ItemID, imagePath", submitMethod, StringComparison.Ordinal);
+            Assert.Contains("Item photo updated", submitMethod, StringComparison.Ordinal);
+        }
+
         private static string ExtractMethod(string source, string signature)
         {
             var start = source.IndexOf(signature, StringComparison.Ordinal);

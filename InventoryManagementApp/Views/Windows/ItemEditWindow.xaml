@@ -103,6 +103,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Inventory Identity" Style="{StaticResource SectionHeader}"/>
@@ -131,7 +132,10 @@
                             <TextBlock Grid.Row="8" Text="Supplier" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
                             <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding ItemModel.Supplier, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
 
-                            <Border Grid.Row="9" Grid.ColumnSpan="2" Style="{StaticResource DesktopNoteCard}" Padding="10,8" Margin="0,6,0,0">
+                            <TextBlock Grid.Row="9" Text="Keywords" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="9" Grid.Column="1" Text="{Binding ItemModel.Keywords, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
+
+                            <Border Grid.Row="10" Grid.ColumnSpan="2" Style="{StaticResource DesktopNoteCard}" Padding="10,8" Margin="0,6,0,0">
                                 <TextBlock Text="Save after checking the item number, name, shelf location, and supplier details against the physical item."
                                            Style="{StaticResource CaptionTextBlock}"
                                            TextWrapping="Wrap"/>
@@ -153,10 +157,11 @@
                                            Source="{Binding ItemModel, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                                 </Border>
 
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <WrapPanel Margin="0,0,0,12">
                                     <Button Content="Browse" Style="{StaticResource PrimaryButton}" Command="{Binding BrowseImageCommand}" Width="92" Margin="0,0,8,0"/>
-                                    <Button Content="Remove" Style="{StaticResource GhostButton}" Command="{Binding RemoveImageCommand}" Width="92"/>
-                                </StackPanel>
+                                    <Button Content="Remove" Style="{StaticResource GhostButton}" Command="{Binding RemoveImageCommand}" Width="92" Margin="0,0,8,0"/>
+                                    <Button Content="Remove Background" Style="{StaticResource GhostButton}" Command="{Binding RemoveImageBackgroundCommand}" MinWidth="150"/>
+                                </WrapPanel>
 
                                 <CheckBox Content="Powered item" IsChecked="{Binding ItemModel.IsPowered}" Margin="0,0,0,6"/>
                                 <CheckBox Content="Available for rental" IsChecked="{Binding ItemModel.IsRentalItem}"/>

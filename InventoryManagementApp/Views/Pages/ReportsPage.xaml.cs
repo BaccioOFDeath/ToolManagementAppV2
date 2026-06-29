@@ -138,14 +138,21 @@ namespace InventoryManagementApp.Views.Pages
             var document = new FlowDocument
             {
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-                FontSize = 11
+                FontSize = 11,
+                PagePadding = new Thickness(40)
             };
 
-            document.Blocks.Add(new Paragraph(new Run(title))
+            document.Blocks.Add(new Paragraph(new Bold(new Run(title)))
+            {
+                FontSize = 20,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 6)
+            });
+            document.Blocks.Add(new Paragraph(new Bold(new Run("REPORT HANDOFF")))
             {
                 FontSize = 16,
-                FontWeight = FontWeights.SemiBold,
-                Margin = new Thickness(0, 0, 0, 4)
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 16)
             });
             document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - Last run {lastRunText} - {lines.Count} row(s)"))
             {
@@ -157,14 +164,23 @@ namespace InventoryManagementApp.Views.Pages
                 Margin = new Thickness(0, 0, 0, 10)
             });
 
-            var table = new Table { CellSpacing = 0 };
+            var table = new Table
+            {
+                CellSpacing = 0,
+                BorderBrush = System.Windows.Media.Brushes.Black,
+                BorderThickness = new Thickness(1)
+            };
             foreach (var width in new[] { 45.0, 85.0, 105.0, 300.0, 205.0 })
                 table.Columns.Add(new TableColumn { Width = new GridLength(width) });
 
             var rowGroup = new TableRowGroup();
             table.RowGroups.Add(rowGroup);
 
-            var header = new TableRow { FontWeight = FontWeights.SemiBold };
+            var header = new TableRow
+            {
+                FontWeight = FontWeights.SemiBold,
+                Background = System.Windows.Media.Brushes.LightGray
+            };
             rowGroup.Rows.Add(header);
             AddCell(header, "#");
             AddCell(header, "Type");
@@ -175,6 +191,8 @@ namespace InventoryManagementApp.Views.Pages
             foreach (var line in lines)
             {
                 var row = new TableRow();
+                if (line.Number % 2 == 0)
+                    row.Background = System.Windows.Media.Brushes.WhiteSmoke;
                 rowGroup.Rows.Add(row);
                 AddCell(row, line.Number.ToString());
                 AddCell(row, line.Category);
@@ -194,9 +212,9 @@ namespace InventoryManagementApp.Views.Pages
                 Margin = new Thickness(2)
             })
             {
-                BorderBrush = System.Windows.Media.Brushes.Gray,
-                BorderThickness = new Thickness(0, 0, 0, 0.5),
-                Padding = new Thickness(3, 2, 3, 2)
+                BorderBrush = System.Windows.Media.Brushes.Black,
+                BorderThickness = new Thickness(0.5),
+                Padding = new Thickness(5, 3, 5, 3)
             });
         }
     }

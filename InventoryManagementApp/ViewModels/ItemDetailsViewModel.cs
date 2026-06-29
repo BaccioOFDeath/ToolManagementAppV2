@@ -424,6 +424,7 @@ namespace InventoryManagementApp.ViewModels
                 ("Name", ItemModel.Name),
                 ("Brand", ItemModel.Brand),
                 ("Part #", ItemModel.PartNumber),
+                ("Keywords", ItemModel.Keywords),
                 ("Powered", ItemModel.IsPowered ? "Yes" : "No"),
                 ("Rental item", ItemModel.IsRentalItem ? "Yes" : "No")
             });

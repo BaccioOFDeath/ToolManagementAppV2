@@ -19,5 +19,25 @@ namespace InventoryManagementApp.Tests
                 .Any(cb => cb.Attribute("IsChecked")?.Value.Contains("ItemModel.IsRentalItem") == true);
             Assert.True(hasBinding, "CheckBox bound to ItemModel.IsRentalItem not found");
         }
+
+        [Fact]
+        public void ContainsKeywordsEditorBinding()
+        {
+            var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Windows", "ItemEditWindow.xaml"));
+            var xaml = File.ReadAllText(path);
+
+            Assert.Contains("Text=\"Keywords\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding ItemModel.Keywords, UpdateSourceTrigger=PropertyChanged}\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ContainsRemoveImageBackgroundButtonBinding()
+        {
+            var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Windows", "ItemEditWindow.xaml"));
+            var xaml = File.ReadAllText(path);
+
+            Assert.Contains("Content=\"Remove Background\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Command=\"{Binding RemoveImageBackgroundCommand}\"", xaml, StringComparison.Ordinal);
+        }
     }
 }

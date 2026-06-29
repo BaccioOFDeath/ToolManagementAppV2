@@ -8,9 +8,9 @@
       Background="{DynamicResource MainContentBackgroundBrush}">
     <Page.Resources>
         <Style x:Key="DirectoryStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="MinHeight" Value="72"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="MinHeight" Value="54"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
         </Style>
         <Style x:Key="DirectoryDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
             <Setter Property="TextWrapping" Value="Wrap"/>
@@ -44,9 +44,9 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="8,5" Margin="0,0,0,5">
             <DockPanel LastChildFill="False">
-                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MaxWidth="520">
                     <TextBlock Text="Manage Items" Style="{StaticResource PageTitleTextBlock}"/>
                     <TextBlock Text="Maintain the item directory, review current availability, and save inline stock/location edits before staff use live records." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
@@ -60,7 +60,7 @@
             </DockPanel>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,0,0,6">
+        <Grid Grid.Row="1" Margin="0,0,0,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -70,28 +70,28 @@
             <Border Grid.Column="0" Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
                     <TextBlock Text="Loaded Rows" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding Items.Count}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="{Binding Items.Count}" Style="{StaticResource StatisticValueTextBlock}"/>
                     <TextBlock Text="Incremental directory rows currently in memory" Style="{StaticResource DirectoryDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="1" Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
                     <TextBlock Text="Pending Edits" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding PendingEdits.Count}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="{Binding PendingEdits.Count}" Style="{StaticResource StatisticValueTextBlock}"/>
                     <TextBlock Text="Inline quantity, price, or location changes awaiting save" Style="{StaticResource DirectoryDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="2" Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
                     <TextBlock Text="Page Size" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding PageSize}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="{Binding PageSize}" Style="{StaticResource StatisticValueTextBlock}"/>
                     <TextBlock Text="Rows requested per directory load" Style="{StaticResource DirectoryDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Grid.Column="3" Style="{StaticResource DirectoryStatCard}" Margin="0">
                 <StackPanel>
                     <TextBlock Text="Selected Item" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding SelectedItem.Name, TargetNullValue=No item selected}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding SelectedItem.Name, TargetNullValue=No item selected}" Style="{StaticResource StatisticValueTextBlock}" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="{Binding SelectedItem.AvailabilityDetail, TargetNullValue='Select a row to review availability and next actions.'}" Style="{StaticResource DirectoryDetailText}"/>
                 </StackPanel>
             </Border>
@@ -99,9 +99,9 @@
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" MinWidth="660"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="1.1*" MinWidth="280"/>
+                <ColumnDefinition Width="3.4*" MinWidth="620"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="1*" MinWidth="250"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
@@ -116,7 +116,7 @@
                         <DockPanel LastChildFill="False">
                             <StackPanel DockPanel.Dock="Left">
                                 <TextBlock Text="Inventory Directory" Style="{StaticResource SectionHeader}" Margin="0"/>
-                                <TextBlock Text="Edit stock, price, and location inline, then save pending changes." Style="{StaticResource CaptionTextBlock}"/>
+                                <TextBlock Text="Edit stock, price, and location inline." Style="{StaticResource CaptionTextBlock}"/>
                             </StackPanel>
                             <TextBlock DockPanel.Dock="Right" Text="{Binding Filter, StringFormat='Current filter: {0}', TargetNullValue='Current filter: All items'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="12,0,0,0"/>
                         </DockPanel>
@@ -125,12 +125,12 @@
                         <DockPanel LastChildFill="False">
                             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <pages:SearchBar Width="330"
+                                <pages:SearchBar Width="260"
                                                  Text="{Binding Filter}"
                                                  SearchCommand="{Binding SearchCommand}"
                                                  SearchLabel="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Search {0}}"/>
                                 <TextBlock Text="Sort" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="12,0,6,0"/>
-                                <ComboBox Width="132"
+                                <ComboBox Width="118"
                                           ItemsSource="{Binding SortOptions}"
                                           SelectedItem="{Binding SelectedSortOption}"
                                           DisplayMemberPath="DisplayName"/>
@@ -236,7 +236,7 @@
                     <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
                         <StackPanel>
                             <TextBlock Text="Selected Item Handoff" Style="{StaticResource SectionHeader}" Margin="0"/>
-                            <TextBlock Text="Use this pane to confirm the record before editing, viewing details, or opening history." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Confirm before editing or opening history." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                     <Border DockPanel.Dock="Bottom" Style="{StaticResource DesktopSectionActionStrip}">
@@ -248,10 +248,10 @@
                         </WrapPanel>
                     </Border>
                     <ScrollViewer VerticalScrollBarVisibility="Hidden">
-                        <StackPanel Margin="12">
+                        <StackPanel Margin="10">
                             <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding SelectedItem.Name, TargetNullValue=No item selected}" Style="{StaticResource HeadingTextBlock}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding SelectedItem.Name, TargetNullValue=No item selected}" Style="{StaticResource SubheadingTextBlock}" TextWrapping="Wrap"/>
                                     <TextBlock Text="{Binding SelectedItem.SearchIdentityLine, TargetNullValue=Select a row in the directory.}" Style="{StaticResource DirectoryDetailText}"/>
                                 </StackPanel>
                             </Border>
@@ -259,7 +259,7 @@
                             <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10">
                                 <StackPanel>
                                     <TextBlock Text="Availability" Style="{StaticResource LabelTextBlock}"/>
-                                    <TextBlock Text="{Binding SelectedItem.AvailabilityStatus, TargetNullValue=Not selected}" Style="{StaticResource HeadingTextBlock}"/>
+                                    <TextBlock Text="{Binding SelectedItem.AvailabilityStatus, TargetNullValue=Not selected}" Style="{StaticResource StatisticValueTextBlock}"/>
                                     <TextBlock Text="{Binding SelectedItem.AvailabilityDetail, TargetNullValue='Select an item to review stock, holder, and next-step context.'}" Style="{StaticResource DirectoryDetailText}"/>
                                 </StackPanel>
                             </Border>
@@ -303,7 +303,7 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0">
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Padding="6,3" Margin="0,5,0,0">
             <DockPanel LastChildFill="False">
                 <TextBlock DockPanel.Dock="Left" Text="{Binding PendingEdits.Count, StringFormat='Pending inline edits: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
                 <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedSortOption.DisplayName, StringFormat='Sort: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="12,0,0,0"/>

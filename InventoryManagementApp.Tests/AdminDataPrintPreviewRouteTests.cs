@@ -46,8 +46,12 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Dashboard checked-out item handoff", source, StringComparison.Ordinal);
             Assert.Contains("Dashboard operations snapshot", source, StringComparison.Ordinal);
             Assert.Contains("AddCheckedOutItemTable(doc, CheckedOutItems", source, StringComparison.Ordinal);
+            Assert.Contains("AddTableCell(headerRow, \"Identifiers\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddTableCell(headerRow, \"Out Since\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddTableCell(headerRow, \"Handoff\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("AddTableCell(headerRow, \"Notes\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("BuildIdentifierSummary(item)", source, StringComparison.Ordinal);
+            Assert.Contains("BuildNotesSummary(item)", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new System.Windows.Controls.PrintDialog", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new PrintDialog", source, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((System.Windows.Documents.IDocumentPaginatorSource)doc).DocumentPaginator", source, StringComparison.Ordinal);
@@ -59,10 +63,38 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml.cs");
 
             Assert.Contains("BuildCheckedOutPrintDocument(title, items)", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Identifiers\")", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Out Since\")", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Stock\")", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Handoff\")", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Notes\")", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(row, item.AvailabilityDetail)", source, StringComparison.Ordinal);
+            Assert.Contains("BuildIdentifierSummary(item)", source, StringComparison.Ordinal);
+            Assert.Contains("BuildNotesSummary(item)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ItemSearchPrintIncludesToolIdentityFields()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml.cs");
+
+            Assert.Contains("AddCell(header, \"Brand\")", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Part #\")", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Keywords\")", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(row, item.Brand)", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(row, item.PartNumber)", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(row, item.Keywords)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ReportsPrintUsesHandoffHeaderAndRuledTable()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
+
+            Assert.Contains("REPORT HANDOFF", source, StringComparison.Ordinal);
+            Assert.Contains("BorderThickness = new Thickness(1)", source, StringComparison.Ordinal);
+            Assert.Contains("Background = System.Windows.Media.Brushes.LightGray", source, StringComparison.Ordinal);
+            Assert.Contains("line.Number % 2 == 0", source, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -112,6 +144,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("AddPrintSection(document, \"Condition And Notes\"", source, StringComparison.Ordinal);
             Assert.Contains("Tag = \"KeyValue\"", source, StringComparison.Ordinal);
             Assert.Contains("(\"Supplier\", ItemModel.Supplier)", source, StringComparison.Ordinal);
+            Assert.Contains("(\"Keywords\", ItemModel.Keywords)", source, StringComparison.Ordinal);
             Assert.Contains("(\"Price\", PriceText)", source, StringComparison.Ordinal);
             Assert.Contains("(\"Next action\", NextActionText)", source, StringComparison.Ordinal);
         }

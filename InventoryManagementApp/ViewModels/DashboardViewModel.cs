@@ -782,6 +782,32 @@ namespace InventoryManagementApp.ViewModels
             return $"Activity: {activity.Timestamp:yyyy-MM-dd HH:mm} | {activity.UserName} | open {destination} | {activity.Action}";
         }
 
+        private static string BuildIdentifierSummary(ItemModel item)
+        {
+            var values = new[]
+            {
+                string.IsNullOrWhiteSpace(item.Brand) ? null : $"Brand: {item.Brand}",
+                string.IsNullOrWhiteSpace(item.PartNumber) ? null : $"Part: {item.PartNumber}",
+                string.IsNullOrWhiteSpace(item.Keywords) ? null : $"Keywords: {item.Keywords}"
+            };
+
+            var summary = string.Join(" | ", values.Where(value => !string.IsNullOrWhiteSpace(value)));
+            return string.IsNullOrWhiteSpace(summary) ? "Not recorded" : summary;
+        }
+
+        private static string BuildNotesSummary(ItemModel item)
+        {
+            var values = new[]
+            {
+                string.IsNullOrWhiteSpace(item.Notes) ? null : item.Notes,
+                string.IsNullOrWhiteSpace(item.MissingComponentsNotes) ? null : $"Missing: {item.MissingComponentsNotes}",
+                string.IsNullOrWhiteSpace(item.IssuesNotes) ? null : $"Issues: {item.IssuesNotes}"
+            };
+
+            var summary = string.Join(" | ", values.Where(value => !string.IsNullOrWhiteSpace(value)));
+            return string.IsNullOrWhiteSpace(summary) ? "No notes recorded" : summary;
+        }
+
         private static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
 
         private async Task PrintCheckedOutItemsAsync()
@@ -922,15 +948,17 @@ namespace InventoryManagementApp.ViewModels
             var itemList = items.ToList();
             AddSectionTitle(doc, title);
 
-            var table = CreateTable(7);
+            var table = CreateTable(9);
             var headerRow = CreateHeaderRow();
             AddTableCell(headerRow, "Item #", true);
             AddTableCell(headerRow, "Name", true);
+            AddTableCell(headerRow, "Identifiers", true);
             AddTableCell(headerRow, "Location", true);
             AddTableCell(headerRow, "Holder", true);
             AddTableCell(headerRow, "Out Since", true);
             AddTableCell(headerRow, "Stock", true);
             AddTableCell(headerRow, "Handoff", true);
+            AddTableCell(headerRow, "Notes", true);
             table.RowGroups[0].Rows.Add(headerRow);
 
             foreach (var item in itemList)
@@ -938,11 +966,13 @@ namespace InventoryManagementApp.ViewModels
                 var row = new System.Windows.Documents.TableRow();
                 AddTableCell(row, item.ItemNumber);
                 AddTableCell(row, item.Name);
+                AddTableCell(row, BuildIdentifierSummary(item));
                 AddTableCell(row, ValueOrNotRecorded(item.Location));
                 AddTableCell(row, item.HolderDisplay);
                 AddTableCell(row, item.OutSinceDisplay);
                 AddTableCell(row, item.StockSummary);
                 AddTableCell(row, item.AvailabilityDetail);
+                AddTableCell(row, BuildNotesSummary(item));
                 table.RowGroups[1].Rows.Add(row);
             }
 

@@ -13,6 +13,7 @@ namespace InventoryManagementApp.Views.Windows
         {
             InitializeComponent();
             DataContext = new InfoDialogViewModel(message, () => DialogResult = true);
+            this.UseResponsiveDefaultSize(760, 520);
             this.DisposeDataContextOnUnload();
         }
 

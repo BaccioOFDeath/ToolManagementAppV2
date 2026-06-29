@@ -34,6 +34,20 @@ namespace InventoryManagementApp.Tests.Views
             Assert.Contains("Width=\"42\" Height=\"34\"", commonItemsGrid, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void Dashboard_UsesCompactLaptopFriendlyHeaderRows()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");
+
+            Assert.Contains("Padding=\"10,6\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Style=\"{StaticResource PageTitleTextBlock}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"92\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("FontSize=\"18\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Padding=\"8,5\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("FontSize=\"15\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Padding=\"6,3\"", xaml, StringComparison.Ordinal);
+        }
+
         private static string ReadRepositoryFile(params string[] relativePath)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
