@@ -7,6 +7,39 @@ namespace InventoryManagementApp.Tests
     public class ReservationServiceWriteGuardContractTests
     {
         [Fact]
+        public void ReservationCreateChecksInsertedRowsBeforeReturningId()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Reservations", "ReservationService.cs");
+            var createMethod = ExtractMethod(
+                source,
+                "public async Task<int> CreateReservationAsync(Reservation reservation)",
+                "public async Task<bool> UpdateReservationAsync");
+
+            AssertContainsAll(
+                createMethod,
+                "var insertedRows = cmd.ExecuteNonQuery();",
+                "EnsureReservationCreateSucceeded(insertedRows);",
+                "using var idCmd = new SqliteCommand(\"SELECT last_insert_rowid();\", conn);",
+                "if (id < 1)",
+                "throw new InvalidOperationException(\"Unable to create reservation.\");",
+                "return id;");
+
+            Assert.True(
+                createMethod.IndexOf("var insertedRows = cmd.ExecuteNonQuery();", StringComparison.Ordinal) <
+                createMethod.IndexOf("EnsureReservationCreateSucceeded(insertedRows);", StringComparison.Ordinal),
+                "Expected reservation creates to inspect affected rows after executing the insert.");
+            Assert.True(
+                createMethod.IndexOf("EnsureReservationCreateSucceeded(insertedRows);", StringComparison.Ordinal) <
+                createMethod.IndexOf("using var idCmd = new SqliteCommand(\"SELECT last_insert_rowid();\", conn);", StringComparison.Ordinal),
+                "Expected failed reservation creates to stop before reading the new reservation id.");
+            Assert.True(
+                createMethod.IndexOf("if (id < 1)", StringComparison.Ordinal) <
+                createMethod.IndexOf("return id;", StringComparison.Ordinal),
+                "Expected reservation creates to reject an invalid inserted id before reporting success.");
+            Assert.DoesNotContain("SELECT last_insert_rowid();\";", createMethod, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ReservationWritesThrowWhenNoRowsAreAffected()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Reservations", "ReservationService.cs");
@@ -47,6 +80,19 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("throw new InvalidOperationException(\"Reservation not found.\");", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ReservationWriteGuardKeepsCreateSpecificFailureMessage()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Reservations", "ReservationService.cs");
+
+            AssertContainsAll(
+                source,
+                "private static void EnsureReservationWriteSucceeded(int affectedRows)",
+                "throw new InvalidOperationException(\"Reservation not found.\");",
+                "private static void EnsureReservationCreateSucceeded(int affectedRows)",
+                "throw new InvalidOperationException(\"Unable to create reservation.\");");
+        }
+
         private static void AssertWriteGuard(
             string source,
             string startMarker,
@@ -66,6 +112,14 @@ namespace InventoryManagementApp.Tests
             Assert.True(
                 method.IndexOf(guardSnippet, StringComparison.Ordinal) < method.IndexOf("return true;", StringComparison.Ordinal),
                 $"Expected {startMarker} to fail stale writes before reporting success.");
+        }
+
+        private static void AssertContainsAll(string source, params string[] expectedSnippets)
+        {
+            foreach (var snippet in expectedSnippets)
+            {
+                Assert.Contains(snippet, source, StringComparison.Ordinal);
+            }
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)
