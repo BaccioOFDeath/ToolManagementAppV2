@@ -49,7 +49,10 @@ namespace InventoryManagementApp.Services.Users
                     new SqliteParameter("@Action",   normalizedAction)
                 };
                 using var conn = _dbService.CreateConnection();
-                await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
+                var insertedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
+                if (insertedRows == 0)
+                    return new Result(false, "Unable to log activity.");
+
                 return new Result(true);
             }
             catch (OperationCanceledException ex)

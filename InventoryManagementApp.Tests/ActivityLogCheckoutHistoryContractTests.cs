@@ -106,6 +106,24 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void LogActionChecksInsertAffectedRowsBeforeReturningSuccess()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
+            var method = ExtractMethod(
+                source,
+                "public virtual async Task<Result> LogActionAsync",
+                "public virtual async Task<Result<List<ActivityLog>>> GetRecentLogsAsync");
+
+            Assert.Contains("var insertedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);", method, StringComparison.Ordinal);
+            Assert.Contains("if (insertedRows == 0)", method, StringComparison.Ordinal);
+            Assert.Contains("return new Result(false, \"Unable to log activity.\");", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);\n                return new Result(true);", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("if (insertedRows == 0)", StringComparison.Ordinal) < method.IndexOf("return new Result(true);", StringComparison.Ordinal),
+                "Activity logging should verify the insert affected rows before reporting success.");
+        }
+
+        [Fact]
         public void RecentLogsRejectsInvalidCountsBeforeSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
