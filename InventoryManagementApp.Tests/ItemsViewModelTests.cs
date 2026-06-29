@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections;
+using System.IO;
 using Microsoft.Data.Sqlite;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -12,6 +13,7 @@ using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Utilities;
+using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.ViewModels;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -73,6 +75,61 @@ namespace InventoryManagementApp.Tests
             await vm.DeleteItemsCommand.ExecuteAsync(list);
             Assert.Single(vm.Items);
             Assert.Equal(2, vm.Items[0].ItemID);
+        }
+
+        [Fact]
+        public async Task DeleteSelectedItemCommand_RemovesSelectedItem()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            await vm.InitializeAsync();
+            var item1 = new ItemModel { ItemID = 1, Name = "A" };
+            var item2 = new ItemModel { ItemID = 2, Name = "B" };
+            vm.Items.Add(item1);
+            vm.Items.Add(item2);
+            vm.SelectedItem = item1;
+
+            Assert.True(vm.DeleteSelectedItemCommand.CanExecute(vm.SelectedItem));
+            await vm.DeleteSelectedItemCommand.ExecuteAsync(vm.SelectedItem);
+
+            Assert.Single(vm.Items);
+            Assert.Equal(2, vm.Items[0].ItemID);
+            Assert.Null(vm.SelectedItem);
+        }
+
+        [Fact]
+        public void MissingImageCount_TracksLoadedRowsWithoutUsableImages()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+            var assetFolder = AppAssetHelper.EnsureAssetFolder(AppAssetHelper.ItemImagesFolder);
+            var fallbackPath = Path.Combine(assetFolder, "TMISSING-IMAGE-COUNT.png");
+            File.WriteAllBytes(fallbackPath, [1, 2, 3]);
+
+            try
+            {
+                vm.Items.Add(new ItemModel { ItemID = 1, ItemNumber = "NOIMAGE", ImagePath = string.Empty });
+                vm.Items.Add(new ItemModel { ItemID = 2, ItemNumber = "TMISSING-IMAGE-COUNT", ImagePath = string.Empty });
+
+                Assert.Equal(1, vm.MissingImageCount);
+
+                vm.Items[0].ImagePath = AppAssetHelper.ToAppRelativePath(fallbackPath);
+
+                Assert.Equal(0, vm.MissingImageCount);
+            }
+            finally
+            {
+                if (File.Exists(fallbackPath))
+                    File.Delete(fallbackPath);
+            }
         }
 
         [Fact]

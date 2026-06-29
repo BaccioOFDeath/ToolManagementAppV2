@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections;
+using System.Collections.Specialized;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,6 +37,7 @@ namespace InventoryManagementApp.ViewModels
         private CancellationTokenSource _loadCts = new();
         private bool _disposed;
         private readonly List<ItemModel> _pendingEdits = new();
+        private static readonly string[] ItemImageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
 
         public IncrementalLoadingCollection<ItemModel> Items { get; }
 
@@ -44,10 +47,18 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand OpenRentalHistoryCommand { get; }
         public IAsyncRelayCommand NewItemCommand { get; }
         public IAsyncRelayCommand OpenMobileCaptureCommand { get; }
+        public IAsyncRelayCommand<ItemModel?> DeleteSelectedItemCommand { get; }
         public IAsyncRelayCommand<IList> DeleteItemsCommand { get; }
         public IAsyncRelayCommand CommitChangesCommand { get; }
 
         public IReadOnlyCollection<ItemModel> PendingEdits => _pendingEdits;
+
+        private int _missingImageCount;
+        public int MissingImageCount
+        {
+            get => _missingImageCount;
+            private set => SetProperty(ref _missingImageCount, value);
+        }
 
         Dictionary<ItemDetailField, bool> _visibleFields = new();
         public Dictionary<ItemDetailField, bool> VisibleFields
@@ -129,8 +140,15 @@ namespace InventoryManagementApp.ViewModels
             OpenRentalHistoryCommand = new AsyncRelayCommand(ct => OpenRentalHistoryAsync(ct));
             NewItemCommand = new AsyncRelayCommand(ct => NewItemAsync(ct));
             OpenMobileCaptureCommand = new AsyncRelayCommand(ct => OpenMobileCaptureAsync(ct));
+            DeleteSelectedItemCommand = new AsyncRelayCommand<ItemModel?>(DeleteSelectedItemAsync, item => item != null);
             DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
             CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
+            Items.CollectionChanged += Items_CollectionChanged;
+        }
+
+        partial void OnSelectedItemChanged(ItemModel? value)
+        {
+            DeleteSelectedItemCommand.NotifyCanExecuteChanged();
         }
 
         public async Task InitializeAsync(CancellationToken ct = default)
@@ -373,11 +391,76 @@ namespace InventoryManagementApp.ViewModels
         private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (sender is not ItemModel item) return;
+            if (e.PropertyName == nameof(ItemModel.ImagePath) || e.PropertyName == nameof(ItemModel.ItemNumber))
+                RefreshMissingImageCount();
+
             if (e.PropertyName == nameof(ItemModel.QuantityOnHand) || e.PropertyName == nameof(ItemModel.Location) || e.PropertyName == nameof(ItemModel.Price))
             {
                 if (!_pendingEdits.Contains(item))
+                {
                     _pendingEdits.Add(item);
+                    OnPropertyChanged(nameof(PendingEdits));
+                }
             }
+        }
+
+        private void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.OldItems != null)
+            {
+                foreach (var oldItem in e.OldItems.OfType<ItemModel>())
+                    oldItem.PropertyChanged -= Item_PropertyChanged;
+            }
+
+            if (e.NewItems != null)
+            {
+                foreach (var newItem in e.NewItems.OfType<ItemModel>())
+                {
+                    newItem.PropertyChanged -= Item_PropertyChanged;
+                    newItem.PropertyChanged += Item_PropertyChanged;
+                }
+            }
+
+            RefreshMissingImageCount();
+        }
+
+        private void RefreshMissingImageCount()
+        {
+            MissingImageCount = Items.Count(ItemIsMissingImage);
+        }
+
+        private static bool ItemIsMissingImage(ItemModel item)
+        {
+            if (HasUsableImagePath(item.ImagePath))
+                return false;
+
+            return !HasItemNumberImageFallback(item.ItemNumber);
+        }
+
+        private static bool HasUsableImagePath(string? imagePath)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath))
+                return false;
+
+            var resolved = PathHelper.GetAbsolutePath(imagePath, false) ?? AppAssetHelper.ResolveAssetPath(imagePath);
+            return !string.IsNullOrWhiteSpace(resolved) && File.Exists(resolved);
+        }
+
+        private static bool HasItemNumberImageFallback(string? itemNumber)
+        {
+            if (string.IsNullOrWhiteSpace(itemNumber))
+                return false;
+
+            var trimmed = itemNumber.Trim();
+            foreach (var extension in ItemImageExtensions)
+            {
+                var candidate = Path.Combine(AppAssetHelper.AssetsDirectoryName, AppAssetHelper.ItemImagesFolder, trimmed + extension);
+                var resolved = PathHelper.GetAbsolutePath(candidate, false) ?? AppAssetHelper.ResolveAssetPath(candidate);
+                if (!string.IsNullOrWhiteSpace(resolved) && File.Exists(resolved))
+                    return true;
+            }
+
+            return false;
         }
 
         private async Task EditItemAsync(CancellationToken ct)
@@ -585,6 +668,14 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        private Task DeleteSelectedItemAsync(ItemModel? item, CancellationToken ct)
+        {
+            if (item == null)
+                return Task.CompletedTask;
+
+            return DeleteItemsAsync(new List<ItemModel> { item }, ct);
+        }
+
         private async Task CommitChangesAsync(CancellationToken ct)
         {
             if (_pendingEdits.Count == 0) return;
@@ -593,6 +684,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _itemService.SaveChangesAsync(edits, ct).ConfigureAwait(false);
                 _pendingEdits.Clear();
+                OnPropertyChanged(nameof(PendingEdits));
                 foreach (var item in edits)
                 {
                     var refreshed = await _itemService.GetItemByIDAsync(item.ItemID, ct).ConfigureAwait(false);
@@ -630,7 +722,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 var refreshed = await RefreshItemsAfterMutationFailureAsync(edits.FirstOrDefault()?.ItemID, ct).ConfigureAwait(false);
                 if (refreshed)
+                {
                     _pendingEdits.Clear();
+                    OnPropertyChanged(nameof(PendingEdits));
+                }
                 await _dialogService.ShowInfoAsync($"Failed to save changes: {AppendItemMutationRefreshMessage(ex.Message, refreshed)}", "Error").ConfigureAwait(false);
             }
         }
@@ -641,6 +736,7 @@ namespace InventoryManagementApp.ViewModels
             _disposed = true;
             _memoryBudget.SteadyExceeded -= OnSteadyExceeded;
             _memoryBudget.PeakExceeded -= OnPeakExceeded;
+            Items.CollectionChanged -= Items_CollectionChanged;
             foreach (var item in Items)
                 item.PropertyChanged -= Item_PropertyChanged;
             var dispatcher = Application.Current?.Dispatcher;

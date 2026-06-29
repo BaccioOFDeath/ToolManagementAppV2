@@ -74,6 +74,31 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void DeleteButton_IsVisibleAndWiredToSelectedItemCommand()
+        {
+            var xaml = ReadXaml();
+
+            Assert.Contains("Content=\"Delete\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Command=\"{Binding DeleteSelectedItemCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("CommandParameter=\"{Binding SelectedItem}\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void SummaryCards_ShowMissingImagesBesideEditAndPageSizeStats()
+        {
+            var xaml = ReadXaml();
+
+            var pendingIndex = xaml.IndexOf("Text=\"Pending Edits\"", StringComparison.Ordinal);
+            var missingIndex = xaml.IndexOf("Text=\"Missing Images\"", StringComparison.Ordinal);
+            var pageSizeIndex = xaml.IndexOf("Text=\"Page Size\"", StringComparison.Ordinal);
+
+            Assert.True(pendingIndex >= 0, "Pending edits card was not found.");
+            Assert.True(missingIndex > pendingIndex, "Missing images card should appear after pending edits.");
+            Assert.True(pageSizeIndex > missingIndex, "Page size card should appear after missing images.");
+            Assert.Contains("Text=\"{Binding MissingImageCount}\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void Page_UsesCompactLaptopFriendlyDirectoryLayout()
         {
             var xaml = ReadXaml();

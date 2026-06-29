@@ -55,13 +55,15 @@
                     <Button Style="{StaticResource PrimaryButton}" Content="Mobile Capture" Command="{Binding OpenMobileCaptureCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditItemCommand}" Margin="0,0,4,0"/>
                     <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenRentalHistoryCommand}"/>
+                    <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,4,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteSelectedItemCommand}" CommandParameter="{Binding SelectedItem}"/>
                 </StackPanel>
             </DockPanel>
         </Border>
 
         <Grid Grid.Row="1" Margin="0,0,0,5">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -83,12 +85,19 @@
             </Border>
             <Border Grid.Column="2" Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
+                    <TextBlock Text="Missing Images" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding MissingImageCount}" Style="{StaticResource StatisticValueTextBlock}"/>
+                    <TextBlock Text="Loaded rows still using the default item photo" Style="{StaticResource DirectoryDetailText}"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="3" Style="{StaticResource DirectoryStatCard}">
+                <StackPanel>
                     <TextBlock Text="Page Size" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding PageSize}" Style="{StaticResource StatisticValueTextBlock}"/>
                     <TextBlock Text="Rows requested per directory load" Style="{StaticResource DirectoryDetailText}"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="3" Style="{StaticResource DirectoryStatCard}" Margin="0">
+            <Border Grid.Column="4" Style="{StaticResource DirectoryStatCard}" Margin="0">
                 <StackPanel>
                     <TextBlock Text="Selected Item" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding SelectedItem.Name, TargetNullValue=No item selected}" Style="{StaticResource StatisticValueTextBlock}" TextTrimming="CharacterEllipsis"/>
@@ -245,6 +254,7 @@
                             <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,4,4"/>
                             <Button Style="{StaticResource GhostButton}" Content="Save" Command="{Binding CommitChangesCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteSelectedItemCommand}" CommandParameter="{Binding SelectedItem}" Margin="0,0,4,4"/>
                         </WrapPanel>
                     </Border>
                     <ScrollViewer VerticalScrollBarVisibility="Hidden">
