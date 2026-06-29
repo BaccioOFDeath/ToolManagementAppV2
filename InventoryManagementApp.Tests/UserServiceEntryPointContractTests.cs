@@ -81,6 +81,36 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void AddUserChecksInsertedRowsBeforeAssigningNewUserId()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task AddUserAsync",
+                "public async Task UpdateUserAsync");
+
+            Assert.Contains("var insertedRows = await cmd.ExecuteNonQueryAsync();", method, StringComparison.Ordinal);
+            Assert.Contains("EnsureUserCreateSucceeded(insertedRows);", method, StringComparison.Ordinal);
+            Assert.Contains("using var idCmd = new SqliteCommand(\"SELECT last_insert_rowid();\", conn);", method, StringComparison.Ordinal);
+            Assert.Contains("user.UserID = Convert.ToInt32(await idCmd.ExecuteScalarAsync());", method, StringComparison.Ordinal);
+            Assert.Contains("if (user.UserID < 1)", method, StringComparison.Ordinal);
+            Assert.Contains("throw new InvalidOperationException(\"Unable to create user.\");", method, StringComparison.Ordinal);
+            Assert.Contains("static void EnsureUserCreateSucceeded(int rows)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("SELECT last_insert_rowid();\";", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("cmd.ExecuteScalarAsync()", method, StringComparison.Ordinal);
+
+            Assert.True(
+                method.IndexOf("var insertedRows = await cmd.ExecuteNonQueryAsync();", StringComparison.Ordinal) < method.IndexOf("EnsureUserCreateSucceeded(insertedRows);", StringComparison.Ordinal),
+                "User creation should capture affected rows before checking the insert result.");
+            Assert.True(
+                method.IndexOf("EnsureUserCreateSucceeded(insertedRows);", StringComparison.Ordinal) < method.IndexOf("using var idCmd = new SqliteCommand(\"SELECT last_insert_rowid();\", conn);", StringComparison.Ordinal),
+                "Failed user creates should stop before reading a new user id.");
+            Assert.True(
+                method.IndexOf("if (user.UserID < 1)", StringComparison.Ordinal) < method.IndexOf("user.PasswordHash = hashed;", StringComparison.Ordinal),
+                "Invalid user ids should fail before the in-memory user is finalized.");
+        }
+
+        [Fact]
         public void ChangePasswordRejectsInvalidUserIdsBeforeAuthorizationPasswordAndSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");
