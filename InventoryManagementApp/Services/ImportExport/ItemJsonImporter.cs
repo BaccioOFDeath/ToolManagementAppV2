@@ -34,11 +34,14 @@ namespace InventoryManagementApp.Services.ImportExport
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("File not found.", filePath);
 
+            cancellationToken.ThrowIfCancellationRequested();
             var skippedRows = new List<int>();
             var json = await File.ReadAllTextAsync(filePath, cancellationToken).ConfigureAwait(false);
-            
+
+            cancellationToken.ThrowIfCancellationRequested();
             var items = JsonSerializer.Deserialize<List<ItemModel>>(json, JsonOptions);
-            
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (items == null || items.Count == 0)
                 return (Enumerable.Empty<ItemModel>(), skippedRows);
 
@@ -46,6 +49,7 @@ namespace InventoryManagementApp.Services.ImportExport
             var validItems = new List<ItemModel>();
             for (int i = 0; i < items.Count; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var item = items[i];
                 if (string.IsNullOrWhiteSpace(item.ItemNumber))
                 {

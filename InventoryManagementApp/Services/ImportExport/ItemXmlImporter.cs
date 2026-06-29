@@ -27,14 +27,19 @@ namespace InventoryManagementApp.Services.ImportExport
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("File not found.", filePath);
 
+            cancellationToken.ThrowIfCancellationRequested();
             var skippedRows = new List<int>();
             
             var items = await Task.Run(() =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var serializer = new XmlSerializer(typeof(List<ItemModel>), new XmlRootAttribute("Items"));
                 using var reader = new StreamReader(filePath);
-                return serializer.Deserialize(reader) as List<ItemModel>;
+                var deserializedItems = serializer.Deserialize(reader) as List<ItemModel>;
+                cancellationToken.ThrowIfCancellationRequested();
+                return deserializedItems;
             }, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (items == null || items.Count == 0)
                 return (Enumerable.Empty<ItemModel>(), skippedRows);
@@ -43,6 +48,7 @@ namespace InventoryManagementApp.Services.ImportExport
             var validItems = new List<ItemModel>();
             for (int i = 0; i < items.Count; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var item = items[i];
                 if (string.IsNullOrWhiteSpace(item.ItemNumber))
                 {
