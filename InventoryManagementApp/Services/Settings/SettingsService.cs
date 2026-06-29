@@ -64,30 +64,33 @@ namespace InventoryManagementApp.Services.Settings
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentException("Key cannot be null or empty.", nameof(key));
 
+            var normalizedKey = key.Trim();
+
             try
             {
                 var p = new[]
                 {
-                    new SqliteParameter("@Key", key),
+                    new SqliteParameter("@Key", normalizedKey),
                     new SqliteParameter("@Value", value)
                 };
                 using var conn = _dbService.CreateConnection();
-                await SqliteHelper.ExecuteNonQueryAsync(conn, UpsertSql, p, cancellationToken).ConfigureAwait(false);
+                var affectedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, UpsertSql, p, cancellationToken).ConfigureAwait(false);
+                EnsureSettingsWriteSucceeded(affectedRows, normalizedKey);
             }
             catch (OperationCanceledException ex)
             {
-                _logger.LogWarning(ex, "Saving setting {Key} canceled or timed out", key);
+                _logger.LogWarning(ex, "Saving setting {Key} canceled or timed out", normalizedKey);
                 throw;
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_BUSY)
             {
-                _logger.LogWarning(ex, "Saving setting {Key} timed out", key);
+                _logger.LogWarning(ex, "Saving setting {Key} timed out", normalizedKey);
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to save setting {Key}", key);
-                throw new InvalidOperationException($"Failed to save setting '{key}'.", ex);
+                _logger.LogError(ex, "Failed to save setting {Key}", normalizedKey);
+                throw new InvalidOperationException($"Failed to save setting '{normalizedKey}'.", ex);
             }
         }
 
@@ -178,24 +181,33 @@ namespace InventoryManagementApp.Services.Settings
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings));
 
+            var normalizedSettings = new List<KeyValuePair<string, string>>(settings.Count);
+            var normalizedKeys = new HashSet<string>(StringComparer.Ordinal);
             foreach (var kv in settings)
             {
                 if (string.IsNullOrWhiteSpace(kv.Key))
                     throw new ArgumentException("Key cannot be null or empty.", nameof(settings));
+
+                var normalizedKey = kv.Key.Trim();
+                if (!normalizedKeys.Add(normalizedKey))
+                    throw new ArgumentException("Duplicate setting keys are not allowed.", nameof(settings));
+
+                normalizedSettings.Add(new KeyValuePair<string, string>(normalizedKey, kv.Value));
             }
 
             using var conn = _dbService.CreateConnection();
             using var tx = conn.BeginTransaction();
             try
             {
-                foreach (var kv in settings)
+                foreach (var kv in normalizedSettings)
                 {
                     var p = new[]
                     {
                         new SqliteParameter("@Key", kv.Key),
                         new SqliteParameter("@Value", kv.Value)
                     };
-                    await SqliteHelper.ExecuteNonQueryAsync(conn, tx, UpsertSql, p, cancellationToken).ConfigureAwait(false);
+                    var affectedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, tx, UpsertSql, p, cancellationToken).ConfigureAwait(false);
+                    EnsureSettingsWriteSucceeded(affectedRows, kv.Key);
                 }
                 tx.Commit();
             }
@@ -222,30 +234,41 @@ namespace InventoryManagementApp.Services.Settings
         public async Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default)
         {
             _auth.EnsurePermission(User.PermissionSettings);
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException("Key cannot be null or empty.", nameof(key));
+
+            var normalizedKey = key.Trim();
+
             try
             {
                 const string sql = "DELETE FROM Settings WHERE Key = @Key";
-                var p = new[] { new SqliteParameter("@Key", key) };
+                var p = new[] { new SqliteParameter("@Key", normalizedKey) };
                 using var conn = _dbService.CreateConnection();
                 var affected = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
                 if (affected == 0)
-                    _logger.LogWarning("No setting found for key {Key}", key);
+                    _logger.LogWarning("No setting found for key {Key}", normalizedKey);
             }
             catch (OperationCanceledException ex)
             {
-                _logger.LogWarning(ex, "Deleting setting {Key} canceled or timed out", key);
+                _logger.LogWarning(ex, "Deleting setting {Key} canceled or timed out", normalizedKey);
                 throw;
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_BUSY)
             {
-                _logger.LogWarning(ex, "Deleting setting {Key} timed out", key);
+                _logger.LogWarning(ex, "Deleting setting {Key} timed out", normalizedKey);
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to delete setting {Key}", key);
-                throw new InvalidOperationException($"Failed to delete setting '{key}'.", ex);
+                _logger.LogError(ex, "Failed to delete setting {Key}", normalizedKey);
+                throw new InvalidOperationException($"Failed to delete setting '{normalizedKey}'.", ex);
             }
+        }
+
+        static void EnsureSettingsWriteSucceeded(int affectedRows, string key)
+        {
+            if (affectedRows < 1)
+                throw new InvalidOperationException($"Failed to save setting '{key}'.");
         }
 
         const string PasswordIterationsKey = "PasswordIterations";
