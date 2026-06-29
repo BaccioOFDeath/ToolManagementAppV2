@@ -16,6 +16,7 @@ namespace InventoryManagementApp.Services.Users
     public class ActivityLogService
     {
         const int MaxRecentLogCount = 500;
+        const int MaxCheckoutHistoryLogCount = 500;
 
         readonly DatabaseService _dbService;
         readonly ILogger<ActivityLogService> _logger;
@@ -140,7 +141,8 @@ namespace InventoryManagementApp.Services.Users
                     parameters.Add(new SqliteParameter("@ItemNumberPattern", itemNumberPattern));
                 }
 
-                sql += " ORDER BY Timestamp DESC";
+                sql += " ORDER BY Timestamp DESC LIMIT @CheckoutHistoryLimit";
+                parameters.Add(new SqliteParameter("@CheckoutHistoryLimit", MaxCheckoutHistoryLogCount));
 
                 using var conn = _dbService.CreateConnection();
                 var logs = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapLog, parameters.ToArray(), cancellationToken).ConfigureAwait(false);
