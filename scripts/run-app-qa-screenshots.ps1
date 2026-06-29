@@ -14,7 +14,9 @@ param(
     [switch]$KeepRunDirectory,
     [switch]$SkipFullScreen,
     [switch]$SkipPhysicalResolutions,
-    [switch]$SkipBrowserViewports
+    [switch]$SkipBrowserViewports,
+    [string[]]$Resolution = @(),
+    [string[]]$Capture = @()
 )
 
 Set-StrictMode -Version Latest
@@ -213,6 +215,58 @@ $expectedScreenshotSet = [System.Collections.Generic.HashSet[string]]::new([Syst
 foreach ($expectedFile in $expectedScreenshotFiles) {
     [void]$expectedScreenshotSet.Add($expectedFile)
 }
+function Test-CaptureFilterMatch {
+    param(
+        [Parameter(Mandatory = $true)][string]$RelativePath,
+        [Parameter(Mandatory = $true)][string[]]$Filters
+    )
+
+    if ($Filters.Count -eq 0) {
+        return $true
+    }
+
+    $normalizedPath = $RelativePath.Replace('\', '/').ToLowerInvariant()
+    $fileName = [System.IO.Path]::GetFileName($normalizedPath)
+    $pathWithoutExtension = [System.IO.Path]::ChangeExtension($normalizedPath, $null)
+
+    foreach ($rawFilter in $Filters) {
+        if ([string]::IsNullOrWhiteSpace($rawFilter)) {
+            continue
+        }
+
+        $filter = $rawFilter.Trim().Trim('"').Replace('\', '/').ToLowerInvariant()
+        if ($filter.EndsWith("/*")) {
+            $folderPrefix = $filter.Substring(0, $filter.Length - 1)
+            if ($normalizedPath.StartsWith($folderPrefix)) {
+                return $true
+            }
+        }
+
+        $filterWithoutExtension = [System.IO.Path]::ChangeExtension($filter, $null)
+        if ($normalizedPath -eq $filter -or
+            $fileName -eq $filter -or
+            $pathWithoutExtension -eq $filterWithoutExtension -or
+            $normalizedPath.Contains($filter)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+if ($Capture.Count -gt 0) {
+    $expectedScreenshotFiles = @($expectedScreenshotFiles | Where-Object { Test-CaptureFilterMatch -RelativePath $_ -Filters $Capture })
+    $expectedScreenshotSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($expectedFile in $expectedScreenshotFiles) {
+        [void]$expectedScreenshotSet.Add($expectedFile)
+    }
+    if ($expectedScreenshotFiles.Count -eq 0) {
+        throw "No expected QA screenshots match the requested -Capture filter(s): $($Capture -join ', ')."
+    }
+    $expectedFolders = @($expectedScreenshotFiles | ForEach-Object { ($_ -split '\\')[0] } | Select-Object -Unique)
+    $ExpectedScreenshotCount = $expectedScreenshotFiles.Count
+    $SkipFullScreen = $true
+}
 if ($ExpectedScreenshotCount -lt $expectedScreenshotFiles.Count) {
     $ExpectedScreenshotCount = $expectedScreenshotFiles.Count
 }
@@ -266,6 +320,9 @@ function Invoke-QaScreenshotRun {
     elseif ($WindowWidth -gt 0 -and $WindowHeight -gt 0) {
         $arguments += "--qa-window-width=$WindowWidth"
         $arguments += "--qa-window-height=$WindowHeight"
+    }
+    if ($Capture.Count -gt 0) {
+        $arguments += "--qa-captures=$($Capture -join ',')"
     }
 
     $script:process = Start-Process -FilePath $runExe -ArgumentList $arguments -WorkingDirectory $runDirectory -PassThru
@@ -383,6 +440,20 @@ try {
     }
     if (-not $SkipBrowserViewports) {
         $resolutionRuns += $browserViewportRuns
+    }
+    if ($Resolution.Count -gt 0) {
+        $resolutionFilters = @($Resolution | ForEach-Object { $_.Trim().ToLowerInvariant() })
+        $resolutionRuns = @($resolutionRuns | Where-Object {
+            $run = $_
+            $resolutionFilters | Where-Object {
+                $filter = $_
+                $run.Name.ToLowerInvariant() -eq $filter -or
+                    $run.Name.ToLowerInvariant().Contains($filter) -or
+                    $run.Group.ToLowerInvariant() -eq $filter -or
+                    ("{0}x{1}" -f $run.Width, $run.Height) -eq $filter -or
+                    ("{0}/{1}" -f $run.Group, $run.Name).ToLowerInvariant() -eq $filter
+            }
+        })
     }
     if ($resolutionRuns.Count -eq 0) {
         throw "No QA resolution groups are enabled."

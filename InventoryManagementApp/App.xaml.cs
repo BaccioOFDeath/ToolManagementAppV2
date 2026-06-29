@@ -56,6 +56,8 @@ namespace InventoryManagementApp
                 typeof(bool),
                 typeof(App),
                 new PropertyMetadata(false));
+        static IReadOnlyList<string> _qaCaptureFilters = Array.Empty<string>();
+        static string _qaCaptureRoot = string.Empty;
 
         public IHost Host { get; }
         private readonly ILogger<App> _logger;
@@ -503,6 +505,8 @@ namespace InventoryManagementApp
                 throw new InvalidOperationException("QA screenshot mode requires the concrete main window and view model.");
 
             Directory.CreateDirectory(options.OutputDirectory);
+            _qaCaptureRoot = options.OutputDirectory;
+            _qaCaptureFilters = options.CaptureFilters;
             var runLogPath = Path.Combine(options.OutputDirectory, "qa-run.log");
             var manifestPath = Path.Combine(options.OutputDirectory, "README.md");
             File.WriteAllText(runLogPath, string.Empty);
@@ -541,7 +545,9 @@ namespace InventoryManagementApp
             loginWindow.Show();
             await WaitForUiAsync(main.Dispatcher);
             await Task.Delay(400);
-            await CaptureWindowAsync(loginWindow, Path.Combine(authDir, "01-login-window.png"));
+            var loginCapturePath = Path.Combine(authDir, "01-login-window.png");
+            if (ShouldCaptureQaScreenshot(loginCapturePath, "Login window"))
+                await CaptureWindowAsync(loginWindow, loginCapturePath);
             loginWindow.Close();
 
             var userService = Host.Services.GetRequiredService<IUserService>();
@@ -672,13 +678,17 @@ namespace InventoryManagementApp
             var printLabelWindow = Host.Services.GetRequiredService<PrintLabelWindow>();
             printLabelWindow.Owner = main;
             LogStep("Showing print labels window.");
-            printLabelWindow.Show();
-            await WaitForUiAsync(printLabelWindow.Dispatcher);
-            await Task.Delay(300);
-            await CaptureWindowAsync(printLabelWindow, Path.Combine(dialogsDir, "01-print-labels.png"));
-            printLabelWindow.Close();
-            await Task.Delay(200);
-            LogStep("Captured print labels window.");
+            var printLabelPath = Path.Combine(dialogsDir, "01-print-labels.png");
+            if (ShouldCaptureQaScreenshot(printLabelPath, "Print labels window"))
+            {
+                printLabelWindow.Show();
+                await WaitForUiAsync(printLabelWindow.Dispatcher);
+                await Task.Delay(300);
+                await CaptureWindowAsync(printLabelWindow, printLabelPath);
+                printLabelWindow.Close();
+                await Task.Delay(200);
+                LogStep("Captured print labels window.");
+            }
 
             await CaptureStandaloneWindowAsync(mainWindow, CreateInfoDialogWindow(), Path.Combine(dialogsDir, "02-info-dialog.png"), runLogPath, "Info dialog");
             await CaptureStandaloneWindowAsync(mainWindow, CreateConfirmDialogWindow(), Path.Combine(dialogsDir, "03-confirm-dialog.png"), runLogPath, "Confirm dialog");
@@ -763,6 +773,9 @@ namespace InventoryManagementApp
             string runLogPath,
             string label)
         {
+            if (!ShouldCaptureQaScreenshot(filePath, label))
+                return;
+
             await CapturePageAsync(
                 mainWindow,
                 OpenSectionPageAsync(mainWindow, mainViewModel, sectionCommand, pageCommand),
@@ -802,6 +815,9 @@ namespace InventoryManagementApp
 
         static async Task CapturePageAsync(MainWindow mainWindow, Task commandTask, string filePath, string runLogPath, string label)
         {
+            if (!ShouldCaptureQaScreenshot(filePath, label))
+                return;
+
             File.AppendAllText(runLogPath, $"{DateTime.Now:O} Opening {label}.{Environment.NewLine}");
             await commandTask;
             await WaitForUiAsync(mainWindow.Dispatcher);
@@ -819,6 +835,9 @@ namespace InventoryManagementApp
             int tabControlIndex,
             int tabIndex)
         {
+            if (!ShouldCaptureQaScreenshot(filePath, label))
+                return;
+
             File.AppendAllText(runLogPath, $"{DateTime.Now:O} Opening {label}.{Environment.NewLine}");
             await commandTask;
             await WaitForUiAsync(mainWindow.Dispatcher);
@@ -904,8 +923,54 @@ namespace InventoryManagementApp
             }, DispatcherPriority.Render);
         }
 
+        static bool ShouldCaptureQaScreenshot(string filePath, string label)
+        {
+            if (_qaCaptureFilters.Count == 0)
+                return true;
+
+            var relativePath = Path.GetRelativePath(_qaCaptureRoot, filePath)
+                .Replace(Path.DirectorySeparatorChar, '/')
+                .Replace(Path.AltDirectorySeparatorChar, '/');
+            var relativeLower = relativePath.ToLowerInvariant();
+            var fileNameLower = Path.GetFileName(filePath).ToLowerInvariant();
+            var relativeWithoutExtension = Path.ChangeExtension(relativePath, null)
+                .Replace(Path.DirectorySeparatorChar, '/')
+                .Replace(Path.AltDirectorySeparatorChar, '/')
+                .ToLowerInvariant();
+            var labelLower = label.ToLowerInvariant();
+
+            foreach (var rawFilter in _qaCaptureFilters)
+            {
+                var filter = rawFilter.Trim().Trim('"').Replace('\\', '/').ToLowerInvariant();
+                if (string.IsNullOrWhiteSpace(filter))
+                    continue;
+
+                if (filter.EndsWith("/*", StringComparison.Ordinal))
+                {
+                    var folderPrefix = filter[..^1];
+                    if (relativeLower.StartsWith(folderPrefix, StringComparison.Ordinal))
+                        return true;
+                }
+
+                var filterWithoutExtension = Path.ChangeExtension(filter, null);
+                if (relativeLower.Equals(filter, StringComparison.Ordinal) ||
+                    fileNameLower.Equals(filter, StringComparison.Ordinal) ||
+                    relativeWithoutExtension.Equals(filterWithoutExtension, StringComparison.Ordinal) ||
+                    relativeLower.Contains(filter, StringComparison.Ordinal) ||
+                    labelLower.Contains(filter, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         static async Task CaptureStandaloneWindowAsync(Window owner, Window window, string filePath, string runLogPath, string label, Func<Window, Task>? afterShowAsync = null)
         {
+            if (!ShouldCaptureQaScreenshot(filePath, label))
+                return;
+
             File.AppendAllText(runLogPath, $"{DateTime.Now:O} Opening {label}.{Environment.NewLine}");
             await owner.Dispatcher.InvokeAsync(() =>
             {
@@ -927,6 +992,9 @@ namespace InventoryManagementApp
 
         static async Task CapturePrintPreviewWindowAsync(Window owner, FlowDocument document, string filePath, string runLogPath, string label, string previewTitle = "QA Preview", string description = "")
         {
+            if (!ShouldCaptureQaScreenshot(filePath, label))
+                return;
+
             File.AppendAllText(runLogPath, $"{DateTime.Now:O} Opening {label}.{Environment.NewLine}");
             var previewWindow = new PrintPreviewWindow();
             PrepareWindowForCapture(previewWindow);

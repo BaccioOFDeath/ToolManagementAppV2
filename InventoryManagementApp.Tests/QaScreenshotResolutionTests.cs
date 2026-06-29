@@ -16,13 +16,15 @@ namespace InventoryManagementApp.Tests
                 "InventoryManagementApp.exe",
                 "--qa-screenshots",
                 "--qa-window-width=1366",
-                "--qa-window-height=650"
+                "--qa-window-height=650",
+                "--qa-captures=02-operations/02-rentals.png,06-dialogs/09-rentals-filter.png"
             });
 
             Assert.NotNull(options);
             Assert.Equal(1366, options!.WindowWidth);
             Assert.Equal(650, options.WindowHeight);
             Assert.False(options.FullScreen);
+            Assert.Equal(new[] { "02-operations/02-rentals.png", "06-dialogs/09-rentals-filter.png" }, options.CaptureFilters);
         }
 
         [Fact]
@@ -38,6 +40,10 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("3840x2000-4k-browser-space", script, StringComparison.Ordinal);
             Assert.Contains("--qa-window-width=$WindowWidth", script, StringComparison.Ordinal);
             Assert.Contains("--qa-window-height=$WindowHeight", script, StringComparison.Ordinal);
+            Assert.Contains("[string[]]$Resolution = @()", script, StringComparison.Ordinal);
+            Assert.Contains("[string[]]$Capture = @()", script, StringComparison.Ordinal);
+            Assert.Contains("--qa-captures=$($Capture -join ',')", script, StringComparison.Ordinal);
+            Assert.Contains("Test-CaptureFilterMatch", script, StringComparison.Ordinal);
             Assert.Contains("Join-Path (Join-Path $sessionOutput $resolutionRun.Group) $resolutionRun.Name", script, StringComparison.Ordinal);
             Assert.Contains("InventoryManagementApp\\Assets\\Themes\\Good.json", script, StringComparison.Ordinal);
         }

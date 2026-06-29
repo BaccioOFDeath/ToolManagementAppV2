@@ -18,6 +18,7 @@ namespace InventoryManagementApp.Utilities
         public bool FullScreen { get; init; }
         public int? WindowWidth { get; init; }
         public int? WindowHeight { get; init; }
+        public string[] CaptureFilters { get; init; } = Array.Empty<string>();
 
         public static QaScreenshotRunOptions? Parse(string[] args)
         {
@@ -34,6 +35,7 @@ namespace InventoryManagementApp.Utilities
             var fullScreen = false;
             int? windowWidth = null;
             int? windowHeight = null;
+            var captureFilters = Array.Empty<string>();
 
             foreach (var arg in args)
             {
@@ -91,6 +93,13 @@ namespace InventoryManagementApp.Utilities
                     continue;
                 }
 
+                if (TryReadValue(arg, "--qa-captures=", out var captures))
+                {
+                    captureFilters = captures
+                        .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    continue;
+                }
+
                 if (string.Equals(arg, "--qa-fullscreen", StringComparison.OrdinalIgnoreCase))
                 {
                     fullScreen = true;
@@ -113,7 +122,8 @@ namespace InventoryManagementApp.Utilities
                 ThemeProfilePath = themeProfilePath,
                 FullScreen = fullScreen,
                 WindowWidth = windowWidth,
-                WindowHeight = windowHeight
+                WindowHeight = windowHeight,
+                CaptureFilters = captureFilters
             };
         }
 
