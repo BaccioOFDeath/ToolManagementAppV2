@@ -212,6 +212,26 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("ORDER BY Timestamp DESC", method, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void CheckoutHistoryCapsAuditReadsAfterOrderingMatches()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "ActivityLogService.cs");
+            var method = ExtractMethod(
+                source,
+                "public virtual async Task<Result<List<ActivityLog>>> GetCheckoutHistoryForItemAsync",
+                "public virtual async Task<Result> PurgeOldLogsAsync");
+
+            Assert.Contains("const int MaxCheckoutHistoryLogCount = 500;", source, StringComparison.Ordinal);
+            Assert.Contains("ORDER BY Timestamp DESC LIMIT @CheckoutHistoryLimit", method, StringComparison.Ordinal);
+            Assert.Contains("new SqliteParameter(\"@CheckoutHistoryLimit\", MaxCheckoutHistoryLogCount)", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("ORDER BY Timestamp DESC LIMIT @CheckoutHistoryLimit", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection()", StringComparison.Ordinal),
+                "The checkout-history read cap should be part of the SQL before the database connection opens.");
+            Assert.True(
+                method.IndexOf("new SqliteParameter(\"@CheckoutHistoryLimit\", MaxCheckoutHistoryLogCount)", StringComparison.Ordinal) < method.IndexOf("parameters.ToArray()", StringComparison.Ordinal),
+                "The checkout-history cap parameter should be included in the executed parameter set.");
+        }
+
         private static void AssertCancellationGuardBeforeSqlWork(string source, string startMarker, string endMarker)
         {
             var method = ExtractMethod(source, startMarker, endMarker);
