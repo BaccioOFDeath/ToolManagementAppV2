@@ -151,9 +151,9 @@ namespace InventoryManagementApp.Tests
                 "public async Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync(int topN = 10)",
                 "private static async Task<int> GetAvailableQuantityForExistingItemAsync");
 
+            Assert.Contains("private const int MaxRentalFrequencyCount = 100;", source, StringComparison.Ordinal);
             AssertContainsAll(
                 frequencyMethod,
-                "private const int MaxRentalFrequencyCount = 100;",
                 "if (topN > MaxRentalFrequencyCount)",
                 "throw new ArgumentOutOfRangeException(nameof(topN), $\"Top rental frequency count cannot exceed {MaxRentalFrequencyCount}.\");",
                 "LIMIT @TopN");
