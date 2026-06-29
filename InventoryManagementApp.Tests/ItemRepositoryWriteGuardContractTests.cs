@@ -25,6 +25,31 @@ namespace InventoryManagementApp.Tests
                 saveChangesMethod.IndexOf("if (rows == 0)", StringComparison.Ordinal),
                 "Expected bulk item saves to inspect affected rows after executing each update.");
 
+            var insertMethod = ExtractMethod(
+                source,
+                "public async Task<int> InsertAsync(Item item, CancellationToken ct)",
+                "public async Task UpdateAsync(Item item, CancellationToken ct)");
+            AssertContainsAll(
+                insertMethod,
+                "var insertedRows = await conn.ExecuteAsync(new CommandDefinition(sql, new",
+                "if (insertedRows == 0)",
+                "throw new InvalidOperationException(\"Failed to create item.\");",
+                "SELECT last_insert_rowid();",
+                "if (id < 1)");
+            Assert.DoesNotContain("SELECT last_insert_rowid();\";", insertMethod, StringComparison.Ordinal);
+            Assert.True(
+                insertMethod.IndexOf("var insertedRows = await conn.ExecuteAsync", StringComparison.Ordinal) <
+                insertMethod.IndexOf("if (insertedRows == 0)", StringComparison.Ordinal),
+                "Expected item inserts to inspect affected rows after executing the insert.");
+            Assert.True(
+                insertMethod.IndexOf("if (insertedRows == 0)", StringComparison.Ordinal) <
+                insertMethod.IndexOf("SELECT last_insert_rowid();", StringComparison.Ordinal),
+                "Expected item inserts to read the generated id only after the insert affected a row.");
+            Assert.True(
+                insertMethod.IndexOf("if (id < 1)", StringComparison.Ordinal) <
+                insertMethod.IndexOf("return (int)id;", StringComparison.Ordinal),
+                "Expected item inserts to reject invalid generated ids before returning success.");
+
             var updateMethod = ExtractMethod(
                 source,
                 "public async Task UpdateAsync(Item item, CancellationToken ct)",
