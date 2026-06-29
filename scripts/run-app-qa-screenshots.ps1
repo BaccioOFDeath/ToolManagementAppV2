@@ -82,6 +82,10 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $repoRoot ".qa-screenshots"
 }
+elseif (-not [System.IO.Path]::IsPathRooted($OutputRoot)) {
+    $OutputRoot = Join-Path $repoRoot $OutputRoot
+}
+$OutputRoot = [System.IO.Path]::GetFullPath($OutputRoot)
 if ([string]::IsNullOrWhiteSpace($ThemeProfilePath)) {
     $ThemeProfilePath = Join-Path $repoRoot "InventoryManagementApp\Assets\Themes\Good.json"
 }
@@ -467,30 +471,17 @@ try {
         Write-Step ("Running QA screenshots for {0}/{1} ({2}x{3})." -f $resolutionRun.Group, $resolutionRun.Name, $resolutionRun.Width, $resolutionRun.Height)
         Invoke-QaScreenshotRun -RunOutput $runOutput -WindowWidth $resolutionRun.Width -WindowHeight $resolutionRun.Height
         $runScreenshots = @(Test-QaScreenshotOutput -RunOutput $runOutput)
-        $runRows += [pscustomobject]@{
-            Group = $resolutionRun.Group
-            Name = $resolutionRun.Name
-            Width = $resolutionRun.Width
-            Height = $resolutionRun.Height
-            Purpose = $resolutionRun.Purpose
-            ScreenshotCount = $runScreenshots.Count
-        }
+        $runRow = [System.Collections.Hashtable]::new()
+        $runRow.Add("Group", $resolutionRun.Group)
+        $runRow.Add("Name", $resolutionRun.Name)
+        $runRow.Add("Width", $resolutionRun.Width)
+        $runRow.Add("Height", $resolutionRun.Height)
+        $runRow.Add("Purpose", $resolutionRun.Purpose)
+        $runRow.Add("ScreenshotCount", $runScreenshots.Count)
+        $runRows += ,$runRow
 
         foreach ($screenshot in ($runScreenshots | Sort-Object FullName)) {
-            $relativePath = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $screenshot.FullName
-            $relativeWebPath = $relativePath -replace '\\', '/'
-            $dimensions = Get-PngDimensions -File $screenshot
-            $pathParts = $relativePath -split '\\'
-            $captureRows += [pscustomobject]@{
-                Path = $relativePath
-                WebPath = $relativeWebPath
-                Group = $pathParts[0]
-                Resolution = $pathParts[1]
-                Folder = $pathParts[2]
-                Width = $dimensions.Width
-                Height = $dimensions.Height
-                Bytes = $screenshot.Length
-            }
+            $captureRows += ,$screenshot.FullName
         }
 
         Write-Step "QA screenshots saved to '$runOutput' ($($runScreenshots.Count) PNG files)."
@@ -514,7 +505,7 @@ try {
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value "Resolution runs:"
     foreach ($run in $runRows) {
-        Add-Content -Path $readmePath -Value ("- `{0}\{1}` - {2}x{3}, {4} captures. {5}" -f $run.Group, $run.Name, $run.Width, $run.Height, $run.ScreenshotCount, $run.Purpose)
+        Add-Content -Path $readmePath -Value ("- `{0}\{1}` - {2}x{3}, {4} captures. {5}" -f $run["Group"], $run["Name"], $run["Width"], $run["Height"], $run["ScreenshotCount"], $run["Purpose"])
     }
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value "Review checklist:"
@@ -523,8 +514,11 @@ try {
     }
     Add-Content -Path $readmePath -Value ""
     Add-Content -Path $readmePath -Value "Captured files:"
-    foreach ($capture in $captureRows) {
-        Add-Content -Path $readmePath -Value ("- `{0}` - {1}x{2}, {3} bytes" -f $capture.Path, $capture.Width, $capture.Height, $capture.Bytes)
+    foreach ($capturePath in $captureRows) {
+        $captureFile = Get-Item -LiteralPath $capturePath
+        $relativePath = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $captureFile.FullName
+        $dimensions = Get-PngDimensions -File $captureFile
+        Add-Content -Path $readmePath -Value ("- `{0}` - {1}x{2}, {3} bytes" -f $relativePath, $dimensions.Width, $dimensions.Height, $captureFile.Length)
     }
 
     $indexPath = Join-Path $sessionOutput "index.html"
@@ -544,7 +538,7 @@ try {
     $html.Add('<main>')
     $html.Add('<section class="matrix"><h2>Resolution matrix</h2><table><thead><tr><th>Group</th><th>Folder</th><th>Size</th><th>Captures</th><th>Purpose</th></tr></thead><tbody>'.Replace('\"', '"'))
     foreach ($run in $runRows) {
-        $html.Add(('<tr><td>{0}</td><td><code>{1}</code></td><td>{2}x{3}</td><td>{4}</td><td>{5}</td></tr>' -f (Convert-ToHtmlAttribute $run.Group), (Convert-ToHtmlAttribute $run.Name), $run.Width, $run.Height, $run.ScreenshotCount, (Convert-ToHtmlAttribute $run.Purpose)).Replace('\"', '"'))
+        $html.Add(('<tr><td>{0}</td><td><code>{1}</code></td><td>{2}x{3}</td><td>{4}</td><td>{5}</td></tr>' -f (Convert-ToHtmlAttribute $run["Group"]), (Convert-ToHtmlAttribute $run["Name"]), $run["Width"], $run["Height"], $run["ScreenshotCount"], (Convert-ToHtmlAttribute $run["Purpose"])).Replace('\"', '"'))
     }
     $html.Add('</tbody></table></section>')
     $html.Add('<section class="review"><h2>Visual and workflow checklist</h2><ul>'.Replace('\"', '"'))
@@ -553,19 +547,31 @@ try {
     }
     $html.Add('</ul></section>')
     foreach ($run in $runRows) {
-        $runCaptures = @($captureRows | Where-Object { $_.Group -eq $run.Group -and $_.Resolution -eq $run.Name })
+        $runCaptures = @($captureRows | Where-Object {
+            $relativePath = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $_
+            $pathParts = $relativePath -split '\\'
+            $pathParts.Count -ge 3 -and $pathParts[0] -eq $run["Group"] -and $pathParts[1] -eq $run["Name"]
+        })
         if ($runCaptures.Count -eq 0) { continue }
         $html.Add('<section>')
-        $html.Add("<h2>$(Convert-ToHtmlAttribute $run.Group) / $(Convert-ToHtmlAttribute $run.Name)</h2>")
+        $html.Add("<h2>$(Convert-ToHtmlAttribute $run["Group"]) / $(Convert-ToHtmlAttribute $run["Name"])</h2>")
         foreach ($folder in $expectedFolders) {
-            $folderCaptures = @($runCaptures | Where-Object { $_.Folder -eq $folder })
+            $folderCaptures = @($runCaptures | Where-Object {
+                $relativePath = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $_
+                $pathParts = $relativePath -split '\\'
+                $pathParts.Count -ge 3 -and $pathParts[2] -eq $folder
+            })
             if ($folderCaptures.Count -eq 0) { continue }
             $html.Add("<h3>$(Convert-ToHtmlAttribute $folder)</h3>")
             $html.Add('<div class="grid">'.Replace('\"', '"'))
-            foreach ($capture in $folderCaptures) {
+            foreach ($capturePath in $folderCaptures) {
+                $captureFile = Get-Item -LiteralPath $capturePath
+                $relativePath = Get-RelativePathCompat -BasePath $sessionOutput -TargetPath $captureFile.FullName
+                $relativeWebPath = $relativePath -replace '\\', '/'
+                $dimensions = Get-PngDimensions -File $captureFile
                 $html.Add('<figure>')
-                $html.Add(('<img src="{0}" alt="{1}">' -f (Convert-ToHtmlAttribute $capture.WebPath), (Convert-ToHtmlAttribute $capture.Path)).Replace('\"', '"'))
-                $html.Add(('<figcaption><code>{0}</code><span class="meta">{1}x{2}, {3} bytes</span></figcaption>' -f (Convert-ToHtmlAttribute $capture.Path), $capture.Width, $capture.Height, $capture.Bytes).Replace('\"', '"'))
+                $html.Add(('<img src="{0}" alt="{1}">' -f (Convert-ToHtmlAttribute $relativeWebPath), (Convert-ToHtmlAttribute $relativePath)).Replace('\"', '"'))
+                $html.Add(('<figcaption><code>{0}</code><span class="meta">{1}x{2}, {3} bytes</span></figcaption>' -f (Convert-ToHtmlAttribute $relativePath), $dimensions.Width, $dimensions.Height, $captureFile.Length).Replace('\"', '"'))
                 $html.Add('</figure>')
             }
             $html.Add('</div>')

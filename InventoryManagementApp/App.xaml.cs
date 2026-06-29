@@ -792,6 +792,9 @@ namespace InventoryManagementApp
         {
             await SelectSectionAsync(mainWindow, mainViewModel, sectionCommand);
             await pageCommand.ExecuteAsync(null);
+            await WaitForUiAsync(mainWindow.Dispatcher);
+            await Task.Delay(250);
+            await pageCommand.ExecuteAsync(null);
         }
 
         static async Task SelectSectionAsync(
