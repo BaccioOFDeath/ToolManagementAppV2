@@ -50,7 +50,10 @@ namespace InventoryManagementApp.Services.Customers
         {
             if (customer is null)
                 throw new ArgumentNullException(nameof(customer));
-            
+
+            NormalizeCustomerForSave(customer);
+            ValidateCustomerRequiredFields(customer);
+
             _auth.EnsureAdmin();
             return AddCustomerInternalAsync(customer, cancellationToken);
         }
@@ -69,7 +72,10 @@ namespace InventoryManagementApp.Services.Customers
                 throw new ArgumentNullException(nameof(customer));
             if (customer.CustomerID < 1)
                 throw new ArgumentOutOfRangeException(nameof(customer), "Customer ID must be greater than 0.");
-            
+
+            NormalizeCustomerForSave(customer);
+            ValidateCustomerRequiredFields(customer);
+
             _auth.EnsureAdmin();
             return UpdateCustomerInternalAsync(customer, cancellationToken);
         }
@@ -328,6 +334,7 @@ namespace InventoryManagementApp.Services.Customers
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var c = customers[i];
+                    NormalizeCustomerForSave(c);
                     var row = i + 2;
                     var reason = GetSkipReason(c);
                     if (reason != null)
@@ -464,6 +471,23 @@ namespace InventoryManagementApp.Services.Customers
                 throw new KeyNotFoundException($"Customer {customerID} not found.");
         }
 
+        static void NormalizeCustomerForSave(CustomerModel customer)
+        {
+            customer.Company = (customer.Company ?? string.Empty).Trim();
+            customer.Email = (customer.Email ?? string.Empty).Trim();
+            customer.Contact = (customer.Contact ?? string.Empty).Trim();
+            customer.Phone = (customer.Phone ?? string.Empty).Trim();
+            customer.Mobile = (customer.Mobile ?? string.Empty).Trim();
+            customer.Address = (customer.Address ?? string.Empty).Trim();
+        }
+
+        static void ValidateCustomerRequiredFields(CustomerModel customer)
+        {
+            var reason = GetSkipReason(customer);
+            if (reason != null)
+                throw new ArgumentException(reason, nameof(customer));
+        }
+
         static bool TryReserveImportedCustomer(HashSet<string> importedCustomerKeys, CustomerModel customer)
         {
             var duplicateKeys = BuildCustomerDuplicateKeys(customer).ToList();
@@ -536,6 +560,7 @@ namespace InventoryManagementApp.Services.Customers
                     Mobile = customer.Mobile ?? string.Empty,
                     Address = customer.Address ?? string.Empty
                 };
+                NormalizeCustomerForSave(customerModel);
 
                 var skipReason = GetSkipReason(customerModel);
                 if (skipReason != null)
