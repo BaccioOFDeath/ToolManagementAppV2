@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Utilities.Helpers;
+using InventoryManagementApp.Views.Windows;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -80,8 +81,13 @@ namespace InventoryManagementApp.ViewModels
                 return;
 
             var outputPath = BuildBackgroundRemovedImagePath(sourcePath);
-            SaveBackgroundRemovedPng(sourcePath, outputPath);
-            ItemModel.ImagePath = AppAssetHelper.ToAppRelativePath(outputPath);
+            var dialog = new ImageBackgroundRemovalWindow(sourcePath, outputPath);
+            var owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(window => window.IsActive);
+            if (owner != null)
+                dialog.Owner = owner;
+
+            if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.SavedImagePath))
+                ItemModel.ImagePath = AppAssetHelper.ToAppRelativePath(dialog.SavedImagePath);
         }
 
         static string? ResolveImagePath(string? imagePath)
@@ -104,6 +110,17 @@ namespace InventoryManagementApp.ViewModels
 
         static void SaveBackgroundRemovedPng(string sourcePath, string outputPath)
         {
+            var source = LoadBgra32(sourcePath);
+            var transparent = ImageBackgroundRemovalWindow.CreateBackgroundRemovedBitmap(source, new Rect(0, 0, source.PixelWidth, source.PixelHeight), 72);
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(transparent));
+
+            using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            encoder.Save(output);
+        }
+
+        static BitmapSource LoadBgra32(string sourcePath)
+        {
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
@@ -114,61 +131,8 @@ namespace InventoryManagementApp.ViewModels
             BitmapSource source = bitmap.Format == PixelFormats.Bgra32
                 ? bitmap
                 : new FormatConvertedBitmap(bitmap, PixelFormats.Bgra32, null, 0);
-
-            var width = source.PixelWidth;
-            var height = source.PixelHeight;
-            var stride = width * 4;
-            var pixels = new byte[height * stride];
-            source.CopyPixels(pixels, stride, 0);
-
-            var background = EstimateBackgroundColor(pixels, width, height, stride);
-            for (var offset = 0; offset < pixels.Length; offset += 4)
-            {
-                var blue = pixels[offset];
-                var green = pixels[offset + 1];
-                var red = pixels[offset + 2];
-                if (IsBackgroundPixel(red, green, blue, background))
-                    pixels[offset + 3] = 0;
-            }
-
-            var transparent = BitmapSource.Create(width, height, source.DpiX, source.DpiY, PixelFormats.Bgra32, null, pixels, stride);
-            var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(transparent));
-
-            using var output = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None);
-            encoder.Save(output);
-        }
-
-        static Color EstimateBackgroundColor(byte[] pixels, int width, int height, int stride)
-        {
-            var samplePoints = new[]
-            {
-                (X: 0, Y: 0),
-                (X: Math.Max(0, width - 1), Y: 0),
-                (X: 0, Y: Math.Max(0, height - 1)),
-                (X: Math.Max(0, width - 1), Y: Math.Max(0, height - 1))
-            };
-
-            var red = 0;
-            var green = 0;
-            var blue = 0;
-            foreach (var point in samplePoints)
-            {
-                var offset = point.Y * stride + point.X * 4;
-                blue += pixels[offset];
-                green += pixels[offset + 1];
-                red += pixels[offset + 2];
-            }
-
-            return Color.FromRgb((byte)(red / samplePoints.Length), (byte)(green / samplePoints.Length), (byte)(blue / samplePoints.Length));
-        }
-
-        static bool IsBackgroundPixel(byte red, byte green, byte blue, Color background)
-        {
-            var distance = Math.Abs(red - background.R) + Math.Abs(green - background.G) + Math.Abs(blue - background.B);
-            var isNearCornerBackground = distance <= 72;
-            var isPlainLightBackground = red >= 238 && green >= 238 && blue >= 238 && Math.Abs(red - green) <= 12 && Math.Abs(red - blue) <= 12;
-            return isNearCornerBackground || isPlainLightBackground;
+            source.Freeze();
+            return source;
         }
 
     }
