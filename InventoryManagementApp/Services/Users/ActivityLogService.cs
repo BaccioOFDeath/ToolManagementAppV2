@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.Sqlite;
@@ -210,8 +210,8 @@ namespace InventoryManagementApp.Services.Users
             var log = new ActivityLog
             {
                 LogID = Convert.ToInt32(r["LogID"]),
-                UserName = r["UserName"]?.ToString() ?? string.Empty,
-                Action   = r["Action"]?.ToString() ?? string.Empty,
+                UserName = (r["UserName"]?.ToString() ?? string.Empty).Trim(),
+                Action   = (r["Action"]?.ToString() ?? string.Empty).Trim(),
                 Timestamp = timestamp
             };
 
