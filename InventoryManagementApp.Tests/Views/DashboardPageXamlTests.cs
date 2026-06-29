@@ -22,13 +22,20 @@ namespace InventoryManagementApp.Tests.Views
         }
 
         [Fact]
-        public void CommonItemsGrid_LeavesRoomForItemImage()
+        public void CommonItemsGrid_MovedIntoRightSideTabGroup()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");
             var gridIndex = xaml.IndexOf("x:Name=\"CommonItemsGrid\"", StringComparison.Ordinal);
+            var checkedOutIndex = xaml.IndexOf("x:Name=\"CheckedOutItemsGrid\"", StringComparison.Ordinal);
+            var commonTabIndex = xaml.IndexOf("<TabItem Header=\"Commonly Used\">", StringComparison.Ordinal);
 
             Assert.True(gridIndex >= 0, "Common items dashboard grid should exist.");
-            var commonItemsGrid = xaml.Substring(gridIndex, xaml.IndexOf("x:Name=\"RentedItemsGrid\"", StringComparison.Ordinal) - gridIndex);
+            Assert.True(commonTabIndex >= 0, "Common items should be exposed as a tab beside issue workflows.");
+            Assert.True(gridIndex > commonTabIndex, "Common items grid should live inside the Commonly Used tab.");
+            Assert.True(checkedOutIndex >= 0 && checkedOutIndex < commonTabIndex, "Checked-out items should appear before the right-side common items tab.");
+            Assert.Contains("Grid.Row=\"0\" Grid.RowSpan=\"2\" Grid.Column=\"0\"", xaml, StringComparison.Ordinal);
+
+            var commonItemsGrid = xaml.Substring(gridIndex);
 
             Assert.Contains("RowHeight=\"44\"", commonItemsGrid, StringComparison.Ordinal);
             Assert.Contains("Width=\"42\" Height=\"34\"", commonItemsGrid, StringComparison.Ordinal);

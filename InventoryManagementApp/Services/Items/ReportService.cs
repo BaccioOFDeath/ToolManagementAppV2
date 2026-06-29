@@ -87,6 +87,15 @@ namespace InventoryManagementApp.Services.Items
             return BuildReport($"Most Frequently Rented Items (Top {topN})", lines);
         }
 
+        public async Task<FlowDocument> GenerateCommonlyUsedItemsReport(int topN = 25)
+        {
+            var items = await _itemService.GetMostCommonlyUsedItemsAsync(topN, CancellationToken.None).ConfigureAwait(false);
+            var lines = items.Select(item =>
+                $"Item Number: {item.ItemNumber} | Name: {item.Name} | Location: {item.Location} | Use Count: {item.CheckoutCount} | Status: {item.AvailabilityStatus}");
+            return BuildReport($"Commonly Used Items Report (Top {topN})", lines);
+        }
+
+
         public async Task<FlowDocument> GenerateActivityLogReport()
         {
             var result = await _activityLogService.GetRecentLogsAsync(100).ConfigureAwait(false);

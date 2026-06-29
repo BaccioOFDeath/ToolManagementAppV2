@@ -24,6 +24,19 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void ReportsViewModel_ExposesCommonlyUsedItemsReport()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
+            var reportService = ReadRepositoryFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
+
+            Assert.Contains("\"Commonly Used Items\"", source, StringComparison.Ordinal);
+            Assert.Contains("\"Commonly Used Items\" => await _reportService.GenerateCommonlyUsedItemsReport(25)", source, StringComparison.Ordinal);
+            Assert.Contains("ContainsAny(reportName, \"Inventory\", \"Rented Items\", \"Commonly Used Items\")", source, StringComparison.Ordinal);
+            Assert.Contains("GenerateCommonlyUsedItemsReport", reportService, StringComparison.Ordinal);
+            Assert.Contains("GetMostCommonlyUsedItemsAsync(topN", reportService, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ReportsPage_PreservesRowHooksAndStyledEmptyState()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml");

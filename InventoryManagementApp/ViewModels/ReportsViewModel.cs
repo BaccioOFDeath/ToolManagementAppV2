@@ -139,6 +139,7 @@ namespace InventoryManagementApp.ViewModels
                 "Active Rentals",
                 "Full Rental History",
                 "Most Rented Items",
+                "Commonly Used Items",
                 "Maintenance Schedule",
                 "Overdue Maintenance",
                 "Calibration Records",
@@ -177,6 +178,7 @@ namespace InventoryManagementApp.ViewModels
                     "Active Rentals" => await _reportService.GenerateRentalReport(true),
                     "Full Rental History" => await _reportService.GenerateRentalReport(false),
                     "Most Rented Items" => await _reportService.GenerateRentalFrequencyReport(20),
+                    "Commonly Used Items" => await _reportService.GenerateCommonlyUsedItemsReport(25),
                     "Maintenance Schedule" => await _reportService.GenerateMaintenanceReport(false),
                     "Overdue Maintenance" => await _reportService.GenerateMaintenanceReport(true),
                     "Calibration Records" => await _reportService.GenerateCalibrationReport(false),
@@ -287,6 +289,7 @@ namespace InventoryManagementApp.ViewModels
             return reportName switch
             {
                 "Most Rented Items" => "Usage intelligence for buying more high-demand items.",
+                "Commonly Used Items" => "High-frequency checked-out items from the item directory.",
                 "Active Rentals" => "Open rental work that may need advisor follow-up.",
                 "Active Reservations" => "Pending holds and requests waiting for availability.",
                 "Overdue Maintenance" => "Items requiring maintenance attention before further checkout.",
@@ -364,7 +367,7 @@ namespace InventoryManagementApp.ViewModels
                 return "Calibration";
             if (ContainsAny(reportName, "Kit") || string.Equals(category, "Kit", StringComparison.OrdinalIgnoreCase))
                 return "Kits";
-            if (ContainsAny(reportName, "Inventory", "Rented Items") || string.Equals(category, "Inventory", StringComparison.OrdinalIgnoreCase) || string.Equals(category, "Overdue", StringComparison.OrdinalIgnoreCase))
+            if (ContainsAny(reportName, "Inventory", "Rented Items", "Commonly Used Items") || string.Equals(category, "Inventory", StringComparison.OrdinalIgnoreCase) || string.Equals(category, "Overdue", StringComparison.OrdinalIgnoreCase))
                 return "Items";
             return "Dashboard";
         }
