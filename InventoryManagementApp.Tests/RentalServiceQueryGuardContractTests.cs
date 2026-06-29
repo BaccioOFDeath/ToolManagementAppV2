@@ -146,21 +146,25 @@ namespace InventoryManagementApp.Tests
         public void RentalFrequencyRejectsOversizedLimitsBeforeSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+            var frequencyMethod = ExtractMethod(
+                source,
+                "public async Task<List<ItemRentalFrequency>> GetRentalFrequencyAsync(int topN = 10)",
+                "private static async Task<int> GetAvailableQuantityForExistingItemAsync");
 
             AssertContainsAll(
-                source,
+                frequencyMethod,
                 "private const int MaxRentalFrequencyCount = 100;",
                 "if (topN > MaxRentalFrequencyCount)",
                 "throw new ArgumentOutOfRangeException(nameof(topN), $\"Top rental frequency count cannot exceed {MaxRentalFrequencyCount}.\");",
                 "LIMIT @TopN");
 
             Assert.True(
-                source.IndexOf("if (topN > MaxRentalFrequencyCount)", StringComparison.Ordinal) <
-                source.IndexOf("const string sql = @\"", StringComparison.Ordinal),
+                frequencyMethod.IndexOf("if (topN > MaxRentalFrequencyCount)", StringComparison.Ordinal) <
+                frequencyMethod.IndexOf("const string sql = @\"", StringComparison.Ordinal),
                 "Expected oversized rental frequency requests to fail before SQL text is prepared.");
             Assert.True(
-                source.IndexOf("if (topN > MaxRentalFrequencyCount)", StringComparison.Ordinal) <
-                source.IndexOf("new SqliteParameter(\"@TopN\", topN)", StringComparison.Ordinal),
+                frequencyMethod.IndexOf("if (topN > MaxRentalFrequencyCount)", StringComparison.Ordinal) <
+                frequencyMethod.IndexOf("new SqliteParameter(\"@TopN\", topN)", StringComparison.Ordinal),
                 "Expected oversized rental frequency requests to fail before query parameters are prepared.");
         }
 
