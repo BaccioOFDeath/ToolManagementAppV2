@@ -147,6 +147,93 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void UpdateUserValidatesUsernameBeforeAuthorizationLookupAndSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task UpdateUserAsync",
+                "public async Task<bool> ChangeUserPasswordAsync");
+
+            Assert.Contains("if (user is null)", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(user));", method, StringComparison.Ordinal);
+            Assert.Contains("if (user.UserID < 1)", method, StringComparison.Ordinal);
+            Assert.Contains("user.UserName = (user.UserName ?? string.Empty).Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentException(\"Username cannot be empty.\", nameof(user.UserName));", method, StringComparison.Ordinal);
+
+            Assert.True(
+                method.IndexOf("if (user is null)", StringComparison.Ordinal) < method.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
+                "Null update users should fail before authorization work.");
+            Assert.True(
+                method.IndexOf("if (user.UserID < 1)", StringComparison.Ordinal) < method.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
+                "Invalid update user IDs should fail before authorization work.");
+            Assert.True(
+                method.IndexOf("user.UserName = (user.UserName ?? string.Empty).Trim();", StringComparison.Ordinal) < method.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
+                "Update usernames should be normalized before authorization, lookup, and SQL work.");
+            Assert.True(
+                method.IndexOf("throw new ArgumentException(\"Username cannot be empty.\", nameof(user.UserName));", StringComparison.Ordinal) < method.IndexOf("GetUserByIDAsync", StringComparison.Ordinal),
+                "Blank update usernames should fail before target-user lookup.");
+            Assert.True(
+                method.IndexOf("throw new ArgumentException(\"Username cannot be empty.\", nameof(user.UserName));", StringComparison.Ordinal) < method.IndexOf("const string sql = @\"", StringComparison.Ordinal),
+                "Blank update usernames should fail before update SQL is prepared.");
+        }
+
+        [Fact]
+        public void UpdateUserValidatesRawReplacementPasswordsBeforeHashingAndSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task UpdateUserAsync",
+                "public async Task<bool> ChangeUserPasswordAsync");
+
+            Assert.Contains("var password = user.PasswordHash.Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("if (!PasswordValidator.IsValid(password, out var error))", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentException(error, nameof(user.PasswordHash));", method, StringComparison.Ordinal);
+            Assert.Contains("var result = await SecurityHelper.HashPasswordAsync(password).ConfigureAwait(false);", method, StringComparison.Ordinal);
+
+            Assert.True(
+                method.IndexOf("var existing = await GetUserByIDAsync", StringComparison.Ordinal) < method.IndexOf("if (!PasswordValidator.IsValid(password, out var error))", StringComparison.Ordinal),
+                "Missing update users should fail before validating or hashing replacement passwords.");
+            Assert.True(
+                method.IndexOf("if (!PasswordValidator.IsValid(password, out var error))", StringComparison.Ordinal) < method.IndexOf("SecurityHelper.HashPasswordAsync(password)", StringComparison.Ordinal),
+                "Invalid replacement passwords should fail before hashing work.");
+            Assert.True(
+                method.IndexOf("if (!PasswordValidator.IsValid(password, out var error))", StringComparison.Ordinal) < method.IndexOf("const string sql = @\"", StringComparison.Ordinal),
+                "Invalid replacement passwords should fail before update SQL is prepared.");
+            Assert.True(
+                method.IndexOf("if (!PasswordValidator.IsValid(password, out var error))", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection();", StringComparison.Ordinal),
+                "Invalid replacement passwords should fail before opening an update database connection.");
+        }
+
+        [Fact]
+        public void UpdateUserGuardsStaleAndDuplicateWritesBeforeInMemoryPasswordMutation()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task UpdateUserAsync",
+                "public async Task<bool> ChangeUserPasswordAsync");
+
+            Assert.Contains("int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);", method, StringComparison.Ordinal);
+            Assert.Contains("EnsureUserWriteSucceeded(rows, user.UserID);", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (rows == 0)\n                throw new KeyNotFoundException", method, StringComparison.Ordinal);
+            Assert.Contains("catch (SqliteException ex) when (ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_CONSTRAINT &&", method, StringComparison.Ordinal);
+            Assert.Contains("ex.Message.Contains(\"Users.UserName\", StringComparison.OrdinalIgnoreCase)", method, StringComparison.Ordinal);
+            Assert.Contains("throw new InvalidOperationException(\"A user with the same username already exists.\", ex);", method, StringComparison.Ordinal);
+
+            Assert.True(
+                method.IndexOf("int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);", StringComparison.Ordinal) < method.IndexOf("EnsureUserWriteSucceeded(rows, user.UserID);", StringComparison.Ordinal),
+                "User updates should capture affected rows before checking the update result.");
+            Assert.True(
+                method.IndexOf("EnsureUserWriteSucceeded(rows, user.UserID);", StringComparison.Ordinal) < method.IndexOf("user.PasswordHash = hashed;", StringComparison.Ordinal),
+                "Stale user updates should fail before the in-memory user is finalized.");
+            Assert.True(
+                method.IndexOf("throw new InvalidOperationException(\"A user with the same username already exists.\", ex);", StringComparison.Ordinal) < method.IndexOf("user.PasswordHash = hashed;", StringComparison.Ordinal),
+                "Duplicate usernames should fail before the in-memory user is finalized.");
+        }
+
+        [Fact]
         public void ChangePasswordRejectsInvalidUserIdsBeforeAuthorizationPasswordAndSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Users", "UserService.cs");

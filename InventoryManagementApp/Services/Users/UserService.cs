@@ -361,7 +361,34 @@ namespace InventoryManagementApp.Services.Users
             if (user.UserID < 1)
                 throw new ArgumentOutOfRangeException(nameof(user), "User ID must be greater than 0.");
 
+            user.UserName = (user.UserName ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(user.UserName))
+                throw new ArgumentException("Username cannot be empty.", nameof(user.UserName));
+
             _auth.EnsurePermission(User.PermissionManageUsers);
+            var existing = await GetUserByIDAsync(user.UserID, CancellationToken.None);
+            if (existing is null)
+                throw new KeyNotFoundException($"User {user.UserID} not found.");
+
+            string hashed = user.PasswordHash;
+            string salt = user.PasswordSalt;
+
+            if (string.IsNullOrWhiteSpace(user.PasswordHash))
+                hashed = existing.PasswordHash;
+            if (string.IsNullOrWhiteSpace(user.PasswordSalt))
+                salt = existing.PasswordSalt;
+
+            if (!string.IsNullOrWhiteSpace(user.PasswordHash) && string.IsNullOrWhiteSpace(user.PasswordSalt))
+            {
+                var password = user.PasswordHash.Trim();
+                if (!PasswordValidator.IsValid(password, out var error))
+                    throw new ArgumentException(error, nameof(user.PasswordHash));
+
+                var result = await SecurityHelper.HashPasswordAsync(password).ConfigureAwait(false);
+                hashed = result.hash;
+                salt = result.salt;
+            }
+
             const string sql = @"
                 UPDATE Users SET
                   UserName      = @UserName,
@@ -377,25 +404,6 @@ namespace InventoryManagementApp.Services.Users
                   IsActive      = @IsActive,
                   Permissions   = @Permissions
                 WHERE UserID = @UserID";
-
-            var existing = await GetUserByIDAsync(user.UserID, CancellationToken.None);
-            if (existing is null)
-                throw new KeyNotFoundException($"User {user.UserID} not found.");
-
-            string hashed = user.PasswordHash;
-            string salt = user.PasswordSalt;
-
-            if (string.IsNullOrWhiteSpace(user.PasswordHash))
-                hashed = existing.PasswordHash;
-            if (string.IsNullOrWhiteSpace(user.PasswordSalt))
-                salt = existing.PasswordSalt;
-
-            if (!string.IsNullOrWhiteSpace(user.PasswordHash) && string.IsNullOrWhiteSpace(user.PasswordSalt))
-            {
-                var result = await SecurityHelper.HashPasswordAsync(user.PasswordHash).ConfigureAwait(false);
-                hashed = result.hash;
-                salt = result.salt;
-            }
 
             var p = new[]
             {
@@ -414,10 +422,17 @@ namespace InventoryManagementApp.Services.Users
                 new SqliteParameter("@Permissions", (object)user.Permissions ?? DBNull.Value)
             };
 
-            using var conn = _dbService.CreateConnection();
-            int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
-            if (rows == 0)
-                throw new KeyNotFoundException($"User {user.UserID} not found.");
+            try
+            {
+                using var conn = _dbService.CreateConnection();
+                int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+                EnsureUserWriteSucceeded(rows, user.UserID);
+            }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_CONSTRAINT &&
+                                             ex.Message.Contains("Users.UserName", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("A user with the same username already exists.", ex);
+            }
 
             user.PasswordHash = hashed;
             user.PasswordSalt = salt;
