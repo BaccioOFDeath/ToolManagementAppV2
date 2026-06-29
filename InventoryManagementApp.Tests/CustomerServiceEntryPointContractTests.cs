@@ -132,6 +132,40 @@ namespace InventoryManagementApp.Tests
                 "Customer creation should reject invalid inserted ids before returning success.");
         }
 
+        [Fact]
+        public void CustomerImportsTrackDuplicateCustomersWithinEachImportBatch()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Customers", "CustomerService.cs");
+            var csvImportMethod = ExtractMethod(
+                source,
+                "async Task<CustomerImportResult> ImportCustomersFromCsvInternalAsync",
+                "async Task ExportCustomersToCsvInternalAsync");
+            var genericImportMethod = ExtractMethod(
+                source,
+                "public async Task<int> ImportCustomersAsync",
+                "public async Task ExportCustomersAsync");
+
+            Assert.Contains("var importedCustomerKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);", csvImportMethod, StringComparison.Ordinal);
+            Assert.Contains("if (!TryReserveImportedCustomer(importedCustomerKeys, c))", csvImportMethod, StringComparison.Ordinal);
+            Assert.Contains("Row {row}: Duplicate customer in import file", csvImportMethod, StringComparison.Ordinal);
+            Assert.Contains("var importedCustomerKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);", genericImportMethod, StringComparison.Ordinal);
+            Assert.Contains("if (!TryReserveImportedCustomer(importedCustomerKeys, customerModel))", genericImportMethod, StringComparison.Ordinal);
+            Assert.Contains("static bool TryReserveImportedCustomer(HashSet<string> importedCustomerKeys, CustomerModel customer)", source, StringComparison.Ordinal);
+            Assert.Contains("static IEnumerable<string> BuildCustomerDuplicateKeys(CustomerModel customer)", source, StringComparison.Ordinal);
+            Assert.Contains("yield return $\"{contact}|phone:{phone}\";", source, StringComparison.Ordinal);
+            Assert.Contains("yield return $\"{contact}|mobile:{mobile}\";", source, StringComparison.Ordinal);
+
+            Assert.True(
+                csvImportMethod.IndexOf("if (await CustomerExistsAsync(c.Contact, c.Phone, c.Mobile, cancellationToken))", StringComparison.Ordinal) < csvImportMethod.IndexOf("if (!TryReserveImportedCustomer(importedCustomerKeys, c))", StringComparison.Ordinal),
+                "CSV import should preserve the database duplicate check before reserving a customer identity for the current file.");
+            Assert.True(
+                csvImportMethod.IndexOf("if (!TryReserveImportedCustomer(importedCustomerKeys, c))", StringComparison.Ordinal) < csvImportMethod.IndexOf("await InsertCustomerAsync(conn, tran, c, cancellationToken);", StringComparison.Ordinal),
+                "CSV import should reject duplicate rows from the same file before inserting into the transaction.");
+            Assert.True(
+                genericImportMethod.IndexOf("if (!TryReserveImportedCustomer(importedCustomerKeys, customerModel))", StringComparison.Ordinal) < genericImportMethod.IndexOf("await InsertCustomerAsync(conn, null, customerModel, cancellationToken);", StringComparison.Ordinal),
+                "Generic customer import should reject duplicate rows from the same import batch before inserting.");
+        }
+
         private static void AssertCancellationGuardBeforeSqlAndConnection(string source, string startMarker, string endMarker)
         {
             var method = ExtractMethod(source, startMarker, endMarker);
