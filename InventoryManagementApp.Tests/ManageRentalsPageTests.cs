@@ -48,7 +48,7 @@ namespace InventoryManagementApp.Tests
                     page.DataContext = vm;
 
                     var grid = Assert.IsType<Grid>(page.Content);
-                    Assert.Equal(6, grid.RowDefinitions.Count);
+                    Assert.Equal(5, grid.RowDefinitions.Count);
 
                     var xamlPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
                     var xaml = File.ReadAllText(xamlPath);

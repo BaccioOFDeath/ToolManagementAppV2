@@ -6,8 +6,8 @@
       Focusable="True">
     <Page.Resources>
         <Style x:Key="RentalStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="MinHeight" Value="76"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="MinHeight" Value="60"/>
             <Setter Property="Margin" Value="0,0,8,0"/>
         </Style>
         <Style x:Key="RentalDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
@@ -20,10 +20,9 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1.55*"/>
             <RowDefinition Height="8"/>
-            <RowDefinition Height="1.05*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="1.25*"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
@@ -106,22 +105,18 @@
                         </DockPanel>
                     </Border>
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
-                        <DockPanel LastChildFill="False">
-                            <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                                <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,6"/>
-                                <TextBox x:Name="SearchTextBox" Width="250" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,6" ToolTip="Search item number, location, or customer"/>
-                                <TextBlock Text="From" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="2,0,6,6"/>
-                                <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="132" Margin="0,0,8,6"/>
-                                <TextBlock Text="To" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="2,0,6,6"/>
-                                <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="132" Margin="0,0,8,6"/>
-                                <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="118" Margin="0,0,8,6"/>
-                            </WrapPanel>
-                            <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
-                                <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearFilterCommand}" Margin="0,0,4,6"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintSearchResultsCommand}" Margin="0,0,4,6"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,0,6"/>
-                            </WrapPanel>
-                        </DockPanel>
+                        <WrapPanel VerticalAlignment="Center">
+                            <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,6"/>
+                            <TextBox x:Name="SearchTextBox" Width="250" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,6" ToolTip="Search item number, location, or customer"/>
+                            <TextBlock Text="From" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="2,0,6,6"/>
+                            <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="132" Margin="0,0,8,6"/>
+                            <TextBlock Text="To" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="2,0,6,6"/>
+                            <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="132" Margin="0,0,8,6"/>
+                            <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="118" Margin="0,0,8,6"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearFilterCommand}" Margin="0,0,4,6"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintSearchResultsCommand}" Margin="0,0,4,6"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,0,6"/>
+                        </WrapPanel>
                     </Border>
                     <DataGrid Grid.Row="2"
                               ItemsSource="{Binding Rentals}"
@@ -332,7 +327,16 @@
                             <StackPanel>
                                 <TextBlock Text="Selected Request" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
                                 <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                                <Border Height="156" Style="{StaticResource DesktopNoteCard}" Padding="0" Margin="0,0,0,8" ClipToBounds="True">
+                                <Border Height="156" Padding="0" Margin="0,0,0,8" ClipToBounds="True">
+                                    <Border.Style>
+                                        <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedRequest}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
                                     <Image Source="{Binding SelectedRequest, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}" Stretch="Uniform"/>
                                 </Border>
                                 <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
@@ -383,16 +387,6 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="5" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
-            <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Queue" Command="{Binding PrintRequestsCommand}"/>
-                </StackPanel>
-                <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0" TextWrapping="Wrap"/>
-            </DockPanel>
-        </Border>
-
-        <ProgressBar Grid.Row="5" IsIndeterminate="True" Height="4" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
+        <ProgressBar Grid.Row="0" Grid.RowSpan="5" IsIndeterminate="True" Height="4" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Page>
