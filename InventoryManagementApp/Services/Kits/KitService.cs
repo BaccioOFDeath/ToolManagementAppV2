@@ -15,6 +15,9 @@ namespace InventoryManagementApp.Services.Kits
     /// </summary>
     public class KitService
     {
+        private const int MaxKitListCount = 500;
+        private const int MaxKitItemListCount = 500;
+
         private readonly DatabaseService _databaseService;
         private readonly IUserContext _userContext;
 
@@ -41,8 +44,10 @@ namespace InventoryManagementApp.Services.Kits
                 using var conn = _databaseService.CreateConnection();
                 var sql = @"
                     SELECT * FROM Kits
-                    ORDER BY Name ASC";
+                    ORDER BY Name ASC
+                    LIMIT @KitListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@KitListLimit", MaxKitListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -65,8 +70,10 @@ namespace InventoryManagementApp.Services.Kits
                 var sql = @"
                     SELECT * FROM Kits
                     WHERE IsActive = 1
-                    ORDER BY Name ASC";
+                    ORDER BY Name ASC
+                    LIMIT @KitListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@KitListLimit", MaxKitListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -123,9 +130,11 @@ namespace InventoryManagementApp.Services.Kits
                     FROM KitItems ki
                     LEFT JOIN Items i ON ki.ItemID = i.ItemID
                     WHERE ki.KitID = @KitID
-                    ORDER BY i.ItemNumber";
+                    ORDER BY i.ItemNumber
+                    LIMIT @KitItemListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitID", kitID);
+                cmd.Parameters.AddWithValue("@KitItemListLimit", MaxKitItemListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
