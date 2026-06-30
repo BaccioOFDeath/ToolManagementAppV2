@@ -177,12 +177,20 @@ namespace InventoryManagementApp.Services.Items
 
         public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+            if (map is null)
+                throw new ArgumentNullException(nameof(map));
+
             _auth.EnsurePermission(User.PermissionImportExport);
             return ImportItemsFromCsvInternalAsync(filePath, map, cancellationToken);
         }
 
         public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+
             _auth.EnsurePermission(User.PermissionImportExport);
             return ExportItemsToCsvInternalAsync(filePath, cancellationToken);
         }
@@ -195,6 +203,8 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             const string sql = "SELECT IFNULL(MAX(CAST(SUBSTR(ItemNumber, 2) AS INTEGER)), 0) FROM Items WHERE ItemNumber LIKE 'T%'";
             using var conn = _dbService.CreateConnection();
             var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, null, cancellationToken);
@@ -342,6 +352,7 @@ namespace InventoryManagementApp.Services.Items
         {
             if (string.IsNullOrWhiteSpace(itemNumber))
                 return false;
+            cancellationToken.ThrowIfCancellationRequested();
 
             var sql = "SELECT COUNT(*) FROM Items WHERE ItemNumber = @TN";
             var parameters = new List<SqliteParameter>
@@ -419,6 +430,7 @@ namespace InventoryManagementApp.Services.Items
         {
             if (map == null || !map.TryGetValue("ItemNumber", out var _) || string.IsNullOrWhiteSpace(map["ItemNumber"]))
                 throw new ArgumentException("Mapping for required field 'ItemNumber' is missing.", nameof(map));
+            cancellationToken.ThrowIfCancellationRequested();
 
             var invalidRows = new List<int>();
             using var parser = new TextFieldParser(filePath);
@@ -430,6 +442,7 @@ namespace InventoryManagementApp.Services.Items
             if (headers == null || headers.Length == 0)
                 throw new InvalidDataException("CSV header row is missing or empty.");
 
+            cancellationToken.ThrowIfCancellationRequested();
             using var conn = _dbService.CreateConnection();
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
@@ -672,9 +685,16 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<List<int>> ImportItemsAsync(string filePath, IDataImporter<ItemModel> importer, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+            if (importer is null)
+                throw new ArgumentNullException(nameof(importer));
+
             _auth.EnsurePermission(User.PermissionImportExport);
+            cancellationToken.ThrowIfCancellationRequested();
             
             var (items, skippedRows) = await importer.ImportAsync(filePath, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
             
             using var conn = _dbService.CreateConnection();
             var existingNumbers = new HashSet<string>(
@@ -736,6 +756,11 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task ExportItemsAsync(string filePath, IDataExporter<ItemModel> exporter, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+            if (exporter is null)
+                throw new ArgumentNullException(nameof(exporter));
+
             _auth.EnsurePermission(User.PermissionImportExport);
             cancellationToken.ThrowIfCancellationRequested();
 
