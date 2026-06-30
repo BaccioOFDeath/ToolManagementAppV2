@@ -35,6 +35,33 @@ function Get-ValidationLogPath {
     return Join-Path $validationLogsPath $Name
 }
 
+function Write-ValidationArtifactManifest {
+    if (-not (Test-Path $validationLogsPath -PathType Container)) {
+        return
+    }
+
+    $manifestPath = Get-ValidationLogPath "artifact-manifest.txt"
+    $artifacts = Get-ChildItem -Path $validationLogsPath -File |
+        Where-Object { $_.Name -ne "artifact-manifest.txt" } |
+        Sort-Object Name
+
+    $lines = @(
+        "GeneratedAtUtc=$((Get-Date).ToUniversalTime().ToString('o'))",
+        "ValidationLogRoot=$validationLogsPath",
+        "ArtifactCount=$($artifacts.Count)",
+        ""
+    )
+
+    foreach ($artifact in $artifacts) {
+        $lines += "Artifact=$($artifact.Name)"
+        $lines += "SizeBytes=$($artifact.Length)"
+        $lines += "LastWriteUtc=$($artifact.LastWriteTimeUtc.ToString('o'))"
+        $lines += ""
+    }
+
+    $lines | Set-Content -Path $manifestPath -Encoding UTF8
+}
+
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $publishOutputPath = Join-Path $repoRoot "publish"
 $testResultsPath = Join-Path $repoRoot "TestResults"
@@ -156,5 +183,12 @@ try {
     }
 }
 finally {
+    try {
+        Write-ValidationArtifactManifest
+    }
+    catch {
+        Write-Warning "Unable to write validation artifact manifest: $($_.Exception.Message)"
+    }
+
     Pop-Location
 }
