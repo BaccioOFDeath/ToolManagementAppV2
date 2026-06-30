@@ -65,13 +65,34 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("Write-ValidationArtifactManifest", source);
             Assert.Contains("Get-ValidationLogPath \"artifact-manifest.txt\"", source);
+            Assert.Contains("ValidationArtifactManifest=2", source);
+            Assert.Contains("ArtifactGroupCount=$($artifactGroups.Count)", source);
             Assert.Contains("ArtifactCount=$($artifacts.Count)", source);
-            Assert.Contains("Artifact=$($artifact.Name)", source);
+            Assert.Contains("Artifact=$relativePath", source);
             Assert.Contains("SizeBytes=$($artifact.Length)", source);
             Assert.Contains("LastWriteUtc=$($artifact.LastWriteTimeUtc.ToString('o'))", source);
             Assert.Contains("Write-Warning \"Unable to write validation artifact manifest: $($_.Exception.Message)\"", source);
             AssertAppearsBefore(source, "function Write-ValidationArtifactManifest", "$repoRoot = Resolve-Path", "The manifest helper should be available before validation steps run.");
             AssertAppearsBefore(source, "finally {\n    try {\n        Write-ValidationArtifactManifest", "Pop-Location", "The manifest should be written before leaving the repository root.");
+        }
+
+        [Fact]
+        public void FullValidationRunnerIndexesValidationLogsTestResultsAndPublishOutput()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+
+            Assert.Contains("function Add-ValidationArtifactGroup", source);
+            Assert.Contains("function Get-ArtifactRelativePath", source);
+            Assert.Contains("ArtifactGroup=$GroupName", source);
+            Assert.Contains("ArtifactRoot=$RootPath", source);
+            Assert.Contains("ArtifactGroupMissing=True", source);
+            Assert.Contains("Name = \"ValidationLogs\"; Root = $validationLogsPath; ExcludedNames = @(\"artifact-manifest.txt\")", source);
+            Assert.Contains("Name = \"TestResults\"; Root = $testResultsPath; ExcludedNames = @()", source);
+            Assert.Contains("Name = \"PublishOutput\"; Root = $publishOutputPath; ExcludedNames = @()", source);
+            Assert.Contains("if (-not $SkipPublish)", source);
+            Assert.Contains("SkipPublish=$SkipPublish", source);
+            AssertAppearsBefore(source, "Test solution", "finally {", "The manifest should be written after the test-results path has had a chance to be created.");
+            AssertAppearsBefore(source, "Publish app", "finally {", "The manifest should be written after publish output has had a chance to be created.");
         }
 
         [Fact]
@@ -134,18 +155,27 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void BuildWorkflowUploadsArtifactManifestWithValidationLogs()
+        public void BuildWorkflowUploadsGroupedArtifactManifestWithValidationLogs()
         {
             var source = ReadRepoFile(".github", "workflows", "build.yml");
 
             Assert.Contains("Summarize validation artifacts", source);
             Assert.Contains("if: always()", source);
             Assert.Contains("./ValidationLogs/artifact-manifest.txt", source);
-            Assert.Contains("ArtifactCount=$($artifacts.Count)", source);
-            Assert.Contains("Artifact=$($artifact.Name)", source);
+            Assert.Contains("function Add-ValidationArtifactGroup", source);
+            Assert.Contains("function Get-ArtifactRelativePath", source);
+            Assert.Contains("ValidationArtifactManifest=2", source);
+            Assert.Contains("ArtifactGroupCount=$($artifactGroups.Count)", source);
+            Assert.Contains("ArtifactGroup=$GroupName", source);
+            Assert.Contains("ArtifactRoot=$RootPath", source);
+            Assert.Contains("ArtifactGroupMissing=True", source);
+            Assert.Contains("Name = \"ValidationLogs\"; Root = \"./ValidationLogs\"; ExcludedNames = @(\"artifact-manifest.txt\")", source);
+            Assert.Contains("Name = \"TestResults\"; Root = \"./TestResults\"; ExcludedNames = @()", source);
+            Assert.Contains("Name = \"PublishOutput\"; Root = \"./publish\"; ExcludedNames = @()", source);
+            Assert.Contains("Artifact=$relativePath", source);
             Assert.Contains("SizeBytes=$($artifact.Length)", source);
             Assert.Contains("LastWriteUtc=$($artifact.LastWriteTimeUtc.ToString('o'))", source);
-            AssertAppearsBefore(source, "Upload build artifacts", "Summarize validation artifacts", "The manifest should summarize all validation files created by earlier workflow steps.");
+            AssertAppearsBefore(source, "Upload build artifacts", "Summarize validation artifacts", "The manifest should summarize validation logs, test results, and publish output after those paths have had a chance to be produced.");
             AssertAppearsBefore(source, "Summarize validation artifacts", "Upload validation logs", "The manifest should be written before the validation log artifact is uploaded.");
         }
 
