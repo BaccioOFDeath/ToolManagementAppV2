@@ -17,12 +17,24 @@ function Invoke-ValidationStep {
 
     Write-Host ""
     Write-Host "==> $Name"
+    $startedAt = Get-Date
     $global:LASTEXITCODE = 0
-    & $Action
 
-    $exitCode = $global:LASTEXITCODE
-    if ($null -ne $exitCode -and $exitCode -ne 0) {
-        throw "$Name failed with exit code $exitCode."
+    try {
+        & $Action
+
+        $exitCode = $global:LASTEXITCODE
+        if ($null -ne $exitCode -and $exitCode -ne 0) {
+            throw "$Name failed with exit code $exitCode."
+        }
+
+        $durationSeconds = ((Get-Date) - $startedAt).TotalSeconds
+        Write-ValidationStepSummary -Name $Name -Status "Succeeded" -DurationSeconds $durationSeconds
+    }
+    catch {
+        $durationSeconds = ((Get-Date) - $startedAt).TotalSeconds
+        Write-ValidationStepSummary -Name $Name -Status "Failed" -DurationSeconds $durationSeconds -Detail $_.Exception.Message
+        throw
     }
 }
 
@@ -33,6 +45,53 @@ function Get-ValidationLogPath {
     )
 
     return Join-Path $validationLogsPath $Name
+}
+
+function Write-ValidationStepSummary {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Status,
+
+        [Parameter(Mandatory = $true)]
+        [double]$DurationSeconds,
+
+        [string]$Detail = ""
+    )
+
+    try {
+        if ([string]::IsNullOrWhiteSpace($validationLogsPath) -or -not (Test-Path $validationLogsPath -PathType Container)) {
+            return
+        }
+
+        $summaryPath = Get-ValidationLogPath "step-summary.txt"
+        if (-not (Test-Path $summaryPath -PathType Leaf)) {
+            @(
+                "GeneratedAtUtc=$((Get-Date).ToUniversalTime().ToString('o'))",
+                "ValidationStepSummary=1",
+                ""
+            ) | Set-Content -Path $summaryPath -Encoding UTF8
+        }
+
+        $durationText = $DurationSeconds.ToString('0.###', [System.Globalization.CultureInfo]::InvariantCulture)
+        $lines = @(
+            "Step=$Name",
+            "Status=$Status",
+            "DurationSeconds=$durationText"
+        )
+
+        if (-not [string]::IsNullOrWhiteSpace($Detail)) {
+            $lines += "Detail=$Detail"
+        }
+
+        $lines += ""
+        $lines | Add-Content -Path $summaryPath -Encoding UTF8
+    }
+    catch {
+        Write-Warning "Unable to write validation step summary: $($_.Exception.Message)"
+    }
 }
 
 function Write-ValidationArtifactManifest {
