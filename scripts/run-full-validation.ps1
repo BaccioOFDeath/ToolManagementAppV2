@@ -28,6 +28,7 @@ function Invoke-ValidationStep {
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $publishOutputPath = Join-Path $repoRoot "publish"
+$testResultsPath = Join-Path $repoRoot "TestResults"
 $requiredPublishArtifacts = @(
     "InventoryManagementApp.exe",
     "InventoryManagementApp.dll",
@@ -48,8 +49,16 @@ try {
         dotnet build InventoryManagementApp.sln --configuration $Configuration --no-restore
     }
 
+    Invoke-ValidationStep "Clean test results" {
+        if (Test-Path $testResultsPath) {
+            Remove-Item $testResultsPath -Recurse -Force
+        }
+
+        New-Item -ItemType Directory -Path $testResultsPath | Out-Null
+    }
+
     Invoke-ValidationStep "Test solution" {
-        dotnet test InventoryManagementApp.sln --configuration $Configuration --no-build --verbosity normal
+        dotnet test InventoryManagementApp.sln --configuration $Configuration --no-build --verbosity normal --logger "trx;LogFileName=validation-tests.trx" --results-directory $testResultsPath
     }
 
     if (-not $SkipPublish) {
