@@ -514,7 +514,7 @@ namespace InventoryManagementApp.Services.Items
                         IsRentalItem = TryParseBool(rental)
                     };
 
-                    await InsertItemAsync(conn, transaction, item, cancellationToken).ConfigureAwait(false);
+                    item.ItemID = await InsertItemAsync(conn, transaction, item, cancellationToken).ConfigureAwait(false);
                     existingNumbers.Add(itemNumber!);
                 }
 
@@ -537,9 +537,8 @@ namespace InventoryManagementApp.Services.Items
 
         protected virtual async Task<int> InsertItemAsync(SqliteConnection conn, SqliteTransaction? transaction, ItemModel item, CancellationToken cancellationToken)
         {
-            const string sql = @"INSERT INTO Items (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, IsPowered, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount)
-                                 VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@Price,@ImagePath,0,@IsPowered,0,'','',0);
-                                 SELECT last_insert_rowid();";
+            const string insertSql = @"INSERT INTO Items (ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, IsPowered, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount)
+                                 VALUES (@ItemNumber,@Name,@Location,@Brand,@PartNumber,@Supplier,@PurchasedDate,@Notes,@Keywords,@QuantityOnHand,@RentedQuantity,@IsRentalItem,@Price,@ImagePath,0,@IsPowered,0,'','',0);";
 
             var parameters = new[]
             {
@@ -560,10 +559,23 @@ namespace InventoryManagementApp.Services.Items
                 new SqliteParameter("@IsPowered", item.IsPowered ? 1 : 0)
             };
 
-            using var command = new SqliteCommand(sql, conn, transaction);
+            using var command = new SqliteCommand(insertSql, conn, transaction);
             command.Parameters.AddRange(parameters);
-            var id = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            return Convert.ToInt32(id);
+            var insertedRows = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            EnsureItemImportCreateSucceeded(insertedRows);
+
+            using var idCommand = new SqliteCommand("SELECT last_insert_rowid();", conn, transaction);
+            var id = Convert.ToInt32(await idCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false));
+            if (id < 1)
+                throw new InvalidOperationException("Unable to import item.");
+
+            return id;
+        }
+
+        static void EnsureItemImportCreateSucceeded(int affectedRows)
+        {
+            if (affectedRows == 0)
+                throw new InvalidOperationException("Unable to import item.");
         }
 
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
