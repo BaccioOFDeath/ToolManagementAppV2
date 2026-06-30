@@ -439,7 +439,11 @@ namespace InventoryManagementApp.Services.Customers
 
             const string sql = @"
         SELECT COUNT(*) FROM Customers
-         WHERE Contact = @Contact AND (Phone = @Phone OR Mobile = @Mobile)";
+         WHERE Contact = @Contact
+           AND (
+                (@Phone <> '' AND Phone = @Phone)
+                OR (@Mobile <> '' AND Mobile = @Mobile)
+           )";
             try
             {
                 using var cmd = new SqliteCommand(sql, conn, transaction);
