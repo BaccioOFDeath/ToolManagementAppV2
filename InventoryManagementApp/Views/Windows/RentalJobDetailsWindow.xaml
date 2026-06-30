@@ -23,6 +23,9 @@
                     <Button Style="{StaticResource PrimaryButton}" Content="Swap Item" Command="{Binding SwapRentalItemCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Add Item" Command="{Binding AddRentalItemCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Email" Command="{Binding EmailRentalContactCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="SMS" Command="{Binding SmsRentalContactCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Log Reply" Command="{Binding LogRentalContactResponseCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="Edit Customer" Command="{Binding EditRentalCustomerCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintRentalCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,0,6"/>
@@ -108,7 +111,14 @@
                     <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,10">
                         <DockPanel LastChildFill="True">
                             <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
-                                <TextBlock Text="Customer" Style="{StaticResource SectionHeader}"/>
+                                <DockPanel LastChildFill="True">
+                                    <WrapPanel DockPanel.Dock="Right" Margin="12,0,0,0">
+                                        <Button Style="{StaticResource GhostButton}" Content="Email" Command="{Binding EmailRentalContactCommand}" Margin="0,0,6,0"/>
+                                        <Button Style="{StaticResource GhostButton}" Content="SMS" Command="{Binding SmsRentalContactCommand}" Margin="0,0,6,0"/>
+                                        <Button Style="{StaticResource GhostButton}" Content="Log Reply" Command="{Binding LogRentalContactResponseCommand}"/>
+                                    </WrapPanel>
+                                    <TextBlock Text="Customer" Style="{StaticResource SectionHeader}"/>
+                                </DockPanel>
                             </Border>
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
@@ -133,6 +143,37 @@
                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Email" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,0"/>
                                 <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedRental.CustomerEmail, TargetNullValue='Not recorded'}" TextWrapping="Wrap"/>
                             </Grid>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,10">
+                        <DockPanel LastChildFill="True">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
+                                <DockPanel LastChildFill="True">
+                                    <TextBlock DockPanel.Dock="Right"
+                                               Text="{Binding SelectedRentalContactLogSummary}"
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               VerticalAlignment="Center"
+                                               Margin="12,0,0,0"/>
+                                    <TextBlock Text="Contact Log" Style="{StaticResource SectionHeader}"/>
+                                </DockPanel>
+                            </Border>
+                            <DataGrid ItemsSource="{Binding SelectedRentalContactLogs}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      MinHeight="150"
+                                      MaxHeight="240"
+                                      SelectionMode="Single"
+                                      Style="{StaticResource VirtualizedDataGridStyle}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="When" Binding="{Binding CreatedAt, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="130"/>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding Channel}" Width="70"/>
+                                    <DataGridTextColumn Header="Direction" Binding="{Binding Direction}" Width="80"/>
+                                    <DataGridTextColumn Header="To / From" Binding="{Binding Recipient}" Width="130"/>
+                                    <DataGridTextColumn Header="Subject / Note" Binding="{Binding Summary}" Width="*"/>
+                                    <DataGridTextColumn Header="By" Binding="{Binding CreatedBy}" Width="90"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
                         </DockPanel>
                     </Border>
 

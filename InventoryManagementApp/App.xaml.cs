@@ -183,6 +183,7 @@ namespace InventoryManagementApp
                 services.AddSingleton<MaintenanceService>();
                 services.AddSingleton<CalibrationService>();
                 services.AddSingleton<ReservationService>();
+                services.AddSingleton<RentalContactLogService>();
                 services.AddSingleton<KitService>();
                 services.AddSingleton<MemoryBudget>();
                 services.AddTransient<ItemsViewModel>();

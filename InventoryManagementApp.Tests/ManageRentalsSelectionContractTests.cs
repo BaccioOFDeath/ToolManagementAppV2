@@ -201,6 +201,10 @@ namespace InventoryManagementApp.Tests
                 "EditRentalCustomerCommand",
                 "AddRentalItemCommand",
                 "SwapRentalItemCommand",
+                "EmailRentalContactCommand",
+                "SmsRentalContactCommand",
+                "LogRentalContactResponseCommand",
+                "SelectedRentalContactLogs",
                 "await _customerService.UpdateCustomerAsync(updated)",
                 "await _rentalService.RentItemAsync(item.ItemID, rental.CustomerID, DateTime.Today, rental.DueDate)",
                 "await _rentalService.SwapRentalItemAsync(rental.RentalID, item.ItemID)");
@@ -217,6 +221,10 @@ namespace InventoryManagementApp.Tests
                 window,
                 "SwapRentalItemCommand",
                 "AddRentalItemCommand",
+                "EmailRentalContactCommand",
+                "SmsRentalContactCommand",
+                "LogRentalContactResponseCommand",
+                "Contact Log",
                 "EditRentalCustomerCommand");
             AssertContainsAll(dueDateWindow, "DatePicker", "Save Date");
             AssertContainsAll(itemPickerWindow, "DataGrid", "Use Item");

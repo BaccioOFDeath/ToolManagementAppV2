@@ -221,6 +221,18 @@ namespace InventoryManagementApp.Services.Core
                     FOREIGN KEY (RentalID) REFERENCES Rentals(RentalID),
                     FOREIGN KEY (ItemID) REFERENCES Items(ItemID)
                 );
+                CREATE TABLE IF NOT EXISTS RentalContactLogs (
+                    ContactLogID INTEGER PRIMARY KEY AUTOINCREMENT,
+                    RentalID INTEGER NOT NULL,
+                    Channel TEXT NOT NULL,
+                    Direction TEXT NOT NULL,
+                    Recipient TEXT,
+                    Subject TEXT,
+                    Message TEXT NOT NULL,
+                    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    CreatedBy TEXT,
+                    FOREIGN KEY (RentalID) REFERENCES Rentals(RentalID)
+                );
                 CREATE TABLE IF NOT EXISTS ActivityLogs (
                     LogID INTEGER PRIMARY KEY AUTOINCREMENT,
                     UserID INTEGER,
@@ -321,6 +333,8 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "RentalPhotos", "RentalID");
             EnsureIndex(conn, "RentalPhotos", "ItemID");
             EnsureIndex(conn, "RentalPhotos", "PhotoStage");
+            EnsureIndex(conn, "RentalContactLogs", "RentalID");
+            EnsureIndex(conn, "RentalContactLogs", "CreatedAt");
             EnsureIndex(conn, "MaintenanceRecords", "ItemID");
             EnsureIndex(conn, "MaintenanceRecords", "ScheduledDate");
             EnsureIndex(conn, "MaintenanceRecords", "Status");
@@ -406,6 +420,15 @@ namespace InventoryManagementApp.Services.Core
             EnsureColumn(conn, "RentalPhotos", "Notes", "TEXT");
             EnsureColumn(conn, "RentalPhotos", "CreatedAt", "DATETIME", "'1970-01-01 00:00:00'");
             EnsureColumn(conn, "RentalPhotos", "CreatedBy", "TEXT");
+
+            EnsureColumn(conn, "RentalContactLogs", "RentalID", "INTEGER", "0");
+            EnsureColumn(conn, "RentalContactLogs", "Channel", "TEXT", "''");
+            EnsureColumn(conn, "RentalContactLogs", "Direction", "TEXT", "''");
+            EnsureColumn(conn, "RentalContactLogs", "Recipient", "TEXT");
+            EnsureColumn(conn, "RentalContactLogs", "Subject", "TEXT");
+            EnsureColumn(conn, "RentalContactLogs", "Message", "TEXT", "''");
+            EnsureColumn(conn, "RentalContactLogs", "CreatedAt", "DATETIME", "'1970-01-01 00:00:00'");
+            EnsureColumn(conn, "RentalContactLogs", "CreatedBy", "TEXT");
 
             EnsureColumn(conn, "ActivityLogs", "UserID", "INTEGER");
             EnsureColumn(conn, "ActivityLogs", "UserName", "TEXT");

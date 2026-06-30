@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ using System.Windows;
 using System.Windows.Documents;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Services.Rentals;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Utilities.Helpers;
@@ -28,12 +30,14 @@ namespace InventoryManagementApp.ViewModels
         private readonly ReservationService? _reservationService;
         private readonly IItemService? _itemService;
         private readonly ICustomerService? _customerService;
+        private readonly RentalContactLogService? _rentalContactLogService;
         private readonly ILogger<ManageRentalsViewModel> _logger;
         private List<RentalModel> _allRentals = new();
 
         public ObservableCollection<RentalModel> Rentals { get; } = new();
         public ObservableCollection<RentalModel> ActiveRentals { get; } = new();
         public ObservableCollection<Reservation> PendingRequests { get; } = new();
+        public ObservableCollection<RentalContactLog> SelectedRentalContactLogs { get; } = new();
 
         public string SearchSummary => $"{Rentals.Count} result{(Rentals.Count == 1 ? string.Empty : "s")} shown";
         public string CheckedOutSummary => $"{ActiveRentals.Count} item{(ActiveRentals.Count == 1 ? string.Empty : "s")} currently checked out";
@@ -139,7 +143,12 @@ namespace InventoryManagementApp.ViewModels
                     AddRentalItemCommand.NotifyCanExecuteChanged();
                     SwapRentalItemCommand.NotifyCanExecuteChanged();
                     DeleteRentalCommand.NotifyCanExecuteChanged();
+                    EmailRentalContactCommand.NotifyCanExecuteChanged();
+                    SmsRentalContactCommand.NotifyCanExecuteChanged();
+                    LogRentalContactResponseCommand.NotifyCanExecuteChanged();
+                    _ = LoadSelectedRentalContactLogsAsync();
                     OnPropertyChanged(nameof(SelectedRentalOpenRequestCount));
+                    OnPropertyChanged(nameof(SelectedRentalContactLogSummary));
                     OnPropertyChanged(nameof(SelectedRentalReturnedText));
                     OnPropertyChanged(nameof(SelectedRentalAgeText));
                     OnPropertyChanged(nameof(SelectedRentalNextSteps));
@@ -195,12 +204,15 @@ namespace InventoryManagementApp.ViewModels
         public IAsyncRelayCommand AddRentalItemCommand { get; }
         public IAsyncRelayCommand SwapRentalItemCommand { get; }
         public IAsyncRelayCommand DeleteRentalCommand { get; }
+        public IAsyncRelayCommand EmailRentalContactCommand { get; }
+        public IAsyncRelayCommand SmsRentalContactCommand { get; }
+        public IAsyncRelayCommand LogRentalContactResponseCommand { get; }
 
         public ManageRentalsViewModel(
             IRentalService rentalService,
             IDialogService dialogService,
             ILogger<ManageRentalsViewModel>? logger = null)
-            : this(rentalService, dialogService, null, null, null, logger)
+            : this(rentalService, dialogService, null, null, null, null, logger)
         {
         }
 
@@ -210,6 +222,7 @@ namespace InventoryManagementApp.ViewModels
             ReservationService? reservationService,
             IItemService? itemService = null,
             ICustomerService? customerService = null,
+            RentalContactLogService? rentalContactLogService = null,
             ILogger<ManageRentalsViewModel>? logger = null)
         {
             _rentalService = rentalService;
@@ -217,6 +230,7 @@ namespace InventoryManagementApp.ViewModels
             _reservationService = reservationService ?? TryResolveReservationService();
             _itemService = itemService;
             _customerService = customerService;
+            _rentalContactLogService = rentalContactLogService ?? TryResolveRentalContactLogService();
             _logger = logger ?? NullLogger<ManageRentalsViewModel>.Instance;
 
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
@@ -240,6 +254,9 @@ namespace InventoryManagementApp.ViewModels
             AddRentalItemCommand = new AsyncRelayCommand(AddRentalItemAsync, CanManageSelectedRentalItems);
             SwapRentalItemCommand = new AsyncRelayCommand(SwapRentalItemAsync, CanManageSelectedRentalItems);
             DeleteRentalCommand = new AsyncRelayCommand(DeleteRentalAsync, () => SelectedRental != null);
+            EmailRentalContactCommand = new AsyncRelayCommand(EmailRentalContactAsync, CanEmailSelectedRentalContact);
+            SmsRentalContactCommand = new AsyncRelayCommand(SmsRentalContactAsync, CanSmsSelectedRentalContact);
+            LogRentalContactResponseCommand = new AsyncRelayCommand(LogRentalContactResponseAsync, CanLogSelectedRentalContact);
         }
 
         public async Task LoadRentalsAsync()
@@ -590,6 +607,179 @@ namespace InventoryManagementApp.ViewModels
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        bool CanEmailSelectedRentalContact() => SelectedRental != null
+            && _rentalContactLogService != null
+            && !string.IsNullOrWhiteSpace(SelectedRental.CustomerEmail);
+
+        bool CanSmsSelectedRentalContact() => SelectedRental != null
+            && _rentalContactLogService != null
+            && !string.IsNullOrWhiteSpace(GetRentalSmsNumber(SelectedRental));
+
+        bool CanLogSelectedRentalContact() => SelectedRental != null && _rentalContactLogService != null;
+
+        async Task EmailRentalContactAsync()
+        {
+            if (SelectedRental == null || _rentalContactLogService == null)
+                return;
+
+            var rental = SelectedRental;
+            if (string.IsNullOrWhiteSpace(rental.CustomerEmail))
+            {
+                await _dialogService.ShowInfoAsync("This customer does not have an email address recorded.", "Email Customer");
+                return;
+            }
+
+            var subject = $"Rental {rental.ItemNumber} due {rental.DueDate:yyyy-MM-dd}";
+            var body = BuildDefaultRentalContactMessage(rental);
+            if (!TryLaunchUri(BuildMailToUri(rental.CustomerEmail, subject, body), out var launchError))
+            {
+                await _dialogService.ShowInfoAsync($"Unable to open the email compose window: {launchError}", "Email Customer");
+                return;
+            }
+
+            await SaveRentalContactLogAsync(new RentalContactLog
+            {
+                RentalID = rental.RentalID,
+                Channel = "Email",
+                Direction = "Outgoing",
+                Recipient = rental.CustomerEmail,
+                Subject = subject,
+                Message = body
+            }, "Email Customer");
+        }
+
+        async Task SmsRentalContactAsync()
+        {
+            if (SelectedRental == null || _rentalContactLogService == null)
+                return;
+
+            var rental = SelectedRental;
+            var number = GetRentalSmsNumber(rental);
+            if (string.IsNullOrWhiteSpace(number))
+            {
+                await _dialogService.ShowInfoAsync("This customer does not have a mobile or phone number recorded.", "SMS Customer");
+                return;
+            }
+
+            var message = BuildDefaultRentalSmsMessage(rental);
+            if (!TryLaunchUri(BuildSmsUri(number, message), out var launchError))
+            {
+                await _dialogService.ShowInfoAsync($"Unable to open the SMS compose window: {launchError}", "SMS Customer");
+                return;
+            }
+
+            await SaveRentalContactLogAsync(new RentalContactLog
+            {
+                RentalID = rental.RentalID,
+                Channel = "SMS",
+                Direction = "Outgoing",
+                Recipient = number,
+                Subject = $"Rental {rental.ItemNumber}",
+                Message = message
+            }, "SMS Customer");
+        }
+
+        async Task LogRentalContactResponseAsync()
+        {
+            if (SelectedRental == null || _rentalContactLogService == null)
+                return;
+
+            var note = await _dialogService.ShowInputDialogAsync(
+                "Log Contact Response",
+                "Paste the customer reply or type a call/contact note for this rental job.");
+            if (string.IsNullOrWhiteSpace(note))
+                return;
+
+            await SaveRentalContactLogAsync(new RentalContactLog
+            {
+                RentalID = SelectedRental.RentalID,
+                Channel = "Note",
+                Direction = "Incoming",
+                Recipient = SelectedRental.CustomerName,
+                Subject = "Customer response",
+                Message = note
+            }, "Log Contact Response");
+        }
+
+        async Task SaveRentalContactLogAsync(RentalContactLog log, string title)
+        {
+            if (_rentalContactLogService == null)
+                return;
+
+            var result = await _rentalContactLogService.AddContactLogAsync(log);
+            if (!result.Success)
+            {
+                await _dialogService.ShowInfoAsync($"Unable to save the contact log: {result.ErrorMessage}", title);
+                return;
+            }
+
+            await LoadSelectedRentalContactLogsAsync();
+        }
+
+        async Task LoadSelectedRentalContactLogsAsync()
+        {
+            var rental = SelectedRental;
+            if (_rentalContactLogService == null || rental == null || rental.RentalID < 1)
+            {
+                SelectedRentalContactLogs.Clear();
+                OnPropertyChanged(nameof(SelectedRentalContactLogSummary));
+                return;
+            }
+
+            var result = await _rentalContactLogService.GetContactLogsForRentalAsync(rental.RentalID);
+            if (!result.Success)
+            {
+                _logger.LogWarning("Failed to load contact logs for rental {RentalID}: {Error}", rental.RentalID, result.ErrorMessage);
+                SelectedRentalContactLogs.Clear();
+            }
+            else
+            {
+                SelectedRentalContactLogs.ReplaceRange(result.Value ?? new List<RentalContactLog>());
+            }
+
+            OnPropertyChanged(nameof(SelectedRentalContactLogSummary));
+        }
+
+        static string BuildDefaultRentalContactMessage(RentalModel rental)
+        {
+            var customer = ValueOrNotRecorded(rental.CustomerName);
+            return $@"Hi {customer},
+
+This is a follow-up for rental job #{rental.RentalID}.
+
+Item: {rental.ItemNumber}
+Due back: {rental.DueDate:yyyy-MM-dd HH:mm}
+
+Please reply if you need to arrange a return time or extension.";
+        }
+
+        static string BuildDefaultRentalSmsMessage(RentalModel rental)
+            => $"Rental job #{rental.RentalID} item {rental.ItemNumber} is due back {rental.DueDate:yyyy-MM-dd HH:mm}. Please reply if you need to arrange return or extension.";
+
+        static string GetRentalSmsNumber(RentalModel rental)
+            => !string.IsNullOrWhiteSpace(rental.CustomerMobile) ? rental.CustomerMobile : rental.CustomerPhone;
+
+        static Uri BuildMailToUri(string email, string subject, string body)
+            => new($"mailto:{Uri.EscapeDataString(email)}?subject={Uri.EscapeDataString(subject)}&body={Uri.EscapeDataString(body)}");
+
+        static Uri BuildSmsUri(string number, string body)
+            => new($"sms:{Uri.EscapeDataString(number)}?body={Uri.EscapeDataString(body)}");
+
+        static bool TryLaunchUri(Uri uri, out string error)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
+                error = string.Empty;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+                return false;
             }
         }
 
@@ -1176,6 +1366,10 @@ namespace InventoryManagementApp.ViewModels
             ? "0"
             : PendingRequests.Count(r => r.ItemID == SelectedRental.ItemID && r.IsActive).ToString();
 
+        public string SelectedRentalContactLogSummary => SelectedRentalContactLogs.Count == 1
+            ? "1 contact entry"
+            : $"{SelectedRentalContactLogs.Count} contact entries";
+
         public string SelectedRentalReturnedText => SelectedRental == null
             ? "Not returned yet"
             : FormatNullableDate(SelectedRental.ReturnDate);
@@ -1333,6 +1527,20 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (System.Windows.Application.Current is App app)
                     return app.Host.Services.GetService<ReservationService>();
+            }
+            catch
+            {
+            }
+
+            return null;
+        }
+
+        static RentalContactLogService? TryResolveRentalContactLogService()
+        {
+            try
+            {
+                if (System.Windows.Application.Current is App app)
+                    return app.Host.Services.GetService<RentalContactLogService>();
             }
             catch
             {
