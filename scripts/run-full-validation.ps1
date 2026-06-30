@@ -26,9 +26,19 @@ function Invoke-ValidationStep {
     }
 }
 
+function Get-ValidationLogPath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name
+    )
+
+    return Join-Path $validationLogsPath $Name
+}
+
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $publishOutputPath = Join-Path $repoRoot "publish"
 $testResultsPath = Join-Path $repoRoot "TestResults"
+$validationLogsPath = Join-Path $repoRoot "ValidationLogs"
 $requiredPublishArtifacts = @(
     "InventoryManagementApp.exe",
     "InventoryManagementApp.dll",
@@ -37,8 +47,17 @@ $requiredPublishArtifacts = @(
 Push-Location $repoRoot
 
 try {
+    Invoke-ValidationStep "Clean validation logs" {
+        if (Test-Path $validationLogsPath) {
+            Remove-Item $validationLogsPath -Recurse -Force
+        }
+
+        New-Item -ItemType Directory -Path $validationLogsPath | Out-Null
+    }
+
     Invoke-ValidationStep "Restore solution" {
-        dotnet restore InventoryManagementApp.sln
+        $restoreLogPath = Get-ValidationLogPath "restore.binlog"
+        dotnet restore InventoryManagementApp.sln -bl:$restoreLogPath
     }
 
     Invoke-ValidationStep "Audit vulnerable packages" {
@@ -46,7 +65,8 @@ try {
     }
 
     Invoke-ValidationStep "Build solution" {
-        dotnet build InventoryManagementApp.sln --configuration $Configuration --no-restore
+        $buildLogPath = Get-ValidationLogPath "build.binlog"
+        dotnet build InventoryManagementApp.sln --configuration $Configuration --no-restore -bl:$buildLogPath
     }
 
     Invoke-ValidationStep "Clean test results" {
@@ -63,7 +83,8 @@ try {
 
     if (-not $SkipPublish) {
         Invoke-ValidationStep "Restore publish runtime" {
-            dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime $Runtime
+            $publishRestoreLogPath = Get-ValidationLogPath "publish-restore.binlog"
+            dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime $Runtime -bl:$publishRestoreLogPath
         }
 
         Invoke-ValidationStep "Clean publish output" {
@@ -73,7 +94,8 @@ try {
         }
 
         Invoke-ValidationStep "Publish app" {
-            dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c $Configuration -r $Runtime --self-contained false --no-restore -o ./publish
+            $publishLogPath = Get-ValidationLogPath "publish.binlog"
+            dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c $Configuration -r $Runtime --self-contained false --no-restore -o ./publish -bl:$publishLogPath
         }
 
         Invoke-ValidationStep "Verify publish artifacts" {

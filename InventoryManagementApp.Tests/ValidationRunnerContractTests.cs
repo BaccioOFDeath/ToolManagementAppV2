@@ -99,6 +99,53 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FullValidationRunnerCapturesMsBuildLogsForRestoreBuildAndPublish()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+
+            Assert.Contains("$validationLogsPath = Join-Path $repoRoot \"ValidationLogs\"", source);
+            Assert.Contains("Clean validation logs", source);
+            Assert.Contains("Remove-Item $validationLogsPath -Recurse -Force", source);
+            Assert.Contains("New-Item -ItemType Directory -Path $validationLogsPath | Out-Null", source);
+            Assert.Contains("Get-ValidationLogPath \"restore.binlog\"", source);
+            Assert.Contains("Get-ValidationLogPath \"build.binlog\"", source);
+            Assert.Contains("Get-ValidationLogPath \"publish-restore.binlog\"", source);
+            Assert.Contains("Get-ValidationLogPath \"publish.binlog\"", source);
+            Assert.Contains("dotnet restore InventoryManagementApp.sln -bl:$restoreLogPath", source);
+            Assert.Contains("dotnet build InventoryManagementApp.sln --configuration $Configuration --no-restore -bl:$buildLogPath", source);
+            Assert.Contains("dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime $Runtime -bl:$publishRestoreLogPath", source);
+            Assert.Contains("dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c $Configuration -r $Runtime --self-contained false --no-restore -o ./publish -bl:$publishLogPath", source);
+            AssertAppearsBefore(source, "Clean validation logs", "Restore solution", "The full validation runner should clean stale binary logs before restore starts.");
+            AssertAppearsBefore(source, "Restore solution", "Build solution", "Restore binary log capture should happen before build starts.");
+            AssertAppearsBefore(source, "Build solution", "Test solution", "Build binary log capture should happen before test execution.");
+            AssertAppearsBefore(source, "Restore publish runtime", "Publish app", "Publish restore binary log capture should happen before publishing.");
+            AssertAppearsBefore(source, "Publish app", "Verify publish artifacts", "Publish binary log capture should happen before artifact verification.");
+        }
+
+        [Fact]
+        public void BuildWorkflowUploadsMsBuildLogsEvenWhenValidationFails()
+        {
+            var source = ReadRepoFile(".github", "workflows", "build.yml");
+
+            Assert.Contains("Prepare validation logs", source);
+            Assert.Contains("New-Item -ItemType Directory -Path ./ValidationLogs | Out-Null", source);
+            Assert.Contains("dotnet restore InventoryManagementApp.sln -bl:./ValidationLogs/restore.binlog", source);
+            Assert.Contains("dotnet build InventoryManagementApp.sln --configuration Release --no-restore -bl:./ValidationLogs/build.binlog", source);
+            Assert.Contains("dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64 -bl:./ValidationLogs/publish-restore.binlog", source);
+            Assert.Contains("dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish -bl:./ValidationLogs/publish.binlog", source);
+            Assert.Contains("Upload validation logs", source);
+            Assert.Contains("name: validation-msbuild-logs", source);
+            Assert.Contains("path: ./ValidationLogs/", source);
+            Assert.Contains("if-no-files-found: ignore", source);
+            AssertAppearsBefore(source, "Prepare validation logs", "Restore dependencies", "The Build and Test workflow should prepare a fresh ValidationLogs directory before restore.");
+            AssertAppearsBefore(source, "Restore dependencies", "- name: Build", "Restore binary log capture should happen before build starts.");
+            AssertAppearsBefore(source, "- name: Build", "- name: Test", "Build binary log capture should happen before test execution.");
+            AssertAppearsBefore(source, "Restore publish runtime", "- name: Publish", "Publish restore binary log capture should happen before publishing.");
+            AssertAppearsBefore(source, "- name: Publish", "Verify publish artifacts", "Publish binary log capture should happen before artifact verification.");
+            AssertAppearsBefore(source, "Upload build artifacts", "Upload validation logs", "Validation logs should be uploaded as the final diagnostic artifact.");
+        }
+
+        [Fact]
         public void FullValidationRunnerVerifiesPublishedDesktopArtifactsBeforeSourceScans()
         {
             var source = ReadRepoFile("scripts", "run-full-validation.ps1");
