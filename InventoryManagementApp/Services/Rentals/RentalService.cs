@@ -22,6 +22,7 @@ namespace InventoryManagementApp.Services.Rentals
     /// </summary>
     public class RentalService : IRentalService
     {
+        private const int MaxRentalListCount = 500;
         private const int MaxRentalHistoryCount = 500;
         private const int MaxRentalFrequencyCount = 100;
 
@@ -403,16 +404,21 @@ namespace InventoryManagementApp.Services.Rentals
 
         public async Task<List<Rental>> GetActiveRentalsAsync()
         {
+            const string sql = BaseSelect + " WHERE r.Status='Rented' ORDER BY r.DueDate ASC LIMIT @RentalListLimit";
+            var p = new[] { new SqliteParameter("@RentalListLimit", MaxRentalListCount) };
             using var conn = _dbService.CreateConnection();
-            var sql = BaseSelect + " WHERE r.Status='Rented'";
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
 
         public async Task<List<Rental>> GetOverdueRentalsAsync()
         {
-            const string sql = BaseSelect + @" WHERE r.Status = 'Rented' AND r.DueDate < @Today";
-            var p = new[] { new SqliteParameter("@Today", DateTime.Today) };
+            const string sql = BaseSelect + @" WHERE r.Status = 'Rented' AND r.DueDate < @Today ORDER BY r.DueDate ASC LIMIT @RentalListLimit";
+            var p = new[]
+            {
+                new SqliteParameter("@Today", DateTime.Today),
+                new SqliteParameter("@RentalListLimit", MaxRentalListCount)
+            };
             using var conn = _dbService.CreateConnection();
             var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
@@ -420,8 +426,10 @@ namespace InventoryManagementApp.Services.Rentals
 
         public async Task<List<Rental>> GetAllRentalsAsync()
         {
+            const string sql = BaseSelect + " ORDER BY r.RentalDate DESC LIMIT @RentalListLimit";
+            var p = new[] { new SqliteParameter("@RentalListLimit", MaxRentalListCount) };
             using var conn = _dbService.CreateConnection();
-            var list = await SqliteHelper.ExecuteReaderAsync(conn, BaseSelect, MapRental);
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
 

@@ -50,6 +50,94 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void CsvImportExportEntrypointsValidateInputsBeforeAuthorizationAndWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
+            var importMethod = ExtractMethod(
+                source,
+                "public Task<List<int>> ImportItemsFromCsvAsync",
+                "public Task ExportItemsToCsvAsync");
+            var exportMethod = ExtractMethod(
+                source,
+                "public Task ExportItemsToCsvAsync",
+                "public Task<ImageImportResult> ImportItemImagesAsync");
+
+            AssertEntrypointPathGuardBeforeAuthorization(importMethod, "ImportItemsFromCsvAsync");
+            Assert.Contains("if (map is null)", importMethod, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(map));", importMethod, StringComparison.Ordinal);
+            Assert.True(
+                importMethod.IndexOf("if (map is null)", StringComparison.Ordinal) < importMethod.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
+                "CSV item imports should reject a missing column map before authorization or file work.");
+            Assert.True(
+                importMethod.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal) < importMethod.IndexOf("return ImportItemsFromCsvInternalAsync", StringComparison.Ordinal),
+                "CSV item imports should keep authorization before import work starts.");
+
+            AssertEntrypointPathGuardBeforeAuthorization(exportMethod, "ExportItemsToCsvAsync");
+            Assert.True(
+                exportMethod.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal) < exportMethod.IndexOf("return ExportItemsToCsvInternalAsync", StringComparison.Ordinal),
+                "CSV item exports should keep authorization before export work starts.");
+        }
+
+        [Fact]
+        public void GenericImportExportEntrypointsValidateInputsBeforeAuthorizationAndWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
+            var importMethod = ExtractMethod(
+                source,
+                "public async Task<List<int>> ImportItemsAsync",
+                "private static string GenerateNextImportedItemNumber");
+            var exportMethod = ExtractMethod(
+                source,
+                "public async Task ExportItemsAsync",
+                "static void NotifyChanged");
+
+            AssertEntrypointPathGuardBeforeAuthorization(importMethod, "ImportItemsAsync");
+            Assert.Contains("if (importer is null)", importMethod, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(importer));", importMethod, StringComparison.Ordinal);
+            Assert.True(
+                importMethod.IndexOf("if (importer is null)", StringComparison.Ordinal) < importMethod.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
+                "Generic item imports should reject a missing importer before authorization or file work.");
+            Assert.True(
+                importMethod.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < importMethod.IndexOf("var (items, skippedRows) = await importer.ImportAsync", StringComparison.Ordinal),
+                "Generic item imports should honor cancellation before importer file work starts.");
+            Assert.True(
+                importMethod.IndexOf("var (items, skippedRows) = await importer.ImportAsync", StringComparison.Ordinal) < importMethod.IndexOf("cancellationToken.ThrowIfCancellationRequested();", importMethod.IndexOf("var (items, skippedRows) = await importer.ImportAsync", StringComparison.Ordinal), StringComparison.Ordinal),
+                "Generic item imports should honor cancellation again after importer parsing and before database work.");
+
+            AssertEntrypointPathGuardBeforeAuthorization(exportMethod, "ExportItemsAsync");
+            Assert.Contains("if (exporter is null)", exportMethod, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(exporter));", exportMethod, StringComparison.Ordinal);
+            Assert.True(
+                exportMethod.IndexOf("if (exporter is null)", StringComparison.Ordinal) < exportMethod.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
+                "Generic item exports should reject a missing exporter before authorization or item collection work.");
+            Assert.True(
+                exportMethod.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < exportMethod.IndexOf("var items = new List<ItemModel>();", StringComparison.Ordinal),
+                "Generic item exports should honor cancellation before collecting rows.");
+        }
+
+        [Fact]
+        public void ItemNumberAndDuplicateHelpersHonorCancellationBeforeSqlWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
+            var numberMethod = ExtractMethod(
+                source,
+                "public async Task<string> GenerateNextItemNumberAsync",
+                "private async Task<ImageImportResult> ImportItemImagesInternalAsync");
+            var existsMethod = ExtractMethod(
+                source,
+                "private async Task<bool> ItemExistsAsync",
+                "private async Task AddItemInternalAsync");
+
+            AssertCancellationGuardBeforeSqlAndConnection(numberMethod, "GenerateNextItemNumberAsync");
+            Assert.Contains("if (string.IsNullOrWhiteSpace(itemNumber))", existsMethod, StringComparison.Ordinal);
+            Assert.Contains("return false;", existsMethod, StringComparison.Ordinal);
+            AssertCancellationGuardBeforeSqlAndConnection(existsMethod, "ItemExistsAsync");
+            Assert.True(
+                existsMethod.IndexOf("if (string.IsNullOrWhiteSpace(itemNumber))", StringComparison.Ordinal) < existsMethod.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal),
+                "Blank duplicate checks should keep returning false without treating cancellation as a database operation.");
+        }
+
+        [Fact]
         public void CsvImportRejectsOutOfRangeQuantitiesBeforeInsert()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
@@ -77,6 +165,38 @@ namespace InventoryManagementApp.Tests
                 method.IndexOf("if (!skip && (parsedQuantity < 0 || parsedQuantity > MaxQuantityOnHand))", StringComparison.Ordinal) <
                 method.IndexOf("await InsertItemAsync", StringComparison.Ordinal),
                 "CSV import should reject out-of-range quantities before direct insert work.");
+
+            Assert.Contains("cancellationToken.ThrowIfCancellationRequested();", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("using var parser = new TextFieldParser", StringComparison.Ordinal),
+                "CSV imports should honor cancellation before opening the input file parser.");
+            Assert.True(
+                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", method.IndexOf("if (headers == null", StringComparison.Ordinal), StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection();", StringComparison.Ordinal),
+                "CSV imports should honor cancellation again after header parsing and before database work.");
+        }
+
+        private static void AssertEntrypointPathGuardBeforeAuthorization(string method, string methodName)
+        {
+            Assert.Contains("if (string.IsNullOrWhiteSpace(filePath))", method, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(filePath));", method, StringComparison.Ordinal);
+            Assert.True(
+                method.IndexOf("if (string.IsNullOrWhiteSpace(filePath))", StringComparison.Ordinal) < method.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
+                $"{methodName} should reject missing file paths before authorization or file work.");
+        }
+
+        private static void AssertCancellationGuardBeforeSqlAndConnection(string method, string methodName)
+        {
+            Assert.Contains("cancellationToken.ThrowIfCancellationRequested();", method, StringComparison.Ordinal);
+            var sqlIndex = method.IndexOf("const string sql", StringComparison.Ordinal);
+            if (sqlIndex < 0)
+                sqlIndex = method.IndexOf("var sql", StringComparison.Ordinal);
+            Assert.True(sqlIndex >= 0, $"Could not find SQL declaration in {methodName}.");
+            Assert.True(
+                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < sqlIndex,
+                $"{methodName} should honor cancellation before SQL work starts.");
+            Assert.True(
+                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("_dbService.CreateConnection()", StringComparison.Ordinal),
+                $"{methodName} should honor cancellation before opening a database connection.");
         }
 
         private static ItemModel CreateItem(string itemNumber, string name) => new()

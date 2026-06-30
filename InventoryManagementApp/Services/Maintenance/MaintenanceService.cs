@@ -15,6 +15,8 @@ namespace InventoryManagementApp.Services.Maintenance
     /// </summary>
     public class MaintenanceService
     {
+        private const int MaxMaintenanceListCount = 500;
+
         private readonly DatabaseService _databaseService;
         private readonly IUserContext _userContext;
 
@@ -43,8 +45,10 @@ namespace InventoryManagementApp.Services.Maintenance
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
                     JOIN Items i ON m.ItemID = i.ItemID
-                    ORDER BY m.ScheduledDate DESC";
+                    ORDER BY m.ScheduledDate DESC
+                    LIMIT @MaintenanceListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@MaintenanceListLimit", MaxMaintenanceListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -74,9 +78,11 @@ namespace InventoryManagementApp.Services.Maintenance
                     FROM MaintenanceRecords m
                     JOIN Items i ON m.ItemID = i.ItemID
                     WHERE m.ItemID = @ItemID
-                    ORDER BY m.ScheduledDate DESC";
+                    ORDER BY m.ScheduledDate DESC
+                    LIMIT @MaintenanceListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ItemID", itemID);
+                cmd.Parameters.AddWithValue("@MaintenanceListLimit", MaxMaintenanceListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -101,9 +107,11 @@ namespace InventoryManagementApp.Services.Maintenance
                     FROM MaintenanceRecords m
                     JOIN Items i ON m.ItemID = i.ItemID
                     WHERE m.Status = 'Scheduled' AND m.ScheduledDate < @Now
-                    ORDER BY m.ScheduledDate ASC";
+                    ORDER BY m.ScheduledDate ASC
+                    LIMIT @MaintenanceListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Now", DateTime.Now);
+                cmd.Parameters.AddWithValue("@MaintenanceListLimit", MaxMaintenanceListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -129,10 +137,12 @@ namespace InventoryManagementApp.Services.Maintenance
                     WHERE m.Status = 'Scheduled' 
                     AND m.ScheduledDate >= @Now 
                     AND m.ScheduledDate <= @FutureDate
-                    ORDER BY m.ScheduledDate ASC";
+                    ORDER BY m.ScheduledDate ASC
+                    LIMIT @MaintenanceListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Now", DateTime.Now);
                 cmd.Parameters.AddWithValue("@FutureDate", DateTime.Now.AddDays(days));
+                cmd.Parameters.AddWithValue("@MaintenanceListLimit", MaxMaintenanceListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {

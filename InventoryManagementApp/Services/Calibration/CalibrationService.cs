@@ -15,6 +15,8 @@ namespace InventoryManagementApp.Services.Calibration
     /// </summary>
     public class CalibrationService
     {
+        private const int MaxCalibrationListCount = 500;
+
         private readonly DatabaseService _databaseService;
         private readonly IUserContext _userContext;
 
@@ -43,8 +45,10 @@ namespace InventoryManagementApp.Services.Calibration
                     SELECT c.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM CalibrationRecords c
                     JOIN Items i ON c.ItemID = i.ItemID
-                    ORDER BY c.CalibrationDate DESC";
+                    ORDER BY c.CalibrationDate DESC
+                    LIMIT @CalibrationListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@CalibrationListLimit", MaxCalibrationListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -74,9 +78,11 @@ namespace InventoryManagementApp.Services.Calibration
                     FROM CalibrationRecords c
                     JOIN Items i ON c.ItemID = i.ItemID
                     WHERE c.ItemID = @ItemID
-                    ORDER BY c.CalibrationDate DESC";
+                    ORDER BY c.CalibrationDate DESC
+                    LIMIT @CalibrationListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ItemID", itemID);
+                cmd.Parameters.AddWithValue("@CalibrationListLimit", MaxCalibrationListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -97,9 +103,11 @@ namespace InventoryManagementApp.Services.Calibration
                     FROM CalibrationRecords c
                     JOIN Items i ON c.ItemID = i.ItemID
                     WHERE c.NextCalibrationDue < @Now
-                    ORDER BY c.NextCalibrationDue ASC";
+                    ORDER BY c.NextCalibrationDue ASC
+                    LIMIT @CalibrationListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Now", DateTime.Now);
+                cmd.Parameters.AddWithValue("@CalibrationListLimit", MaxCalibrationListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -124,10 +132,12 @@ namespace InventoryManagementApp.Services.Calibration
                     JOIN Items i ON c.ItemID = i.ItemID
                     WHERE c.NextCalibrationDue >= @Now 
                     AND c.NextCalibrationDue <= @FutureDate
-                    ORDER BY c.NextCalibrationDue ASC";
+                    ORDER BY c.NextCalibrationDue ASC
+                    LIMIT @CalibrationListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Now", DateTime.Now);
                 cmd.Parameters.AddWithValue("@FutureDate", DateTime.Now.AddDays(days));
+                cmd.Parameters.AddWithValue("@CalibrationListLimit", MaxCalibrationListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {

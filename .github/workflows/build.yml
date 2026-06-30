@@ -17,33 +17,92 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup .NET
+      id: setup_dotnet
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
 
+    - name: Prepare validation logs
+      id: prepare_validation_logs
+      shell: pwsh
+      run: |
+        if (Test-Path ./ValidationLogs) { Remove-Item ./ValidationLogs -Recurse -Force }
+        if (Test-Path ./TestResults) { Remove-Item ./TestResults -Recurse -Force }
+        if (Test-Path ./publish) { Remove-Item ./publish -Recurse -Force }
+        New-Item -ItemType Directory -Path ./ValidationLogs | Out-Null
+
+    - name: Capture validation environment
+      id: capture_validation_environment
+      shell: pwsh
+      run: |
+        $environmentLogPath = "./ValidationLogs/environment.txt"
+        @(
+          "GeneratedAtUtc=$((Get-Date).ToUniversalTime().ToString('o'))",
+          "GitHubSha=${{ github.sha }}",
+          "GitHubRef=${{ github.ref }}",
+          "RunnerOS=${{ runner.os }}",
+          "Configuration=Release",
+          "Runtime=win-x64",
+          "",
+          "PowerShellVersion=$($PSVersionTable.PSVersion)",
+          "",
+          "dotnet --info:"
+        ) | Set-Content -Path $environmentLogPath -Encoding UTF8
+
+        dotnet --info | Out-File -FilePath $environmentLogPath -Append -Encoding UTF8
+
     - name: Restore dependencies
-      run: dotnet restore InventoryManagementApp.sln
+      id: restore_dependencies
+      run: dotnet restore InventoryManagementApp.sln -bl:./ValidationLogs/restore.binlog
 
     - name: Audit vulnerable packages
-      run: dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive
+      id: audit_vulnerable_packages
+      shell: pwsh
+      run: |
+        $auditLogPath = "./ValidationLogs/package-audit.txt"
+        dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive 2>&1 | Tee-Object -FilePath $auditLogPath
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     - name: Build
-      run: dotnet build InventoryManagementApp.sln --configuration Release --no-restore
+      id: build_solution
+      run: dotnet build InventoryManagementApp.sln --configuration Release --no-restore -bl:./ValidationLogs/build.binlog
+
+    - name: Prepare test results
+      id: prepare_test_results
+      shell: pwsh
+      run: |
+        if (Test-Path ./TestResults) { Remove-Item ./TestResults -Recurse -Force }
+        New-Item -ItemType Directory -Path ./TestResults | Out-Null
 
     - name: Test
-      run: dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal
+      id: test_solution
+      run: dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=validation-tests.trx" --results-directory ./TestResults
+
+    - name: Upload test results
+      id: upload_test_results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: validation-test-results
+        path: ./TestResults/
+        retention-days: 7
+        if-no-files-found: ignore
 
     - name: Restore publish runtime
-      run: dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64
+      id: restore_publish_runtime
+      run: dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64 -bl:./ValidationLogs/publish-restore.binlog
 
     - name: Clean publish output
+      id: clean_publish_output
       shell: pwsh
       run: if (Test-Path ./publish) { Remove-Item ./publish -Recurse -Force }
 
     - name: Publish
-      run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish
+      id: publish_app
+      run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish -bl:./ValidationLogs/publish.binlog
 
     - name: Verify publish artifacts
+      id: verify_publish_artifacts
       shell: pwsh
       run: |
         $requiredPublishArtifacts = @(
@@ -59,16 +118,148 @@ jobs:
         }
 
     - name: Check banned words
+      id: check_banned_words
       shell: bash
       run: bash scripts/check-banned-words.sh
 
     - name: Check banned words PowerShell fallback
+      id: check_banned_words_powershell_fallback
       shell: bash
       run: BANNED_WORD_CHECK_FORCE_POWERSHELL=1 bash scripts/check-banned-words.sh
 
     - name: Upload build artifacts
+      id: upload_build_artifacts
       uses: actions/upload-artifact@v4
       with:
         name: inventory-management-app
         path: ./publish/
         retention-days: 7
+
+    - name: Summarize validation artifacts
+      if: always()
+      shell: pwsh
+      run: |
+        if (-not (Test-Path ./ValidationLogs)) { return }
+
+        function Get-ArtifactRelativePath {
+          param(
+            [Parameter(Mandatory = $true)]
+            [string]$RootPath,
+
+            [Parameter(Mandatory = $true)]
+            [string]$ArtifactPath
+          )
+
+          $resolvedRoot = (Resolve-Path $RootPath).Path.TrimEnd([char[]]@([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar))
+          return $ArtifactPath.Substring($resolvedRoot.Length).TrimStart([char[]]@([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar))
+        }
+
+        function Add-ValidationArtifactGroup {
+          param(
+            [Parameter(Mandatory = $true)]
+            [string[]]$Lines,
+
+            [Parameter(Mandatory = $true)]
+            [string]$GroupName,
+
+            [Parameter(Mandatory = $true)]
+            [string]$RootPath,
+
+            [string[]]$ExcludedNames = @()
+          )
+
+          $Lines += "ArtifactGroup=$GroupName"
+          $Lines += "ArtifactRoot=$RootPath"
+
+          if (-not (Test-Path $RootPath -PathType Container)) {
+            $Lines += "ArtifactGroupMissing=True"
+            $Lines += "ArtifactCount=0"
+            $Lines += ""
+            return $Lines
+          }
+
+          $artifacts = Get-ChildItem -Path $RootPath -File -Recurse |
+            Where-Object { $ExcludedNames -notcontains $_.Name } |
+            Sort-Object FullName
+
+          $Lines += "ArtifactCount=$($artifacts.Count)"
+
+          foreach ($artifact in $artifacts) {
+            $relativePath = Get-ArtifactRelativePath -RootPath $RootPath -ArtifactPath $artifact.FullName
+            $Lines += "Artifact=$relativePath"
+            $Lines += "SizeBytes=$($artifact.Length)"
+            $Lines += "LastWriteUtc=$($artifact.LastWriteTimeUtc.ToString('o'))"
+            $Lines += ""
+          }
+
+          if ($artifacts.Count -eq 0) {
+            $Lines += ""
+          }
+
+          return $Lines
+        }
+
+        $summaryPath = "./ValidationLogs/step-summary.txt"
+        $steps = @(
+          @{ Name = "Setup .NET"; Outcome = "${{ steps.setup_dotnet.outcome }}"; Conclusion = "${{ steps.setup_dotnet.conclusion }}" },
+          @{ Name = "Prepare validation logs"; Outcome = "${{ steps.prepare_validation_logs.outcome }}"; Conclusion = "${{ steps.prepare_validation_logs.conclusion }}" },
+          @{ Name = "Capture validation environment"; Outcome = "${{ steps.capture_validation_environment.outcome }}"; Conclusion = "${{ steps.capture_validation_environment.conclusion }}" },
+          @{ Name = "Restore dependencies"; Outcome = "${{ steps.restore_dependencies.outcome }}"; Conclusion = "${{ steps.restore_dependencies.conclusion }}" },
+          @{ Name = "Audit vulnerable packages"; Outcome = "${{ steps.audit_vulnerable_packages.outcome }}"; Conclusion = "${{ steps.audit_vulnerable_packages.conclusion }}" },
+          @{ Name = "Build"; Outcome = "${{ steps.build_solution.outcome }}"; Conclusion = "${{ steps.build_solution.conclusion }}" },
+          @{ Name = "Prepare test results"; Outcome = "${{ steps.prepare_test_results.outcome }}"; Conclusion = "${{ steps.prepare_test_results.conclusion }}" },
+          @{ Name = "Test"; Outcome = "${{ steps.test_solution.outcome }}"; Conclusion = "${{ steps.test_solution.conclusion }}" },
+          @{ Name = "Upload test results"; Outcome = "${{ steps.upload_test_results.outcome }}"; Conclusion = "${{ steps.upload_test_results.conclusion }}" },
+          @{ Name = "Restore publish runtime"; Outcome = "${{ steps.restore_publish_runtime.outcome }}"; Conclusion = "${{ steps.restore_publish_runtime.conclusion }}" },
+          @{ Name = "Clean publish output"; Outcome = "${{ steps.clean_publish_output.outcome }}"; Conclusion = "${{ steps.clean_publish_output.conclusion }}" },
+          @{ Name = "Publish"; Outcome = "${{ steps.publish_app.outcome }}"; Conclusion = "${{ steps.publish_app.conclusion }}" },
+          @{ Name = "Verify publish artifacts"; Outcome = "${{ steps.verify_publish_artifacts.outcome }}"; Conclusion = "${{ steps.verify_publish_artifacts.conclusion }}" },
+          @{ Name = "Check banned words"; Outcome = "${{ steps.check_banned_words.outcome }}"; Conclusion = "${{ steps.check_banned_words.conclusion }}" },
+          @{ Name = "Check banned words PowerShell fallback"; Outcome = "${{ steps.check_banned_words_powershell_fallback.outcome }}"; Conclusion = "${{ steps.check_banned_words_powershell_fallback.conclusion }}" },
+          @{ Name = "Upload build artifacts"; Outcome = "${{ steps.upload_build_artifacts.outcome }}"; Conclusion = "${{ steps.upload_build_artifacts.conclusion }}" }
+        )
+
+        $summaryLines = @(
+          "GeneratedAtUtc=$((Get-Date).ToUniversalTime().ToString('o'))",
+          "ValidationStepSummary=1",
+          ""
+        )
+
+        foreach ($step in $steps) {
+          $summaryLines += "Step=$($step.Name)"
+          $summaryLines += "Status=$($step.Outcome)"
+          $summaryLines += "Conclusion=$($step.Conclusion)"
+          $summaryLines += ""
+        }
+
+        $summaryLines | Set-Content -Path $summaryPath -Encoding UTF8
+
+        $manifestPath = "./ValidationLogs/artifact-manifest.txt"
+        $artifactGroups = @(
+          @{ Name = "ValidationLogs"; Root = "./ValidationLogs"; ExcludedNames = @("artifact-manifest.txt") },
+          @{ Name = "TestResults"; Root = "./TestResults"; ExcludedNames = @() },
+          @{ Name = "PublishOutput"; Root = "./publish"; ExcludedNames = @() }
+        )
+
+        $lines = @(
+          "GeneratedAtUtc=$((Get-Date).ToUniversalTime().ToString('o'))",
+          "ValidationArtifactManifest=2",
+          "ValidationLogRoot=./ValidationLogs",
+          "ArtifactGroupCount=$($artifactGroups.Count)",
+          ""
+        )
+
+        foreach ($group in $artifactGroups) {
+          $lines = Add-ValidationArtifactGroup -Lines $lines -GroupName $group.Name -RootPath $group.Root -ExcludedNames $group.ExcludedNames
+        }
+
+        $lines | Set-Content -Path $manifestPath -Encoding UTF8
+
+    - name: Upload validation logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: validation-msbuild-logs
+        path: ./ValidationLogs/
+        retention-days: 7
+        if-no-files-found: ignore

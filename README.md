@@ -27,6 +27,8 @@ For a faster compile-and-test pass without publishing or source scan checks:
 pwsh -File scripts/run-full-validation.ps1 -SkipPublish
 ```
 
+Validation diagnostics are written to `ValidationLogs/`, with `environment.txt`, `package-audit.txt`, MSBuild binary logs, `step-summary.txt`, and `artifact-manifest.txt`. The manifest groups the validation logs, `TestResults/`, and publish output so failed or partial runs can be triaged from one index before opening larger artifacts.
+
 See [ToDo.md](ToDo.md) for the current cleanup queue and known remaining work.
 
 ## Core Workflows
@@ -77,6 +79,8 @@ dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -
 bash scripts/check-banned-words.sh
 $env:BANNED_WORD_CHECK_FORCE_POWERSHELL = "1"; bash scripts/check-banned-words.sh; Remove-Item Env:BANNED_WORD_CHECK_FORCE_POWERSHELL
 ```
+
+After running the checked-in validation runner or the Build and Test workflow, inspect `ValidationLogs/artifact-manifest.txt` first. It lists the generated validation logs, test result files, and publish output files with sizes and timestamps.
 
 Repository rules:
 
