@@ -78,6 +78,40 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ReservationListQueriesCapReturnedRows()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Reservations", "ReservationService.cs");
+
+            Assert.Contains("private const int MaxReservationListCount = 500;", source, StringComparison.Ordinal);
+
+            AssertListQueryUsesCap(
+                source,
+                "public async Task<List<Reservation>> GetAllReservationsAsync()",
+                "public async Task<List<Reservation>> GetActiveReservationsAsync()",
+                "ORDER BY r.StartDate DESC\n                    LIMIT @ReservationListLimit");
+            AssertListQueryUsesCap(
+                source,
+                "public async Task<List<Reservation>> GetActiveReservationsAsync()",
+                "public async Task<List<Reservation>> GetReservationsByItemAsync(int itemID)",
+                "ORDER BY r.StartDate ASC\n                    LIMIT @ReservationListLimit");
+            AssertListQueryUsesCap(
+                source,
+                "public async Task<List<Reservation>> GetReservationsByItemAsync(int itemID)",
+                "public async Task<List<Reservation>> GetReservationsByCustomerAsync(int customerID)",
+                "ORDER BY r.StartDate DESC\n                    LIMIT @ReservationListLimit");
+            AssertListQueryUsesCap(
+                source,
+                "public async Task<List<Reservation>> GetReservationsByCustomerAsync(int customerID)",
+                "public async Task<List<Reservation>> GetUpcomingReservationsAsync",
+                "ORDER BY r.StartDate DESC\n                    LIMIT @ReservationListLimit");
+            AssertListQueryUsesCap(
+                source,
+                "public async Task<List<Reservation>> GetUpcomingReservationsAsync(int days = 7)",
+                "public async Task<Reservation?> GetReservationByIdAsync(int reservationID)",
+                "ORDER BY r.StartDate ASC\n                    LIMIT @ReservationListLimit");
+        }
+
+        [Fact]
         public void ReservationAvailabilityValidatesItemRowBeforeAvailabilityQuery()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Reservations", "ReservationService.cs");
@@ -125,6 +159,20 @@ namespace InventoryManagementApp.Tests
             {
                 Assert.Contains(snippet, source, StringComparison.Ordinal);
             }
+        }
+
+        private static void AssertListQueryUsesCap(string source, string startMarker, string endMarker, string orderAndLimitSnippet)
+        {
+            var method = ExtractMethod(source, startMarker, endMarker);
+
+            AssertContainsAll(
+                method,
+                orderAndLimitSnippet,
+                "cmd.Parameters.AddWithValue(\"@ReservationListLimit\", MaxReservationListCount);");
+            Assert.True(
+                method.IndexOf("LIMIT @ReservationListLimit", StringComparison.Ordinal) <
+                method.IndexOf("cmd.Parameters.AddWithValue(\"@ReservationListLimit\", MaxReservationListCount);", StringComparison.Ordinal),
+                $"Expected {startMarker} to bind the reservation list limit used by the SQL query.");
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)
