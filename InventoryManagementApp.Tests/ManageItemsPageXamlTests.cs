@@ -30,6 +30,19 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void DataGridRow_DoubleClickOpensSelectedItemDetails()
+        {
+            var xaml = ReadXaml();
+            var codeBehind = ReadPageCodeBehind();
+
+            Assert.Contains("Event=\"MouseDoubleClick\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Handler=\"DataGridRow_MouseDoubleClick\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("vm.ViewDetailsCommand.Execute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("UiActionGuard.Run(this, \"Item Details\"", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void DataGridRow_DoesNotClearImageBindingsWhenVirtualized()
         {
             var xaml = ReadXaml();

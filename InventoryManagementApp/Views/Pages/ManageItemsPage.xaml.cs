@@ -26,6 +26,18 @@ namespace InventoryManagementApp.Views.Pages
             GridContextMenuSelection.SelectRow(sender, e);
         }
 
+        private void DataGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (GridContextMenuSelection.SelectRow(sender, e) == null)
+                return;
+
+            if (DataContext is ItemsViewModel vm && vm.ViewDetailsCommand.CanExecute(null))
+            {
+                UiActionGuard.Run(this, "Item Details", () => vm.ViewDetailsCommand.Execute(null));
+                e.Handled = true;
+            }
+        }
+
         private async void ManageItemsPage_Loaded(object sender, RoutedEventArgs e)
         {
             if (_isLoadedForCurrentLifetime)

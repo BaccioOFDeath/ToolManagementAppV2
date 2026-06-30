@@ -835,6 +835,8 @@ namespace InventoryManagementApp
             string PrimaryItemImagePath,
             string RentalReturnPhotoPath);
 
+        private sealed record QaPrintCell(string Text, string? ImagePath = null);
+
         private sealed record QaPrintRental(
             int RentalID,
             int ItemID,
@@ -863,12 +865,14 @@ namespace InventoryManagementApp
             var itemImagePath = Path.Combine(itemImageDirectory, "qa-scan-item.png");
             var torqueImagePath = Path.Combine(itemImageDirectory, "qa-torque-wrench.png");
             var pressureImagePath = Path.Combine(itemImageDirectory, "qa-pressure-gauge.png");
+            var adapterImagePath = Path.Combine(itemImageDirectory, "qa-adapter-pack.png");
             var rentalPhotoPath = Path.Combine(rentalPhotoDirectory, "qa-rental-return-photo.png");
             var userPhotoPath = Path.Combine(userPhotoDirectory, "qa-tech.png");
 
             CreateQaPng(itemImagePath, "SCAN", "TL-101", Color.FromRgb(42, 94, 172), Color.FromRgb(232, 241, 255));
             CreateQaPng(torqueImagePath, "TORQUE", "TL-204", Color.FromRgb(91, 111, 72), Color.FromRgb(239, 245, 231));
             CreateQaPng(pressureImagePath, "GAUGE", "TL-318", Color.FromRgb(145, 68, 54), Color.FromRgb(255, 238, 232));
+            CreateQaPng(adapterImagePath, "ADAPTER", "TL-640", Color.FromRgb(114, 82, 148), Color.FromRgb(245, 239, 255));
             CreateQaPng(rentalPhotoPath, "RETURN", "PHOTO", Color.FromRgb(91, 84, 152), Color.FromRgb(241, 239, 255));
             CreateQaPng(userPhotoPath, "QA", "TECH", Color.FromRgb(46, 116, 94), Color.FromRgb(232, 248, 240));
 
@@ -925,10 +929,10 @@ INSERT INTO Customers (CustomerID, Company, Email, Contact, Phone, Mobile, Addre
 INSERT INTO Items
     (ItemID, ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, Price, ImagePath, IsPowered, IsCheckedOut, CheckedOutBy, CheckedOutTime, UpdatedAt, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount)
 VALUES
-    (101, 'TL-101', 'Scan Item', 'Bay 2 - Shelf A', 'ScanPro', 'SCAN-101', 'Equipment Supplier NZ', @Purchased1, 'Bi-directional diagnostic scanner with charger, leads, and carry case.', 'diagnostic scanner obd scanpro', 1, 1, 1, 85.00, @ItemImage, 1, 1, 'Auckland Fleet Service', @CheckedOut, @Now, 0, '', '', 17),
-    (102, 'TL-204', 'Torque Wrench', 'Calibration Cabinet', 'Norbar', 'TW-204', 'Precision Tools', @Purchased2, 'Half-inch torque wrench. Calibration due soon.', 'torque wrench calibration', 2, 0, 1, 45.00, @TorqueImage, 0, 0, '', NULL, @Now, 0, '', '', 9),
-    (103, 'TL-318', 'Pressure Gauge', 'Gauge Drawer 1', 'Wika', 'PG-318', 'Gauge Supplies', @Purchased3, 'Pressure gauge flagged overdue for calibration follow-up.', 'pressure gauge calibration overdue', 0, 1, 1, 35.00, @PressureImage, 0, 1, 'Metro Panel Repairs', @OverdueOut, @Now, 0, '', 'Calibration overdue by six days.', 12),
-    (104, 'TL-640', 'Adapter Pack', 'Bay 2 - Bin C', 'ScanPro', 'ADP-640', 'Equipment Supplier NZ', @Purchased4, 'Adapters included in diagnostics starter kit.', 'adapter kit diagnostics', 4, 0, 0, 15.00, '', 0, 0, '', NULL, @Now, 0, '', '', 3);",
+(101, 'TL-101', 'Scan Item', 'Bay 2 - Shelf A', 'ScanPro', 'SCAN-101', 'Equipment Supplier NZ', @Purchased1, 'Bi-directional diagnostic scanner with charger, leads, and carry case.', 'diagnostic scanner obd scanpro', 1, 1, 1, 85.00, @ItemImage, 1, 1, 'Auckland Fleet Service', @CheckedOut, @Now, 0, '', '', 17),
+(102, 'TL-204', 'Torque Wrench', 'Calibration Cabinet', 'Norbar', 'TW-204', 'Precision Tools', @Purchased2, 'Half-inch torque wrench. Calibration due soon.', 'torque wrench calibration', 2, 0, 1, 45.00, @TorqueImage, 0, 0, '', NULL, @Now, 0, '', '', 9),
+(103, 'TL-318', 'Pressure Gauge', 'Gauge Drawer 1', 'Wika', 'PG-318', 'Gauge Supplies', @Purchased3, 'Pressure gauge flagged overdue for calibration follow-up.', 'pressure gauge calibration overdue', 0, 1, 1, 35.00, @PressureImage, 0, 1, 'Metro Panel Repairs', @OverdueOut, @Now, 0, '', 'Calibration overdue by six days.', 12),
+(104, 'TL-640', 'Adapter Pack', 'Bay 2 - Bin C', 'ScanPro', 'ADP-640', 'Equipment Supplier NZ', @Purchased4, 'Adapters included in diagnostics starter kit.', 'adapter kit diagnostics', 4, 0, 0, 15.00, @AdapterImage, 0, 0, '', NULL, @Now, 0, '', '', 3);",
                 new SqliteParameter("@Purchased1", DateTime.Today.AddYears(-2)),
                 new SqliteParameter("@Purchased2", DateTime.Today.AddYears(-1)),
                 new SqliteParameter("@Purchased3", DateTime.Today.AddYears(-3)),
@@ -938,7 +942,8 @@ VALUES
                 new SqliteParameter("@Now", DateTime.Now),
                 new SqliteParameter("@ItemImage", ToRelativeAssetPath(itemImagePath)),
                 new SqliteParameter("@TorqueImage", ToRelativeAssetPath(torqueImagePath)),
-                new SqliteParameter("@PressureImage", ToRelativeAssetPath(pressureImagePath)));
+                new SqliteParameter("@PressureImage", ToRelativeAssetPath(pressureImagePath)),
+                new SqliteParameter("@AdapterImage", ToRelativeAssetPath(adapterImagePath)));
 
             Execute(conn, tx, @"
 INSERT INTO Rentals (RentalID, ItemID, CustomerID, RentalDate, DueDate, ReturnDate, Status) VALUES
@@ -1035,7 +1040,7 @@ INSERT INTO ActivityLogs (LogID, UserID, UserName, Action, Timestamp) VALUES
                 new ItemModel { ItemID = 101, ItemNumber = "TL-101", Name = "Scan Item", Brand = "ScanPro", PartNumber = "SCAN-101", Supplier = "Equipment Supplier NZ", Location = "Bay 2 - Shelf A", Notes = "Bi-directional diagnostic scanner with charger, leads, and carry case.", Keywords = "diagnostic scanner obd scanpro", QuantityOnHand = 1, RentedQuantity = 1, IsRentalItem = true, Price = 85m, ImagePath = ToRelativeAssetPath(itemImagePath), IsPowered = true, IsCheckedOut = true, CheckedOutBy = "Auckland Fleet Service", CheckedOutTime = DateTime.Today.AddDays(-2).AddHours(9), CheckoutCount = 17 },
                 new ItemModel { ItemID = 102, ItemNumber = "TL-204", Name = "Torque Wrench", Brand = "Norbar", PartNumber = "TW-204", Supplier = "Precision Tools", Location = "Calibration Cabinet", Notes = "Half-inch torque wrench. Calibration due soon.", Keywords = "torque wrench calibration", QuantityOnHand = 2, RentedQuantity = 0, IsRentalItem = true, Price = 45m, ImagePath = ToRelativeAssetPath(torqueImagePath), CheckoutCount = 9 },
                 new ItemModel { ItemID = 103, ItemNumber = "TL-318", Name = "Pressure Gauge", Brand = "Wika", PartNumber = "PG-318", Supplier = "Gauge Supplies", Location = "Gauge Drawer 1", Notes = "Pressure gauge flagged overdue for calibration follow-up.", Keywords = "pressure gauge calibration overdue", QuantityOnHand = 0, RentedQuantity = 1, IsRentalItem = true, Price = 35m, ImagePath = ToRelativeAssetPath(pressureImagePath), IsCheckedOut = true, CheckedOutBy = "Metro Panel Repairs", CheckedOutTime = DateTime.Today.AddDays(-9).AddHours(8), IssuesNotes = "Calibration overdue by six days.", CheckoutCount = 12 },
-                new ItemModel { ItemID = 104, ItemNumber = "TL-640", Name = "Adapter Pack", Brand = "ScanPro", PartNumber = "ADP-640", Supplier = "Equipment Supplier NZ", Location = "Bay 2 - Bin C", Notes = "Adapters included in diagnostics starter kit.", Keywords = "adapter kit diagnostics", QuantityOnHand = 4, RentedQuantity = 0, IsRentalItem = false, Price = 15m, CheckoutCount = 3 }
+                new ItemModel { ItemID = 104, ItemNumber = "TL-640", Name = "Adapter Pack", Brand = "ScanPro", PartNumber = "ADP-640", Supplier = "Equipment Supplier NZ", Location = "Bay 2 - Bin C", Notes = "Adapters included in diagnostics starter kit.", Keywords = "adapter kit diagnostics", QuantityOnHand = 4, RentedQuantity = 0, IsRentalItem = false, Price = 15m, ImagePath = ToRelativeAssetPath(adapterImagePath), CheckoutCount = 3 }
             };
 
             var customers = new[]
@@ -1110,16 +1115,17 @@ INSERT INTO ActivityLogs (LogID, UserID, UserName, Action, Timestamp) VALUES
         static FlowDocument CreateSeededItemSearchPreviewDocument(QaPrintSeedData data)
         {
             var doc = CreatePreviewDocument("Item Search Intelligence", "Search term: calibration scanner", Array.Empty<string>());
-            AddPrintTable(
+            AddRichPrintTable(
                 doc,
-                new[] { "Item #", "Name", "Status", "Location", "Customer / Issue" },
+                new[] { "Image", "Item #", "Name", "Status", "Location", "Customer / Issue" },
                 data.Items.Select(item => new[]
                 {
-                    item.ItemNumber,
-                    item.Name,
-                    item.IsCheckedOut ? "Checked out" : item.QuantityOnHand > 0 ? "Available" : "Unavailable",
-                    item.Location,
-                    item.IsCheckedOut ? item.CheckedOutBy : string.IsNullOrWhiteSpace(item.IssuesNotes) ? item.Notes : item.IssuesNotes
+                    ImageCellForItem(data, item.ItemNumber),
+                    TextCell(item.ItemNumber),
+                    TextCell(item.Name),
+                    TextCell(item.IsCheckedOut ? "Checked out" : item.QuantityOnHand > 0 ? "Available" : "Unavailable"),
+                    TextCell(item.Location),
+                    TextCell(item.IsCheckedOut ? item.CheckedOutBy : string.IsNullOrWhiteSpace(item.IssuesNotes) ? item.Notes : item.IssuesNotes)
                 }));
             AddPrintLines(doc, "Search Signals", new[]
             {
@@ -1144,14 +1150,14 @@ INSERT INTO ActivityLogs (LogID, UserID, UserName, Action, Timestamp) VALUES
                     $"Open reservations: {data.Reservations.Count(r => !string.Equals(r.Status, "Fulfilled", StringComparison.OrdinalIgnoreCase))}",
                     $"Maintenance/calibration follow-ups: {data.MaintenanceRecords.Count + data.CalibrationRecords.Count}"
                 });
-            AddPrintTable(
+            AddRichPrintTable(
                 doc,
-                new[] { "Priority", "Record", "Next action" },
+                new[] { "Image", "Priority", "Record", "Next action" },
                 new[]
                 {
-                    new[] { "Return", "TL-101 with Auckland Fleet Service", "Confirm due-back date and accessories." },
-                    new[] { "Overdue", "TL-318 with Metro Panel Repairs", "Call customer and block new requests." },
-                    new[] { "Reservation", "9103 for North Harbour Motors", "Prepare scanner for pickup after lunch." }
+                    new[] { ImageCellForItem(data, "TL-101"), TextCell("Return"), TextCell("TL-101 with Auckland Fleet Service"), TextCell("Confirm due-back date and accessories.") },
+                    new[] { ImageCellForItem(data, "TL-318"), TextCell("Overdue"), TextCell("TL-318 with Metro Panel Repairs"), TextCell("Call customer and block new requests.") },
+                    new[] { ImageCellForItem(data, "TL-101"), TextCell("Reservation"), TextCell("9103 for North Harbour Motors"), TextCell("Prepare scanner for pickup after lunch.") }
                 });
             return doc;
         }
@@ -1242,27 +1248,37 @@ INSERT INTO ActivityLogs (LogID, UserID, UserName, Action, Timestamp) VALUES
         static FlowDocument CreateSeededMaintenanceSchedulePreviewDocument(QaPrintSeedData data)
         {
             var doc = CreatePreviewDocument("Maintenance Schedule", "Seeded maintenance workload", Array.Empty<string>());
-            AddPrintTable(
+            AddRichPrintTable(
                 doc,
-                new[] { "Item #", "Item", "Type", "Scheduled", "Status", "Performed By" },
-                data.MaintenanceRecords.Select(r => new[] { r.ItemNumber, r.ItemName, r.MaintenanceType, r.ScheduledDate.ToString("yyyy-MM-dd"), r.Status, r.PerformedBy }));
+                new[] { "Image", "Item #", "Item", "Type", "Scheduled", "Status", "Performed By" },
+                data.MaintenanceRecords.Select(r => new[]
+                {
+                    ImageCellForItem(data, r.ItemNumber),
+                    TextCell(r.ItemNumber),
+                    TextCell(r.ItemName),
+                    TextCell(r.MaintenanceType),
+                    TextCell(r.ScheduledDate.ToString("yyyy-MM-dd")),
+                    TextCell(r.Status),
+                    TextCell(r.PerformedBy)
+                }));
             return doc;
         }
 
         static FlowDocument CreateSeededCalibrationDuePreviewDocument(QaPrintSeedData data)
         {
             var doc = CreatePreviewDocument("Calibration Due Report", "Current calibration follow-up", Array.Empty<string>());
-            AddPrintTable(
+            AddRichPrintTable(
                 doc,
-                new[] { "Item #", "Item", "Next Due", "Result", "Certificate", "Status" },
+                new[] { "Image", "Item #", "Item", "Next Due", "Result", "Certificate", "Status" },
                 data.CalibrationRecords.Select(r => new[]
                 {
-                    r.ItemNumber,
-                    r.ItemName,
-                    r.NextCalibrationDue.ToString("yyyy-MM-dd"),
-                    r.Result,
-                    r.CertificateNumber,
-                    r.NextCalibrationDue.Date < DateTime.Today ? "Overdue" : "Due soon"
+                    ImageCellForItem(data, r.ItemNumber),
+                    TextCell(r.ItemNumber),
+                    TextCell(r.ItemName),
+                    TextCell(r.NextCalibrationDue.ToString("yyyy-MM-dd")),
+                    TextCell(r.Result),
+                    TextCell(r.CertificateNumber),
+                    TextCell(r.NextCalibrationDue.Date < DateTime.Today ? "Overdue" : "Due soon")
                 }));
             return doc;
         }
@@ -1287,10 +1303,20 @@ INSERT INTO ActivityLogs (LogID, UserID, UserName, Action, Timestamp) VALUES
         static FlowDocument CreateSeededReservationDirectoryPreviewDocument(QaPrintSeedData data)
         {
             var doc = CreatePreviewDocument("Reservation Directory", $"Visible reservations: {data.Reservations.Count}", Array.Empty<string>());
-            AddPrintTable(
+            AddRichPrintTable(
                 doc,
-                new[] { "Hold #", "Item #", "Item", "Customer", "Start", "End", "Status" },
-                data.Reservations.Select(r => new[] { r.ReservationID.ToString(), r.ItemNumber, r.ItemName, r.CustomerName, r.StartDate.ToString("yyyy-MM-dd"), r.EndDate.ToString("yyyy-MM-dd"), r.Status }));
+                new[] { "Image", "Hold #", "Item #", "Item", "Customer", "Start", "End", "Status" },
+                data.Reservations.Select(r => new[]
+                {
+                    ImageCellForItem(data, r.ItemNumber),
+                    TextCell(r.ReservationID.ToString()),
+                    TextCell(r.ItemNumber),
+                    TextCell(r.ItemName),
+                    TextCell(r.CustomerName),
+                    TextCell(r.StartDate.ToString("yyyy-MM-dd")),
+                    TextCell(r.EndDate.ToString("yyyy-MM-dd")),
+                    TextCell(r.Status)
+                }));
             return doc;
         }
 
@@ -1298,24 +1324,31 @@ INSERT INTO ActivityLogs (LogID, UserID, UserName, Action, Timestamp) VALUES
         {
             var kit = data.Kits.First();
             var doc = CreatePreviewDocument("Kit Directory", $"Visible kits: {data.Kits.Count}", new[] { $"{kit.KitNumber} {kit.Name} | {kit.Category} | {(kit.IsActive ? "Active" : "Inactive")}", kit.Description });
-            AddPrintTable(
+            AddRichPrintTable(
                 doc,
-                new[] { "Item #", "Item", "Qty", "Required" },
-                data.KitItems.Select(i => new[] { i.ItemNumber, i.ItemName, i.Quantity.ToString(), i.IsOptional ? "Optional" : "Required" }));
+                new[] { "Image", "Item #", "Item", "Qty", "Required" },
+                data.KitItems.Select(i => new[]
+                {
+                    ImageCellForItem(data, i.ItemNumber),
+                    TextCell(i.ItemNumber),
+                    TextCell(i.ItemName),
+                    TextCell(i.Quantity.ToString()),
+                    TextCell(i.IsOptional ? "Optional" : "Required")
+                }));
             return doc;
         }
 
         static FlowDocument CreateSeededCategoryDirectoryPreviewDocument(QaPrintSeedData data)
         {
             var doc = CreatePreviewDocument("Category Directory", $"Visible categories: {data.Categories.Count}", Array.Empty<string>());
-            AddPrintTable(
+            AddRichPrintTable(
                 doc,
-                new[] { "Category", "Assigned sample items", "Review action" },
+                new[] { "Image", "Category", "Assigned sample items", "Review action" },
                 new[]
                 {
-                    new[] { "Diagnostics", "TL-101 Scan Item, TL-640 Adapter Pack", "Verify scanner and adapter aliases." },
-                    new[] { "Torque Tools", "TL-204 Torque Wrench", "Review calibration workflow alignment." },
-                    new[] { "Pressure Testing", "TL-318 Pressure Gauge", "Block new rentals until overdue calibration is resolved." }
+                    new[] { ImageCellForItem(data, "TL-101"), TextCell("Diagnostics"), TextCell("TL-101 Scan Item, TL-640 Adapter Pack"), TextCell("Verify scanner and adapter aliases.") },
+                    new[] { ImageCellForItem(data, "TL-204"), TextCell("Torque Tools"), TextCell("TL-204 Torque Wrench"), TextCell("Review calibration workflow alignment.") },
+                    new[] { ImageCellForItem(data, "TL-318"), TextCell("Pressure Testing"), TextCell("TL-318 Pressure Gauge"), TextCell("Block new rentals until overdue calibration is resolved.") }
                 });
             return doc;
         }
@@ -1367,18 +1400,19 @@ INSERT INTO ActivityLogs (LogID, UserID, UserName, Action, Timestamp) VALUES
         static FlowDocument CreateSeededReportsPreviewDocument(QaPrintSeedData data)
         {
             var doc = CreatePreviewDocument("Active Rentals", "Last run just now - actionable seeded rows", Array.Empty<string>());
-            AddPrintTable(
+            AddRichPrintTable(
                 doc,
-                new[] { "Status", "Rental", "Customer", "Due", "Next action" },
+                new[] { "Image", "Status", "Rental", "Customer", "Due", "Next action" },
                 data.Rentals.Where(r => r.ReturnDate == null).Select(r => new[]
                 {
-                    r.Status,
-                    $"{r.ItemNumber} {r.ItemName}",
-                    r.CustomerName,
-                    r.DueDate.ToString("yyyy-MM-dd"),
-                    string.Equals(r.Status, "Overdue", StringComparison.OrdinalIgnoreCase)
+                    ImageCellForItem(data, r.ItemNumber),
+                    TextCell(r.Status),
+                    TextCell($"{r.ItemNumber} {r.ItemName}"),
+                    TextCell(r.CustomerName),
+                    TextCell(r.DueDate.ToString("yyyy-MM-dd")),
+                    TextCell(string.Equals(r.Status, "Overdue", StringComparison.OrdinalIgnoreCase)
                         ? "Call customer and block new bookings."
-                        : "Confirm due-back date and accessory return."
+                        : "Confirm due-back date and accessory return.")
                 }));
             return doc;
         }
@@ -1428,6 +1462,44 @@ INSERT INTO ActivityLogs (LogID, UserID, UserName, Action, Timestamp) VALUES
             doc.Blocks.Add(table);
         }
 
+        static void AddRichPrintTable(FlowDocument doc, IReadOnlyList<string> headers, IEnumerable<IReadOnlyList<QaPrintCell>> rows)
+        {
+            var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 8, 0, 10) };
+            foreach (var _ in headers)
+                table.Columns.Add(new TableColumn());
+
+            var group = new TableRowGroup();
+            table.RowGroups.Add(group);
+            AddTableRow(group, headers.Select(h => (string?)h).ToArray(), true);
+            foreach (var row in rows)
+                AddRichTableRow(group, row.ToArray());
+
+            doc.Blocks.Add(table);
+        }
+
+        static QaPrintCell TextCell(string? text)
+            => new(string.IsNullOrWhiteSpace(text) ? "Not recorded" : text);
+
+        static QaPrintCell ImageCellForItem(QaPrintSeedData data, string? itemNumber)
+        {
+            var item = data.Items.FirstOrDefault(i => string.Equals(i.ItemNumber, itemNumber, StringComparison.OrdinalIgnoreCase));
+            var imagePath = ResolveQaPrintAssetPath(item?.ImagePath);
+            return new QaPrintCell(item?.ItemNumber ?? "No image", imagePath);
+        }
+
+        static string? ResolveQaPrintAssetPath(string? imagePath)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath))
+                return null;
+
+            var trimmed = imagePath.Trim();
+            if (Path.IsPathRooted(trimmed))
+                return File.Exists(trimmed) ? trimmed : null;
+
+            var appPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, trimmed);
+            return File.Exists(appPath) ? appPath : null;
+        }
+
         static void AddTableRow(TableRowGroup group, IReadOnlyList<string?> values, bool isHeader)
         {
             var row = new TableRow { FontWeight = isHeader ? FontWeights.SemiBold : FontWeights.Normal };
@@ -1442,6 +1514,57 @@ INSERT INTO ActivityLogs (LogID, UserID, UserName, Action, Timestamp) VALUES
             }
 
             group.Rows.Add(row);
+        }
+
+        static void AddRichTableRow(TableRowGroup group, IReadOnlyList<QaPrintCell> values)
+        {
+            var row = new TableRow();
+            foreach (var value in values)
+                row.Cells.Add(CreatePrintCell(value));
+
+            group.Rows.Add(row);
+        }
+
+        static TableCell CreatePrintCell(QaPrintCell value)
+        {
+            var cell = new TableCell
+            {
+                Padding = new Thickness(5, 3, 5, 3),
+                BorderBrush = Brushes.LightGray,
+                BorderThickness = new Thickness(0, 0, 0, 0.5)
+            };
+
+            if (!string.IsNullOrWhiteSpace(value.ImagePath) && File.Exists(value.ImagePath))
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.UriSource = new Uri(value.ImagePath, UriKind.Absolute);
+                bitmap.DecodePixelWidth = 72;
+                bitmap.EndInit();
+                bitmap.Freeze();
+
+                cell.Blocks.Add(new BlockUIContainer(new Image
+                {
+                    Source = bitmap,
+                    Width = 58,
+                    Height = 34,
+                    Stretch = Stretch.Uniform,
+                    HorizontalAlignment = HorizontalAlignment.Left
+                })
+                {
+                    Margin = new Thickness(0, 0, 0, 1)
+                });
+            }
+            else
+            {
+                cell.Blocks.Add(new Paragraph(new Run(string.IsNullOrWhiteSpace(value.Text) ? "Not recorded" : value.Text))
+                {
+                    Margin = new Thickness(0)
+                });
+            }
+
+            return cell;
         }
 
         static void AddImageBlock(FlowDocument doc, string imagePath, string caption)

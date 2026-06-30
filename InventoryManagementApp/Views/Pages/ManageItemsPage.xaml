@@ -168,6 +168,8 @@
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                 <EventSetter Event="PreviewMouseRightButtonDown"
                                              Handler="DataGridRow_PreviewMouseRightButtonDown"/>
+                                <EventSetter Event="MouseDoubleClick"
+                                             Handler="DataGridRow_MouseDoubleClick"/>
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>

@@ -30,6 +30,12 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("x:Name=\"ClipCanvas\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"PreviewImage\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"ThresholdSlider\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<DockPanel LastChildFill=\"True\" Margin=\"0,4,0,0\">", xaml, StringComparison.Ordinal);
+            Assert.True(
+                xaml.IndexOf("DockPanel.Dock=\"Right\" Text=\"{Binding ElementName=ThresholdSlider", StringComparison.Ordinal) <
+                xaml.IndexOf("x:Name=\"ThresholdSlider\"", StringComparison.Ordinal),
+                "The threshold value label must be docked before the slider so the slider fills the remaining width.");
+            Assert.Contains("Height=\"32\" VerticalAlignment=\"Center\" ValueChanged=\"ThresholdSlider_ValueChanged\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Save Clipped Image", xaml, StringComparison.Ordinal);
             Assert.Contains("MoveThumb_DragDelta", codeBehind, StringComparison.Ordinal);
             Assert.Contains("CreateBackgroundRemovedBitmap", codeBehind, StringComparison.Ordinal);
