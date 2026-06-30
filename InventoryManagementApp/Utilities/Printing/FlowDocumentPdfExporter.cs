@@ -53,7 +53,18 @@ namespace InventoryManagementApp.Utilities.Printing
             using (var context = visual.RenderOpen())
             {
                 context.DrawRectangle(Brushes.White, null, new Rect(0, 0, pageSize.Width, pageSize.Height));
-                context.DrawRectangle(new VisualBrush(page.Visual), null, new Rect(0, 0, pageSize.Width, pageSize.Height));
+                var pageBrush = new VisualBrush(page.Visual)
+                {
+                    AlignmentX = AlignmentX.Left,
+                    AlignmentY = AlignmentY.Top,
+                    Stretch = Stretch.None,
+                    TileMode = TileMode.None,
+                    Viewbox = new Rect(0, 0, pageSize.Width, pageSize.Height),
+                    ViewboxUnits = BrushMappingMode.Absolute,
+                    Viewport = new Rect(0, 0, pageSize.Width, pageSize.Height),
+                    ViewportUnits = BrushMappingMode.Absolute
+                };
+                context.DrawRectangle(pageBrush, null, new Rect(0, 0, pageSize.Width, pageSize.Height));
             }
 
             var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);

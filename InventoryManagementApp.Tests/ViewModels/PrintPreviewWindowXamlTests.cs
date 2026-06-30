@@ -43,6 +43,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Prepared {DateTime.Now:g}", codeBehind, StringComparison.Ordinal);
             Assert.Contains("PrintPolishFooter", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ApplyTablePolish", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ApplyTablePolish(_document)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("isKeyValueTable", codeBehind, StringComparison.Ordinal);
             Assert.Contains("table.Tag as string, \"KeyValue\"", codeBehind, StringComparison.Ordinal);
             Assert.Contains("else if (!isKeyValueTable && rowIndex % 2 == 0)", codeBehind, StringComparison.Ordinal);
@@ -58,11 +59,12 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ConfigureDocumentForPage(_document, dlg.PrintableAreaWidth, dlg.PrintableAreaHeight)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("paginator.PageSize = new Size(dlg.PrintableAreaWidth, dlg.PrintableAreaHeight)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("document.ColumnWidth = contentWidth", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("RebalanceTableColumns(table)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("GridUnitType.Star", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("RebalanceTableColumns(table, contentWidth)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("safeContentWidth", codeBehind, StringComparison.Ordinal);
             Assert.Contains("table.Columns.Count == 2", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("new GridLength(3, GridUnitType.Star)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("safeContentWidth * 0.68", codeBehind, StringComparison.Ordinal);
             Assert.Contains(": 80", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("GridUnitType.Star", codeBehind, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)

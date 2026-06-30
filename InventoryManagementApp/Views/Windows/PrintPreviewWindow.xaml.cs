@@ -56,6 +56,7 @@ namespace InventoryManagementApp.Views.Windows
 
             ApplyDocumentPolish(_document, _title);
             ConfigureDocumentForPage(_document, DefaultPreviewPageWidth, DefaultPreviewPageHeight);
+            ApplyTablePolish(_document);
             DocViewer.Document = _document;
             Owner = System.Windows.Application.Current.MainWindow;
             ShowDialog();
@@ -68,6 +69,7 @@ namespace InventoryManagementApp.Views.Windows
 
             ApplyDocumentPolish(document, title);
             ConfigureDocumentForPage(document, pageWidth, pageHeight);
+            ApplyTablePolish(document);
         }
 
         private static Uri ResolveLogoUri(string path)
@@ -111,8 +113,13 @@ namespace InventoryManagementApp.Views.Windows
             if (document.Blocks.LastBlock is not Paragraph { Tag: "PrintPolishFooter" })
                 document.Blocks.Add(BuildDocumentFooter());
 
+        }
+
+        private static void ApplyTablePolish(FlowDocument document)
+        {
+            var contentWidth = Math.Max(120, document.ColumnWidth);
             foreach (var table in GetTables(document.Blocks))
-                ApplyTablePolish(table);
+                ApplyTablePolish(table, contentWidth);
         }
 
         private static void ConfigureDocumentForPage(FlowDocument document, double pageWidth, double pageHeight)
@@ -186,9 +193,9 @@ namespace InventoryManagementApp.Views.Windows
             };
         }
 
-        private static void ApplyTablePolish(Table table)
+        private static void ApplyTablePolish(Table table, double contentWidth)
         {
-            RebalanceTableColumns(table);
+            RebalanceTableColumns(table, contentWidth);
             table.CellSpacing = 0;
             table.Margin = new Thickness(0, 4, 0, 12);
             table.TextAlignment = TextAlignment.Left;
@@ -226,26 +233,26 @@ namespace InventoryManagementApp.Views.Windows
             }
         }
 
-        private static void RebalanceTableColumns(Table table)
+        private static void RebalanceTableColumns(Table table, double contentWidth)
         {
             if (table.Columns.Count == 0)
                 return;
 
-            if (table.Columns.Count == 2
-                && table.Columns[0].Width.IsAbsolute
-                && !table.Columns[1].Width.IsAbsolute)
+            var safeContentWidth = Math.Max(120, contentWidth);
+            if (table.Columns.Count == 2)
             {
-                table.Columns[0].Width = new GridLength(1, GridUnitType.Star);
-                table.Columns[1].Width = new GridLength(3, GridUnitType.Star);
+                table.Columns[0].Width = new GridLength(safeContentWidth * 0.32);
+                table.Columns[1].Width = new GridLength(safeContentWidth * 0.68);
                 return;
             }
 
             var weights = table.Columns
                 .Select(column => column.Width.IsAbsolute ? Math.Max(1, column.Width.Value) : 80)
                 .ToArray();
+            var totalWeight = Math.Max(1, weights.Sum());
 
             for (var index = 0; index < table.Columns.Count; index++)
-                table.Columns[index].Width = new GridLength(weights[index], GridUnitType.Star);
+                table.Columns[index].Width = new GridLength(safeContentWidth * weights[index] / totalWeight);
         }
 
         private static string SafeText(string? text, string fallback)
@@ -258,6 +265,7 @@ namespace InventoryManagementApp.Views.Windows
                 // FlowDocumentScrollViewer does not have ViewportWidth.
                 // Use a reasonable default or set PageWidth to the window/client width.
                 ConfigureDocumentForPage(DocViewer.Document, DocViewer.ActualWidth, Math.Max(DocViewer.ActualHeight, DefaultPreviewPageHeight));
+                ApplyTablePolish(DocViewer.Document);
             }
         }
 
@@ -268,6 +276,7 @@ namespace InventoryManagementApp.Views.Windows
             if (dlg.ShowDialog() == true)
             {
                 ConfigureDocumentForPage(_document, dlg.PrintableAreaWidth, dlg.PrintableAreaHeight);
+                ApplyTablePolish(_document);
 
                 var paginator = ((IDocumentPaginatorSource)_document).DocumentPaginator;
                 paginator.PageSize = new Size(dlg.PrintableAreaWidth, dlg.PrintableAreaHeight);
