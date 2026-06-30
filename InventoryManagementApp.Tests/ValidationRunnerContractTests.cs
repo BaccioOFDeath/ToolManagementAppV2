@@ -64,6 +64,40 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FullValidationRunnerVerifiesPublishedDesktopArtifactsBeforeSourceScans()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+
+            Assert.Contains("$requiredPublishArtifacts = @(", source);
+            Assert.Contains("\"InventoryManagementApp.exe\"", source);
+            Assert.Contains("\"InventoryManagementApp.dll\"", source);
+            Assert.Contains("\"appsettings.json\"", source);
+            Assert.Contains("Verify publish artifacts", source);
+            Assert.Contains("Join-Path $publishOutputPath $artifact", source);
+            Assert.Contains("Test-Path $artifactPath -PathType Leaf", source);
+            Assert.Contains("throw \"Publish artifact missing: $artifact\"", source);
+            AssertAppearsBefore(source, "dotnet publish InventoryManagementApp/InventoryManagementApp.csproj", "Verify publish artifacts", "The full validation runner should publish before verifying generated artifacts.");
+            AssertAppearsBefore(source, "Verify publish artifacts", "Check banned words", "The full validation runner should prove publish output exists before source scans continue.");
+        }
+
+        [Fact]
+        public void BuildWorkflowVerifiesPublishedDesktopArtifactsBeforeUpload()
+        {
+            var source = ReadRepoFile(".github", "workflows", "build.yml");
+
+            Assert.Contains("Verify publish artifacts", source);
+            Assert.Contains("InventoryManagementApp.exe", source);
+            Assert.Contains("InventoryManagementApp.dll", source);
+            Assert.Contains("appsettings.json", source);
+            Assert.Contains("Join-Path \"./publish\" $artifact", source);
+            Assert.Contains("Test-Path $artifactPath -PathType Leaf", source);
+            Assert.Contains("throw \"Publish artifact missing: $artifact\"", source);
+            AssertAppearsBefore(source, "dotnet publish InventoryManagementApp/InventoryManagementApp.csproj", "Verify publish artifacts", "The Build and Test workflow should publish before checking generated artifacts.");
+            AssertAppearsBefore(source, "Verify publish artifacts", "Check banned words", "The Build and Test workflow should verify generated artifacts before source scans continue.");
+            AssertAppearsBefore(source, "Verify publish artifacts", "Upload build artifacts", "The Build and Test workflow should verify generated artifacts before upload.");
+        }
+
+        [Fact]
         public void FullValidationRunnerSkipPublishStopsAfterCompileAndTestValidation()
         {
             var source = ReadRepoFile("scripts", "run-full-validation.ps1");
@@ -72,6 +106,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Restore publish runtime", publishValidationBlock);
             Assert.Contains("Clean publish output", publishValidationBlock);
             Assert.Contains("Publish app", publishValidationBlock);
+            Assert.Contains("Verify publish artifacts", publishValidationBlock);
             Assert.Contains("Check banned words", publishValidationBlock);
             Assert.Contains("Check banned words PowerShell fallback", publishValidationBlock);
             AssertAppearsBefore(source, "Test solution", "if (-not $SkipPublish)", "The SkipPublish path should complete after restore, audit, build, and test validation.");

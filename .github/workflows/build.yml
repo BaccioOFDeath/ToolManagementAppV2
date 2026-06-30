@@ -43,6 +43,21 @@ jobs:
     - name: Publish
       run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish
 
+    - name: Verify publish artifacts
+      shell: pwsh
+      run: |
+        $requiredPublishArtifacts = @(
+          "InventoryManagementApp.exe",
+          "InventoryManagementApp.dll",
+          "appsettings.json"
+        )
+        foreach ($artifact in $requiredPublishArtifacts) {
+          $artifactPath = Join-Path "./publish" $artifact
+          if (-not (Test-Path $artifactPath -PathType Leaf)) {
+            throw "Publish artifact missing: $artifact"
+          }
+        }
+
     - name: Check banned words
       shell: bash
       run: bash scripts/check-banned-words.sh
