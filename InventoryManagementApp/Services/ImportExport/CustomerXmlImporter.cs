@@ -27,14 +27,19 @@ namespace InventoryManagementApp.Services.ImportExport
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("File not found.", filePath);
 
+            cancellationToken.ThrowIfCancellationRequested();
             var skippedRows = new List<int>();
             
             var customers = await Task.Run(() =>
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var serializer = new XmlSerializer(typeof(List<Customer>), new XmlRootAttribute("Customers"));
                 using var reader = new StreamReader(filePath);
-                return serializer.Deserialize(reader) as List<Customer>;
+                var deserializedCustomers = serializer.Deserialize(reader) as List<Customer>;
+                cancellationToken.ThrowIfCancellationRequested();
+                return deserializedCustomers;
             }, cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (customers == null || customers.Count == 0)
                 return (Enumerable.Empty<Customer>(), skippedRows);
@@ -43,6 +48,7 @@ namespace InventoryManagementApp.Services.ImportExport
             var validCustomers = new List<Customer>();
             for (int i = 0; i < customers.Count; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var customer = customers[i];
                 // A customer should have at least a company name or contact
                 if (string.IsNullOrWhiteSpace(customer.Company) && string.IsNullOrWhiteSpace(customer.Contact))

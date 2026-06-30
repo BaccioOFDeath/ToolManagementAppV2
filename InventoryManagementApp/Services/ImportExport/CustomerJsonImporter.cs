@@ -34,11 +34,14 @@ namespace InventoryManagementApp.Services.ImportExport
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("File not found.", filePath);
 
+            cancellationToken.ThrowIfCancellationRequested();
             var skippedRows = new List<int>();
             var json = await File.ReadAllTextAsync(filePath, cancellationToken).ConfigureAwait(false);
-            
+
+            cancellationToken.ThrowIfCancellationRequested();
             var customers = JsonSerializer.Deserialize<List<Customer>>(json, JsonOptions);
-            
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (customers == null || customers.Count == 0)
                 return (Enumerable.Empty<Customer>(), skippedRows);
 
@@ -46,6 +49,7 @@ namespace InventoryManagementApp.Services.ImportExport
             var validCustomers = new List<Customer>();
             for (int i = 0; i < customers.Count; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var customer = customers[i];
                 // A customer should have at least a company name or contact
                 if (string.IsNullOrWhiteSpace(customer.Company) && string.IsNullOrWhiteSpace(customer.Contact))
