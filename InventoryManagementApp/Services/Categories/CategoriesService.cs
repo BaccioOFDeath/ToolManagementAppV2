@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Messages;
 using Microsoft.Data.Sqlite;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace InventoryManagementApp.Services.Categories
 {
@@ -89,6 +91,7 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
                     throw new InvalidOperationException("Unable to create category.");
 
                 tx.Commit();
+                NotifyChanged(DomainDataScope.Categories | DomainDataScope.Items | DomainDataScope.Reports, (int)id);
                 return (int)id;
             }
             catch
@@ -192,6 +195,7 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
                 new { n = newName, id = categoryId });
             if (rows == 0)
                 throw new KeyNotFoundException($"Category {categoryId} not found.");
+            NotifyChanged(DomainDataScope.Categories | DomainDataScope.Items | DomainDataScope.Reports, categoryId);
             return true;
         }
 
@@ -219,6 +223,7 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
                 if (rows == 0)
                     throw new KeyNotFoundException($"Category {categoryId} not found.");
                 tx.Commit();
+                NotifyChanged(DomainDataScope.Categories | DomainDataScope.Items | DomainDataScope.Reports, categoryId);
                 return true;
             }
             catch
@@ -244,6 +249,11 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
                 new { id = categoryId }, transaction);
             if (exists == 0)
                 throw new KeyNotFoundException($"Category {categoryId} not found.");
+        }
+
+        static void NotifyChanged(DomainDataScope scope, int? entityId = null)
+        {
+            WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
         }
     }
 

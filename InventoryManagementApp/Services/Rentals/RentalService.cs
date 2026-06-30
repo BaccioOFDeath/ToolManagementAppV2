@@ -12,6 +12,8 @@ using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Services.Users;
+using InventoryManagementApp.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace InventoryManagementApp.Services.Rentals
 {
@@ -203,6 +205,7 @@ namespace InventoryManagementApp.Services.Rentals
                 var user = _context?.CurrentUser;
                 await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Rented item {itemID} to customer {customerID}").ConfigureAwait(false);
             }
+            NotifyChanged(DomainDataScope.Rentals | DomainDataScope.Items | DomainDataScope.Reservations | DomainDataScope.ActivityLogs | DomainDataScope.Reports, itemID);
         }
 
         /// <summary>
@@ -219,6 +222,7 @@ namespace InventoryManagementApp.Services.Rentals
                 throw new ArgumentOutOfRangeException(nameof(rentalID), "Rental ID must be greater than 0.");
             
             _auth.EnsureAdmin();
+            var changedItemID = 0;
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
                 var selCmd = new SqliteCommand(
@@ -227,6 +231,7 @@ namespace InventoryManagementApp.Services.Rentals
                 var result = await selCmd.ExecuteScalarAsync();
                 if (result == null) throw new InvalidOperationException("Rental not found or already returned.");
                 var itemID = Convert.ToInt32(result);
+                changedItemID = itemID;
 
                 var returnedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, tx,
                     "UPDATE Rentals SET ReturnDate=@ReturnDate,Status='Returned' WHERE RentalID=@RentalID AND Status='Rented'",
@@ -246,6 +251,7 @@ namespace InventoryManagementApp.Services.Rentals
                 var user = _context?.CurrentUser;
                 await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Returned rental {rentalID}").ConfigureAwait(false);
             }
+            NotifyChanged(DomainDataScope.Rentals | DomainDataScope.Items | DomainDataScope.Reservations | DomainDataScope.ActivityLogs | DomainDataScope.Reports, changedItemID > 0 ? changedItemID : rentalID);
         }
 
         /// <summary>
@@ -260,7 +266,7 @@ namespace InventoryManagementApp.Services.Rentals
         {
             if (rentalID < 1)
                 throw new ArgumentOutOfRangeException(nameof(rentalID), "Rental ID must be greater than 0.");
-            
+
             _auth.EnsureAdmin();
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
@@ -285,6 +291,7 @@ namespace InventoryManagementApp.Services.Rentals
                 var user = _context?.CurrentUser;
                 await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Extended rental {rentalID}").ConfigureAwait(false);
             }
+            NotifyChanged(DomainDataScope.Rentals | DomainDataScope.ActivityLogs | DomainDataScope.Reports, rentalID);
         }
 
         public async Task DeleteRentalAsync(int rentalID)
@@ -293,6 +300,7 @@ namespace InventoryManagementApp.Services.Rentals
                 throw new ArgumentOutOfRangeException(nameof(rentalID), "Rental ID must be greater than 0.");
 
             _auth.EnsureAdmin();
+            var changedItemID = 0;
             await ExecuteWithTransactionAsync(async (conn, tx) =>
             {
                 var selectCmd = new SqliteCommand(
@@ -304,6 +312,7 @@ namespace InventoryManagementApp.Services.Rentals
                     throw new InvalidOperationException("Rental not found.");
 
                 var itemID = Convert.ToInt32(reader["ItemID"]);
+                changedItemID = itemID;
                 var status = reader["Status"]?.ToString();
                 var isActive = string.Equals(status, "Rented", StringComparison.OrdinalIgnoreCase) && reader["ReturnDate"] is DBNull;
                 await reader.DisposeAsync();
@@ -324,6 +333,12 @@ namespace InventoryManagementApp.Services.Rentals
                 var user = _context?.CurrentUser;
                 await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Deleted rental {rentalID}").ConfigureAwait(false);
             }
+            NotifyChanged(DomainDataScope.Rentals | DomainDataScope.Items | DomainDataScope.ActivityLogs | DomainDataScope.Reports, changedItemID > 0 ? changedItemID : rentalID);
+        }
+
+        static void NotifyChanged(DomainDataScope scope, int? entityId = null)
+        {
+            WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
         }
 
         public async Task<int> CountActiveRentalsAsync()

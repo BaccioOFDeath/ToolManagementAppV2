@@ -5,6 +5,8 @@ using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace InventoryManagementApp.Services.Calibration
 {
@@ -193,7 +195,7 @@ namespace InventoryManagementApp.Services.Calibration
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var id = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureItemExists(conn, record.ItemID);
@@ -227,6 +229,8 @@ namespace InventoryManagementApp.Services.Calibration
 
                 return id;
             });
+            NotifyChanged(DomainDataScope.Calibration | DomainDataScope.Reports, id);
+            return id;
         }
 
         public async Task<bool> UpdateCalibrationRecordAsync(CalibrationRecord record)
@@ -238,7 +242,7 @@ namespace InventoryManagementApp.Services.Calibration
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var updated = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureCalibrationRecordExists(conn, record.CalibrationID);
@@ -272,6 +276,8 @@ namespace InventoryManagementApp.Services.Calibration
 
                 return true;
             });
+            NotifyChanged(DomainDataScope.Calibration | DomainDataScope.Reports, record.CalibrationID);
+            return updated;
         }
 
         public async Task<bool> DeleteCalibrationRecordAsync(int calibrationID)
@@ -279,7 +285,7 @@ namespace InventoryManagementApp.Services.Calibration
             if (calibrationID < 1)
                 throw new ArgumentOutOfRangeException(nameof(calibrationID), "Calibration ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var deleted = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureCalibrationRecordExists(conn, calibrationID);
@@ -292,6 +298,8 @@ namespace InventoryManagementApp.Services.Calibration
 
                 return true;
             });
+            NotifyChanged(DomainDataScope.Calibration | DomainDataScope.Reports, calibrationID);
+            return deleted;
         }
 
         private CalibrationRecord MapCalibrationRecord(SqliteDataReader reader)
@@ -337,6 +345,11 @@ namespace InventoryManagementApp.Services.Calibration
             var calibrationCount = Convert.ToInt32(calibrationCmd.ExecuteScalar() ?? 0);
             if (calibrationCount < 1)
                 throw new InvalidOperationException("Calibration record not found.");
+        }
+
+        static void NotifyChanged(DomainDataScope scope, int? entityId = null)
+        {
+            WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
         }
     }
 }

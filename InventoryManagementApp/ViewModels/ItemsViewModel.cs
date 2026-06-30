@@ -247,6 +247,27 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        public async Task RefreshAsync(CancellationToken ct = default)
+        {
+            _filterCts.Cancel();
+            _filterCts.Dispose();
+            _filterCts = new CancellationTokenSource();
+            _loadCts.Cancel();
+            _loadCts.Dispose();
+            _loadCts = new CancellationTokenSource();
+
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _loadCts.Token);
+            var firstPage = await LoadPageAsync(1, linked.Token).ConfigureAwait(false);
+            await InvokeOnUiThreadAsync(() =>
+            {
+                var selectedId = SelectedItem?.ItemID;
+                Items.ResetWith(firstPage);
+                SelectedItem = selectedId.HasValue
+                    ? Items.FirstOrDefault(item => item.ItemID == selectedId.Value)
+                    : null;
+            }).ConfigureAwait(false);
+        }
+
         private Task StartFilterAsync()
         {
             _filterCts.Cancel();

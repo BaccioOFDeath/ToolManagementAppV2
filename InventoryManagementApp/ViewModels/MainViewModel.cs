@@ -26,10 +26,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Utilities.IO;
 using Microsoft.Extensions.DependencyInjection;
 using InventoryManagementApp.Models.ImportExport;
+using InventoryManagementApp.Messages;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
 using Application = System.Windows.Application;
 using MediaBrush = System.Windows.Media.Brush;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace InventoryManagementApp.ViewModels
 {
@@ -53,6 +55,7 @@ namespace InventoryManagementApp.ViewModels
         int _autoLogoutMinutes;
         CancellationTokenSource? _pageLoadCts;
         CancellationTokenSource? _globalSearchCts;
+        int _isRefreshingOpenSurface;
 
         EventHandler<User?>? _userContextChangedHandler;
         PropertyChangedEventHandler? _itemManagementPropertyChangedHandler;
@@ -894,8 +897,86 @@ namespace InventoryManagementApp.ViewModels
             });
 
             SetNavSection(NavSectionKeys.Overview, openSidebar: false);
+            WeakReferenceMessenger.Default.Register<DomainDataChangedMessage>(this, (_, message) => OnDomainDataChanged(message));
             _ = OpenDashboardCommand.ExecuteAsync(null);
         }
+
+        void OnDomainDataChanged(DomainDataChangedMessage message)
+        {
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher != null && !dispatcher.CheckAccess())
+            {
+                dispatcher.BeginInvoke(new Action(() => _ = RefreshOpenSurfaceForChangeAsync(message)));
+                return;
+            }
+
+            _ = RefreshOpenSurfaceForChangeAsync(message);
+        }
+
+        async Task RefreshOpenSurfaceForChangeAsync(DomainDataChangedMessage message)
+        {
+            if (Interlocked.Exchange(ref _isRefreshingOpenSurface, 1) == 1)
+                return;
+
+            try
+            {
+                switch (CurrentPage?.DataContext)
+                {
+                    case DashboardViewModel dashboard when Affects(message, DomainDataScope.Items | DomainDataScope.Customers | DomainDataScope.Rentals | DomainDataScope.Reservations | DomainDataScope.Maintenance | DomainDataScope.Calibration | DomainDataScope.ActivityLogs):
+                        await dashboard.LoadAsync(CancellationToken.None);
+                        break;
+                    case ItemsViewModel items when Affects(message, DomainDataScope.Items | DomainDataScope.Categories | DomainDataScope.Kits):
+                        await items.RefreshAsync();
+                        break;
+                    case ItemManagementViewModel itemSearch when Affects(message, DomainDataScope.Items | DomainDataScope.Categories | DomainDataScope.Kits):
+                        await itemSearch.InitializeAsync();
+                        await itemSearch.SearchCommand.ExecuteAsync(null);
+                        break;
+                    case ManageRentalsViewModel rentals when Affects(message, DomainDataScope.Items | DomainDataScope.Customers | DomainDataScope.Rentals | DomainDataScope.Reservations):
+                        await rentals.LoadRentalsAsync();
+                        break;
+                    case CustomerManagementViewModel customers when Affects(message, DomainDataScope.Customers):
+                        await customers.LoadCustomersAsync();
+                        break;
+                    case UserManagementViewModel users when Affects(message, DomainDataScope.Users):
+                        await users.LoadUsersAsync();
+                        RefreshCurrentUser();
+                        break;
+                    case ActivityLogsViewModel logs when Affects(message, DomainDataScope.ActivityLogs | DomainDataScope.Items | DomainDataScope.Rentals | DomainDataScope.Users):
+                        await logs.LoadLogsAsync();
+                        break;
+                    case ReportsViewModel reports when Affects(message, DomainDataScope.Reports | DomainDataScope.Items | DomainDataScope.Customers | DomainDataScope.Rentals | DomainDataScope.Reservations | DomainDataScope.Maintenance | DomainDataScope.Calibration | DomainDataScope.Kits | DomainDataScope.Users):
+                        await reports.RunSummaryReportAsync();
+                        break;
+                    case MaintenanceManagementViewModel maintenance when Affects(message, DomainDataScope.Maintenance | DomainDataScope.Items):
+                        await maintenance.LoadMaintenanceCommand.ExecuteAsync(null);
+                        break;
+                    case CalibrationManagementViewModel calibration when Affects(message, DomainDataScope.Calibration | DomainDataScope.Items):
+                        await calibration.LoadCalibrationCommand.ExecuteAsync(null);
+                        break;
+                    case ReservationManagementViewModel reservations when Affects(message, DomainDataScope.Reservations | DomainDataScope.Items | DomainDataScope.Customers | DomainDataScope.Rentals):
+                        await reservations.LoadReservationsCommand.ExecuteAsync(null);
+                        break;
+                    case KitManagementViewModel kits when Affects(message, DomainDataScope.Kits | DomainDataScope.Items):
+                        await kits.LoadKitsCommand.ExecuteAsync(null);
+                        break;
+                    case CategoryManagementViewModel categories when Affects(message, DomainDataScope.Categories | DomainDataScope.Items):
+                        if (categories.RefreshCommand.CanExecute(null))
+                            categories.RefreshCommand.Execute(null);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to refresh open page after data change {Scope}", message.Scope);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _isRefreshingOpenSurface, 0);
+            }
+        }
+
+        static bool Affects(DomainDataChangedMessage message, DomainDataScope scopes) => (message.Scope & scopes) != 0;
 
         async Task OpenOperationsDefaultAsync()
         {
@@ -1347,6 +1428,7 @@ namespace InventoryManagementApp.ViewModels
                 _itemManagementPropertyChangedHandler = null;
             }
             Settings.PropertyChanged -= Settings_PropertyChanged;
+            WeakReferenceMessenger.Default.UnregisterAll(this);
             _autoLogoutTimer.Tick -= OnAutoLogoutTimerTick;
             _autoLogoutTimer.Stop();
             _globalSearchDebounceTimer.Tick -= OnGlobalSearchDebounceTimerTick;

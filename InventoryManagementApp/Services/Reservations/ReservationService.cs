@@ -5,6 +5,8 @@ using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace InventoryManagementApp.Services.Reservations
 {
@@ -198,7 +200,7 @@ namespace InventoryManagementApp.Services.Reservations
         {
             ValidateReservation(reservation, requireExistingId: false);
 
-            return await Task.Run(() =>
+            var id = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureReservationReferencesExist(conn, reservation);
@@ -231,13 +233,15 @@ namespace InventoryManagementApp.Services.Reservations
 
                 return id;
             });
+            NotifyChanged(DomainDataScope.Reservations | DomainDataScope.Rentals | DomainDataScope.Reports, id);
+            return id;
         }
 
         public async Task<bool> UpdateReservationAsync(Reservation reservation)
         {
             ValidateReservation(reservation, requireExistingId: true);
 
-            return await Task.Run(() =>
+            var updated = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureReservationExists(conn, reservation.ReservationID);
@@ -269,6 +273,8 @@ namespace InventoryManagementApp.Services.Reservations
                 EnsureReservationWriteSucceeded(updatedRows);
                 return true;
             });
+            NotifyChanged(DomainDataScope.Reservations | DomainDataScope.Rentals | DomainDataScope.Reports, reservation.ReservationID);
+            return updated;
         }
 
         public async Task<bool> ConfirmReservationAsync(int reservationID)
@@ -276,7 +282,7 @@ namespace InventoryManagementApp.Services.Reservations
             if (reservationID < 1)
                 throw new ArgumentOutOfRangeException(nameof(reservationID), "Reservation ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var confirmed = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureReservationExists(conn, reservationID);
@@ -288,6 +294,8 @@ namespace InventoryManagementApp.Services.Reservations
                 EnsureReservationWriteSucceeded(confirmedRows);
                 return true;
             });
+            NotifyChanged(DomainDataScope.Reservations | DomainDataScope.Rentals | DomainDataScope.Reports, reservationID);
+            return confirmed;
         }
 
         public async Task<bool> CancelReservationAsync(int reservationID)
@@ -295,7 +303,7 @@ namespace InventoryManagementApp.Services.Reservations
             if (reservationID < 1)
                 throw new ArgumentOutOfRangeException(nameof(reservationID), "Reservation ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var cancelled = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureReservationExists(conn, reservationID);
@@ -307,6 +315,8 @@ namespace InventoryManagementApp.Services.Reservations
                 EnsureReservationWriteSucceeded(cancelledRows);
                 return true;
             });
+            NotifyChanged(DomainDataScope.Reservations | DomainDataScope.Rentals | DomainDataScope.Reports, reservationID);
+            return cancelled;
         }
 
         public async Task<bool> FulfillReservationAsync(int reservationID, int rentalID)
@@ -316,7 +326,7 @@ namespace InventoryManagementApp.Services.Reservations
             if (rentalID < 1)
                 throw new ArgumentOutOfRangeException(nameof(rentalID), "Rental ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var fulfilled = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureReservationExists(conn, reservationID);
@@ -331,6 +341,8 @@ namespace InventoryManagementApp.Services.Reservations
                 EnsureReservationWriteSucceeded(fulfilledRows);
                 return true;
             });
+            NotifyChanged(DomainDataScope.Reservations | DomainDataScope.Rentals | DomainDataScope.Reports, reservationID);
+            return fulfilled;
         }
 
         public async Task<bool> DeleteReservationAsync(int reservationID)
@@ -338,7 +350,7 @@ namespace InventoryManagementApp.Services.Reservations
             if (reservationID < 1)
                 throw new ArgumentOutOfRangeException(nameof(reservationID), "Reservation ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var deleted = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureReservationExists(conn, reservationID);
@@ -350,6 +362,8 @@ namespace InventoryManagementApp.Services.Reservations
                 EnsureReservationWriteSucceeded(deletedRows);
                 return true;
             });
+            NotifyChanged(DomainDataScope.Reservations | DomainDataScope.Rentals | DomainDataScope.Reports, reservationID);
+            return deleted;
         }
 
         public async Task<bool> CheckAvailabilityAsync(int itemID, DateTime startDate, DateTime endDate, int quantity)
@@ -493,6 +507,11 @@ namespace InventoryManagementApp.Services.Reservations
         private static object ToDbNullableText(string? value)
         {
             return string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
+        }
+
+        static void NotifyChanged(DomainDataScope scope, int? entityId = null)
+        {
+            WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
         }
     }
 }

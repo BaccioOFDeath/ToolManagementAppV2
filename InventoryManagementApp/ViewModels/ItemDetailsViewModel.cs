@@ -5,7 +5,9 @@ using System.Windows;
 using System.Windows.Documents;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Messages;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Printing;
 using InventoryManagementApp.Services.Reservations;
@@ -14,7 +16,7 @@ using InventoryManagementApp.Services.Users;
 
 namespace InventoryManagementApp.ViewModels
 {
-    public class ItemDetailsViewModel : ObservableObject
+    public class ItemDetailsViewModel : ObservableObject, IDisposable
     {
         readonly IItemService _itemService;
         readonly ICustomerService _customerService;
@@ -142,6 +144,24 @@ namespace InventoryManagementApp.ViewModels
             OpenRentalHistoryCommand = new AsyncRelayCommand(OpenRentalHistoryAsync);
             PlaceReservationCommand = new AsyncRelayCommand(PlaceReservationAsync, () => _reservationService != null);
             PrintDetailsCommand = new RelayCommand(PrintDetails);
+            WeakReferenceMessenger.Default.Register<DomainDataChangedMessage>(this, (_, message) => OnDomainDataChanged(message));
+        }
+
+        void OnDomainDataChanged(DomainDataChangedMessage message)
+        {
+            if (!message.Includes(DomainDataScope.Items) && !message.Includes(DomainDataScope.Rentals))
+                return;
+            if (message.EntityId.HasValue && message.EntityId.Value != ItemModel.ItemID)
+                return;
+
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher != null && !dispatcher.CheckAccess())
+            {
+                dispatcher.BeginInvoke(new Action(() => _ = RefreshItemStateAsync()));
+                return;
+            }
+
+            _ = RefreshItemStateAsync();
         }
 
         async Task EditAsync()
@@ -611,6 +631,11 @@ namespace InventoryManagementApp.ViewModels
             target.MissingComponentsNotes = source.MissingComponentsNotes;
             target.IssuesNotes = source.IssuesNotes;
             target.CheckoutCount = source.CheckoutCount;
+        }
+
+        public void Dispose()
+        {
+            WeakReferenceMessenger.Default.UnregisterAll(this);
         }
     }
 }

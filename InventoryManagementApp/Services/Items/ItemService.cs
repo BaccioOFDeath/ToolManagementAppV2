@@ -17,9 +17,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Services.Users;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Utilities.Helpers;
+using InventoryManagementApp.Messages;
 using Microsoft.VisualBasic.FileIO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace InventoryManagementApp.Services.Items
 {
@@ -86,6 +88,7 @@ namespace InventoryManagementApp.Services.Items
                 var user = _context?.CurrentUser;
                 await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Added item {item.ItemNumber}", cancellationToken).ConfigureAwait(false);
             }
+            NotifyChanged(DomainDataScope.Items | DomainDataScope.ActivityLogs | DomainDataScope.Reports, item.ItemID);
         }
 
         /// <summary>
@@ -107,6 +110,7 @@ namespace InventoryManagementApp.Services.Items
                 var user = _context?.CurrentUser;
                 await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Updated item {item.ItemNumber}", cancellationToken).ConfigureAwait(false);
             }
+            NotifyChanged(DomainDataScope.Items | DomainDataScope.ActivityLogs | DomainDataScope.Reports, item.ItemID);
         }
 
         /// <summary>
@@ -128,6 +132,7 @@ namespace InventoryManagementApp.Services.Items
                 var user = _context?.CurrentUser;
                 await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Deleted item {itemID}", cancellationToken).ConfigureAwait(false);
             }
+            NotifyChanged(DomainDataScope.Items | DomainDataScope.ActivityLogs | DomainDataScope.Reports, itemID);
         }
 
         public async Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default)
@@ -153,6 +158,7 @@ namespace InventoryManagementApp.Services.Items
                     : $"Checked in item {itemNumber} ({itemID})";
                 await _activityLog.LogActionAsync(userId, caller, action, cancellationToken).ConfigureAwait(false);
             }
+            NotifyChanged(DomainDataScope.Items | DomainDataScope.Rentals | DomainDataScope.ActivityLogs | DomainDataScope.Reports, itemID);
             return true;
         }
 
@@ -162,10 +168,11 @@ namespace InventoryManagementApp.Services.Items
         public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken cancellationToken = default)
             => _repository.GetCheckedOutItemsAsync(cancellationToken);
 
-        public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default)
+        public async Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default)
         {
             _auth.EnsureAnyPermission(User.PermissionManageItems, User.PermissionImportExport);
-            return _repository.UpdateItemImageAsync(itemID, imagePath, cancellationToken);
+            await _repository.UpdateItemImageAsync(itemID, imagePath, cancellationToken).ConfigureAwait(false);
+            NotifyChanged(DomainDataScope.Items | DomainDataScope.Reports, itemID);
         }
 
         public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)
@@ -420,6 +427,7 @@ namespace InventoryManagementApp.Services.Items
             using var transaction = conn.BeginTransaction();
 
             var row = 1; // header already read
+            var importedAny = false;
             try
             {
                 while (!parser.EndOfData)
@@ -516,9 +524,12 @@ namespace InventoryManagementApp.Services.Items
 
                     item.ItemID = await InsertItemAsync(conn, transaction, item, cancellationToken).ConfigureAwait(false);
                     existingNumbers.Add(itemNumber!);
+                    importedAny = true;
                 }
 
                 transaction.Commit();
+                if (importedAny)
+                    NotifyChanged(DomainDataScope.Items | DomainDataScope.Reports);
                 return invalidRows;
             }
             catch (Exception ex)
@@ -622,10 +633,12 @@ namespace InventoryManagementApp.Services.Items
             }
         }
 
-        public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
+        public async Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct)
         {
             _auth.EnsurePermission(User.PermissionManageItems);
-            return _repository.SaveChangesAsync(changes, ct);
+            var changedItems = changes?.ToList() ?? new List<ItemModel>();
+            await _repository.SaveChangesAsync(changedItems, ct).ConfigureAwait(false);
+            NotifyChanged(DomainDataScope.Items | DomainDataScope.Reports, changedItems.FirstOrDefault()?.ItemID);
         }
 
         public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken cancellationToken = default)
@@ -671,6 +684,7 @@ namespace InventoryManagementApp.Services.Items
                 }
 
                 transaction.Commit();
+                NotifyChanged(DomainDataScope.Items | DomainDataScope.Reports);
                 return skippedRows;
             }
             catch (Exception ex)
@@ -712,6 +726,11 @@ namespace InventoryManagementApp.Services.Items
                 items.Add(item);
             
             await exporter.ExportAsync(filePath, items, cancellationToken).ConfigureAwait(false);
+        }
+
+        static void NotifyChanged(DomainDataScope scope, int? entityId = null)
+        {
+            WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
         }
     }
 }

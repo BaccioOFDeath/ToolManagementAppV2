@@ -14,6 +14,8 @@ using InventoryManagementApp.Models.ImportExport;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Utilities.IO;
 using InventoryManagementApp.Services.Users;
+using InventoryManagementApp.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace InventoryManagementApp.Services.Customers
 {
@@ -178,6 +180,7 @@ namespace InventoryManagementApp.Services.Customers
             try
             {
                 await InsertCustomerAsync(conn, null, customer, cancellationToken);
+                NotifyChanged(DomainDataScope.Customers | DomainDataScope.Reports, customer.CustomerID);
             }
             catch (Exception ex)
             {
@@ -211,6 +214,7 @@ namespace InventoryManagementApp.Services.Customers
                 await EnsureCustomerRowExistsAsync(conn, customer.CustomerID, cancellationToken);
                 var updatedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
                 EnsureCustomerWriteSucceeded(updatedRows, customer.CustomerID);
+                NotifyChanged(DomainDataScope.Customers | DomainDataScope.Rentals | DomainDataScope.Reservations | DomainDataScope.Reports, customer.CustomerID);
             }
             catch (Exception ex)
             {
@@ -231,6 +235,7 @@ namespace InventoryManagementApp.Services.Customers
                 await EnsureCustomerRowExistsAsync(conn, customerID, cancellationToken);
                 var deletedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p, cancellationToken);
                 EnsureCustomerWriteSucceeded(deletedRows, customerID);
+                NotifyChanged(DomainDataScope.Customers | DomainDataScope.Reports, customerID);
             }
             catch (Exception ex)
             {
@@ -365,6 +370,8 @@ namespace InventoryManagementApp.Services.Customers
                     result.ImportedCount++;
                 }
                 tran.Commit();
+                if (result.ImportedCount > 0)
+                    NotifyChanged(DomainDataScope.Customers | DomainDataScope.Reports);
                 return result;
             }
             catch (Exception ex)
@@ -577,6 +584,9 @@ namespace InventoryManagementApp.Services.Customers
                 importedCount++;
             }
 
+            if (importedCount > 0)
+                NotifyChanged(DomainDataScope.Customers | DomainDataScope.Reports);
+
             return importedCount;
         }
 
@@ -586,6 +596,11 @@ namespace InventoryManagementApp.Services.Customers
 
             var all = await GetAllCustomersAsync(cancellationToken).ConfigureAwait(false);
             await exporter.ExportAsync(filePath, all, cancellationToken).ConfigureAwait(false);
+        }
+
+        static void NotifyChanged(DomainDataScope scope, int? entityId = null)
+        {
+            WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
         }
     }
 }

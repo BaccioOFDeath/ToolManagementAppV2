@@ -13,6 +13,8 @@ using System.Linq;
 using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using InventoryManagementApp.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace InventoryManagementApp.Services.Users
 {
@@ -352,6 +354,7 @@ namespace InventoryManagementApp.Services.Users
             user.PasswordSalt = salt;
             user.FailedLoginAttempts = 0;
             user.LockoutEndUtc = null;
+            NotifyChanged(DomainDataScope.Users | DomainDataScope.ActivityLogs | DomainDataScope.Reports, user.UserID);
         }
 
         public async Task UpdateUserAsync(User user)
@@ -438,6 +441,7 @@ namespace InventoryManagementApp.Services.Users
 
             user.PasswordHash = hashed;
             user.PasswordSalt = salt;
+            NotifyChanged(DomainDataScope.Users | DomainDataScope.ActivityLogs | DomainDataScope.Reports, user.UserID);
         }
 
         public async Task<bool> ChangeUserPasswordAsync(int userID, string newPassword)
@@ -476,6 +480,7 @@ namespace InventoryManagementApp.Services.Users
             using var conn = _dbService.CreateConnection();
             int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
             EnsureUserWriteSucceeded(rows, userID);
+            NotifyChanged(DomainDataScope.Users | DomainDataScope.ActivityLogs | DomainDataScope.Reports, userID);
             return true;
         }
 
@@ -487,6 +492,8 @@ namespace InventoryManagementApp.Services.Users
                 AND (IsAdmin = 0 OR (SELECT COUNT(*) FROM Users WHERE IsAdmin = 1) > 1)";
             using var conn = _dbService.CreateConnection();
             var deletedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, new[] { new SqliteParameter("@ID", userID) });
+            if (deletedRows > 0)
+                NotifyChanged(DomainDataScope.Users | DomainDataScope.ActivityLogs | DomainDataScope.Reports, userID);
             return deletedRows > 0;
         }
 
@@ -506,6 +513,11 @@ namespace InventoryManagementApp.Services.Users
                 if (adminCount <= 1) return false;
             }
             return await DeleteUserInternalAsync(userID);
+        }
+
+        static void NotifyChanged(DomainDataScope scope, int? entityId = null)
+        {
+            WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
         }
     }
 }

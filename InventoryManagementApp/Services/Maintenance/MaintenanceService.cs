@@ -5,6 +5,8 @@ using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace InventoryManagementApp.Services.Maintenance
 {
@@ -171,7 +173,7 @@ namespace InventoryManagementApp.Services.Maintenance
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var id = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureItemExists(conn, record.ItemID);
@@ -205,6 +207,8 @@ namespace InventoryManagementApp.Services.Maintenance
 
                 return id;
             });
+            NotifyChanged(DomainDataScope.Maintenance | DomainDataScope.Reports, id);
+            return id;
         }
 
         public async Task<bool> UpdateMaintenanceRecordAsync(MaintenanceRecord record)
@@ -216,7 +220,7 @@ namespace InventoryManagementApp.Services.Maintenance
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var updated = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureMaintenanceRecordExists(conn, record.MaintenanceID);
@@ -250,6 +254,8 @@ namespace InventoryManagementApp.Services.Maintenance
 
                 return true;
             });
+            NotifyChanged(DomainDataScope.Maintenance | DomainDataScope.Reports, record.MaintenanceID);
+            return updated;
         }
 
         public async Task<bool> CompleteMaintenanceAsync(int maintenanceID, string performedBy, string notes = "")
@@ -257,7 +263,7 @@ namespace InventoryManagementApp.Services.Maintenance
             if (maintenanceID < 1)
                 throw new ArgumentOutOfRangeException(nameof(maintenanceID), "Maintenance ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var completed = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureMaintenanceRecordExists(conn, maintenanceID);
@@ -279,6 +285,8 @@ namespace InventoryManagementApp.Services.Maintenance
 
                 return true;
             });
+            NotifyChanged(DomainDataScope.Maintenance | DomainDataScope.Reports, maintenanceID);
+            return completed;
         }
 
         public async Task<bool> DeleteMaintenanceRecordAsync(int maintenanceID)
@@ -286,7 +294,7 @@ namespace InventoryManagementApp.Services.Maintenance
             if (maintenanceID < 1)
                 throw new ArgumentOutOfRangeException(nameof(maintenanceID), "Maintenance ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var deleted = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureMaintenanceRecordExists(conn, maintenanceID);
@@ -299,6 +307,8 @@ namespace InventoryManagementApp.Services.Maintenance
 
                 return true;
             });
+            NotifyChanged(DomainDataScope.Maintenance | DomainDataScope.Reports, maintenanceID);
+            return deleted;
         }
 
         private MaintenanceRecord MapMaintenanceRecord(SqliteDataReader reader)
@@ -344,6 +354,11 @@ namespace InventoryManagementApp.Services.Maintenance
             var maintenanceCount = Convert.ToInt32(maintenanceCmd.ExecuteScalar() ?? 0);
             if (maintenanceCount < 1)
                 throw new InvalidOperationException("Maintenance record not found.");
+        }
+
+        static void NotifyChanged(DomainDataScope scope, int? entityId = null)
+        {
+            WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
         }
     }
 }

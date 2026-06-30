@@ -5,6 +5,8 @@ using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Core;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace InventoryManagementApp.Services.Kits
 {
@@ -137,7 +139,7 @@ namespace InventoryManagementApp.Services.Kits
         {
             ValidateKit(kit, requireExistingId: false);
 
-            return await Task.Run(() =>
+            var id = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 var sql = @"
@@ -163,13 +165,15 @@ namespace InventoryManagementApp.Services.Kits
                     throw new InvalidOperationException("Unable to create kit.");
                 return id;
             });
+            NotifyChanged(DomainDataScope.Kits | DomainDataScope.Reports, id);
+            return id;
         }
 
         public async Task<bool> UpdateKitAsync(Kit kit)
         {
             ValidateKit(kit, requireExistingId: true);
 
-            return await Task.Run(() =>
+            var updated = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureKitExists(conn, kit.KitID);
@@ -195,6 +199,8 @@ namespace InventoryManagementApp.Services.Kits
                 EnsureKitWriteSucceeded(updatedRows);
                 return true;
             });
+            NotifyChanged(DomainDataScope.Kits | DomainDataScope.Reports, kit.KitID);
+            return updated;
         }
 
         public async Task<bool> DeleteKitAsync(int kitID)
@@ -202,7 +208,7 @@ namespace InventoryManagementApp.Services.Kits
             if (kitID < 1)
                 throw new ArgumentOutOfRangeException(nameof(kitID), "Kit ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var deleted = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureKitExists(conn, kitID);
@@ -229,13 +235,15 @@ namespace InventoryManagementApp.Services.Kits
                     throw;
                 }
             });
+            NotifyChanged(DomainDataScope.Kits | DomainDataScope.Reports, kitID);
+            return deleted;
         }
 
         public async Task<int> AddKitItemAsync(KitItem kitItem)
         {
             ValidateKitItem(kitItem, requireExistingId: false);
 
-            return await Task.Run(() =>
+            var id = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureKitItemReferencesExist(conn, kitItem);
@@ -259,13 +267,15 @@ namespace InventoryManagementApp.Services.Kits
                     throw new InvalidOperationException("Unable to add kit item.");
                 return id;
             });
+            NotifyChanged(DomainDataScope.Kits | DomainDataScope.Items | DomainDataScope.Reports, kitItem.KitID);
+            return id;
         }
 
         public async Task<bool> UpdateKitItemAsync(KitItem kitItem)
         {
             ValidateKitItem(kitItem, requireExistingId: true);
 
-            return await Task.Run(() =>
+            var updated = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureKitItemExists(conn, kitItem.KitItemID);
@@ -286,6 +296,8 @@ namespace InventoryManagementApp.Services.Kits
                 EnsureKitItemWriteSucceeded(updatedRows);
                 return true;
             });
+            NotifyChanged(DomainDataScope.Kits | DomainDataScope.Items | DomainDataScope.Reports, kitItem.KitID);
+            return updated;
         }
 
         public async Task<bool> RemoveKitItemAsync(int kitItemID)
@@ -293,7 +305,7 @@ namespace InventoryManagementApp.Services.Kits
             if (kitItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(kitItemID), "Kit item ID must be greater than 0.");
 
-            return await Task.Run(() =>
+            var removed = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
                 EnsureKitItemExists(conn, kitItemID);
@@ -305,6 +317,8 @@ namespace InventoryManagementApp.Services.Kits
                 EnsureKitItemWriteSucceeded(removedRows);
                 return true;
             });
+            NotifyChanged(DomainDataScope.Kits | DomainDataScope.Items | DomainDataScope.Reports, kitItemID);
+            return removed;
         }
 
         public async Task<bool> CheckKitAvailabilityAsync(int kitID)
@@ -441,6 +455,11 @@ namespace InventoryManagementApp.Services.Kits
         private static object ToDbNullableText(string? value)
         {
             return string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
+        }
+
+        static void NotifyChanged(DomainDataScope scope, int? entityId = null)
+        {
+            WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
         }
     }
 }
