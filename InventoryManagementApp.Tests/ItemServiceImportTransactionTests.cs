@@ -79,6 +79,45 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ImageImportEntrypointValidatesInputsBeforeAuthorizationAndCatalogWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
+            var entrypoint = ExtractMethod(
+                source,
+                "public Task<ImageImportResult> ImportItemImagesAsync",
+                "public async Task<string> GenerateNextItemNumberAsync");
+            var internalMethod = ExtractMethod(
+                source,
+                "private async Task<ImageImportResult> ImportItemImagesInternalAsync",
+                "protected virtual Task CopyFileAsync");
+
+            Assert.Contains("if (string.IsNullOrWhiteSpace(folderPath))", entrypoint, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(folderPath));", entrypoint, StringComparison.Ordinal);
+            Assert.Contains("if (keySelector is null)", entrypoint, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(keySelector));", entrypoint, StringComparison.Ordinal);
+            Assert.True(
+                entrypoint.IndexOf("if (string.IsNullOrWhiteSpace(folderPath))", StringComparison.Ordinal) < entrypoint.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
+                "Image imports should reject a missing folder path before authorization or catalog work.");
+            Assert.True(
+                entrypoint.IndexOf("if (keySelector is null)", StringComparison.Ordinal) < entrypoint.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
+                "Image imports should reject a missing key selector before authorization or catalog work.");
+            Assert.True(
+                entrypoint.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < entrypoint.IndexOf("Directory.Exists(folderPath)", StringComparison.Ordinal),
+                "Image imports should honor cancellation before checking the image folder.");
+            Assert.True(
+                entrypoint.IndexOf("Directory.Exists(folderPath)", StringComparison.Ordinal) < entrypoint.IndexOf("return ImportItemImagesInternalAsync", StringComparison.Ordinal),
+                "Image imports should reject missing folders before scanning the item catalog.");
+
+            Assert.Contains("cancellationToken.ThrowIfCancellationRequested();", internalMethod, StringComparison.Ordinal);
+            Assert.True(
+                internalMethod.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < internalMethod.IndexOf("var items = new List<ItemModel>();", StringComparison.Ordinal),
+                "Image imports should honor cancellation before collecting item rows.");
+            Assert.True(
+                internalMethod.IndexOf("cancellationToken.ThrowIfCancellationRequested();", internalMethod.IndexOf("var supported = new HashSet<string>", StringComparison.Ordinal), StringComparison.Ordinal) < internalMethod.IndexOf("Directory.EnumerateFiles(folderPath)", StringComparison.Ordinal),
+                "Image imports should honor cancellation before enumerating image files.");
+        }
+
+        [Fact]
         public void GenericImportExportEntrypointsValidateInputsBeforeAuthorizationAndWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
