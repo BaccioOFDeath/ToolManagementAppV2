@@ -232,7 +232,12 @@ namespace InventoryManagementApp.Services.Items
             {
                 destDir = AppAssetHelper.EnsureAssetFolder(AppAssetHelper.ItemImagesFolder);
             }
-            catch (Exception ex)
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Failed to create image directory for item assets");
+                return result;
+            }
+            catch (SystemException ex)
             {
                 _logger.LogError(ex, "Failed to create image directory for item assets");
                 return result;
@@ -735,7 +740,14 @@ namespace InventoryManagementApp.Services.Items
 
         static void NotifyChanged(DomainDataScope scope, int? entityId = null)
         {
-            WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
+            try
+            {
+                WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
+            }
+            catch (InvalidOperationException)
+            {
+                // Persistence has already completed; a transient UI refresh failure must not surface as a failed save.
+            }
         }
     }
 }

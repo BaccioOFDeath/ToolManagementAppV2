@@ -1,5 +1,6 @@
 // ViewModels/ItemDetailsViewModel.cs
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
@@ -136,6 +137,7 @@ namespace InventoryManagementApp.ViewModels
             _reservationService = reservationService;
             _settingsService = settingsService;
             _activityLogService = activityLogService;
+            ItemModel.PropertyChanged += ItemModel_PropertyChanged;
             CloseCommand = new RelayCommand(onClose);
             EditCommand = new AsyncRelayCommand(EditAsync);
             RentOutCommand = new AsyncRelayCommand(RentOutAsync);
@@ -145,6 +147,12 @@ namespace InventoryManagementApp.ViewModels
             PlaceReservationCommand = new AsyncRelayCommand(PlaceReservationAsync, () => _reservationService != null);
             PrintDetailsCommand = new RelayCommand(PrintDetails);
             WeakReferenceMessenger.Default.Register<DomainDataChangedMessage>(this, (_, message) => OnDomainDataChanged(message));
+        }
+
+        void ItemModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ItemModel.ImagePath))
+                OnPropertyChanged(nameof(ItemModel));
         }
 
         void OnDomainDataChanged(DomainDataChangedMessage message)
@@ -635,6 +643,7 @@ namespace InventoryManagementApp.ViewModels
 
         public void Dispose()
         {
+            ItemModel.PropertyChanged -= ItemModel_PropertyChanged;
             WeakReferenceMessenger.Default.UnregisterAll(this);
         }
     }

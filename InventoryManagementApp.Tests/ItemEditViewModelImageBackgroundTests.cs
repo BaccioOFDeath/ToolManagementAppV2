@@ -18,7 +18,34 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("new ImageBackgroundRemovalWindow(sourcePath, outputPath)", source, StringComparison.Ordinal);
             Assert.Contains("dialog.ShowDialog() == true", source, StringComparison.Ordinal);
             Assert.Contains("ItemModel.ImagePath = AppAssetHelper.ToAppRelativePath(dialog.SavedImagePath);", source, StringComparison.Ordinal);
+            Assert.Contains("ItemModel.PropertyChanged += ItemModel_PropertyChanged;", source, StringComparison.Ordinal);
+            Assert.Contains("if (e.PropertyName == nameof(ItemModel.ImagePath))", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ItemModel));", source, StringComparison.Ordinal);
+            Assert.Contains("transparent-{DateTime.Now:yyyyMMddHHmmssfff}.png", source, StringComparison.Ordinal);
             Assert.Contains("PixelFormats.Bgra32", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ItemDetailsViewModel_ReraisesItemModelWhenImagePathChanges()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ItemDetailsViewModel.cs");
+
+            Assert.Contains("ItemModel.PropertyChanged += ItemModel_PropertyChanged;", source, StringComparison.Ordinal);
+            Assert.Contains("void ItemModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)", source, StringComparison.Ordinal);
+            Assert.Contains("if (e.PropertyName == nameof(ItemModel.ImagePath))", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ItemModel));", source, StringComparison.Ordinal);
+            Assert.Contains("ItemModel.PropertyChanged -= ItemModel_PropertyChanged;", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ItemService_DoesNotFailSaveWhenUiRefreshNotificationFails()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
+
+            Assert.Contains("try", source, StringComparison.Ordinal);
+            Assert.Contains("WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));", source, StringComparison.Ordinal);
+            Assert.Contains("catch (InvalidOperationException)", source, StringComparison.Ordinal);
+            Assert.Contains("Persistence has already completed", source, StringComparison.Ordinal);
         }
 
         [Fact]

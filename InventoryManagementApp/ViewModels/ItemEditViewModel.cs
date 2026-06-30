@@ -1,5 +1,6 @@
 // ViewModels/ItemEditViewModel.cs
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -13,7 +14,7 @@ using InventoryManagementApp.Views.Windows;
 
 namespace InventoryManagementApp.ViewModels
 {
-    public class ItemEditViewModel : ObservableObject
+    public class ItemEditViewModel : ObservableObject, IDisposable
     {
         /// <summary>
         /// Service used to display file dialogs for selecting item images.
@@ -51,6 +52,7 @@ namespace InventoryManagementApp.ViewModels
         {
             ItemModel = item;
             _fileDialog = fileDialog;
+            ItemModel.PropertyChanged += ItemModel_PropertyChanged;
 
             SaveCommand = new RelayCommand(onSave);
             CancelCommand = new RelayCommand(onCancel);
@@ -58,6 +60,12 @@ namespace InventoryManagementApp.ViewModels
             BrowseImageCommand = new RelayCommand(BrowseImage);
             RemoveImageCommand = new RelayCommand(RemoveImage);
             RemoveImageBackgroundCommand = new RelayCommand(RemoveImageBackground);
+        }
+
+        void ItemModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ItemModel.ImagePath))
+                OnPropertyChanged(nameof(ItemModel));
         }
 
         void BrowseImage()
@@ -105,6 +113,8 @@ namespace InventoryManagementApp.ViewModels
                 ? Path.GetFileNameWithoutExtension(sourcePath)
                 : ItemModel.ItemNumber;
             var fileName = $"{AppAssetHelper.SanitizeFileName(seed)}-transparent.png";
+            if (File.Exists(Path.Combine(targetDirectory, fileName)))
+                fileName = $"{AppAssetHelper.SanitizeFileName(seed)}-transparent-{DateTime.Now:yyyyMMddHHmmssfff}.png";
             return Path.Combine(targetDirectory, fileName);
         }
 
@@ -135,5 +145,9 @@ namespace InventoryManagementApp.ViewModels
             return source;
         }
 
+        public void Dispose()
+        {
+            ItemModel.PropertyChanged -= ItemModel_PropertyChanged;
+        }
     }
 }
