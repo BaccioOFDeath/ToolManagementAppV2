@@ -72,7 +72,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }", source);
             AssertAppearsBefore(source, "Prepare validation logs", "Audit vulnerable packages", "The workflow should write the package audit log into a freshly prepared diagnostics directory.");
             AssertAppearsBefore(source, "Restore dependencies", "Audit vulnerable packages", "CI package audit should run after restore resolves the solution graph.");
-            AssertAppearsBefore(source, "Audit vulnerable packages", "Build", "Package advisory evidence should be captured before build can fail.");
+            AssertAppearsBefore(source, "Audit vulnerable packages", "    - name: Build", "Package advisory evidence should be captured before build can fail.");
             AssertAppearsBefore(source, "Audit vulnerable packages", "Upload validation logs", "The package audit file should be included in the validation log artifact.");
         }
 
