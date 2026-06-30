@@ -30,8 +30,23 @@ jobs:
     - name: Build
       run: dotnet build InventoryManagementApp.sln --configuration Release --no-restore
 
+    - name: Prepare test results
+      shell: pwsh
+      run: |
+        if (Test-Path ./TestResults) { Remove-Item ./TestResults -Recurse -Force }
+        New-Item -ItemType Directory -Path ./TestResults | Out-Null
+
     - name: Test
-      run: dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal
+      run: dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=validation-tests.trx" --results-directory ./TestResults
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: validation-test-results
+        path: ./TestResults/
+        retention-days: 7
+        if-no-files-found: ignore
 
     - name: Restore publish runtime
       run: dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64
