@@ -36,21 +36,21 @@
     <SolidColorBrush x:Key="GlassSurfaceAltBrush" Color="#CC242426"/>
     <SolidColorBrush x:Key="AppBackgroundTintBrush" Color="#22000000"/>
     <SolidColorBrush x:Key="ThemeShellHeaderBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderDashboardBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderSearchBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderManageItemsBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderRentalsBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderCustomersBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderReservationsBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderMaintenanceBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderCalibrationBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderKitsBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderCategoriesBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderReportsBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderActivityLogsBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderImportExportBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderUsersBrush" Color="{StaticResource Col.Surface}"/>
-    <SolidColorBrush x:Key="PageHeaderSettingsBrush" Color="{StaticResource Col.Surface}"/>
+    <SolidColorBrush x:Key="PageHeaderDashboardBrush" Color="#12324A"/>
+    <SolidColorBrush x:Key="PageHeaderSearchBrush" Color="#173A2A"/>
+    <SolidColorBrush x:Key="PageHeaderManageItemsBrush" Color="#4A3510"/>
+    <SolidColorBrush x:Key="PageHeaderRentalsBrush" Color="#4A2A14"/>
+    <SolidColorBrush x:Key="PageHeaderCustomersBrush" Color="#1C2F4F"/>
+    <SolidColorBrush x:Key="PageHeaderReservationsBrush" Color="#35264D"/>
+    <SolidColorBrush x:Key="PageHeaderMaintenanceBrush" Color="#4A1F24"/>
+    <SolidColorBrush x:Key="PageHeaderCalibrationBrush" Color="#123D3B"/>
+    <SolidColorBrush x:Key="PageHeaderKitsBrush" Color="#313A18"/>
+    <SolidColorBrush x:Key="PageHeaderCategoriesBrush" Color="#34302A"/>
+    <SolidColorBrush x:Key="PageHeaderReportsBrush" Color="#223049"/>
+    <SolidColorBrush x:Key="PageHeaderActivityLogsBrush" Color="#2D2748"/>
+    <SolidColorBrush x:Key="PageHeaderImportExportBrush" Color="#143746"/>
+    <SolidColorBrush x:Key="PageHeaderUsersBrush" Color="#3A2435"/>
+    <SolidColorBrush x:Key="PageHeaderSettingsBrush" Color="#2B3038"/>
     <SolidColorBrush x:Key="NavButtonHoverBrush" Color="#2F2B18"/>
     <SolidColorBrush x:Key="NavButtonHoverBorderBrush" Color="#F5B700"/>
     <SolidColorBrush x:Key="NavButtonPressedBrush" Color="#3B3314"/>

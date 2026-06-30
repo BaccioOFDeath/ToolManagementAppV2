@@ -16,8 +16,30 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,10">
-            <DockPanel LastChildFill="True">
-                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="14,0,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" MinWidth="220" MaxWidth="360">
+                        <TextBlock Text="Rental Job" Style="{StaticResource PageTitleTextBlock}"/>
+                        <TextBlock Text="{Binding SelectedRental.ItemNumber, StringFormat='{}{0}', TargetNullValue='No rental selected'}"
+                                   Style="{StaticResource HeadingTextBlock}"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding SelectedRental.CustomerName, StringFormat='Customer: {0}', TargetNullValue='Customer: Not recorded'}"
+                                   Style="{StaticResource CaptionTextBlock}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Grid>
+
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Left" Margin="0,12,0,0">
                     <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Swap Item" Command="{Binding SwapRentalItemCommand}" Margin="0,0,6,6"/>
@@ -30,17 +52,7 @@
                     <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintRentalCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,0,6"/>
                 </WrapPanel>
-                <StackPanel>
-                    <TextBlock Text="Rental Job" Style="{StaticResource PageTitleTextBlock}"/>
-                    <TextBlock Text="{Binding SelectedRental.ItemNumber, StringFormat='{}{0}', TargetNullValue='No rental selected'}"
-                               Style="{StaticResource HeadingTextBlock}"
-                               TextWrapping="Wrap"/>
-                    <TextBlock Text="{Binding SelectedRental.CustomerName, StringFormat='Customer: {0}', TargetNullValue='Customer: Not recorded'}"
-                               Style="{StaticResource CaptionTextBlock}"
-                               TextWrapping="Wrap"
-                               Margin="0,3,0,0"/>
-                </StackPanel>
-            </DockPanel>
+            </Grid>
         </Border>
 
         <Grid Grid.Row="1">

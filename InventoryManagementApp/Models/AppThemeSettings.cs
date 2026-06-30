@@ -117,21 +117,7 @@ namespace InventoryManagementApp.Models
                 settings.WarningColor = "#FFC99500";
                 settings.ErrorColor = "#FFDC2626";
                 settings.ShadowColor = "#33000000";
-                settings.DashboardHeaderColor = settings.SurfaceColor;
-                settings.SearchHeaderColor = settings.SurfaceColor;
-                settings.ManageItemsHeaderColor = settings.SurfaceColor;
-                settings.RentalsHeaderColor = settings.SurfaceColor;
-                settings.CustomersHeaderColor = settings.SurfaceColor;
-                settings.ReservationsHeaderColor = settings.SurfaceColor;
-                settings.MaintenanceHeaderColor = settings.SurfaceColor;
-                settings.CalibrationHeaderColor = settings.SurfaceColor;
-                settings.KitsHeaderColor = settings.SurfaceColor;
-                settings.CategoriesHeaderColor = settings.SurfaceColor;
-                settings.ReportsHeaderColor = settings.SurfaceColor;
-                settings.ActivityLogsHeaderColor = settings.SurfaceColor;
-                settings.ImportExportHeaderColor = settings.SurfaceColor;
-                settings.UsersHeaderColor = settings.SurfaceColor;
-                settings.SettingsHeaderColor = settings.SurfaceColor;
+                ApplySdLightPageHeaderColors(settings);
                 settings.CardCornerRadius = 12;
                 settings.PanelCornerRadius = 12;
                 settings.ButtonCornerRadius = 20;
@@ -168,21 +154,7 @@ namespace InventoryManagementApp.Models
                 settings.WarningColor = "#FFF5B700";
                 settings.ErrorColor = "#FFF87171";
                 settings.ShadowColor = "#99000000";
-                settings.DashboardHeaderColor = settings.SurfaceColor;
-                settings.SearchHeaderColor = settings.SurfaceColor;
-                settings.ManageItemsHeaderColor = settings.SurfaceColor;
-                settings.RentalsHeaderColor = settings.SurfaceColor;
-                settings.CustomersHeaderColor = settings.SurfaceColor;
-                settings.ReservationsHeaderColor = settings.SurfaceColor;
-                settings.MaintenanceHeaderColor = settings.SurfaceColor;
-                settings.CalibrationHeaderColor = settings.SurfaceColor;
-                settings.KitsHeaderColor = settings.SurfaceColor;
-                settings.CategoriesHeaderColor = settings.SurfaceColor;
-                settings.ReportsHeaderColor = settings.SurfaceColor;
-                settings.ActivityLogsHeaderColor = settings.SurfaceColor;
-                settings.ImportExportHeaderColor = settings.SurfaceColor;
-                settings.UsersHeaderColor = settings.SurfaceColor;
-                settings.SettingsHeaderColor = settings.SurfaceColor;
+                ApplySdDarkPageHeaderColors(settings);
                 settings.CardCornerRadius = 12;
                 settings.PanelCornerRadius = 12;
                 settings.ButtonCornerRadius = 20;
@@ -498,6 +470,44 @@ namespace InventoryManagementApp.Models
             }
 
             return value?.IndexOf("Dark", StringComparison.OrdinalIgnoreCase) >= 0 ? "Dark" : "Light";
+        }
+
+        private static void ApplySdLightPageHeaderColors(AppThemeSettings settings)
+        {
+            settings.DashboardHeaderColor = "#FFEAF4FF";
+            settings.SearchHeaderColor = "#FFEEF7F1";
+            settings.ManageItemsHeaderColor = "#FFFFF4D6";
+            settings.RentalsHeaderColor = "#FFFFE8CC";
+            settings.CustomersHeaderColor = "#FFEAF1FF";
+            settings.ReservationsHeaderColor = "#FFF3E8FF";
+            settings.MaintenanceHeaderColor = "#FFFFE7E7";
+            settings.CalibrationHeaderColor = "#FFE6FAF8";
+            settings.KitsHeaderColor = "#FFF1F5D8";
+            settings.CategoriesHeaderColor = "#FFEDE7DD";
+            settings.ReportsHeaderColor = "#FFE8F0FE";
+            settings.ActivityLogsHeaderColor = "#FFF0EBFF";
+            settings.ImportExportHeaderColor = "#FFE8F7FF";
+            settings.UsersHeaderColor = "#FFF4EAF3";
+            settings.SettingsHeaderColor = "#FFECEFF3";
+        }
+
+        private static void ApplySdDarkPageHeaderColors(AppThemeSettings settings)
+        {
+            settings.DashboardHeaderColor = "#FF12324A";
+            settings.SearchHeaderColor = "#FF173A2A";
+            settings.ManageItemsHeaderColor = "#FF4A3510";
+            settings.RentalsHeaderColor = "#FF4A2A14";
+            settings.CustomersHeaderColor = "#FF1C2F4F";
+            settings.ReservationsHeaderColor = "#FF35264D";
+            settings.MaintenanceHeaderColor = "#FF4A1F24";
+            settings.CalibrationHeaderColor = "#FF123D3B";
+            settings.KitsHeaderColor = "#FF313A18";
+            settings.CategoriesHeaderColor = "#FF34302A";
+            settings.ReportsHeaderColor = "#FF223049";
+            settings.ActivityLogsHeaderColor = "#FF2D2748";
+            settings.ImportExportHeaderColor = "#FF143746";
+            settings.UsersHeaderColor = "#FF3A2435";
+            settings.SettingsHeaderColor = "#FF2B3038";
         }
 
         private static string NormalizeBackgroundStretch(string? value)

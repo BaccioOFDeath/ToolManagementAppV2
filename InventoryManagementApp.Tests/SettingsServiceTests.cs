@@ -33,7 +33,7 @@ public class SettingsServiceTests
     }
 
     [Fact]
-    public async Task GetAutoLogoutMinutesAsync_ReturnsDefaultOfOne()
+    public async Task GetAutoLogoutMinutesAsync_ReturnsDefaultOfFifteen()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".db");
         await using var db = new DatabaseService(dbPath);
@@ -41,7 +41,7 @@ public class SettingsServiceTests
 
         var value = await service.GetAutoLogoutMinutesAsync();
 
-        Assert.Equal(1, value);
+        Assert.Equal(15, value);
     }
 
     [Fact]

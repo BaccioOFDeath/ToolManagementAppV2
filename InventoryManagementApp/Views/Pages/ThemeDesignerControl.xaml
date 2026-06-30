@@ -220,9 +220,9 @@
                                     <StackPanel>
                                         <TextBlock Text="Themed control matrix" Style="{StaticResource SectionHeader}"/>
                                         <WrapPanel Margin="0,8,0,0">
-                                            <Button Style="{StaticResource PrimaryButton}" Content="Primary" Margin="0,0,6,6"/>
-                                            <Button Style="{StaticResource GhostButton}" Content="Ghost" Margin="0,0,6,6"/>
-                                            <Button Style="{StaticResource GhostButton}" Content="Disabled" IsEnabled="False" Margin="0,0,6,6"/>
+                                            <Button Style="{StaticResource PrimaryButton}" Content="Primary" IsHitTestVisible="False" Focusable="False" Margin="0,0,6,6"/>
+                                            <Button Style="{StaticResource GhostButton}" Content="Ghost" IsHitTestVisible="False" Focusable="False" Margin="0,0,6,6"/>
+                                            <Button Style="{StaticResource GhostButton}" Content="Disabled" IsEnabled="False" IsHitTestVisible="False" Focusable="False" Margin="0,0,6,6"/>
                                             <CheckBox Content="Checked" IsChecked="True" Margin="0,0,10,6"/>
                                             <CheckBox Content="Disabled" IsEnabled="False" Margin="0,0,10,6"/>
                                         </WrapPanel>

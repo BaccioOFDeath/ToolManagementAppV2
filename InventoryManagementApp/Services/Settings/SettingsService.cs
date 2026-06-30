@@ -308,7 +308,7 @@ namespace InventoryManagementApp.Services.Settings
         public async Task<int> GetAutoLogoutMinutesAsync(CancellationToken cancellationToken = default)
         {
             var value = await GetSettingAsync(AutoLogoutMinutesKey, cancellationToken).ConfigureAwait(false);
-            return int.TryParse(value, out var i) && i >= 0 ? i : 1;
+            return int.TryParse(value, out var i) && i >= 0 ? i : 15;
         }
 
         public async Task SaveAutoLogoutMinutesAsync(int minutes, CancellationToken cancellationToken = default)

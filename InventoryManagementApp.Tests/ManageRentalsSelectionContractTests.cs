@@ -230,6 +230,22 @@ namespace InventoryManagementApp.Tests
             AssertContainsAll(itemPickerWindow, "DataGrid", "Use Item");
         }
 
+        [Fact]
+        public void RentalJobHeaderKeepsTitleReadableWhenActionsWrap()
+        {
+            var window = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalJobDetailsWindow.xaml");
+
+            AssertContainsAll(
+                window,
+                "<Grid.RowDefinitions>",
+                "<RowDefinition Height=\"Auto\"/>",
+                "<WrapPanel Grid.Row=\"1\" HorizontalAlignment=\"Left\"",
+                "<StackPanel Grid.Column=\"0\" MinWidth=\"220\" MaxWidth=\"360\">",
+                "Content=\"Log Reply\"",
+                "Content=\"Edit Customer\"");
+            Assert.DoesNotContain("<DockPanel LastChildFill=\"True\">\r\n                <WrapPanel DockPanel.Dock=\"Right\"", window, StringComparison.Ordinal);
+        }
+
         private static void AssertContainsAll(string source, params string[] expectedSnippets)
         {
             foreach (var snippet in expectedSnippets)

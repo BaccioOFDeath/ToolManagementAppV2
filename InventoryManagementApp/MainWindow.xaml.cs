@@ -41,7 +41,10 @@ namespace InventoryManagementApp
             Closed += (_, __) =>
             {
                 if (_mainViewModel != null)
+                {
                     _mainViewModel.PropertyChanged -= MainViewModel_PropertyChanged;
+                    InputManager.Current.PreProcessInput -= InputManager_PreProcessInput;
+                }
                 _ownedDb?.Dispose();
             };
 
@@ -52,6 +55,7 @@ namespace InventoryManagementApp
                 MouseMove += (_, __) => vm.ResetAutoLogoutTimer();
                 KeyDown += (_, __) => vm.ResetAutoLogoutTimer();
                 MouseDown += (_, __) => vm.ResetAutoLogoutTimer();
+                InputManager.Current.PreProcessInput += InputManager_PreProcessInput;
             }
         }
 
@@ -165,6 +169,15 @@ namespace InventoryManagementApp
             {
                 vm.IsSidebarOpen = false;
             }
+        }
+
+        void InputManager_PreProcessInput(object sender, PreProcessInputEventArgs e)
+        {
+            if (_mainViewModel == null)
+                return;
+
+            if (e.StagingItem.Input is MouseEventArgs or KeyboardEventArgs)
+                _mainViewModel.ResetAutoLogoutTimer();
         }
 
         void SectionMenuItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

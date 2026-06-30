@@ -79,6 +79,25 @@ public class AppThemeSettingsTests
     }
 
     [Fact]
+    public void SdEuropeanDefaults_UseDistinctPageHeaderColors()
+    {
+        var light = AppThemeSettings.CreateDefault("SD European Light");
+        var dark = AppThemeSettings.CreateDefault("SD European Dark");
+
+        Assert.Equal("#FFEAF4FF", light.DashboardHeaderColor);
+        Assert.Equal("#FFFFE8CC", light.RentalsHeaderColor);
+        Assert.Equal("#FFECEFF3", light.SettingsHeaderColor);
+        Assert.NotEqual(light.SurfaceColor, light.DashboardHeaderColor);
+        Assert.NotEqual(light.RentalsHeaderColor, light.SettingsHeaderColor);
+
+        Assert.Equal("#FF12324A", dark.DashboardHeaderColor);
+        Assert.Equal("#FF4A2A14", dark.RentalsHeaderColor);
+        Assert.Equal("#FF2B3038", dark.SettingsHeaderColor);
+        Assert.NotEqual(dark.SurfaceColor, dark.DashboardHeaderColor);
+        Assert.NotEqual(dark.RentalsHeaderColor, dark.SettingsHeaderColor);
+    }
+
+    [Fact]
     public void Normalize_AcceptsBareHexAndRejectsMalformedColors()
     {
         var settings = AppThemeSettings.CreateDefault();
