@@ -50,7 +50,11 @@ jobs:
       run: dotnet restore InventoryManagementApp.sln -bl:./ValidationLogs/restore.binlog
 
     - name: Audit vulnerable packages
-      run: dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive
+      shell: pwsh
+      run: |
+        $auditLogPath = "./ValidationLogs/package-audit.txt"
+        dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive 2>&1 | Tee-Object -FilePath $auditLogPath
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     - name: Build
       run: dotnet build InventoryManagementApp.sln --configuration Release --no-restore -bl:./ValidationLogs/build.binlog
