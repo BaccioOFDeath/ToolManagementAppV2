@@ -435,6 +435,10 @@ namespace InventoryManagementApp.Services.Users
             {
                 using var conn = _dbService.CreateConnection();
                 int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
+                if (rows == 0)
+                {
+                    throw new KeyNotFoundException($"User {user.UserID} not found.");
+                }
                 EnsureUserWriteSucceeded(rows, user.UserID);
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_CONSTRAINT &&

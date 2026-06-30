@@ -163,7 +163,7 @@ function Write-ValidationArtifactManifest {
         @{ Name = "TestResults"; Root = $testResultsPath; ExcludedNames = @() }
     )
 
-    if (-not $SkipPublish) {
+    if ($SkipPublish -eq $false) {
         $artifactGroups += @{ Name = "PublishOutput"; Root = $publishOutputPath; ExcludedNames = @() }
     }
 
