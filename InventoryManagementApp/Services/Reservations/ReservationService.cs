@@ -15,6 +15,8 @@ namespace InventoryManagementApp.Services.Reservations
     /// </summary>
     public class ReservationService
     {
+        private const int MaxReservationListCount = 500;
+
         private readonly DatabaseService _databaseService;
         private readonly IUserContext _userContext;
 
@@ -44,8 +46,10 @@ namespace InventoryManagementApp.Services.Reservations
                     FROM Reservations r
                     JOIN Items i ON r.ItemID = i.ItemID
                     JOIN Customers c ON r.CustomerID = c.CustomerID
-                    ORDER BY r.StartDate DESC";
+                    ORDER BY r.StartDate DESC
+                    LIMIT @ReservationListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ReservationListLimit", MaxReservationListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -71,8 +75,10 @@ namespace InventoryManagementApp.Services.Reservations
                     JOIN Items i ON r.ItemID = i.ItemID
                     JOIN Customers c ON r.CustomerID = c.CustomerID
                     WHERE r.Status IN ('Pending', 'Confirmed')
-                    ORDER BY r.StartDate ASC";
+                    ORDER BY r.StartDate ASC
+                    LIMIT @ReservationListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ReservationListLimit", MaxReservationListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -103,9 +109,11 @@ namespace InventoryManagementApp.Services.Reservations
                     JOIN Items i ON r.ItemID = i.ItemID
                     JOIN Customers c ON r.CustomerID = c.CustomerID
                     WHERE r.ItemID = @ItemID
-                    ORDER BY r.StartDate DESC";
+                    ORDER BY r.StartDate DESC
+                    LIMIT @ReservationListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ItemID", itemID);
+                cmd.Parameters.AddWithValue("@ReservationListLimit", MaxReservationListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -131,9 +139,11 @@ namespace InventoryManagementApp.Services.Reservations
                     JOIN Items i ON r.ItemID = i.ItemID
                     JOIN Customers c ON r.CustomerID = c.CustomerID
                     WHERE r.CustomerID = @CustomerID
-                    ORDER BY r.StartDate DESC";
+                    ORDER BY r.StartDate DESC
+                    LIMIT @ReservationListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@CustomerID", customerID);
+                cmd.Parameters.AddWithValue("@ReservationListLimit", MaxReservationListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
@@ -159,9 +169,11 @@ namespace InventoryManagementApp.Services.Reservations
                     JOIN Customers c ON r.CustomerID = c.CustomerID
                     WHERE r.Status IN ('Pending', 'Confirmed')
                     AND r.StartDate <= @FutureDate
-                    ORDER BY r.StartDate ASC";
+                    ORDER BY r.StartDate ASC
+                    LIMIT @ReservationListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@FutureDate", DateTime.Now.AddDays(days));
+                cmd.Parameters.AddWithValue("@ReservationListLimit", MaxReservationListCount);
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
