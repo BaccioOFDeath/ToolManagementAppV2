@@ -28,6 +28,11 @@ function Invoke-ValidationStep {
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $publishOutputPath = Join-Path $repoRoot "publish"
+$requiredPublishArtifacts = @(
+    "InventoryManagementApp.exe",
+    "InventoryManagementApp.dll",
+    "appsettings.json"
+)
 Push-Location $repoRoot
 
 try {
@@ -60,6 +65,15 @@ try {
 
         Invoke-ValidationStep "Publish app" {
             dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c $Configuration -r $Runtime --self-contained false --no-restore -o ./publish
+        }
+
+        Invoke-ValidationStep "Verify publish artifacts" {
+            foreach ($artifact in $requiredPublishArtifacts) {
+                $artifactPath = Join-Path $publishOutputPath $artifact
+                if (-not (Test-Path $artifactPath -PathType Leaf)) {
+                    throw "Publish artifact missing: $artifact"
+                }
+            }
         }
 
         Invoke-ValidationStep "Check banned words" {
