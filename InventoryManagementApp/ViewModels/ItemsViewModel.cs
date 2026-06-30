@@ -31,6 +31,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IDialogService _dialogService;
         private readonly IRentalService _rentalService;
         private readonly ISettingsService _settingsService;
+        private readonly IUserContext? _userContext;
         private readonly MobileCaptureService? _mobileCaptureService;
         private readonly ILogger<ItemsViewModel> _logger;
         private CancellationTokenSource _filterCts = new();
@@ -107,7 +108,7 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<SortOption> SortOptions { get; }
 
-        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ISettingsService settingsService, ILogger<ItemsViewModel> logger, MobileCaptureService? mobileCaptureService = null)
+        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ISettingsService settingsService, ILogger<ItemsViewModel> logger, MobileCaptureService? mobileCaptureService = null, IUserContext? userContext = null)
         {
             _itemService = itemService;
             _memoryBudget = memoryBudget;
@@ -115,6 +116,7 @@ namespace InventoryManagementApp.ViewModels
             _rentalService = rentalService;
             _settingsService = settingsService;
             _mobileCaptureService = mobileCaptureService;
+            _userContext = userContext;
             _logger = logger;
             Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
             SearchCommand = new AsyncRelayCommand(StartFilterAsync);
@@ -162,7 +164,7 @@ namespace InventoryManagementApp.ViewModels
                     Items.PageSize = ps;
                 }
 
-                var filterSetting = await _settingsService.GetSettingAsync("LastFilter", ct).ConfigureAwait(false);
+                var filterSetting = await _settingsService.GetSettingAsync(GetLastFilterSettingKey(), ct).ConfigureAwait(false);
                 if (!string.IsNullOrWhiteSpace(filterSetting))
                     Filter = filterSetting;
 
@@ -292,7 +294,7 @@ namespace InventoryManagementApp.ViewModels
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, _loadCts.Token);
                 var firstPage = await LoadPageAsync(1, linked.Token).ConfigureAwait(false);
                 InvokeOnUiThread(() => Items.ResetWith(firstPage));
-                await _settingsService.SaveSettingAsync("LastFilter", Filter, token).ConfigureAwait(false);
+                await _settingsService.SaveSettingAsync(GetLastFilterSettingKey(), Filter, token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -408,6 +410,21 @@ namespace InventoryManagementApp.ViewModels
         private static string AppendItemMutationRefreshMessage(string message, bool refreshed) => refreshed
             ? $"{message} The item list has been refreshed in case saved state changed before the failure."
             : $"{message} The item list could not be refreshed, so visible item rows were cleared until reload succeeds.";
+
+        private string GetLastFilterSettingKey()
+        {
+            var user = _userContext?.CurrentUser;
+            if (user == null)
+                return "LastFilter";
+
+            if (user.UserID > 0)
+                return $"LastFilter.User.{user.UserID}";
+
+            var userName = user.UserName?.Trim();
+            return string.IsNullOrWhiteSpace(userName)
+                ? "LastFilter"
+                : $"LastFilter.User.{userName}";
+        }
 
         private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {

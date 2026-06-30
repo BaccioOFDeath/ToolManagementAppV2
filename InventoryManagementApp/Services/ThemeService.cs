@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
@@ -227,7 +228,7 @@ namespace InventoryManagementApp.Services
         {
             InvalidateWindows(app);
 
-            foreach (Window window in app.Windows)
+            foreach (Window window in app.Windows.Cast<Window>().ToList())
             {
                 if (!window.IsLoaded)
                 {
@@ -240,7 +241,7 @@ namespace InventoryManagementApp.Services
 
         private static void InvalidateWindows(Application app)
         {
-            foreach (Window window in app.Windows)
+            foreach (Window window in app.Windows.Cast<Window>().ToList())
             {
                 if (window.IsLoaded)
                     window.InvalidateVisual();

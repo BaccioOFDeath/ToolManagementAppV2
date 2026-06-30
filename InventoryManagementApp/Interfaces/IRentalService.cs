@@ -28,6 +28,8 @@ namespace InventoryManagementApp.Interfaces
         /// <param name="returnDate">The date the item is returned.</param>
         Task ReturnItemAsync(int rentalID, DateTime returnDate);
         Task ExtendRentalAsync(int rentalID, DateTime newDueDate);
+        Task SwapRentalItemAsync(int rentalID, int newItemID) =>
+            throw new NotSupportedException("This rental service does not support swapping rental items.");
         Task DeleteRentalAsync(int rentalID);
         Task<List<Rental>> GetActiveRentalsAsync();
         Task<int> CountActiveRentalsAsync();

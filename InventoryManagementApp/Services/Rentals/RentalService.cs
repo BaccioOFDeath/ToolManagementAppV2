@@ -294,6 +294,54 @@ namespace InventoryManagementApp.Services.Rentals
             NotifyChanged(DomainDataScope.Rentals | DomainDataScope.ActivityLogs | DomainDataScope.Reports, rentalID);
         }
 
+        public async Task SwapRentalItemAsync(int rentalID, int newItemID)
+        {
+            if (rentalID < 1)
+                throw new ArgumentOutOfRangeException(nameof(rentalID), "Rental ID must be greater than 0.");
+            if (newItemID < 1)
+                throw new ArgumentOutOfRangeException(nameof(newItemID), "Item ID must be greater than 0.");
+            if (_itemService == null)
+                throw new InvalidOperationException("Rental item swaps require inventory synchronization.");
+
+            _auth.EnsureAdmin();
+            var oldItemID = 0;
+            await ExecuteWithTransactionAsync(async (conn, tx) =>
+            {
+                var selectCmd = new SqliteCommand(
+                    "SELECT ItemID FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'",
+                    conn, tx);
+                selectCmd.Parameters.AddWithValue("@RentalID", rentalID);
+                var result = await selectCmd.ExecuteScalarAsync();
+                if (result == null || result is DBNull)
+                    throw new InvalidOperationException("Unable to swap item. Rental not found or already returned.");
+
+                oldItemID = Convert.ToInt32(result);
+                if (oldItemID == newItemID)
+                    return;
+
+                var avail = await GetAvailableQuantityForExistingItemAsync(conn, tx, newItemID);
+                if (avail < 1)
+                    throw new InvalidOperationException("Replacement item has no available stock.");
+
+                var updateCmd = new SqliteCommand(
+                    "UPDATE Rentals SET ItemID=@NewItemID WHERE RentalID=@RentalID AND Status='Rented'",
+                    conn, tx);
+                updateCmd.Parameters.AddWithValue("@NewItemID", newItemID);
+                updateCmd.Parameters.AddWithValue("@RentalID", rentalID);
+                if (await updateCmd.ExecuteNonQueryAsync() == 0)
+                    throw new InvalidOperationException("Unable to swap item. Rental not found or already returned.");
+
+                await _itemService.UpdateItemQuantitiesAsync(oldItemID, 1, false, conn, tx);
+                await _itemService.UpdateItemQuantitiesAsync(newItemID, 1, true, conn, tx);
+            });
+            if (_activityLog != null)
+            {
+                var user = _context?.CurrentUser;
+                await _activityLog.LogActionAsync(user?.UserID ?? 0, user?.UserName ?? string.Empty, $"Swapped rental {rentalID} item from {oldItemID} to {newItemID}").ConfigureAwait(false);
+            }
+            NotifyChanged(DomainDataScope.Rentals | DomainDataScope.Items | DomainDataScope.ActivityLogs | DomainDataScope.Reports, newItemID);
+        }
+
         public async Task DeleteRentalAsync(int rentalID)
         {
             if (rentalID < 1)

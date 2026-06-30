@@ -20,7 +20,10 @@
                 <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="14,0,0,0">
                     <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Swap Item" Command="{Binding SwapRentalItemCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add Item" Command="{Binding AddRentalItemCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Edit Customer" Command="{Binding EditRentalCustomerCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintRentalCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,0,6"/>
                 </WrapPanel>

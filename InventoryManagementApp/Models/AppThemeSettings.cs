@@ -102,7 +102,7 @@ namespace InventoryManagementApp.Models
                 settings.BackgroundOverlayColor = "#00FFFFFF";
                 settings.SurfaceColor = "#FFFFFFFF";
                 settings.SurfaceAltColor = "#FFF1F2F5";
-                settings.NavigationColor = "#FF0F0F0F";
+                settings.NavigationColor = "#FFDCDCDC";
                 settings.InputColor = "#FFFFFFFF";
                 settings.ButtonColor = "#FFF5B700";
                 settings.BorderColor = "#FFE2E4E8";

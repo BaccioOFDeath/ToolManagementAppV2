@@ -34,7 +34,18 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("void ItemModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)", source, StringComparison.Ordinal);
             Assert.Contains("if (e.PropertyName == nameof(ItemModel.ImagePath))", source, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(ItemModel));", source, StringComparison.Ordinal);
+            Assert.Contains("await InvokeOnUiThreadAsync(() =>", source, StringComparison.Ordinal);
+            Assert.Contains("CopyItem(ItemModel, refreshed);", source, StringComparison.Ordinal);
+            Assert.Contains("RefreshState();", source, StringComparison.Ordinal);
             Assert.Contains("ItemModel.PropertyChanged -= ItemModel_PropertyChanged;", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ThemeService_SnapshotsWindowsBeforeRefreshingLayouts()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "Services", "ThemeService.cs");
+
+            Assert.Contains("foreach (Window window in app.Windows.Cast<Window>().ToList())", source, StringComparison.Ordinal);
         }
 
         [Fact]

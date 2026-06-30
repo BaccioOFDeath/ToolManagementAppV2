@@ -26,6 +26,8 @@ namespace InventoryManagementApp.ViewModels
         private readonly IRentalService _rentalService;
         private readonly IDialogService _dialogService;
         private readonly ReservationService? _reservationService;
+        private readonly IItemService? _itemService;
+        private readonly ICustomerService? _customerService;
         private readonly ILogger<ManageRentalsViewModel> _logger;
         private List<RentalModel> _allRentals = new();
 
@@ -133,6 +135,9 @@ namespace InventoryManagementApp.ViewModels
                     PrintRentalCommand.NotifyCanExecuteChanged();
                     PrintPickingSlipCommand.NotifyCanExecuteChanged();
                     PrintInvoiceCommand.NotifyCanExecuteChanged();
+                    EditRentalCustomerCommand.NotifyCanExecuteChanged();
+                    AddRentalItemCommand.NotifyCanExecuteChanged();
+                    SwapRentalItemCommand.NotifyCanExecuteChanged();
                     DeleteRentalCommand.NotifyCanExecuteChanged();
                     OnPropertyChanged(nameof(SelectedRentalOpenRequestCount));
                     OnPropertyChanged(nameof(SelectedRentalReturnedText));
@@ -186,13 +191,16 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand PrintRequestsCommand { get; }
         public IRelayCommand PrintPickingSlipCommand { get; }
         public IRelayCommand PrintInvoiceCommand { get; }
+        public IAsyncRelayCommand EditRentalCustomerCommand { get; }
+        public IAsyncRelayCommand AddRentalItemCommand { get; }
+        public IAsyncRelayCommand SwapRentalItemCommand { get; }
         public IAsyncRelayCommand DeleteRentalCommand { get; }
 
         public ManageRentalsViewModel(
             IRentalService rentalService,
             IDialogService dialogService,
             ILogger<ManageRentalsViewModel>? logger = null)
-            : this(rentalService, dialogService, null, logger)
+            : this(rentalService, dialogService, null, null, null, logger)
         {
         }
 
@@ -200,11 +208,15 @@ namespace InventoryManagementApp.ViewModels
             IRentalService rentalService,
             IDialogService dialogService,
             ReservationService? reservationService,
+            IItemService? itemService = null,
+            ICustomerService? customerService = null,
             ILogger<ManageRentalsViewModel>? logger = null)
         {
             _rentalService = rentalService;
             _dialogService = dialogService;
             _reservationService = reservationService ?? TryResolveReservationService();
+            _itemService = itemService;
+            _customerService = customerService;
             _logger = logger ?? NullLogger<ManageRentalsViewModel>.Instance;
 
             ApplyFilterCommand = new RelayCommand(ApplyFilter);
@@ -224,6 +236,9 @@ namespace InventoryManagementApp.ViewModels
             PrintRequestsCommand = new RelayCommand(PrintRequests);
             PrintPickingSlipCommand = new RelayCommand(PrintPickingSlip, () => SelectedRental != null);
             PrintInvoiceCommand = new RelayCommand(PrintInvoice, () => SelectedRental != null);
+            EditRentalCustomerCommand = new AsyncRelayCommand(EditRentalCustomerAsync, CanEditSelectedRentalCustomer);
+            AddRentalItemCommand = new AsyncRelayCommand(AddRentalItemAsync, CanManageSelectedRentalItems);
+            SwapRentalItemCommand = new AsyncRelayCommand(SwapRentalItemAsync, CanManageSelectedRentalItems);
             DeleteRentalCommand = new AsyncRelayCommand(DeleteRentalAsync, () => SelectedRental != null);
         }
 
@@ -449,9 +464,12 @@ namespace InventoryManagementApp.ViewModels
             var rentalToExtend = SelectedRental;
             try
             {
+                var newDueDate = ShowExtendDueDateDialog(rentalToExtend);
+                if (!newDueDate.HasValue)
+                    return;
+
                 IsLoading = true;
-                var newDueDate = rentalToExtend.DueDate.AddDays(7);
-                await _rentalService.ExtendRentalAsync(rentalToExtend.RentalID, newDueDate);
+                await _rentalService.ExtendRentalAsync(rentalToExtend.RentalID, newDueDate.Value);
                 await LoadRentalsAsync();
             }
             catch (UnauthorizedAccessException)
@@ -468,6 +486,122 @@ namespace InventoryManagementApp.ViewModels
             {
                 IsLoading = false;
             }
+        }
+
+        DateTime? ShowExtendDueDateDialog(RentalModel rental)
+        {
+            if (Application.Current == null)
+                return rental.DueDate;
+
+            var window = new RentalDueDateWindow(rental.DueDate);
+            try { window.Owner = Application.Current.Windows.Cast<Window>().ToList().FirstOrDefault(w => w.IsActive) ?? Application.Current.MainWindow; }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to set owner for rental extend dialog."); }
+            return window.ShowDialog() == true ? window.SelectedDueDate : null;
+        }
+
+        bool CanEditSelectedRentalCustomer() => SelectedRental != null && _customerService != null;
+
+        bool CanManageSelectedRentalItems() => CanReturnSelectedRental() && _itemService != null;
+
+        async Task EditRentalCustomerAsync()
+        {
+            if (SelectedRental == null || _customerService == null)
+                return;
+
+            var rental = SelectedRental;
+            try
+            {
+                var current = await _customerService.GetCustomerByIDAsync(rental.CustomerID).ConfigureAwait(false)
+                    ?? new CustomerModel
+                    {
+                        CustomerID = rental.CustomerID,
+                        Company = rental.CustomerName,
+                        Contact = rental.CustomerContact,
+                        Email = rental.CustomerEmail,
+                        Phone = rental.CustomerPhone,
+                        Mobile = rental.CustomerMobile,
+                        Address = rental.CustomerAddress
+                    };
+                var updated = await _dialogService.ShowEditCustomerDialogAsync(current).ConfigureAwait(false);
+                if (updated == null)
+                    return;
+
+                await _customerService.UpdateCustomerAsync(updated).ConfigureAwait(false);
+                await LoadRentalsAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update rental customer {CustomerID}", rental.CustomerID);
+                await LoadRentalsAsync();
+                await _dialogService.ShowInfoAsync($"Failed to update customer: {ex.Message} The rental job has been refreshed so current details match the latest saved state.", "Error");
+            }
+        }
+
+        async Task AddRentalItemAsync()
+        {
+            if (SelectedRental == null || _itemService == null)
+                return;
+
+            var rental = SelectedRental;
+            var item = ShowRentalItemPicker("Add Item To Rental Job", excludedItemId: rental.ItemID);
+            if (item == null)
+                return;
+
+            try
+            {
+                IsLoading = true;
+                await _rentalService.RentItemAsync(item.ItemID, rental.CustomerID, DateTime.Today, rental.DueDate).ConfigureAwait(false);
+                await LoadRentalsAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to add item {ItemID} to rental job for customer {CustomerID}", item.ItemID, rental.CustomerID);
+                await LoadRentalsAsync();
+                await _dialogService.ShowInfoAsync($"Failed to add item to rental job: {ex.Message} The rental desk has been refreshed so current rental actions match the latest saved state.", "Error");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        async Task SwapRentalItemAsync()
+        {
+            if (SelectedRental == null || _itemService == null)
+                return;
+
+            var rental = SelectedRental;
+            var item = ShowRentalItemPicker("Swap Rental Item", excludedItemId: rental.ItemID);
+            if (item == null)
+                return;
+
+            try
+            {
+                IsLoading = true;
+                await _rentalService.SwapRentalItemAsync(rental.RentalID, item.ItemID).ConfigureAwait(false);
+                await LoadRentalsAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to swap rental {RentalID} to item {ItemID}", rental.RentalID, item.ItemID);
+                await RefreshRentalDeskAfterOperationFailureAsync(rental.RentalID);
+                await _dialogService.ShowInfoAsync($"Failed to swap rental item: {ex.Message} The rental desk has been refreshed so current rental actions match the latest saved state.", "Error");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        ItemModel? ShowRentalItemPicker(string title, int excludedItemId)
+        {
+            if (Application.Current == null || _itemService == null)
+                return null;
+
+            var window = new RentalItemPickerWindow(_itemService, title, excludedItemId);
+            try { window.Owner = Application.Current.Windows.Cast<Window>().ToList().FirstOrDefault(w => w.IsActive) ?? Application.Current.MainWindow; }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to set owner for rental item picker."); }
+            return window.ShowDialog() == true ? window.SelectedItem : null;
         }
 
         async Task RefreshRentalDeskAfterOperationFailureAsync(int rentalId)

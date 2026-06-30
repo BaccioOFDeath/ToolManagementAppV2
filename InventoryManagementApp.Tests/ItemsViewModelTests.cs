@@ -155,6 +155,67 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task InitializeAsync_UsesUserScopedLastFilterWhenUserContextExists()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settingValues = new Dictionary<string, string>
+            {
+                ["LastFilter"] = "previous user search",
+                ["LastFilter.User.7"] = "my search"
+            };
+            var settings = new DummySettingsService(settings: settingValues);
+            var userContext = new DummyUserContext { CurrentUser = new User { UserID = 7, UserName = "Garett" } };
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance, userContext: userContext);
+
+            await vm.InitializeAsync();
+
+            Assert.Equal("my search", vm.Filter);
+        }
+
+        [Fact]
+        public async Task InitializeAsync_DoesNotLoadPreviousGlobalFilterForSignedInUser()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settingValues = new Dictionary<string, string>
+            {
+                ["LastFilter"] = "previous user search"
+            };
+            var settings = new DummySettingsService(settings: settingValues);
+            var userContext = new DummyUserContext { CurrentUser = new User { UserID = 8, UserName = "Other" } };
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance, userContext: userContext);
+
+            await vm.InitializeAsync();
+
+            Assert.Equal(string.Empty, vm.Filter);
+        }
+
+        [Fact]
+        public async Task SearchCommand_SavesLastFilterAgainstCurrentUser()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            var userContext = new DummyUserContext { CurrentUser = new User { UserID = 9, UserName = "FilterOwner" } };
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance, userContext: userContext);
+            await vm.InitializeAsync();
+
+            vm.Filter = "grinder";
+            await vm.SearchCommand.ExecuteAsync(null);
+            var saved = await settings.GetAllSettingsAsync();
+
+            Assert.False(saved.ContainsKey("LastFilter"));
+            Assert.Equal("grinder", saved["LastFilter.User.9"]);
+        }
+
+        [Fact]
         public void SteadyExceeded_TrimsToThreePages()
         {
             var service = new DummyItemService();

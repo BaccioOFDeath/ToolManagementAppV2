@@ -562,12 +562,15 @@ namespace InventoryManagementApp.ViewModels
         async Task RefreshItemStateAsync()
         {
             var refreshed = await _itemService.GetItemByIDAsync(ItemModel.ItemID).ConfigureAwait(false);
-            if (refreshed != null)
+            await InvokeOnUiThreadAsync(() =>
             {
-                CopyItem(ItemModel, refreshed);
-            }
+                if (refreshed != null)
+                {
+                    CopyItem(ItemModel, refreshed);
+                }
 
-            RefreshState();
+                RefreshState();
+            }).ConfigureAwait(false);
         }
 
         static string FormatElapsed(TimeSpan elapsed)
@@ -645,6 +648,18 @@ namespace InventoryManagementApp.ViewModels
         {
             ItemModel.PropertyChanged -= ItemModel_PropertyChanged;
             WeakReferenceMessenger.Default.UnregisterAll(this);
+        }
+
+        private static Task InvokeOnUiThreadAsync(Action action)
+        {
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null || dispatcher.CheckAccess())
+            {
+                action();
+                return Task.CompletedTask;
+            }
+
+            return dispatcher.InvokeAsync(action).Task;
         }
     }
 }

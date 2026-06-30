@@ -123,7 +123,8 @@ namespace InventoryManagementApp.Tests
                 "RefreshActiveRentals();",
                 "ApplyFilter(rentalId);",
                 "var rentalToExtend = SelectedRental;",
-                "await _rentalService.ExtendRentalAsync(rentalToExtend.RentalID, newDueDate);",
+                "var newDueDate = ShowExtendDueDateDialog(rentalToExtend);",
+                "await _rentalService.ExtendRentalAsync(rentalToExtend.RentalID, newDueDate.Value);",
                 "_logger.LogError(ex, \"Failed to extend rental {RentalID}\", rentalToExtend.RentalID);",
                 "_logger.LogError(ex, \"Failed to delete rental {RentalID}\", rentalToDelete.RentalID);",
                 "The rental desk has been refreshed so current rental actions match the latest saved state.");
@@ -181,6 +182,44 @@ namespace InventoryManagementApp.Tests
                 "PlaceRequestCommand",
                 "PrintRentalCommand",
                 "OpenHistoryCommand");
+        }
+
+        [Fact]
+        public void RentalJobSupportsDatePickerExtensionCustomerEditAndItemChanges()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
+            var service = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+            var rentalInterface = ReadRepoFile("InventoryManagementApp", "Interfaces", "IRentalService.cs");
+            var window = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalJobDetailsWindow.xaml");
+            var dueDateWindow = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalDueDateWindow.xaml");
+            var itemPickerWindow = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalItemPickerWindow.xaml");
+
+            AssertContainsAll(
+                source,
+                "DateTime? ShowExtendDueDateDialog(RentalModel rental)",
+                "new RentalDueDateWindow(rental.DueDate)",
+                "EditRentalCustomerCommand",
+                "AddRentalItemCommand",
+                "SwapRentalItemCommand",
+                "await _customerService.UpdateCustomerAsync(updated)",
+                "await _rentalService.RentItemAsync(item.ItemID, rental.CustomerID, DateTime.Today, rental.DueDate)",
+                "await _rentalService.SwapRentalItemAsync(rental.RentalID, item.ItemID)");
+            Assert.DoesNotContain("var newDueDate = rentalToExtend.DueDate.AddDays(7);", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                service,
+                "public async Task SwapRentalItemAsync(int rentalID, int newItemID)",
+                "SELECT ItemID FROM Rentals WHERE RentalID=@RentalID AND Status='Rented'",
+                "UPDATE Rentals SET ItemID=@NewItemID WHERE RentalID=@RentalID AND Status='Rented'",
+                "await _itemService.UpdateItemQuantitiesAsync(oldItemID, 1, false, conn, tx);",
+                "await _itemService.UpdateItemQuantitiesAsync(newItemID, 1, true, conn, tx);");
+            Assert.Contains("Task SwapRentalItemAsync(int rentalID, int newItemID)", rentalInterface, StringComparison.Ordinal);
+            AssertContainsAll(
+                window,
+                "SwapRentalItemCommand",
+                "AddRentalItemCommand",
+                "EditRentalCustomerCommand");
+            AssertContainsAll(dueDateWindow, "DatePicker", "Save Date");
+            AssertContainsAll(itemPickerWindow, "DataGrid", "Use Item");
         }
 
         private static void AssertContainsAll(string source, params string[] expectedSnippets)
