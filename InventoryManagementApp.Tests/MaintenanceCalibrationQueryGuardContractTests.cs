@@ -36,6 +36,53 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void MaintenanceListQueriesAreCappedWithSharedLimit()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Maintenance", "MaintenanceService.cs");
+
+            AssertContainsAll(
+                source,
+                "private const int MaxMaintenanceListCount = 500;",
+                "cmd.Parameters.AddWithValue(\"@MaintenanceListLimit\", MaxMaintenanceListCount);");
+
+            AssertCappedQuery(
+                ExtractMethod(
+                    source,
+                    "public async Task<List<MaintenanceRecord>> GetAllMaintenanceRecordsAsync()",
+                    "public async Task<List<MaintenanceRecord>> GetMaintenanceRecordsByItemAsync(int itemID)"),
+                "ORDER BY m.ScheduledDate DESC",
+                "LIMIT @MaintenanceListLimit",
+                "cmd.Parameters.AddWithValue(\"@MaintenanceListLimit\", MaxMaintenanceListCount);");
+
+            AssertCappedQuery(
+                ExtractMethod(
+                    source,
+                    "public async Task<List<MaintenanceRecord>> GetMaintenanceRecordsByItemAsync(int itemID)",
+                    "public async Task<List<MaintenanceRecord>> GetOverdueMaintenanceAsync()"),
+                "ORDER BY m.ScheduledDate DESC",
+                "LIMIT @MaintenanceListLimit",
+                "cmd.Parameters.AddWithValue(\"@MaintenanceListLimit\", MaxMaintenanceListCount);");
+
+            AssertCappedQuery(
+                ExtractMethod(
+                    source,
+                    "public async Task<List<MaintenanceRecord>> GetOverdueMaintenanceAsync()",
+                    "public async Task<List<MaintenanceRecord>> GetUpcomingMaintenanceAsync(int days = 30)"),
+                "ORDER BY m.ScheduledDate ASC",
+                "LIMIT @MaintenanceListLimit",
+                "cmd.Parameters.AddWithValue(\"@MaintenanceListLimit\", MaxMaintenanceListCount);");
+
+            AssertCappedQuery(
+                ExtractMethod(
+                    source,
+                    "public async Task<List<MaintenanceRecord>> GetUpcomingMaintenanceAsync(int days = 30)",
+                    "public async Task<MaintenanceRecord?> GetMaintenanceRecordByIdAsync(int maintenanceID)"),
+                "ORDER BY m.ScheduledDate ASC",
+                "LIMIT @MaintenanceListLimit",
+                "cmd.Parameters.AddWithValue(\"@MaintenanceListLimit\", MaxMaintenanceListCount);");
+        }
+
+        [Fact]
         public void CalibrationItemQueriesValidateParentItemBeforeItemQueries()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Calibration", "CalibrationService.cs");
@@ -80,12 +127,72 @@ namespace InventoryManagementApp.Tests
                 "Expected latest calibration lookup to confirm the item row exists before building/executing the lookup query.");
         }
 
+        [Fact]
+        public void CalibrationListQueriesAreCappedWithSharedLimit()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Calibration", "CalibrationService.cs");
+
+            AssertContainsAll(
+                source,
+                "private const int MaxCalibrationListCount = 500;",
+                "cmd.Parameters.AddWithValue(\"@CalibrationListLimit\", MaxCalibrationListCount);");
+
+            AssertCappedQuery(
+                ExtractMethod(
+                    source,
+                    "public async Task<List<CalibrationRecord>> GetAllCalibrationRecordsAsync()",
+                    "public async Task<List<CalibrationRecord>> GetCalibrationRecordsByItemAsync(int itemID)"),
+                "ORDER BY c.CalibrationDate DESC",
+                "LIMIT @CalibrationListLimit",
+                "cmd.Parameters.AddWithValue(\"@CalibrationListLimit\", MaxCalibrationListCount);");
+
+            AssertCappedQuery(
+                ExtractMethod(
+                    source,
+                    "public async Task<List<CalibrationRecord>> GetCalibrationRecordsByItemAsync(int itemID)",
+                    "public async Task<List<CalibrationRecord>> GetOverdueCalibrationAsync()"),
+                "ORDER BY c.CalibrationDate DESC",
+                "LIMIT @CalibrationListLimit",
+                "cmd.Parameters.AddWithValue(\"@CalibrationListLimit\", MaxCalibrationListCount);");
+
+            AssertCappedQuery(
+                ExtractMethod(
+                    source,
+                    "public async Task<List<CalibrationRecord>> GetOverdueCalibrationAsync()",
+                    "public async Task<List<CalibrationRecord>> GetUpcomingCalibrationAsync(int days = 30)"),
+                "ORDER BY c.NextCalibrationDue ASC",
+                "LIMIT @CalibrationListLimit",
+                "cmd.Parameters.AddWithValue(\"@CalibrationListLimit\", MaxCalibrationListCount);");
+
+            AssertCappedQuery(
+                ExtractMethod(
+                    source,
+                    "public async Task<List<CalibrationRecord>> GetUpcomingCalibrationAsync(int days = 30)",
+                    "public async Task<CalibrationRecord?> GetLatestCalibrationForItemAsync(int itemID)"),
+                "ORDER BY c.NextCalibrationDue ASC",
+                "LIMIT @CalibrationListLimit",
+                "cmd.Parameters.AddWithValue(\"@CalibrationListLimit\", MaxCalibrationListCount);");
+        }
+
         private static void AssertContainsAll(string source, params string[] expectedSnippets)
         {
             foreach (var snippet in expectedSnippets)
             {
                 Assert.Contains(snippet, source, StringComparison.Ordinal);
             }
+        }
+
+        private static void AssertCappedQuery(string method, string orderBySnippet, string limitSnippet, string parameterSnippet)
+        {
+            AssertContainsAll(method, orderBySnippet, limitSnippet, parameterSnippet);
+            Assert.True(
+                method.IndexOf(orderBySnippet, StringComparison.Ordinal) <
+                method.IndexOf(limitSnippet, StringComparison.Ordinal),
+                "Expected list cap to be applied after the query ordering so the most relevant rows are retained.");
+            Assert.True(
+                method.IndexOf(limitSnippet, StringComparison.Ordinal) <
+                method.IndexOf(parameterSnippet, StringComparison.Ordinal),
+                "Expected the list cap SQL placeholder to be bound before the query is executed.");
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)
