@@ -55,6 +55,23 @@ try {
         New-Item -ItemType Directory -Path $validationLogsPath | Out-Null
     }
 
+    Invoke-ValidationStep "Capture validation environment" {
+        $environmentLogPath = Get-ValidationLogPath "environment.txt"
+        @(
+            "GeneratedAtUtc=$((Get-Date).ToUniversalTime().ToString('o'))",
+            "RepositoryRoot=$repoRoot",
+            "Configuration=$Configuration",
+            "Runtime=$Runtime",
+            "SkipPublish=$SkipPublish",
+            "",
+            "PowerShellVersion=$($PSVersionTable.PSVersion)",
+            "",
+            "dotnet --info:"
+        ) | Set-Content -Path $environmentLogPath -Encoding UTF8
+
+        dotnet --info | Out-File -FilePath $environmentLogPath -Append -Encoding UTF8
+    }
+
     Invoke-ValidationStep "Restore solution" {
         $restoreLogPath = Get-ValidationLogPath "restore.binlog"
         dotnet restore InventoryManagementApp.sln -bl:$restoreLogPath
