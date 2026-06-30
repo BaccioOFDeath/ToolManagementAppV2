@@ -27,6 +27,8 @@ jobs:
       shell: pwsh
       run: |
         if (Test-Path ./ValidationLogs) { Remove-Item ./ValidationLogs -Recurse -Force }
+        if (Test-Path ./TestResults) { Remove-Item ./TestResults -Recurse -Force }
+        if (Test-Path ./publish) { Remove-Item ./publish -Recurse -Force }
         New-Item -ItemType Directory -Path ./ValidationLogs | Out-Null
 
     - name: Capture validation environment
