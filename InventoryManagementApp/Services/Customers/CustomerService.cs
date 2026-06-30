@@ -24,6 +24,8 @@ namespace InventoryManagementApp.Services.Customers
     /// </summary>
     public class CustomerService : ICustomerService
     {
+        private const int MaxCustomerSearchResults = 500;
+
         private readonly DatabaseService _dbService;
         private readonly ILogger<CustomerService> _logger;
         private readonly IAuthorizationService _auth;
@@ -309,8 +311,14 @@ namespace InventoryManagementApp.Services.Customers
 
             const string sql = @"
                 SELECT * FROM Customers
-                WHERE Company LIKE @t OR Contact LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t";
-            var p = new[] { new SqliteParameter("@t", $"%{searchTerm}%") };
+                WHERE Company LIKE @t OR Contact LIKE @t OR Email LIKE @t OR Phone LIKE @t OR Mobile LIKE @t OR Address LIKE @t
+                ORDER BY Company ASC, Contact ASC, CustomerID ASC
+                LIMIT @CustomerSearchLimit";
+            var p = new[]
+            {
+                new SqliteParameter("@t", $"%{searchTerm}%"),
+                new SqliteParameter("@CustomerSearchLimit", MaxCustomerSearchResults)
+            };
             using var conn = _dbService.CreateConnection();
             try
             {
