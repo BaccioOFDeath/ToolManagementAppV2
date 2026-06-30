@@ -384,7 +384,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
-        <Setter Property="CanContentScroll" Value="True"/>
+        <Setter Property="CanContentScroll" Value="False"/>
         <Setter Property="PanningMode" Value="Both"/>
     </Style>
 

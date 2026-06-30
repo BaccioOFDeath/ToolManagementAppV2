@@ -4,14 +4,17 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
+using System.Windows.Threading;
 
 namespace InventoryManagementApp.Utilities
 {
     public static class SmoothMouseWheelScroll
     {
         const double WheelDelta = 120.0;
-        const double PixelsPerWheelStep = 42.0;
-        const double LogicalUnitsPerWheelStep = 0.65;
+        const double PixelsPerWheelStep = 88.0;
+        const double LogicalUnitsPerWheelStep = 1.0;
+        const double AnimationMilliseconds = 180.0;
+        static readonly Dictionary<ScrollViewer, ScrollAnimation> Animations = new();
 
         public static bool TryHandle(MouseWheelEventArgs? e)
         {
@@ -29,9 +32,20 @@ namespace InventoryManagementApp.Utilities
             if (AreClose(targetOffset, scrollViewer.VerticalOffset))
                 return false;
 
-            scrollViewer.ScrollToVerticalOffset(targetOffset);
+            AnimateTo(scrollViewer, targetOffset);
             e.Handled = true;
             return true;
+        }
+
+        static void AnimateTo(ScrollViewer scrollViewer, double targetOffset)
+        {
+            if (!Animations.TryGetValue(scrollViewer, out var animation))
+            {
+                animation = new ScrollAnimation(scrollViewer);
+                Animations[scrollViewer] = animation;
+            }
+
+            animation.Start(targetOffset, () => Animations.Remove(scrollViewer));
         }
 
         static ScrollViewer? FindScrollableViewer(DependencyObject? source, int wheelDelta)
@@ -84,5 +98,72 @@ namespace InventoryManagementApp.Utilities
 
         static bool AreClose(double left, double right)
             => System.Math.Abs(left - right) < 0.001;
+
+        sealed class ScrollAnimation
+        {
+            readonly ScrollViewer _scrollViewer;
+            readonly DispatcherTimer _timer;
+            Action? _onCompleted;
+            DateTime _startedAt;
+            double _startOffset;
+            double _targetOffset;
+
+            public ScrollAnimation(ScrollViewer scrollViewer)
+            {
+                _scrollViewer = scrollViewer;
+                _timer = new DispatcherTimer(DispatcherPriority.Render, scrollViewer.Dispatcher)
+                {
+                    Interval = TimeSpan.FromMilliseconds(1000.0 / 60.0)
+                };
+                _timer.Tick += OnTick;
+                _scrollViewer.Unloaded += ScrollViewer_Unloaded;
+            }
+
+            public void Start(double targetOffset, Action onCompleted)
+            {
+                _onCompleted = onCompleted;
+                _startOffset = _scrollViewer.VerticalOffset;
+                _targetOffset = Coerce(targetOffset, 0, _scrollViewer.ScrollableHeight);
+                _startedAt = DateTime.UtcNow;
+
+                if (!_timer.IsEnabled)
+                    _timer.Start();
+            }
+
+            void OnTick(object? sender, EventArgs e)
+            {
+                if (_scrollViewer.ScrollableHeight <= 0)
+                {
+                    Stop();
+                    return;
+                }
+
+                var elapsed = (DateTime.UtcNow - _startedAt).TotalMilliseconds;
+                var progress = Coerce(elapsed / AnimationMilliseconds, 0, 1);
+                var eased = EaseOutCubic(progress);
+                var offset = _startOffset + (_targetOffset - _startOffset) * eased;
+                _scrollViewer.ScrollToVerticalOffset(Coerce(offset, 0, _scrollViewer.ScrollableHeight));
+
+                if (progress >= 1 || AreClose(_scrollViewer.VerticalOffset, _targetOffset))
+                    Stop();
+            }
+
+            void ScrollViewer_Unloaded(object sender, RoutedEventArgs e)
+                => Stop();
+
+            void Stop()
+            {
+                _timer.Stop();
+                _scrollViewer.Unloaded -= ScrollViewer_Unloaded;
+                _onCompleted?.Invoke();
+                _onCompleted = null;
+            }
+
+            static double EaseOutCubic(double value)
+            {
+                var inverse = 1 - value;
+                return 1 - inverse * inverse * inverse;
+            }
+        }
     }
 }

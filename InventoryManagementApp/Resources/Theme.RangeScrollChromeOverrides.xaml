@@ -132,7 +132,7 @@
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
-        <Setter Property="CanContentScroll" Value="True"/>
+        <Setter Property="CanContentScroll" Value="False"/>
         <Setter Property="PanningMode" Value="Both"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="UseLayoutRounding" Value="True"/>

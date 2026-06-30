@@ -6,13 +6,41 @@
       Focusable="True">
     <Page.Resources>
         <Style x:Key="RentalStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="MinHeight" Value="60"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="MinHeight" Value="48"/>
             <Setter Property="Margin" Value="0,0,8,0"/>
         </Style>
         <Style x:Key="RentalDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+        <Style x:Key="RentalFilterLabel" TargetType="TextBlock" BasedOn="{StaticResource LabelTextBlock}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,6,4"/>
+        </Style>
+        <Style x:Key="RentalFilterTextBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Width" Value="220"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,12,4"/>
+        </Style>
+        <Style x:Key="RentalFilterDatePicker" TargetType="DatePicker" BasedOn="{StaticResource {x:Type DatePicker}}">
+            <Setter Property="Width" Value="158"/>
+            <Setter Property="MinWidth" Value="158"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Margin" Value="0,0,12,4"/>
+        </Style>
+        <Style x:Key="RentalFilterComboBox" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="Width" Value="108"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Margin" Value="0,0,12,4"/>
+        </Style>
+        <Style x:Key="RentalFilterButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Margin" Value="0,0,6,4"/>
         </Style>
     </Page.Resources>
 
@@ -104,18 +132,18 @@
                             <TextBlock DockPanel.Dock="Right" Text="{Binding SearchSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="12,0,0,0"/>
                         </DockPanel>
                     </Border>
-                    <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
+                    <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}" Padding="10,8">
                         <WrapPanel VerticalAlignment="Center">
-                            <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,6"/>
-                            <TextBox x:Name="SearchTextBox" Width="250" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,6" ToolTip="Search item number, location, or customer"/>
-                            <TextBlock Text="From" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="2,0,6,6"/>
-                            <DatePicker SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}" Width="132" Margin="0,0,8,6"/>
-                            <TextBlock Text="To" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="2,0,6,6"/>
-                            <DatePicker SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}" Width="132" Margin="0,0,8,6"/>
-                            <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}" Width="118" Margin="0,0,8,6"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearFilterCommand}" Margin="0,0,4,6"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintSearchResultsCommand}" Margin="0,0,4,6"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,0,6"/>
+                            <TextBlock Text="Find" Style="{StaticResource RentalFilterLabel}"/>
+                            <TextBox x:Name="SearchTextBox" Style="{StaticResource RentalFilterTextBox}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Search item number, location, or customer"/>
+                            <TextBlock Text="From" Style="{StaticResource RentalFilterLabel}"/>
+                            <DatePicker Style="{StaticResource RentalFilterDatePicker}" SelectedDate="{Binding FilterFrom, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="To" Style="{StaticResource RentalFilterLabel}"/>
+                            <DatePicker Style="{StaticResource RentalFilterDatePicker}" SelectedDate="{Binding FilterTo, UpdateSourceTrigger=PropertyChanged}"/>
+                            <ComboBox Style="{StaticResource RentalFilterComboBox}" ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Style="{StaticResource RentalFilterButton}" Content="Clear" Command="{Binding ClearFilterCommand}"/>
+                            <Button Style="{StaticResource RentalFilterButton}" Content="Print List" Command="{Binding PrintSearchResultsCommand}"/>
+                            <Button Style="{StaticResource RentalFilterButton}" Content="Print Checked Out" Command="{Binding PrintCheckedOutCommand}" Margin="0,0,0,4"/>
                         </WrapPanel>
                     </Border>
                     <DataGrid Grid.Row="2"

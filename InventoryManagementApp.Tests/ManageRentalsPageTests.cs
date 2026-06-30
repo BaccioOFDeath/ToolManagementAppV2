@@ -61,6 +61,12 @@ namespace InventoryManagementApp.Tests
                     Assert.Contains("x:Name=\"RentalStatsStrip\"", xaml);
                     Assert.Contains("x:Name=\"RequestDetailColumn\"", xaml);
                     Assert.Contains("x:Name=\"RequestDetailPanel\"", xaml);
+                    Assert.Contains("x:Key=\"RentalFilterDatePicker\"", xaml, StringComparison.Ordinal);
+                    Assert.Contains("<Setter Property=\"Width\" Value=\"158\"/>", xaml, StringComparison.Ordinal);
+                    Assert.Contains("<Setter Property=\"Height\" Value=\"34\"/>", xaml, StringComparison.Ordinal);
+                    Assert.Contains("<Setter Property=\"MinHeight\" Value=\"48\"/>", xaml, StringComparison.Ordinal);
+                    Assert.Contains("Style=\"{StaticResource RentalFilterDatePicker}\"", xaml, StringComparison.Ordinal);
+                    Assert.DoesNotContain("Width=\"132\"", xaml, StringComparison.Ordinal);
 
                     var codeBehindPath = Path.ChangeExtension(xamlPath, ".xaml.cs");
                     var codeBehind = File.ReadAllText(codeBehindPath);
