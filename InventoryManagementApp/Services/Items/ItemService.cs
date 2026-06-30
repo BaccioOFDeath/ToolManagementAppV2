@@ -246,47 +246,52 @@ namespace InventoryManagementApp.Services.Items
             foreach (var file in files)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var ext = Path.GetExtension(file);
-                if (!supported.Contains(ext))
-                    continue;
+                try
+                {
+                    var ext = Path.GetExtension(file);
+                    if (!supported.Contains(ext))
+                        continue;
 
-                var name = Path.GetFileNameWithoutExtension(file).ToUpperInvariant();
-                if (!groups.TryGetValue(name, out var list) || list.Count == 0)
-                {
-                    result.UnmatchedFiles.Add(file);
-                    continue;
-                }
-                if (list.Count > 1)
-                {
-                    result.ConflictingFiles.Add(file);
-                    continue;
-                }
-                var item = list[0];
-                if (!string.IsNullOrWhiteSpace(item.ImagePath))
-                {
-                    result.ConflictingFiles.Add(file);
-                    continue;
-                }
-                var fileName = Path.GetFileNameWithoutExtension(file) + ".jpg";
-                var dest = Path.Combine(destDir, fileName);
-                if (!File.Exists(dest))
-                {
-                    try
+                    var name = Path.GetFileNameWithoutExtension(file).ToUpperInvariant();
+                    if (!groups.TryGetValue(name, out var list) || list.Count == 0)
                     {
-                        await CopyFileAsync(file, dest, 256, 256, cancellationToken);
+                        result.UnmatchedFiles.Add(file);
+                        continue;
                     }
-                    catch (IOException ex)
+                    if (list.Count > 1)
                     {
-                        _logger.LogError(ex, "Failed to copy image from {Source} to {Destination}", file, dest);
                         result.ConflictingFiles.Add(file);
                         continue;
                     }
+                    var item = list[0];
+                    if (!string.IsNullOrWhiteSpace(item.ImagePath))
+                    {
+                        result.ConflictingFiles.Add(file);
+                        continue;
+                    }
+                    var fileName = Path.GetFileNameWithoutExtension(file) + ".jpg";
+                    var dest = Path.Combine(destDir, fileName);
+                    if (!File.Exists(dest))
+                        await CopyFileAsync(file, dest, 256, 256, cancellationToken);
+
+                    var relative = $"Assets/ItemImages/{fileName}";
+                    await UpdateItemImageAsync(item.ItemID, relative, cancellationToken);
+                    result.ImportedCount++;
                 }
-                var relative = $"Assets/ItemImages/{fileName}";
-                await UpdateItemImageAsync(item.ItemID, relative, cancellationToken);
-                result.ImportedCount++;
-                processed++;
-                progress?.Report(new ImageImportProgress { Processed = processed, Total = total });
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to import image {Source}", file);
+                    result.ConflictingFiles.Add(file);
+                }
+                finally
+                {
+                    processed++;
+                    progress?.Report(new ImageImportProgress { Processed = processed, Total = total });
+                }
             }
 
             return result;
