@@ -125,6 +125,42 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void RentalListQueriesCapReturnedRowsAfterDeterministicOrdering()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+
+            Assert.Contains("private const int MaxRentalListCount = 500;", source, StringComparison.Ordinal);
+
+            var activeMethod = ExtractMethod(
+                source,
+                "public async Task<List<Rental>> GetActiveRentalsAsync()",
+                "public async Task<List<Rental>> GetOverdueRentalsAsync()");
+            AssertContainsAll(
+                activeMethod,
+                "WHERE r.Status='Rented' ORDER BY r.DueDate ASC LIMIT @RentalListLimit",
+                "new SqliteParameter(\"@RentalListLimit\", MaxRentalListCount)");
+
+            var overdueMethod = ExtractMethod(
+                source,
+                "public async Task<List<Rental>> GetOverdueRentalsAsync()",
+                "public async Task<List<Rental>> GetAllRentalsAsync()");
+            AssertContainsAll(
+                overdueMethod,
+                "WHERE r.Status = 'Rented' AND r.DueDate < @Today ORDER BY r.DueDate ASC LIMIT @RentalListLimit",
+                "new SqliteParameter(\"@Today\", DateTime.Today)",
+                "new SqliteParameter(\"@RentalListLimit\", MaxRentalListCount)");
+
+            var allMethod = ExtractMethod(
+                source,
+                "public async Task<List<Rental>> GetAllRentalsAsync()",
+                "public async Task<List<Rental>> GetRentalHistoryForItemAsync");
+            AssertContainsAll(
+                allMethod,
+                "ORDER BY r.RentalDate DESC LIMIT @RentalListLimit",
+                "new SqliteParameter(\"@RentalListLimit\", MaxRentalListCount)");
+        }
+
+        [Fact]
         public void RentalFrequencyValidatesPositiveLimitBeforeSqlWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
