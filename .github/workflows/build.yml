@@ -21,14 +21,20 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
+    - name: Prepare validation logs
+      shell: pwsh
+      run: |
+        if (Test-Path ./ValidationLogs) { Remove-Item ./ValidationLogs -Recurse -Force }
+        New-Item -ItemType Directory -Path ./ValidationLogs | Out-Null
+
     - name: Restore dependencies
-      run: dotnet restore InventoryManagementApp.sln
+      run: dotnet restore InventoryManagementApp.sln -bl:./ValidationLogs/restore.binlog
 
     - name: Audit vulnerable packages
       run: dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive
 
     - name: Build
-      run: dotnet build InventoryManagementApp.sln --configuration Release --no-restore
+      run: dotnet build InventoryManagementApp.sln --configuration Release --no-restore -bl:./ValidationLogs/build.binlog
 
     - name: Prepare test results
       shell: pwsh
@@ -49,14 +55,14 @@ jobs:
         if-no-files-found: ignore
 
     - name: Restore publish runtime
-      run: dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64
+      run: dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64 -bl:./ValidationLogs/publish-restore.binlog
 
     - name: Clean publish output
       shell: pwsh
       run: if (Test-Path ./publish) { Remove-Item ./publish -Recurse -Force }
 
     - name: Publish
-      run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish
+      run: dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish -bl:./ValidationLogs/publish.binlog
 
     - name: Verify publish artifacts
       shell: pwsh
@@ -87,3 +93,12 @@ jobs:
         name: inventory-management-app
         path: ./publish/
         retention-days: 7
+
+    - name: Upload validation logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: validation-msbuild-logs
+        path: ./ValidationLogs/
+        retention-days: 7
+        if-no-files-found: ignore
