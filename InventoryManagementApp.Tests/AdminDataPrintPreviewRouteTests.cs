@@ -46,6 +46,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Dashboard checked-out item handoff", source, StringComparison.Ordinal);
             Assert.Contains("Dashboard operations snapshot", source, StringComparison.Ordinal);
             Assert.Contains("AddCheckedOutItemTable(doc, CheckedOutItems", source, StringComparison.Ordinal);
+            Assert.Contains("AddTableCell(headerRow, \"Photo\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("AddImageTableCell(row, item.ImagePath, item.ItemNumber)", source, StringComparison.Ordinal);
+            Assert.Contains("TryLoadPrintImage", source, StringComparison.Ordinal);
             Assert.Contains("AddTableCell(headerRow, \"Identifiers\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddTableCell(headerRow, \"Out Since\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddTableCell(headerRow, \"Handoff\", true)", source, StringComparison.Ordinal);
@@ -55,6 +58,19 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("new System.Windows.Controls.PrintDialog", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new PrintDialog", source, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((System.Windows.Documents.IDocumentPaginatorSource)doc).DocumentPaginator", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void RentalDeskPrintsIncludeItemPhotos()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
+
+            Assert.Contains("AddRentalImageBlock(doc, SelectedRental);", source, StringComparison.Ordinal);
+            Assert.Contains("AddPrintRow(group, true, \"Photo\", \"Rental\", \"Item #\", \"Location\", \"Checked Out To\", \"Out\", \"Due\", \"Status\")", source, StringComparison.Ordinal);
+            Assert.Contains("AddRentalPrintRow(group, rental);", source, StringComparison.Ordinal);
+            Assert.Contains("AddPrintImageCell(row, rental);", source, StringComparison.Ordinal);
+            Assert.Contains("TryLoadRentalPrintImage", source, StringComparison.Ordinal);
+            Assert.Contains("AppAssetHelper.ItemImagesFolder", source, StringComparison.Ordinal);
         }
 
         [Fact]

@@ -1,0 +1,185 @@
+<Window x:Class="InventoryManagementApp.Views.Windows.RentalJobDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding SelectedRental.ItemNumber, StringFormat='Rental Job - {0}', TargetNullValue='Rental Job'}"
+        Width="900"
+        Height="720"
+        MinWidth="760"
+        MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BackgroundBrush}">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,10">
+            <DockPanel LastChildFill="True">
+                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="14,0,0,0">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintRentalCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,0,6"/>
+                </WrapPanel>
+                <StackPanel>
+                    <TextBlock Text="Rental Job" Style="{StaticResource PageTitleTextBlock}"/>
+                    <TextBlock Text="{Binding SelectedRental.ItemNumber, StringFormat='{}{0}', TargetNullValue='No rental selected'}"
+                               Style="{StaticResource HeadingTextBlock}"
+                               TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding SelectedRental.CustomerName, StringFormat='Customer: {0}', TargetNullValue='Customer: Not recorded'}"
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,3,0,0"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="270"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="12">
+                <StackPanel>
+                    <Border Height="220"
+                            Background="{DynamicResource ControlBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrushAlt}"
+                            BorderThickness="1"
+                            Margin="0,0,0,12">
+                        <Image Source="{Binding SelectedRental, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                               Stretch="Uniform"
+                               Margin="8"/>
+                    </Border>
+
+                    <TextBlock Text="{Binding SelectedRental.Status, StringFormat='Status: {0}', TargetNullValue='Status: -'}"
+                               Style="{StaticResource HeadingTextBlock}"
+                               TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding SelectedRental.ItemLocation, StringFormat='Shelf: {0}', TargetNullValue='Shelf: Not recorded'}"
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,0"/>
+                    <TextBlock Text="{Binding SelectedRentalOpenRequestCount, StringFormat='Open requests: {0}'}"
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,2,0,12"/>
+
+                    <Border Style="{StaticResource DesktopNoteCard}" Padding="10" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="Next Action" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding SelectedRentalNextSteps}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="10" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <UniformGrid Columns="3" Margin="0,0,0,10">
+                        <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="Rental #" Style="{StaticResource LabelTextBlock}"/>
+                                <TextBlock Text="{Binding SelectedRental.RentalID}" Style="{StaticResource HeadingTextBlock}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="Time Out" Style="{StaticResource LabelTextBlock}"/>
+                                <TextBlock Text="{Binding SelectedRentalAgeText}" Style="{StaticResource HeadingTextBlock}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource DesktopSummaryCard}">
+                            <StackPanel>
+                                <TextBlock Text="Returned" Style="{StaticResource LabelTextBlock}"/>
+                                <TextBlock Text="{Binding SelectedRentalReturnedText}" Style="{StaticResource HeadingTextBlock}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,10">
+                        <DockPanel LastChildFill="True">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
+                                <TextBlock Text="Customer" Style="{StaticResource SectionHeader}"/>
+                            </Border>
+                            <Grid Margin="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Company" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedRental.CustomerName}" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Contact" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedRental.CustomerContact, TargetNullValue='Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Phone" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedRental.CustomerPhone, TargetNullValue='Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Mobile" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedRental.CustomerMobile, TargetNullValue='Not recorded'}" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Email" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,0"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedRental.CustomerEmail, TargetNullValue='Not recorded'}" TextWrapping="Wrap"/>
+                            </Grid>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" Padding="0">
+                        <DockPanel LastChildFill="True">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
+                                <TextBlock Text="Timing And Item" Style="{StaticResource SectionHeader}"/>
+                            </Border>
+                            <Grid Margin="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Checked out" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedRental.RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Margin="0,0,0,5"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Due back" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedRental.DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Margin="0,0,0,5"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Item #" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedRental.ItemNumber}" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Shelf" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedRental.ItemLocation}" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Status" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,0"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedRental.Status}" TextWrapping="Wrap"/>
+                            </Grid>
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <Border Grid.Row="2" Style="{StaticResource DesktopSectionActionStrip}" Margin="0,10,0,0">
+            <DockPanel LastChildFill="False">
+                <TextBlock DockPanel.Dock="Left"
+                           Text="Review the rental job, then update its due date, check it in, print documents, or inspect history."
+                           Style="{StaticResource CaptionTextBlock}"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"/>
+                <WrapPanel DockPanel.Dock="Right" Margin="12,0,0,0">
+                    <Button Style="{StaticResource GhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Close" Click="Close_Click"/>
+                </WrapPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

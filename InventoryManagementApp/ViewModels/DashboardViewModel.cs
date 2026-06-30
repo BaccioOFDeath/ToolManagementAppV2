@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -948,8 +949,9 @@ namespace InventoryManagementApp.ViewModels
             var itemList = items.ToList();
             AddSectionTitle(doc, title);
 
-            var table = CreateTable(9);
+            var table = CreateTable(10);
             var headerRow = CreateHeaderRow();
+            AddTableCell(headerRow, "Photo", true);
             AddTableCell(headerRow, "Item #", true);
             AddTableCell(headerRow, "Name", true);
             AddTableCell(headerRow, "Identifiers", true);
@@ -964,6 +966,7 @@ namespace InventoryManagementApp.ViewModels
             foreach (var item in itemList)
             {
                 var row = new System.Windows.Documents.TableRow();
+                AddImageTableCell(row, item.ImagePath, item.ItemNumber);
                 AddTableCell(row, item.ItemNumber);
                 AddTableCell(row, item.Name);
                 AddTableCell(row, BuildIdentifierSummary(item));
@@ -1063,6 +1066,85 @@ namespace InventoryManagementApp.ViewModels
             if (isHeader)
                 cell.FontWeight = System.Windows.FontWeights.Bold;
             row.Cells.Add(cell);
+        }
+
+        private static void AddImageTableCell(System.Windows.Documents.TableRow row, string? imagePath, string? itemNumber)
+        {
+            var cell = new System.Windows.Documents.TableCell
+            {
+                BorderBrush = System.Windows.Media.Brushes.Black,
+                BorderThickness = new System.Windows.Thickness(1),
+                Padding = new System.Windows.Thickness(3)
+            };
+
+            if (TryLoadPrintImage(imagePath, itemNumber, out var bitmap))
+            {
+                cell.Blocks.Add(new System.Windows.Documents.BlockUIContainer(new System.Windows.Controls.Image
+                {
+                    Source = bitmap,
+                    Width = 54,
+                    Height = 42,
+                    Stretch = System.Windows.Media.Stretch.Uniform
+                }));
+            }
+            else
+            {
+                cell.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run(string.Empty)));
+            }
+
+            row.Cells.Add(cell);
+        }
+
+        private static bool TryLoadPrintImage(string? imagePath, string? itemNumber, out System.Windows.Media.Imaging.BitmapImage image)
+        {
+            image = null!;
+            foreach (var candidate in BuildPrintImageCandidates(imagePath, itemNumber))
+            {
+                try
+                {
+                    var resolved = ResolvePrintImagePath(candidate);
+                    if (string.IsNullOrWhiteSpace(resolved) || !File.Exists(resolved))
+                        continue;
+
+                    var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bitmap.DecodePixelWidth = 128;
+                    bitmap.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.IgnoreImageCache;
+                    bitmap.UriSource = new Uri(resolved, UriKind.Absolute);
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+
+                    image = bitmap;
+                    return true;
+                }
+                catch
+                {
+                }
+            }
+
+            return false;
+        }
+
+        private static IEnumerable<string> BuildPrintImageCandidates(string? imagePath, string? itemNumber)
+        {
+            if (!string.IsNullOrWhiteSpace(imagePath))
+                yield return imagePath;
+
+            var trimmed = itemNumber?.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed))
+                yield break;
+
+            foreach (var extension in new[] { ".jpg", ".jpeg", ".png", ".bmp", ".gif" })
+                yield return Path.Combine(AppAssetHelper.AssetsDirectoryName, AppAssetHelper.ItemImagesFolder, trimmed + extension);
+        }
+
+        private static string? ResolvePrintImagePath(string path)
+        {
+            if (Path.IsPathFullyQualified(path))
+                return path;
+
+            return AppAssetHelper.ResolveAssetPath(path) ?? PathHelper.GetAbsolutePath(path, false);
         }
     }
 }

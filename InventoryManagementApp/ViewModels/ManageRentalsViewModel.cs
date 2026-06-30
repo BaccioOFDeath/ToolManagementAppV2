@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Services.Reservations;
 using InventoryManagementApp.Utilities.Extensions;
+using InventoryManagementApp.Utilities.Helpers;
+using InventoryManagementApp.Views.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -131,6 +134,10 @@ namespace InventoryManagementApp.ViewModels
                     PrintPickingSlipCommand.NotifyCanExecuteChanged();
                     PrintInvoiceCommand.NotifyCanExecuteChanged();
                     DeleteRentalCommand.NotifyCanExecuteChanged();
+                    OnPropertyChanged(nameof(SelectedRentalOpenRequestCount));
+                    OnPropertyChanged(nameof(SelectedRentalReturnedText));
+                    OnPropertyChanged(nameof(SelectedRentalAgeText));
+                    OnPropertyChanged(nameof(SelectedRentalNextSteps));
                 }
             }
         }
@@ -283,6 +290,7 @@ namespace InventoryManagementApp.ViewModels
             finally
             {
                 OnPropertyChanged(nameof(RequestSummary));
+                OnPropertyChanged(nameof(SelectedRentalOpenRequestCount));
             }
         }
 
@@ -509,29 +517,16 @@ namespace InventoryManagementApp.ViewModels
             if (SelectedRental == null)
                 return;
 
-            var rental = SelectedRental;
-            var details = new StringBuilder();
-            details.AppendLine($"Rental #: {rental.RentalID}");
-            details.AppendLine($"Item #: {rental.ItemNumber}");
-            details.AppendLine($"Location: {ValueOrNotRecorded(rental.ItemLocation)}");
-            details.AppendLine($"Status: {ValueOrNotRecorded(rental.Status)}");
-            details.AppendLine($"Open requests: {PendingRequests.Count(r => r.ItemID == rental.ItemID && r.IsActive)}");
-            details.AppendLine();
-            details.AppendLine($"Checked out to: {ValueOrNotRecorded(rental.CustomerName)}");
-            details.AppendLine($"Contact: {ValueOrNotRecorded(rental.CustomerContact)}");
-            details.AppendLine($"Phone: {ValueOrNotRecorded(rental.CustomerPhone)}");
-            details.AppendLine($"Email: {ValueOrNotRecorded(rental.CustomerEmail)}");
-            details.AppendLine();
-            details.AppendLine($"Checked out: {FormatDate(rental.RentalDate)}");
-            details.AppendLine($"Due back: {FormatDate(rental.DueDate)}");
-            details.AppendLine($"Returned: {FormatNullableDate(rental.ReturnDate)}");
-            details.AppendLine($"Time out: {DescribeRentalAge(rental)}");
-            details.AppendLine();
-            details.AppendLine(IsRentalActive(rental)
-                ? "Next steps: check in when returned, extend if approved, place a request for the next customer, or open history for prior usage."
-                : "Next steps: open history to inspect prior usage, review open requests, or print this rental record.");
+            if (Application.Current == null)
+            {
+                _dialogService.ShowInfo(BuildRentalDetailsText(SelectedRental), $"Rental Details - {SelectedRental.ItemNumber}");
+                return;
+            }
 
-            _dialogService.ShowInfo(details.ToString(), $"Rental Details - {rental.ItemNumber}");
+            var window = new RentalJobDetailsWindow(this);
+            try { window.Owner = Application.Current.MainWindow; }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to set owner for rental job details window."); }
+            window.ShowDialog();
         }
 
         async Task PlaceRequestAsync()
@@ -574,6 +569,7 @@ namespace InventoryManagementApp.ViewModels
                 PendingRequests.Add(savedReservation);
                 SelectedRequest = savedReservation;
                 OnPropertyChanged(nameof(RequestSummary));
+                OnPropertyChanged(nameof(SelectedRentalOpenRequestCount));
 
                 var persistenceNote = _reservationService == null
                     ? "Request captured for this rentals screen."
@@ -736,6 +732,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var doc = CreateRentalDocument("Rental Information");
+                AddRentalImageBlock(doc, SelectedRental);
                 var table = CreateKeyValueTable();
                 var group = table.RowGroups[0];
                 AddKeyValueRow(group, "Rental #:", SelectedRental.RentalID.ToString());
@@ -827,6 +824,7 @@ namespace InventoryManagementApp.ViewModels
                 });
 
                 var table = new Table { CellSpacing = 0 };
+                table.Columns.Add(new TableColumn { Width = new GridLength(64) });
                 table.Columns.Add(new TableColumn { Width = new GridLength(70) });
                 table.Columns.Add(new TableColumn { Width = new GridLength(95) });
                 table.Columns.Add(new TableColumn { Width = new GridLength(140) });
@@ -837,11 +835,11 @@ namespace InventoryManagementApp.ViewModels
 
                 var group = new TableRowGroup();
                 table.RowGroups.Add(group);
-                AddPrintRow(group, true, "Rental", "Item #", "Location", "Checked Out To", "Out", "Due", "Status");
+                AddPrintRow(group, true, "Photo", "Rental", "Item #", "Location", "Checked Out To", "Out", "Due", "Status");
 
                 foreach (var rental in records)
                 {
-                    AddPrintRow(group, false, rental.RentalID.ToString(), rental.ItemNumber, rental.ItemLocation, rental.CustomerName, rental.RentalDate.ToString("yyyy-MM-dd"), rental.DueDate.ToString("yyyy-MM-dd"), rental.Status ?? string.Empty);
+                    AddRentalPrintRow(group, rental);
                 }
 
                 doc.Blocks.Add(table);
@@ -910,6 +908,177 @@ namespace InventoryManagementApp.ViewModels
                 row.Cells.Add(cell);
             }
             group.Rows.Add(row);
+        }
+
+        static void AddRentalPrintRow(TableRowGroup group, RentalModel rental)
+        {
+            var row = new TableRow();
+            AddPrintImageCell(row, rental);
+            AddPrintTextCell(row, rental.RentalID.ToString(), false);
+            AddPrintTextCell(row, rental.ItemNumber, false);
+            AddPrintTextCell(row, rental.ItemLocation, false);
+            AddPrintTextCell(row, rental.CustomerName, false);
+            AddPrintTextCell(row, rental.RentalDate.ToString("yyyy-MM-dd"), false);
+            AddPrintTextCell(row, rental.DueDate.ToString("yyyy-MM-dd"), false);
+            AddPrintTextCell(row, rental.Status ?? string.Empty, false);
+            group.Rows.Add(row);
+        }
+
+        static void AddPrintTextCell(TableRow row, string? value, bool isHeader)
+        {
+            var paragraph = new Paragraph(new Run(value ?? string.Empty))
+            {
+                Margin = new Thickness(3),
+                FontSize = isHeader ? 10 : 9,
+                FontWeight = isHeader ? FontWeights.Bold : FontWeights.Normal
+            };
+            row.Cells.Add(new TableCell(paragraph)
+            {
+                BorderBrush = System.Windows.Media.Brushes.Gray,
+                BorderThickness = new Thickness(0.5),
+                Padding = new Thickness(2)
+            });
+        }
+
+        static void AddPrintImageCell(TableRow row, RentalModel rental)
+        {
+            var cell = new TableCell
+            {
+                BorderBrush = System.Windows.Media.Brushes.Gray,
+                BorderThickness = new Thickness(0.5),
+                Padding = new Thickness(2)
+            };
+
+            if (TryLoadRentalPrintImage(rental, out var bitmap))
+            {
+                cell.Blocks.Add(new BlockUIContainer(new System.Windows.Controls.Image
+                {
+                    Source = bitmap,
+                    Width = 48,
+                    Height = 38,
+                    Stretch = System.Windows.Media.Stretch.Uniform
+                }));
+            }
+            else
+            {
+                cell.Blocks.Add(new Paragraph(new Run(string.Empty)));
+            }
+
+            row.Cells.Add(cell);
+        }
+
+        static void AddRentalImageBlock(FlowDocument doc, RentalModel rental)
+        {
+            if (!TryLoadRentalPrintImage(rental, out var bitmap))
+                return;
+
+            doc.Blocks.Add(new BlockUIContainer(new System.Windows.Controls.Image
+            {
+                Source = bitmap,
+                Width = 220,
+                Height = 165,
+                Stretch = System.Windows.Media.Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, 8)
+            })
+            {
+                Margin = new Thickness(0, 0, 0, 12)
+            });
+        }
+
+        static bool TryLoadRentalPrintImage(RentalModel rental, out System.Windows.Media.Imaging.BitmapImage image)
+        {
+            image = null!;
+            foreach (var candidate in BuildRentalPrintImageCandidates(rental))
+            {
+                try
+                {
+                    var resolved = ResolvePrintImagePath(candidate);
+                    if (string.IsNullOrWhiteSpace(resolved) || !File.Exists(resolved))
+                        continue;
+
+                    var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bitmap.DecodePixelWidth = 256;
+                    bitmap.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.IgnoreImageCache;
+                    bitmap.UriSource = new Uri(resolved, UriKind.Absolute);
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+
+                    image = bitmap;
+                    return true;
+                }
+                catch
+                {
+                }
+            }
+
+            return false;
+        }
+
+        static IEnumerable<string> BuildRentalPrintImageCandidates(RentalModel rental)
+        {
+            if (!string.IsNullOrWhiteSpace(rental.ImagePath))
+                yield return rental.ImagePath;
+
+            var itemNumber = rental.ItemNumber?.Trim();
+            if (string.IsNullOrWhiteSpace(itemNumber))
+                yield break;
+
+            foreach (var extension in new[] { ".jpg", ".jpeg", ".png", ".bmp", ".gif" })
+                yield return Path.Combine(AppAssetHelper.AssetsDirectoryName, AppAssetHelper.ItemImagesFolder, itemNumber + extension);
+        }
+
+        static string? ResolvePrintImagePath(string path)
+        {
+            if (Path.IsPathFullyQualified(path))
+                return path;
+
+            return AppAssetHelper.ResolveAssetPath(path) ?? PathHelper.GetAbsolutePath(path, false);
+        }
+
+        public string SelectedRentalOpenRequestCount => SelectedRental == null
+            ? "0"
+            : PendingRequests.Count(r => r.ItemID == SelectedRental.ItemID && r.IsActive).ToString();
+
+        public string SelectedRentalReturnedText => SelectedRental == null
+            ? "Not returned yet"
+            : FormatNullableDate(SelectedRental.ReturnDate);
+
+        public string SelectedRentalAgeText => SelectedRental == null
+            ? "-"
+            : DescribeRentalAge(SelectedRental);
+
+        public string SelectedRentalNextSteps => SelectedRental == null
+            ? "Select a rental to inspect job actions."
+            : IsRentalActive(SelectedRental)
+                ? "Check in when returned, extend if approved, place a request for the next customer, print documents, or open history for prior usage."
+                : "Open history to inspect prior usage, review open requests, or print this rental record.";
+
+        string BuildRentalDetailsText(RentalModel rental)
+        {
+            var details = new StringBuilder();
+            details.AppendLine($"Rental #: {rental.RentalID}");
+            details.AppendLine($"Item #: {rental.ItemNumber}");
+            details.AppendLine($"Location: {ValueOrNotRecorded(rental.ItemLocation)}");
+            details.AppendLine($"Status: {ValueOrNotRecorded(rental.Status)}");
+            details.AppendLine($"Open requests: {PendingRequests.Count(r => r.ItemID == rental.ItemID && r.IsActive)}");
+            details.AppendLine();
+            details.AppendLine($"Checked out to: {ValueOrNotRecorded(rental.CustomerName)}");
+            details.AppendLine($"Contact: {ValueOrNotRecorded(rental.CustomerContact)}");
+            details.AppendLine($"Phone: {ValueOrNotRecorded(rental.CustomerPhone)}");
+            details.AppendLine($"Email: {ValueOrNotRecorded(rental.CustomerEmail)}");
+            details.AppendLine();
+            details.AppendLine($"Checked out: {FormatDate(rental.RentalDate)}");
+            details.AppendLine($"Due back: {FormatDate(rental.DueDate)}");
+            details.AppendLine($"Returned: {FormatNullableDate(rental.ReturnDate)}");
+            details.AppendLine($"Time out: {DescribeRentalAge(rental)}");
+            details.AppendLine();
+            details.AppendLine(IsRentalActive(rental)
+                ? "Next steps: check in when returned, extend if approved, place a request for the next customer, or open history for prior usage."
+                : "Next steps: open history to inspect prior usage, review open requests, or print this rental record.");
+            return details.ToString();
         }
 
         void PrintPickingSlip()

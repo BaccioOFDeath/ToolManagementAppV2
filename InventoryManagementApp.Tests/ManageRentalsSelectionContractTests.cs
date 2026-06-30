@@ -159,6 +159,30 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("return LogicalTreeHelper.GetParent(current);", helper, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void RentalDetailsOpenDedicatedJobWindowInsteadOfInfoNotice()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ManageRentalsViewModel.cs");
+            var window = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalJobDetailsWindow.xaml");
+
+            AssertContainsAll(
+                source,
+                "var window = new RentalJobDetailsWindow(this);",
+                "window.ShowDialog();",
+                "BuildRentalDetailsText(SelectedRental)");
+            Assert.DoesNotContain("_dialogService.ShowInfo(details.ToString(), $\"Rental Details - {rental.ItemNumber}\");", source, StringComparison.Ordinal);
+            AssertContainsAll(
+                window,
+                "Rental Job",
+                "SelectedRental",
+                "NullToDefaultImageConverter",
+                "CheckInCommand",
+                "ExtendCommand",
+                "PlaceRequestCommand",
+                "PrintRentalCommand",
+                "OpenHistoryCommand");
+        }
+
         private static void AssertContainsAll(string source, params string[] expectedSnippets)
         {
             foreach (var snippet in expectedSnippets)
