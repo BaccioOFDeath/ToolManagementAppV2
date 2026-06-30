@@ -200,6 +200,14 @@ try {
             Remove-Item $validationLogsPath -Recurse -Force
         }
 
+        if (Test-Path $testResultsPath) {
+            Remove-Item $testResultsPath -Recurse -Force
+        }
+
+        if (-not $SkipPublish -and (Test-Path $publishOutputPath)) {
+            Remove-Item $publishOutputPath -Recurse -Force
+        }
+
         New-Item -ItemType Directory -Path $validationLogsPath | Out-Null
     }
 

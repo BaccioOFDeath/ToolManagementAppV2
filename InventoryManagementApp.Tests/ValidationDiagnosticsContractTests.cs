@@ -96,6 +96,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FullValidationRunnerClearsManifestArtifactGroupsBeforeFallibleValidationSteps()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+
+            Assert.Contains("if (Test-Path $testResultsPath)", source);
+            Assert.Contains("Remove-Item $testResultsPath -Recurse -Force", source);
+            Assert.Contains("if (-not $SkipPublish -and (Test-Path $publishOutputPath))", source);
+            Assert.Contains("Remove-Item $publishOutputPath -Recurse -Force", source);
+            AssertAppearsBefore(source, "Remove-Item $testResultsPath -Recurse -Force", "Invoke-ValidationStep \"Capture validation environment\"", "The runner should clear stale test results before any restore, audit, build, or environment step can fail and write a manifest.");
+            AssertAppearsBefore(source, "Remove-Item $publishOutputPath -Recurse -Force", "Invoke-ValidationStep \"Capture validation environment\"", "Full validation should clear stale publish output before any early failure can write a manifest.");
+            AssertAppearsBefore(source, "if (-not $SkipPublish -and (Test-Path $publishOutputPath))", "Invoke-ValidationStep \"Capture validation environment\"", "SkipPublish runs should avoid touching publish output while full runs clear stale publish artifacts up front.");
+        }
+
+        [Fact]
         public void BuildWorkflowCapturesEnvironmentDiagnosticsBeforeRestore()
         {
             var source = ReadRepoFile(".github", "workflows", "build.yml");
