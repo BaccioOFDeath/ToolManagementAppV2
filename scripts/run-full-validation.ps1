@@ -78,7 +78,9 @@ try {
     }
 
     Invoke-ValidationStep "Audit vulnerable packages" {
-        dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive
+        $auditLogPath = Get-ValidationLogPath "package-audit.txt"
+        dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive 2>&1 | Tee-Object -FilePath $auditLogPath
+        $global:LASTEXITCODE = $LASTEXITCODE
     }
 
     Invoke-ValidationStep "Build solution" {

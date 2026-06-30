@@ -26,6 +26,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FullValidationRunnerCapturesPackageAuditDiagnosticsBeforeBuild()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+
+            Assert.Contains("Audit vulnerable packages", source);
+            Assert.Contains("Get-ValidationLogPath \"package-audit.txt\"", source);
+            Assert.Contains("dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive 2>&1 | Tee-Object -FilePath $auditLogPath", source);
+            Assert.Contains("$global:LASTEXITCODE = $LASTEXITCODE", source);
+            AssertAppearsBefore(source, "Clean validation logs", "Audit vulnerable packages", "The package audit log should be written into a freshly prepared validation log directory.");
+            AssertAppearsBefore(source, "Restore solution", "Audit vulnerable packages", "The package audit should run after restore resolves the solution graph.");
+            AssertAppearsBefore(source, "Audit vulnerable packages", "Build solution", "Package advisory evidence should be captured before build can fail.");
+        }
+
+        [Fact]
         public void BuildWorkflowCapturesEnvironmentDiagnosticsBeforeRestore()
         {
             var source = ReadRepoFile(".github", "workflows", "build.yml");
@@ -44,6 +58,22 @@ namespace InventoryManagementApp.Tests
             AssertAppearsBefore(source, "Prepare validation logs", "Capture validation environment", "The workflow should create a fresh diagnostics directory before writing environment details.");
             AssertAppearsBefore(source, "Capture validation environment", "Restore dependencies", "CI environment diagnostics should be captured before restore can fail.");
             AssertAppearsBefore(source, "Capture validation environment", "Upload validation logs", "The environment diagnostics file should be included in the validation log artifact.");
+        }
+
+        [Fact]
+        public void BuildWorkflowCapturesPackageAuditDiagnosticsBeforeBuild()
+        {
+            var source = ReadRepoFile(".github", "workflows", "build.yml");
+
+            Assert.Contains("Audit vulnerable packages", source);
+            Assert.Contains("shell: pwsh", source);
+            Assert.Contains("./ValidationLogs/package-audit.txt", source);
+            Assert.Contains("dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive 2>&1 | Tee-Object -FilePath $auditLogPath", source);
+            Assert.Contains("if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }", source);
+            AssertAppearsBefore(source, "Prepare validation logs", "Audit vulnerable packages", "The workflow should write the package audit log into a freshly prepared diagnostics directory.");
+            AssertAppearsBefore(source, "Restore dependencies", "Audit vulnerable packages", "CI package audit should run after restore resolves the solution graph.");
+            AssertAppearsBefore(source, "Audit vulnerable packages", "    - name: Build", "Package advisory evidence should be captured before build can fail.");
+            AssertAppearsBefore(source, "Audit vulnerable packages", "Upload validation logs", "The package audit file should be included in the validation log artifact.");
         }
 
         [Fact]
