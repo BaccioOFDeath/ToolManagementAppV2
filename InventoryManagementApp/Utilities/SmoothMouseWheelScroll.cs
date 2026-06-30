@@ -11,9 +11,9 @@ namespace InventoryManagementApp.Utilities
     public static class SmoothMouseWheelScroll
     {
         const double WheelDelta = 120.0;
-        const double PixelsPerWheelStep = 88.0;
-        const double LogicalUnitsPerWheelStep = 1.0;
-        const double AnimationMilliseconds = 180.0;
+        const double PixelsPerWheelStep = 24.0;
+        const double LogicalUnitsPerWheelStep = 0.35;
+        const double AnimationMilliseconds = 220.0;
         static readonly Dictionary<ScrollViewer, ScrollAnimation> Animations = new();
 
         public static bool TryHandle(MouseWheelEventArgs? e)

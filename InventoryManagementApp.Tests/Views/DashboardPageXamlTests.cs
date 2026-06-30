@@ -22,6 +22,24 @@ namespace InventoryManagementApp.Tests.Views
         }
 
         [Fact]
+        public void ActiveRentalsGrid_ShowsItemImageColumn()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");
+            var gridIndex = xaml.IndexOf("x:Name=\"RentedItemsGrid\"", StringComparison.Ordinal);
+            var checkedOutGridIndex = xaml.IndexOf("x:Name=\"CheckedOutItemsGrid\"", StringComparison.Ordinal);
+
+            Assert.True(gridIndex >= 0, "Active rentals dashboard grid should exist.");
+            Assert.True(checkedOutGridIndex > gridIndex, "Checked-out grid should still follow active rentals in the XAML.");
+            var activeRentalsGrid = xaml.Substring(gridIndex, checkedOutGridIndex - gridIndex);
+
+            Assert.Contains("RowHeight=\"44\"", activeRentalsGrid, StringComparison.Ordinal);
+            Assert.Contains("<DataGridTemplateColumn Header=\"Image\" Width=\"58\">", activeRentalsGrid, StringComparison.Ordinal);
+            Assert.Contains("Width=\"42\" Height=\"34\"", activeRentalsGrid, StringComparison.Ordinal);
+            Assert.Contains("Source=\"{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", activeRentalsGrid, StringComparison.Ordinal);
+            Assert.Contains("<Image.ToolTip>", activeRentalsGrid, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CommonItemsGrid_MovedIntoRightSideTabGroup()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");

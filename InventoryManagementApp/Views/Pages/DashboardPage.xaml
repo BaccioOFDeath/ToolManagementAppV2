@@ -117,9 +117,25 @@
                               CanUserAddRows="False"
                               SelectionMode="Single"
                               Style="{StaticResource VirtualizedDataGridStyle}"
+                              RowHeight="44"
                               MouseDoubleClick="RentedItemsGrid_MouseDoubleClick"
                               PreviewMouseRightButtonDown="DashboardGrid_PreviewMouseRightButtonDown">
                         <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Image" Width="58">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
+                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                   Stretch="UniformToFill">
+                                                <Image.ToolTip>
+                                                    <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                           MaxWidth="180" MaxHeight="180" Stretch="Uniform"/>
+                                                </Image.ToolTip>
+                                            </Image>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="76"/>
                             <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
                             <DataGridTextColumn Header="Due" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd}}" Width="88"/>

@@ -74,7 +74,12 @@ namespace InventoryManagementApp.Tests
                 xaml.IndexOf("x:Name=\"ThresholdSlider\"", StringComparison.Ordinal),
                 "The threshold value label must be docked before the slider so the slider fills the remaining width.");
             Assert.Contains("Height=\"32\" VerticalAlignment=\"Center\" ValueChanged=\"ThresholdSlider_ValueChanged\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Rotate Left\" Click=\"RotateLeft_Click\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Rotate Right\" Click=\"RotateRight_Click\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Save Clipped Image", xaml, StringComparison.Ordinal);
+            Assert.Contains("void RotateSource(double angle)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("static BitmapSource RotateBitmap(BitmapSource source, double angle)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("new RotateTransform(angle)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("MoveThumb_DragDelta", codeBehind, StringComparison.Ordinal);
             Assert.Contains("CreateBackgroundRemovedBitmap", codeBehind, StringComparison.Ordinal);
             Assert.Contains("pixels[offset + 3] = 0;", codeBehind, StringComparison.Ordinal);

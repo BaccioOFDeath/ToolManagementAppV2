@@ -98,6 +98,12 @@ $preservedPaths = @(
     "Logs"
 )
 $sideBySideLinkedDirectories = $preservedPaths | Where-Object { $_ -ne "appsettings.json" }
+$volatilePreservedFiles = @(
+    "*.db-shm",
+    "*.db-wal",
+    "*.sqlite-shm",
+    "*.sqlite-wal"
+)
 
 function Test-ReleaseNameHasInvalidWindowsFileNameCharacter {
     param(
@@ -153,6 +159,45 @@ function Invoke-ReleaseMirror {
     $global:LASTEXITCODE = 0
 }
 
+function Invoke-PreservedDirectoryBackup {
+    param(
+        [Parameter(Mandatory = $true)][string]$From,
+        [Parameter(Mandatory = $true)][string]$To
+    )
+
+    New-Item -ItemType Directory -Path $To -Force | Out-Null
+
+    $robocopyArgs = @($From, $To, "/E", "/R:2", "/W:2", "/NP")
+    if ($volatilePreservedFiles.Count -gt 0) {
+        $robocopyArgs += "/XF"
+        $robocopyArgs += $volatilePreservedFiles
+    }
+
+    & robocopy @robocopyArgs
+    $exitCode = $LASTEXITCODE
+
+    if ($exitCode -ge 8) {
+        throw "Robocopy failed while backing up preserved directory '$From' with exit code $exitCode."
+    }
+
+    $global:LASTEXITCODE = 0
+}
+
+function Copy-PreservedFileBackup {
+    param(
+        [Parameter(Mandatory = $true)][string]$From,
+        [Parameter(Mandatory = $true)][string]$To
+    )
+
+    try {
+        Copy-Item -LiteralPath $From -Destination $To -Force -ErrorAction Stop
+    } catch [System.IO.FileNotFoundException] {
+        Write-Warning "Skipped backup of '$From' because it changed or disappeared during the update."
+    } catch [System.Management.Automation.ItemNotFoundException] {
+        Write-Warning "Skipped backup of '$From' because it changed or disappeared during the update."
+    }
+}
+
 function Backup-PreservedPaths {
     New-Item -ItemType Directory -Path $backupPath -Force | Out-Null
 
@@ -162,7 +207,12 @@ function Backup-PreservedPaths {
             $targetItem = Join-Path $backupPath $relativePath
             $targetParent = Split-Path -Parent $targetItem
             New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
-            Copy-Item -LiteralPath $sourceItem -Destination $targetItem -Recurse -Force
+
+            if (Test-Path -LiteralPath $sourceItem -PathType Container) {
+                Invoke-PreservedDirectoryBackup -From $sourceItem -To $targetItem
+            } else {
+                Copy-PreservedFileBackup -From $sourceItem -To $targetItem
+            }
         }
     }
 }

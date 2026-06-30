@@ -22,8 +22,9 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "Utilities", "SmoothMouseWheelScroll.cs");
 
-            Assert.Contains("const double PixelsPerWheelStep = 88.0;", source, StringComparison.Ordinal);
-            Assert.Contains("const double AnimationMilliseconds = 180.0;", source, StringComparison.Ordinal);
+            Assert.Contains("const double PixelsPerWheelStep = 24.0;", source, StringComparison.Ordinal);
+            Assert.Contains("const double LogicalUnitsPerWheelStep = 0.35;", source, StringComparison.Ordinal);
+            Assert.Contains("const double AnimationMilliseconds = 220.0;", source, StringComparison.Ordinal);
             Assert.Contains("FindScrollableViewer(source, e.Delta)", source, StringComparison.Ordinal);
             Assert.Contains("AnimateTo(scrollViewer, targetOffset);", source, StringComparison.Ordinal);
             Assert.Contains("DispatcherTimer(DispatcherPriority.Render", source, StringComparison.Ordinal);

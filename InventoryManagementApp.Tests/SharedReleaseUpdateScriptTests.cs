@@ -126,6 +126,23 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void PreservedBackupSkipsVolatileSqliteSidecarFiles()
+        {
+            var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");
+
+            Assert.Contains("$volatilePreservedFiles = @(", script, StringComparison.Ordinal);
+            Assert.Contains("\"*.db-shm\"", script, StringComparison.Ordinal);
+            Assert.Contains("\"*.db-wal\"", script, StringComparison.Ordinal);
+            Assert.Contains("function Invoke-PreservedDirectoryBackup", script, StringComparison.Ordinal);
+            Assert.Contains("$robocopyArgs += \"/XF\"", script, StringComparison.Ordinal);
+            Assert.Contains("$robocopyArgs += $volatilePreservedFiles", script, StringComparison.Ordinal);
+            Assert.Contains("Robocopy failed while backing up preserved directory", script, StringComparison.Ordinal);
+            Assert.Contains("function Copy-PreservedFileBackup", script, StringComparison.Ordinal);
+            Assert.Contains("Skipped backup of '$From' because it changed or disappeared during the update.", script, StringComparison.Ordinal);
+            Assert.DoesNotContain("Copy-Item -LiteralPath $sourceItem -Destination $targetItem -Recurse -Force", script, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void UpdateScriptInstallsCurrentReleaseLauncherIntoSharedDestination()
         {
             var script = ReadRepositoryFile("scripts", "update-shared-release.ps1");

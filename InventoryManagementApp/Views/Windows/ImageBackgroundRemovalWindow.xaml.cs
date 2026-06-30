@@ -14,7 +14,7 @@ namespace InventoryManagementApp.Views.Windows
 
         readonly string _sourcePath;
         readonly string _outputPath;
-        readonly BitmapSource _source;
+        BitmapSource _source;
         Rect _clipSourceRect;
         double _scale = 1;
         double _imageLeft;
@@ -190,6 +190,35 @@ namespace InventoryManagementApp.Views.Windows
             ResetClipToDefault();
             UpdateClipVisuals();
             RenderPreview();
+        }
+
+        void RotateLeft_Click(object sender, RoutedEventArgs e)
+        {
+            RotateSource(-90);
+        }
+
+        void RotateRight_Click(object sender, RoutedEventArgs e)
+        {
+            RotateSource(90);
+        }
+
+        void RotateSource(double angle)
+        {
+            _source = RotateBitmap(_source, angle);
+            SourceImage.Source = _source;
+            ResetClipToDefault();
+            LayoutSourceImage();
+            RenderPreview();
+        }
+
+        static BitmapSource RotateBitmap(BitmapSource source, double angle)
+        {
+            var rotated = new TransformedBitmap(source, new RotateTransform(angle));
+            BitmapSource bgra = rotated.Format == PixelFormats.Bgra32
+                ? rotated
+                : new FormatConvertedBitmap(rotated, PixelFormats.Bgra32, null, 0);
+            bgra.Freeze();
+            return bgra;
         }
 
         void Save_Click(object sender, RoutedEventArgs e)
