@@ -64,6 +64,41 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FullValidationRunnerCapturesDedicatedTestResultsBeforePublishWork()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+
+            Assert.Contains("$testResultsPath = Join-Path $repoRoot \"TestResults\"", source);
+            Assert.Contains("Clean test results", source);
+            Assert.Contains("Remove-Item $testResultsPath -Recurse -Force", source);
+            Assert.Contains("New-Item -ItemType Directory -Path $testResultsPath | Out-Null", source);
+            Assert.Contains("--logger \"trx;LogFileName=validation-tests.trx\"", source);
+            Assert.Contains("--results-directory $testResultsPath", source);
+            AssertAppearsBefore(source, "Build solution", "Clean test results", "The full validation runner should clean stale test results after the build succeeds.");
+            AssertAppearsBefore(source, "Clean test results", "Test solution", "The full validation runner should prepare a fresh TestResults directory before tests run.");
+            AssertAppearsBefore(source, "Test solution", "if (-not $SkipPublish)", "The full validation runner should capture test diagnostics before optional publish work starts.");
+        }
+
+        [Fact]
+        public void BuildWorkflowUploadsTestResultsEvenWhenValidationFails()
+        {
+            var source = ReadRepoFile(".github", "workflows", "build.yml");
+
+            Assert.Contains("Prepare test results", source);
+            Assert.Contains("New-Item -ItemType Directory -Path ./TestResults | Out-Null", source);
+            Assert.Contains("--logger \"trx;LogFileName=validation-tests.trx\"", source);
+            Assert.Contains("--results-directory ./TestResults", source);
+            Assert.Contains("Upload test results", source);
+            Assert.Contains("if: always()", source);
+            Assert.Contains("name: validation-test-results", source);
+            Assert.Contains("path: ./TestResults/", source);
+            Assert.Contains("if-no-files-found: ignore", source);
+            AssertAppearsBefore(source, "Prepare test results", "- name: Test", "The Build and Test workflow should prepare a fresh TestResults directory before tests run.");
+            AssertAppearsBefore(source, "- name: Test", "Upload test results", "The Build and Test workflow should upload test diagnostics after the test step.");
+            AssertAppearsBefore(source, "Upload test results", "Restore publish runtime", "The Build and Test workflow should preserve test diagnostics before publish work begins.");
+        }
+
+        [Fact]
         public void FullValidationRunnerVerifiesPublishedDesktopArtifactsBeforeSourceScans()
         {
             var source = ReadRepoFile("scripts", "run-full-validation.ps1");
