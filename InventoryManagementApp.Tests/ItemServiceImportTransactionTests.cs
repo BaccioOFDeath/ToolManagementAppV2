@@ -187,8 +187,12 @@ namespace InventoryManagementApp.Tests
         private static void AssertCancellationGuardBeforeSqlAndConnection(string method, string methodName)
         {
             Assert.Contains("cancellationToken.ThrowIfCancellationRequested();", method, StringComparison.Ordinal);
+            var sqlIndex = method.IndexOf("const string sql", StringComparison.Ordinal);
+            if (sqlIndex < 0)
+                sqlIndex = method.IndexOf("var sql", StringComparison.Ordinal);
+            Assert.True(sqlIndex >= 0, $"Could not find SQL declaration in {methodName}.");
             Assert.True(
-                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("var sql", StringComparison.Ordinal),
+                method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < sqlIndex,
                 $"{methodName} should honor cancellation before SQL work starts.");
             Assert.True(
                 method.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < method.IndexOf("_dbService.CreateConnection()", StringComparison.Ordinal),
