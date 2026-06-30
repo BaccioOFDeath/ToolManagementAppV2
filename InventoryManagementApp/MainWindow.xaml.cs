@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Utilities;
 using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp
@@ -175,6 +176,12 @@ namespace InventoryManagementApp
         {
             if (_mainViewModel == null)
                 return;
+
+            if (e.StagingItem.Input is MouseWheelEventArgs wheelArgs && SmoothMouseWheelScroll.TryHandle(wheelArgs))
+            {
+                _mainViewModel.ResetAutoLogoutTimer();
+                return;
+            }
 
             if (e.StagingItem.Input is MouseEventArgs or KeyboardEventArgs)
                 _mainViewModel.ResetAutoLogoutTimer();
