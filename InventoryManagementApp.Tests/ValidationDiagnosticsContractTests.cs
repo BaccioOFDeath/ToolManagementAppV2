@@ -40,6 +40,25 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FullValidationRunnerWritesStepSummaryForSucceededAndFailedSteps()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+
+            Assert.Contains("Write-ValidationStepSummary", source);
+            Assert.Contains("Get-ValidationLogPath \"step-summary.txt\"", source);
+            Assert.Contains("ValidationStepSummary=1", source);
+            Assert.Contains("Step=$Name", source);
+            Assert.Contains("Status=$Status", source);
+            Assert.Contains("DurationSeconds=$durationText", source);
+            Assert.Contains("Detail=$Detail", source);
+            Assert.Contains("Write-ValidationStepSummary -Name $Name -Status \"Succeeded\" -DurationSeconds $durationSeconds", source);
+            Assert.Contains("Write-ValidationStepSummary -Name $Name -Status \"Failed\" -DurationSeconds $durationSeconds -Detail $_.Exception.Message", source);
+            Assert.Contains("Write-Warning \"Unable to write validation step summary: $($_.Exception.Message)\"", source);
+            AssertAppearsBefore(source, "Write-ValidationStepSummary -Name $Name -Status \"Succeeded\"", "function Write-ValidationArtifactManifest", "The runner should record each successful validation step before the final manifest is generated.");
+            AssertAppearsBefore(source, "Write-ValidationStepSummary -Name $Name -Status \"Failed\"", "throw\n    }", "The runner should record failed validation steps before rethrowing the original failure.");
+        }
+
+        [Fact]
         public void FullValidationRunnerWritesArtifactManifestDuringCleanup()
         {
             var source = ReadRepoFile("scripts", "run-full-validation.ps1");
@@ -51,7 +70,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("SizeBytes=$($artifact.Length)", source);
             Assert.Contains("LastWriteUtc=$($artifact.LastWriteTimeUtc.ToString('o'))", source);
             Assert.Contains("Write-Warning \"Unable to write validation artifact manifest: $($_.Exception.Message)\"", source);
-            AssertAppearsBefore(source, "function Write-ValidationArtifactManifest", "try {", "The manifest helper should be available before validation steps run.");
+            AssertAppearsBefore(source, "function Write-ValidationArtifactManifest", "$repoRoot = Resolve-Path", "The manifest helper should be available before validation steps run.");
             AssertAppearsBefore(source, "finally {\n    try {\n        Write-ValidationArtifactManifest", "Pop-Location", "The manifest should be written before leaving the repository root.");
         }
 
@@ -90,6 +109,28 @@ namespace InventoryManagementApp.Tests
             AssertAppearsBefore(source, "Restore dependencies", "Audit vulnerable packages", "CI package audit should run after restore resolves the solution graph.");
             AssertAppearsBefore(source, "Audit vulnerable packages", "    - name: Build", "Package advisory evidence should be captured before build can fail.");
             AssertAppearsBefore(source, "Audit vulnerable packages", "Upload validation logs", "The package audit file should be included in the validation log artifact.");
+        }
+
+        [Fact]
+        public void BuildWorkflowWritesStepSummaryBeforeArtifactManifest()
+        {
+            var source = ReadRepoFile(".github", "workflows", "build.yml");
+
+            Assert.Contains("id: setup_dotnet", source);
+            Assert.Contains("id: restore_dependencies", source);
+            Assert.Contains("id: test_solution", source);
+            Assert.Contains("id: upload_build_artifacts", source);
+            Assert.Contains("./ValidationLogs/step-summary.txt", source);
+            Assert.Contains("ValidationStepSummary=1", source);
+            Assert.Contains("Step=$($step.Name)", source);
+            Assert.Contains("Status=$($step.Outcome)", source);
+            Assert.Contains("Conclusion=$($step.Conclusion)", source);
+            Assert.Contains("${{ steps.restore_dependencies.outcome }}", source);
+            Assert.Contains("${{ steps.restore_dependencies.conclusion }}", source);
+            Assert.Contains("${{ steps.upload_build_artifacts.outcome }}", source);
+            Assert.Contains("${{ steps.upload_build_artifacts.conclusion }}", source);
+            AssertAppearsBefore(source, "$summaryLines | Set-Content -Path $summaryPath -Encoding UTF8", "$manifestPath = \"./ValidationLogs/artifact-manifest.txt\"", "CI should write the step summary before building the artifact manifest so the manifest indexes it.");
+            AssertAppearsBefore(source, "./ValidationLogs/step-summary.txt", "Upload validation logs", "The CI step summary should be included in uploaded validation logs.");
         }
 
         [Fact]
