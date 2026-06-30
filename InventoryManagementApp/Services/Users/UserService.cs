@@ -29,6 +29,7 @@ namespace InventoryManagementApp.Services.Users
         private readonly IAuthorizationService _auth;
         private readonly ActivityLogService? _activityLog;
         private const int MaxFailedLoginAttempts = 5;
+        private const int MaxUserListCount = 500;
         private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
 
         public UserService(DatabaseService dbService, IUserContext context, IAuthorizationService? authorizationService = null, ILogger<UserService>? logger = null, ActivityLogService? activityLogService = null)
@@ -117,8 +118,13 @@ namespace InventoryManagementApp.Services.Users
             cancellationToken.ThrowIfCancellationRequested();
 
             using var conn = _dbService.CreateConnection();
-            const string sql = "SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired, FailedLoginAttempts, LockoutEndUtc, Permissions FROM Users";
-            return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapUser, cancellationToken: cancellationToken);
+            const string sql = @"
+                SELECT UserID, UserName, UserPhotoPath, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired, FailedLoginAttempts, LockoutEndUtc, Permissions
+                FROM Users
+                ORDER BY UserName ASC, UserID ASC
+                LIMIT @UserListLimit";
+            var parameters = new[] { new SqliteParameter("@UserListLimit", MaxUserListCount) };
+            return await SqliteHelper.ExecuteReaderAsync(conn, sql, MapUser, parameters, cancellationToken: cancellationToken);
         }
 
         public async Task<int> CountUsersAsync(CancellationToken cancellationToken = default)
@@ -429,8 +435,6 @@ namespace InventoryManagementApp.Services.Users
             {
                 using var conn = _dbService.CreateConnection();
                 int rows = await SqliteHelper.ExecuteNonQueryAsync(conn, sql, p);
-                if (rows == 0)
-                    throw new KeyNotFoundException($"User {user.UserID} not found.");
                 EnsureUserWriteSucceeded(rows, user.UserID);
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_CONSTRAINT &&
