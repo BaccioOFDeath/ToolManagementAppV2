@@ -182,7 +182,10 @@ namespace InventoryManagementApp.Services.Items
         }
 
         public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default)
-            => ExportItemsToCsvInternalAsync(filePath, cancellationToken);
+        {
+            _auth.EnsurePermission(User.PermissionImportExport);
+            return ExportItemsToCsvInternalAsync(filePath, cancellationToken);
+        }
 
         public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default)
         {
@@ -601,11 +604,17 @@ namespace InventoryManagementApp.Services.Items
 
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var items = new List<ItemModel>();
             await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
                 .WithCancellation(cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 items.Add(item);
-            await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items).ConfigureAwait(false);
         }
 
         public async Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default)
@@ -727,14 +736,21 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task ExportItemsAsync(string filePath, IDataExporter<ItemModel> exporter, CancellationToken cancellationToken = default)
         {
+            _auth.EnsurePermission(User.PermissionImportExport);
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Note: Using int.MaxValue as page size loads all items into memory.
             // For very large inventories (>10,000 items), consider implementing streaming export.
             // Current implementation matches existing CSV export behavior.
             var items = new List<ItemModel>();
             await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
                 .WithCancellation(cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 items.Add(item);
-            
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
             await exporter.ExportAsync(filePath, items, cancellationToken).ConfigureAwait(false);
         }
 
