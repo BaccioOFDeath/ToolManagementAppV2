@@ -128,7 +128,7 @@ namespace InventoryManagementApp.Tests
                 source,
                 "async Task InsertCustomerAsync",
                 "async Task<bool> CustomerExistsAsync");
-            AssertCancellationGuardBeforeSqlAndConnection(
+            AssertCancellationGuardBeforeSql(
                 source,
                 "async Task<bool> CustomerExistsAsync",
                 "static async Task EnsureCustomerRowExistsAsync");
@@ -217,14 +217,58 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("yield return $\"{contact}|mobile:{mobile}\";", source, StringComparison.Ordinal);
 
             Assert.True(
-                csvImportMethod.IndexOf("if (await CustomerExistsAsync(c.Contact, c.Phone, c.Mobile, cancellationToken))", StringComparison.Ordinal) < csvImportMethod.IndexOf("if (!TryReserveImportedCustomer(importedCustomerKeys, c))", StringComparison.Ordinal),
+                csvImportMethod.IndexOf("if (await CustomerExistsAsync(conn, tran, c.Contact, c.Phone, c.Mobile, cancellationToken))", StringComparison.Ordinal) < csvImportMethod.IndexOf("if (!TryReserveImportedCustomer(importedCustomerKeys, c))", StringComparison.Ordinal),
                 "CSV import should preserve the database duplicate check before reserving a customer identity for the current file.");
             Assert.True(
                 csvImportMethod.IndexOf("if (!TryReserveImportedCustomer(importedCustomerKeys, c))", StringComparison.Ordinal) < csvImportMethod.IndexOf("await InsertCustomerAsync(conn, tran, c, cancellationToken);", StringComparison.Ordinal),
                 "CSV import should reject duplicate rows from the same file before inserting into the transaction.");
             Assert.True(
-                genericImportMethod.IndexOf("if (!TryReserveImportedCustomer(importedCustomerKeys, customerModel))", StringComparison.Ordinal) < genericImportMethod.IndexOf("await InsertCustomerAsync(conn, null, customerModel, cancellationToken);", StringComparison.Ordinal),
+                genericImportMethod.IndexOf("if (!TryReserveImportedCustomer(importedCustomerKeys, customerModel))", StringComparison.Ordinal) < genericImportMethod.IndexOf("await InsertCustomerAsync(conn, transaction, customerModel, cancellationToken);", StringComparison.Ordinal),
                 "Generic customer import should reject duplicate rows from the same import batch before inserting.");
+        }
+
+        [Fact]
+        public void CustomerImportsUseSingleTransactionForDuplicateChecksAndInsertWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Customers", "CustomerService.cs");
+            var csvImportMethod = ExtractMethod(
+                source,
+                "async Task<CustomerImportResult> ImportCustomersFromCsvInternalAsync",
+                "async Task ExportCustomersToCsvInternalAsync");
+            var genericImportMethod = ExtractMethod(
+                source,
+                "public async Task<int> ImportCustomersAsync",
+                "public async Task ExportCustomersAsync");
+            var existsMethod = ExtractMethod(
+                source,
+                "async Task<bool> CustomerExistsAsync",
+                "static async Task EnsureCustomerRowExistsAsync");
+
+            Assert.Contains("using var conn = _dbService.CreateConnection();", csvImportMethod, StringComparison.Ordinal);
+            Assert.Contains("using var tran = conn.BeginTransaction();", csvImportMethod, StringComparison.Ordinal);
+            Assert.Contains("CustomerExistsAsync(conn, tran, c.Contact, c.Phone, c.Mobile, cancellationToken)", csvImportMethod, StringComparison.Ordinal);
+            Assert.Contains("await InsertCustomerAsync(conn, tran, c, cancellationToken);", csvImportMethod, StringComparison.Ordinal);
+            Assert.Contains("tran.Commit();", csvImportMethod, StringComparison.Ordinal);
+            Assert.Contains("tran.Rollback();", csvImportMethod, StringComparison.Ordinal);
+
+            Assert.Contains("using var conn = _dbService.CreateConnection();", genericImportMethod, StringComparison.Ordinal);
+            Assert.Contains("using var transaction = conn.BeginTransaction();", genericImportMethod, StringComparison.Ordinal);
+            Assert.Contains("CustomerExistsAsync(conn, transaction, customerModel.Contact, customerModel.Phone, customerModel.Mobile, cancellationToken)", genericImportMethod, StringComparison.Ordinal);
+            Assert.Contains("await InsertCustomerAsync(conn, transaction, customerModel, cancellationToken);", genericImportMethod, StringComparison.Ordinal);
+            Assert.Contains("transaction.Commit();", genericImportMethod, StringComparison.Ordinal);
+            Assert.Contains("transaction.Rollback();", genericImportMethod, StringComparison.Ordinal);
+
+            Assert.Contains("async Task<bool> CustomerExistsAsync(SqliteConnection conn, SqliteTransaction? transaction", existsMethod, StringComparison.Ordinal);
+            Assert.Contains("using var cmd = new SqliteCommand(sql, conn, transaction);", existsMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("_dbService.CreateConnection()", existsMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("SqliteHelper.ExecuteScalarAsync(conn, sql", existsMethod, StringComparison.Ordinal);
+
+            Assert.True(
+                csvImportMethod.IndexOf("using var tran = conn.BeginTransaction();", StringComparison.Ordinal) < csvImportMethod.IndexOf("CustomerExistsAsync(conn, tran", StringComparison.Ordinal),
+                "CSV customer imports should begin the transaction before duplicate lookups.");
+            Assert.True(
+                genericImportMethod.IndexOf("using var transaction = conn.BeginTransaction();", StringComparison.Ordinal) < genericImportMethod.IndexOf("CustomerExistsAsync(conn, transaction", StringComparison.Ordinal),
+                "Generic customer imports should begin the transaction before duplicate lookups.");
         }
 
         [Fact]
@@ -246,7 +290,7 @@ namespace InventoryManagementApp.Tests
                 csvImportMethod.IndexOf("NormalizeCustomerForSave(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("var reason = GetSkipReason(c);", StringComparison.Ordinal),
                 "CSV imports should trim row text before required-field validation.");
             Assert.True(
-                csvImportMethod.IndexOf("NormalizeCustomerForSave(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("CustomerExistsAsync(c.Contact, c.Phone, c.Mobile, cancellationToken)", StringComparison.Ordinal),
+                csvImportMethod.IndexOf("NormalizeCustomerForSave(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("CustomerExistsAsync(conn, tran, c.Contact, c.Phone, c.Mobile, cancellationToken)", StringComparison.Ordinal),
                 "CSV imports should check duplicates using normalized customer identity fields.");
             Assert.True(
                 csvImportMethod.IndexOf("NormalizeCustomerForSave(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("await InsertCustomerAsync(conn, tran, c, cancellationToken);", StringComparison.Ordinal),
@@ -255,10 +299,10 @@ namespace InventoryManagementApp.Tests
                 genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("var skipReason = GetSkipReason(customerModel);", StringComparison.Ordinal),
                 "Generic imports should trim row text before required-field validation.");
             Assert.True(
-                genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("CustomerExistsAsync(customerModel.Contact, customerModel.Phone, customerModel.Mobile, cancellationToken)", StringComparison.Ordinal),
+                genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("CustomerExistsAsync(conn, transaction, customerModel.Contact, customerModel.Phone, customerModel.Mobile, cancellationToken)", StringComparison.Ordinal),
                 "Generic imports should check duplicates using normalized customer identity fields.");
             Assert.True(
-                genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("await InsertCustomerAsync(conn, null, customerModel, cancellationToken);", StringComparison.Ordinal),
+                genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("await InsertCustomerAsync(conn, transaction, customerModel, cancellationToken);", StringComparison.Ordinal),
                 "Generic imports should insert normalized customer values.");
         }
 
