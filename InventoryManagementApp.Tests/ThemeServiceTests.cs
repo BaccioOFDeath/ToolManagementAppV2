@@ -44,14 +44,14 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public async Task ApplyTheme_DefaultsToLightWhenThemeIsNull()
+        public async Task ApplyTheme_DefaultsToSdEuropeanLightWhenThemeIsNull()
         {
             await RunOnStaThread(async () =>
             {
                 var app = WpfTestHelper.CreateApplication();
                 var service = new ThemeService();
                 service.ApplyTheme(null);
-                Assert.Contains("Colors.Light.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
+                Assert.Contains("Colors.SDEuropeanLight.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });

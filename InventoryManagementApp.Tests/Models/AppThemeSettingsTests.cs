@@ -166,7 +166,7 @@ namespace InventoryManagementApp.Tests.Models
         }
 
         [Theory]
-        [InlineData("SD European Light", "#FFF7F8FA", "#FFDCDCDC", "#FFF5B700", "#FFFFFFFF")]
+        [InlineData("SD European Light", "#FFF7F8FA", "#E8E7E7", "#FFF5B700", "#FFFFFFFF")]
         [InlineData("SD European Dark", "#FF0F0F0F", "#FF0F0F0F", "#FFF5B700", "#FF1C1C1E")]
         public void CreateDefault_BuildsSDEuropeanThemePalettes(string theme, string background, string navigation, string button, string surface)
         {
@@ -179,6 +179,28 @@ namespace InventoryManagementApp.Tests.Models
             Assert.Equal("#FFF5B700", settings.AccentColor);
             Assert.Equal(button, settings.ButtonColor);
             Assert.Equal("#FF0F0F0F", settings.SelectedTextColor);
+        }
+
+        [Fact]
+        public void CreateDefault_UsesSdEuropeanLightProfileByDefault()
+        {
+            var settings = AppThemeSettings.CreateDefault();
+
+            Assert.Equal("SD European Light", settings.BaseTheme);
+            Assert.Equal("#E8E7E7", settings.NavigationColor);
+            Assert.Equal(7.974110032362456, settings.CardCornerRadius);
+            Assert.Equal(10.252427184466026, settings.ButtonCornerRadius);
+            Assert.Equal(22, settings.ControlHeight);
+            Assert.Equal(50.27760252365941, settings.DataGridRowHeight);
+            Assert.Equal(2.9611650485436884, settings.SurfaceShadowScale);
+            Assert.Equal(0.9621451104100942, settings.ControlShadowScale);
+        }
+
+        [Fact]
+        public void CreateDefault_BuildsSdEuropeanDarkLayoutDefaults()
+        {
+            var settings = AppThemeSettings.CreateDefault("SD European Dark");
+
             Assert.Equal(12, settings.CardCornerRadius);
             Assert.Equal(20, settings.ButtonCornerRadius);
             Assert.Equal(32, settings.ControlHeight);

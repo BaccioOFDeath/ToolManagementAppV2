@@ -93,8 +93,9 @@ namespace InventoryManagementApp.Models
         public static AppThemeSettings CreateDefault(string? baseTheme = null)
         {
             var settings = new AppThemeSettings();
-            if (!string.IsNullOrWhiteSpace(baseTheme))
-                settings.BaseTheme = NormalizeBaseTheme(baseTheme);
+            settings.BaseTheme = string.IsNullOrWhiteSpace(baseTheme)
+                ? "SD European Light"
+                : NormalizeBaseTheme(baseTheme);
 
             if (string.Equals(settings.BaseTheme, "SD European Light", StringComparison.OrdinalIgnoreCase))
             {
@@ -102,7 +103,7 @@ namespace InventoryManagementApp.Models
                 settings.BackgroundOverlayColor = "#00FFFFFF";
                 settings.SurfaceColor = "#FFFFFFFF";
                 settings.SurfaceAltColor = "#FFF1F2F5";
-                settings.NavigationColor = "#FFDCDCDC";
+                settings.NavigationColor = "#E8E7E7";
                 settings.InputColor = "#FFFFFFFF";
                 settings.ButtonColor = "#FFF5B700";
                 settings.BorderColor = "#FFE2E4E8";
@@ -118,20 +119,26 @@ namespace InventoryManagementApp.Models
                 settings.ErrorColor = "#FFDC2626";
                 settings.ShadowColor = "#33000000";
                 ApplySdLightPageHeaderColors(settings);
-                settings.CardCornerRadius = 12;
-                settings.PanelCornerRadius = 12;
-                settings.ButtonCornerRadius = 20;
-                settings.InputCornerRadius = 8;
+                settings.CardCornerRadius = 7.974110032362456;
+                settings.PanelCornerRadius = 0;
+                settings.ButtonCornerRadius = 10.252427184466026;
+                settings.InputCornerRadius = 5.652996845425871;
                 settings.ShadowBlurRadius = 20;
                 settings.ShadowDepth = 3;
-                settings.ShadowOpacity = 0.08;
+                settings.ShadowOpacity = 0.11326860841423966;
+                settings.ShadowDirection = 269.1482649842255;
+                settings.SurfaceShadowScale = 2.9611650485436884;
+                settings.ControlShadowScale = 0.9621451104100942;
                 settings.PagePadding = 10;
                 settings.CardPadding = 12;
                 settings.FontFamily = "Inter, Segoe UI";
-                settings.ControlHeight = 32;
-                settings.DataGridRowHeight = 34;
+                settings.BorderThickness = 0.9762841605622696;
+                settings.ControlBorderThickness = 0;
+                settings.ControlHeight = 22;
+                settings.DataGridRowHeight = 50.27760252365941;
                 settings.DataGridHeaderHeight = 34;
-                settings.GridLineOpacity = 0.34;
+                settings.HeadingFontScale = 1.0080441640378595;
+                settings.GridLineOpacity = 0.49526813880126197;
             }
             else if (string.Equals(settings.BaseTheme, "SD European Dark", StringComparison.OrdinalIgnoreCase))
             {

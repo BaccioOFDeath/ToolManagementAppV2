@@ -54,7 +54,7 @@ namespace InventoryManagementApp.ViewModels
             _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
 
             ThemeOptions = new ObservableCollection<string> { "Light", "Dark", "VS Code", "VS Code Light", "SD European Light", "SD European Dark" };
-            _theme = ThemeOptions[0];
+            _theme = "SD European Light";
             _itemLabelSingular = LabelProvider.Instance.ItemLabelSingular;
             _itemLabelPlural = LabelProvider.Instance.ItemLabelPlural;
             
@@ -448,7 +448,12 @@ namespace InventoryManagementApp.ViewModels
                 return "VS Code";
             }
 
-            return string.Equals(value, "Dark", StringComparison.OrdinalIgnoreCase) ? "Dark" : "Light";
+            if (string.Equals(value, "Light", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Light";
+            }
+
+            return string.Equals(value, "Dark", StringComparison.OrdinalIgnoreCase) ? "Dark" : "SD European Light";
         }
 
         private int _passwordIterations;

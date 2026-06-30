@@ -362,6 +362,9 @@ public class ItemDisplaySettingsTests
         Assert.Contains("SD European Light", vm.ThemeOptions);
         Assert.Contains("SD European Dark", vm.ThemeOptions);
 
+        vm.Theme = "Dark";
+        await Task.Delay(100);
+
         vm.Theme = "SD European Light";
         await Task.Delay(100);
 
