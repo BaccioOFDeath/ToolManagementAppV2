@@ -94,28 +94,90 @@ function Write-ValidationStepSummary {
     }
 }
 
+function Get-ArtifactRelativePath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RootPath,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ArtifactPath
+    )
+
+    $resolvedRoot = (Resolve-Path $RootPath).Path.TrimEnd([char[]]@([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar))
+    return $ArtifactPath.Substring($resolvedRoot.Length).TrimStart([char[]]@([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar))
+}
+
+function Add-ValidationArtifactGroup {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Lines,
+
+        [Parameter(Mandatory = $true)]
+        [string]$GroupName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$RootPath,
+
+        [string[]]$ExcludedNames = @()
+    )
+
+    $Lines += "ArtifactGroup=$GroupName"
+    $Lines += "ArtifactRoot=$RootPath"
+
+    if (-not (Test-Path $RootPath -PathType Container)) {
+        $Lines += "ArtifactGroupMissing=True"
+        $Lines += "ArtifactCount=0"
+        $Lines += ""
+        return $Lines
+    }
+
+    $artifacts = Get-ChildItem -Path $RootPath -File -Recurse |
+        Where-Object { $ExcludedNames -notcontains $_.Name } |
+        Sort-Object FullName
+
+    $Lines += "ArtifactCount=$($artifacts.Count)"
+
+    foreach ($artifact in $artifacts) {
+        $relativePath = Get-ArtifactRelativePath -RootPath $RootPath -ArtifactPath $artifact.FullName
+        $Lines += "Artifact=$relativePath"
+        $Lines += "SizeBytes=$($artifact.Length)"
+        $Lines += "LastWriteUtc=$($artifact.LastWriteTimeUtc.ToString('o'))"
+        $Lines += ""
+    }
+
+    if ($artifacts.Count -eq 0) {
+        $Lines += ""
+    }
+
+    return $Lines
+}
+
 function Write-ValidationArtifactManifest {
     if (-not (Test-Path $validationLogsPath -PathType Container)) {
         return
     }
 
     $manifestPath = Get-ValidationLogPath "artifact-manifest.txt"
-    $artifacts = Get-ChildItem -Path $validationLogsPath -File |
-        Where-Object { $_.Name -ne "artifact-manifest.txt" } |
-        Sort-Object Name
+    $artifactGroups = @(
+        @{ Name = "ValidationLogs"; Root = $validationLogsPath; ExcludedNames = @("artifact-manifest.txt") },
+        @{ Name = "TestResults"; Root = $testResultsPath; ExcludedNames = @() }
+    )
+
+    if (-not $SkipPublish) {
+        $artifactGroups += @{ Name = "PublishOutput"; Root = $publishOutputPath; ExcludedNames = @() }
+    }
 
     $lines = @(
         "GeneratedAtUtc=$((Get-Date).ToUniversalTime().ToString('o'))",
+        "ValidationArtifactManifest=2",
         "ValidationLogRoot=$validationLogsPath",
-        "ArtifactCount=$($artifacts.Count)",
+        "ArtifactGroupCount=$($artifactGroups.Count)",
+        "SkipPublish=$SkipPublish",
         ""
     )
 
-    foreach ($artifact in $artifacts) {
-        $lines += "Artifact=$($artifact.Name)"
-        $lines += "SizeBytes=$($artifact.Length)"
-        $lines += "LastWriteUtc=$($artifact.LastWriteTimeUtc.ToString('o'))"
-        $lines += ""
+    foreach ($group in $artifactGroups) {
+        $lines = Add-ValidationArtifactGroup -Lines $lines -GroupName $group.Name -RootPath $group.Root -ExcludedNames $group.ExcludedNames
     }
 
     $lines | Set-Content -Path $manifestPath -Encoding UTF8
