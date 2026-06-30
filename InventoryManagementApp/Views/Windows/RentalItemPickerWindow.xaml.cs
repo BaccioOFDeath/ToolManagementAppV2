@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
@@ -14,15 +15,28 @@ namespace InventoryManagementApp.Views.Windows
     {
         readonly IItemService _itemService;
         readonly int _excludedItemId;
+        readonly DispatcherTimer _searchTimer;
+        bool _isLoaded;
 
         public RentalItemPickerWindow(IItemService itemService, string title, int excludedItemId = 0)
         {
             InitializeComponent();
             _itemService = itemService;
             _excludedItemId = excludedItemId;
+            _searchTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+            _searchTimer.Tick += async (_, _) =>
+            {
+                _searchTimer.Stop();
+                await LoadItemsAsync();
+            };
             Title = title;
             TitleText.Text = title;
-            Loaded += async (_, _) => await LoadItemsAsync();
+            Loaded += async (_, _) =>
+            {
+                _isLoaded = true;
+                SearchBox.Focus();
+                await LoadItemsAsync();
+            };
         }
 
         public ItemModel? SelectedItem { get; private set; }
@@ -41,7 +55,7 @@ namespace InventoryManagementApp.Views.Windows
 
                 await foreach (var item in source)
                 {
-                    if (item.ItemID != _excludedItemId && item.QuantityOnHand > 0)
+                    if (IsAvailableForRentalPick(item))
                         items.Add(item);
                 }
 
@@ -57,6 +71,26 @@ namespace InventoryManagementApp.Views.Windows
 
         private async void Find_Click(object sender, RoutedEventArgs e)
         {
+            _searchTimer.Stop();
+            await LoadItemsAsync();
+        }
+
+        private void SearchBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (!_isLoaded)
+                return;
+
+            _searchTimer.Stop();
+            _searchTimer.Start();
+        }
+
+        private async void SearchBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter)
+                return;
+
+            e.Handled = true;
+            _searchTimer.Stop();
             await LoadItemsAsync();
         }
 
@@ -85,6 +119,15 @@ namespace InventoryManagementApp.Views.Windows
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
+        }
+
+        bool IsAvailableForRentalPick(ItemModel item)
+        {
+            return item.ItemID != _excludedItemId
+                && item.IsRentalItem
+                && !item.IsIncomplete
+                && !item.IsCheckedOut
+                && item.QuantityOnHand > 0;
         }
     }
 }

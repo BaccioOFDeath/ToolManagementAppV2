@@ -26,7 +26,11 @@
         <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}" Margin="0,0,0,8">
             <DockPanel LastChildFill="True">
                 <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="Find" Click="Find_Click" Margin="8,0,0,0"/>
-                <TextBox x:Name="SearchBox" MinWidth="260" VerticalContentAlignment="Center"/>
+                <TextBox x:Name="SearchBox"
+                         MinWidth="260"
+                         VerticalContentAlignment="Center"
+                         TextChanged="SearchBox_TextChanged"
+                         KeyDown="SearchBox_KeyDown"/>
             </DockPanel>
         </Border>
 

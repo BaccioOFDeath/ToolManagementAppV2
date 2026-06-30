@@ -189,7 +189,7 @@
         <Border Grid.Row="4" Style="{StaticResource DesktopStatusFooter}" Margin="0,8,0,0">
             <DockPanel LastChildFill="True">
                 <TextBlock DockPanel.Dock="Left" Text="Customer profile ready" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <TextBlock Text="Save updates customer lookup, rental handoffs, and printed customer sheets; cancel returns without applying profile edits."
+                <TextBlock Text="{Binding StatusMessage}"
                            Style="{StaticResource CaptionTextBlock}"
                            TextWrapping="Wrap"
                            VerticalAlignment="Center"/>
