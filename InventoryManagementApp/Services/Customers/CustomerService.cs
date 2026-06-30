@@ -168,7 +168,8 @@ namespace InventoryManagementApp.Services.Customers
         {
             if (string.IsNullOrWhiteSpace(filePath))
                 throw new ArgumentNullException(nameof(filePath));
-            
+
+            _auth.EnsurePermission(User.PermissionImportExport);
             return ExportCustomersToCsvInternalAsync(filePath, cancellationToken);
         }
 
@@ -387,7 +388,12 @@ namespace InventoryManagementApp.Services.Customers
             cancellationToken.ThrowIfCancellationRequested();
 
             var all = await GetAllCustomersInternalAsync(cancellationToken);
-            await Task.Run(() => CsvHelperUtil.ExportCustomersToCsv(filePath, all), cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                CsvHelperUtil.ExportCustomersToCsv(filePath, all);
+            }, cancellationToken);
         }
 
         async Task InsertCustomerAsync(SqliteConnection conn, SqliteTransaction? tran, CustomerModel customer, CancellationToken cancellationToken)
@@ -592,9 +598,11 @@ namespace InventoryManagementApp.Services.Customers
 
         public async Task ExportCustomersAsync(string filePath, IDataExporter<Customer> exporter, CancellationToken cancellationToken = default)
         {
+            _auth.EnsurePermission(User.PermissionImportExport);
             cancellationToken.ThrowIfCancellationRequested();
 
             var all = await GetAllCustomersAsync(cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
             await exporter.ExportAsync(filePath, all, cancellationToken).ConfigureAwait(false);
         }
 
