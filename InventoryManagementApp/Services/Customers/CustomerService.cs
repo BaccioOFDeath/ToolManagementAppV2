@@ -351,7 +351,7 @@ namespace InventoryManagementApp.Services.Customers
                         continue;
                     }
 
-                    if (await CustomerExistsAsync(c.Contact, c.Phone, c.Mobile, cancellationToken))
+                    if (await CustomerExistsAsync(conn, tran, c.Contact, c.Phone, c.Mobile, cancellationToken))
                     {
                         var msg = $"Row {row}: Duplicate customer";
                         result.SkippedRows.Add(msg);
@@ -433,22 +433,23 @@ namespace InventoryManagementApp.Services.Customers
             }
         }
 
-        async Task<bool> CustomerExistsAsync(string contact, string phone, string mobile, CancellationToken cancellationToken)
+        async Task<bool> CustomerExistsAsync(SqliteConnection conn, SqliteTransaction? transaction, string contact, string phone, string mobile, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             const string sql = @"
         SELECT COUNT(*) FROM Customers
          WHERE Contact = @Contact AND (Phone = @Phone OR Mobile = @Mobile)";
-            using var conn = _dbService.CreateConnection();
             try
             {
-                var count = Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql, new[]
+                using var cmd = new SqliteCommand(sql, conn, transaction);
+                cmd.Parameters.AddRange(new[]
                 {
                     new SqliteParameter("@Contact", contact),
                     new SqliteParameter("@Phone", phone ?? string.Empty),
                     new SqliteParameter("@Mobile", mobile ?? string.Empty)
-                }, cancellationToken) ?? 0);
+                });
+                var count = Convert.ToInt32(await cmd.ExecuteScalarAsync(cancellationToken) ?? 0);
                 return count > 0;
             }
             catch (Exception ex)
@@ -559,41 +560,52 @@ namespace InventoryManagementApp.Services.Customers
             int importedCount = 0;
             var importedCustomerKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             using var conn = _dbService.CreateConnection();
-            
-            foreach (var customer in customers)
+            using var transaction = conn.BeginTransaction();
+
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var customerModel = new CustomerModel
+                foreach (var customer in customers)
                 {
-                    Company = customer.Company ?? string.Empty,
-                    Email = customer.Email ?? string.Empty,
-                    Contact = customer.Contact ?? string.Empty,
-                    Phone = customer.Phone ?? string.Empty,
-                    Mobile = customer.Mobile ?? string.Empty,
-                    Address = customer.Address ?? string.Empty
-                };
-                NormalizeCustomerForSave(customerModel);
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                var skipReason = GetSkipReason(customerModel);
-                if (skipReason != null)
-                    continue;
+                    var customerModel = new CustomerModel
+                    {
+                        Company = customer.Company ?? string.Empty,
+                        Email = customer.Email ?? string.Empty,
+                        Contact = customer.Contact ?? string.Empty,
+                        Phone = customer.Phone ?? string.Empty,
+                        Mobile = customer.Mobile ?? string.Empty,
+                        Address = customer.Address ?? string.Empty
+                    };
+                    NormalizeCustomerForSave(customerModel);
 
-                bool exists = await CustomerExistsAsync(customerModel.Contact, customerModel.Phone, customerModel.Mobile, cancellationToken);
-                if (exists)
-                    continue;
+                    var skipReason = GetSkipReason(customerModel);
+                    if (skipReason != null)
+                        continue;
 
-                if (!TryReserveImportedCustomer(importedCustomerKeys, customerModel))
-                    continue;
+                    bool exists = await CustomerExistsAsync(conn, transaction, customerModel.Contact, customerModel.Phone, customerModel.Mobile, cancellationToken);
+                    if (exists)
+                        continue;
 
-                await InsertCustomerAsync(conn, null, customerModel, cancellationToken);
-                importedCount++;
+                    if (!TryReserveImportedCustomer(importedCustomerKeys, customerModel))
+                        continue;
+
+                    await InsertCustomerAsync(conn, transaction, customerModel, cancellationToken);
+                    importedCount++;
+                }
+
+                transaction.Commit();
+                if (importedCount > 0)
+                    NotifyChanged(DomainDataScope.Customers | DomainDataScope.Reports);
+
+                return importedCount;
             }
-
-            if (importedCount > 0)
-                NotifyChanged(DomainDataScope.Customers | DomainDataScope.Reports);
-
-            return importedCount;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to import customers");
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public async Task ExportCustomersAsync(string filePath, IDataExporter<Customer> exporter, CancellationToken cancellationToken = default)
