@@ -40,6 +40,22 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void FullValidationRunnerWritesArtifactManifestDuringCleanup()
+        {
+            var source = ReadRepoFile("scripts", "run-full-validation.ps1");
+
+            Assert.Contains("Write-ValidationArtifactManifest", source);
+            Assert.Contains("Get-ValidationLogPath \"artifact-manifest.txt\"", source);
+            Assert.Contains("ArtifactCount=$($artifacts.Count)", source);
+            Assert.Contains("Artifact=$($artifact.Name)", source);
+            Assert.Contains("SizeBytes=$($artifact.Length)", source);
+            Assert.Contains("LastWriteUtc=$($artifact.LastWriteTimeUtc.ToString('o'))", source);
+            Assert.Contains("Write-Warning \"Unable to write validation artifact manifest: $($_.Exception.Message)\"", source);
+            AssertAppearsBefore(source, "function Write-ValidationArtifactManifest", "try {", "The manifest helper should be available before validation steps run.");
+            AssertAppearsBefore(source, "finally {\n    try {\n        Write-ValidationArtifactManifest", "Pop-Location", "The manifest should be written before leaving the repository root.");
+        }
+
+        [Fact]
         public void BuildWorkflowCapturesEnvironmentDiagnosticsBeforeRestore()
         {
             var source = ReadRepoFile(".github", "workflows", "build.yml");
@@ -74,6 +90,22 @@ namespace InventoryManagementApp.Tests
             AssertAppearsBefore(source, "Restore dependencies", "Audit vulnerable packages", "CI package audit should run after restore resolves the solution graph.");
             AssertAppearsBefore(source, "Audit vulnerable packages", "    - name: Build", "Package advisory evidence should be captured before build can fail.");
             AssertAppearsBefore(source, "Audit vulnerable packages", "Upload validation logs", "The package audit file should be included in the validation log artifact.");
+        }
+
+        [Fact]
+        public void BuildWorkflowUploadsArtifactManifestWithValidationLogs()
+        {
+            var source = ReadRepoFile(".github", "workflows", "build.yml");
+
+            Assert.Contains("Summarize validation artifacts", source);
+            Assert.Contains("if: always()", source);
+            Assert.Contains("./ValidationLogs/artifact-manifest.txt", source);
+            Assert.Contains("ArtifactCount=$($artifacts.Count)", source);
+            Assert.Contains("Artifact=$($artifact.Name)", source);
+            Assert.Contains("SizeBytes=$($artifact.Length)", source);
+            Assert.Contains("LastWriteUtc=$($artifact.LastWriteTimeUtc.ToString('o'))", source);
+            AssertAppearsBefore(source, "Upload build artifacts", "Summarize validation artifacts", "The manifest should summarize all validation files created by earlier workflow steps.");
+            AssertAppearsBefore(source, "Summarize validation artifacts", "Upload validation logs", "The manifest should be written before the validation log artifact is uploaded.");
         }
 
         [Fact]

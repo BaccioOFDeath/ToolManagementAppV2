@@ -117,6 +117,33 @@ jobs:
         path: ./publish/
         retention-days: 7
 
+    - name: Summarize validation artifacts
+      if: always()
+      shell: pwsh
+      run: |
+        if (-not (Test-Path ./ValidationLogs)) { return }
+
+        $manifestPath = "./ValidationLogs/artifact-manifest.txt"
+        $artifacts = Get-ChildItem -Path ./ValidationLogs -File |
+          Where-Object { $_.Name -ne "artifact-manifest.txt" } |
+          Sort-Object Name
+
+        $lines = @(
+          "GeneratedAtUtc=$((Get-Date).ToUniversalTime().ToString('o'))",
+          "ValidationLogRoot=./ValidationLogs",
+          "ArtifactCount=$($artifacts.Count)",
+          ""
+        )
+
+        foreach ($artifact in $artifacts) {
+          $lines += "Artifact=$($artifact.Name)"
+          $lines += "SizeBytes=$($artifact.Length)"
+          $lines += "LastWriteUtc=$($artifact.LastWriteTimeUtc.ToString('o'))"
+          $lines += ""
+        }
+
+        $lines | Set-Content -Path $manifestPath -Encoding UTF8
+
     - name: Upload validation logs
       if: always()
       uses: actions/upload-artifact@v4
