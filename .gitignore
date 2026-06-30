@@ -382,3 +382,5 @@ Thumbs.db
 !.qa-screenshots/.gitignore
 .qa-screenshots-targeted/*
 !.qa-screenshots-targeted/.gitignore
+.qa-print-pdfs/*
+!.qa-print-pdfs/.gitignore

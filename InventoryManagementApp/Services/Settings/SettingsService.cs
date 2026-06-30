@@ -74,7 +74,11 @@ namespace InventoryManagementApp.Services.Settings
                     new SqliteParameter("@Value", value)
                 };
                 using var conn = _dbService.CreateConnection();
-                var affectedRows = await SqliteHelper.ExecuteNonQueryAsync(conn, UpsertSql, p, cancellationToken).ConfigureAwait(false);
+                var affectedRows = await SqliteHelper.ExecuteNonQueryAsync(
+                    conn,
+                    UpsertSql,
+                    p,
+                    cancellationToken).ConfigureAwait(false);
                 EnsureSettingsWriteSucceeded(affectedRows, normalizedKey);
             }
             catch (OperationCanceledException ex)

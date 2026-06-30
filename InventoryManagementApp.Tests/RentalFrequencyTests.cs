@@ -46,7 +46,8 @@ namespace InventoryManagementApp.Tests
             {
                 Company = "Test Customer",
                 Email = "test@test.com",
-                Contact = "John Doe"
+                Contact = "John Doe",
+                Phone = "555-0100"
             };
             await _customerService.AddCustomerAsync(customer);
 
@@ -84,7 +85,8 @@ namespace InventoryManagementApp.Tests
             {
                 Company = "Test Customer",
                 Email = "test@test.com",
-                Contact = "John Doe"
+                Contact = "John Doe",
+                Phone = "555-0100"
             };
             await _customerService.AddCustomerAsync(customer);
             
@@ -162,7 +164,8 @@ namespace InventoryManagementApp.Tests
             {
                 Company = "Test Customer",
                 Email = "test@test.com",
-                Contact = "John Doe"
+                Contact = "John Doe",
+                Phone = "555-0100"
             };
             await _customerService.AddCustomerAsync(customer);
             return customer;

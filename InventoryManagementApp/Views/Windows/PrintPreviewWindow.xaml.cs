@@ -17,8 +17,8 @@ namespace InventoryManagementApp.Views.Windows
 {
     public partial class PrintPreviewWindow : Window
     {
-        private const double DefaultPreviewPageWidth = 816;
-        private const double DefaultPreviewPageHeight = 1056;
+        internal const double DefaultPreviewPageWidth = 816;
+        internal const double DefaultPreviewPageHeight = 1056;
         private const double MinimumPrintableExtent = 320;
         private static readonly Thickness PrintPagePadding = new(36, 36, 36, 36);
 
@@ -59,6 +59,15 @@ namespace InventoryManagementApp.Views.Windows
             DocViewer.Document = _document;
             Owner = System.Windows.Application.Current.MainWindow;
             ShowDialog();
+        }
+
+        internal static void PrepareDocumentForPrint(FlowDocument document, string title, double pageWidth = DefaultPreviewPageWidth, double pageHeight = DefaultPreviewPageHeight)
+        {
+            if (document is null)
+                throw new ArgumentNullException(nameof(document));
+
+            ApplyDocumentPolish(document, title);
+            ConfigureDocumentForPage(document, pageWidth, pageHeight);
         }
 
         private static Uri ResolveLogoUri(string path)

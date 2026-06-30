@@ -28,6 +28,23 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void QaPrintPdfOptionsParseOutputAndCaptureFilters()
+        {
+            var options = QaScreenshotRunOptions.Parse(new[]
+            {
+                "InventoryManagementApp.exe",
+                "--qa-print-pdfs",
+                "--qa-output-dir=C:\\qa\\print-pdfs",
+                "--qa-captures=08-rental-invoice.pdf,activity"
+            });
+
+            Assert.NotNull(options);
+            Assert.True(options!.PrintPdfMode);
+            Assert.Equal("C:\\qa\\print-pdfs", options.OutputDirectory);
+            Assert.Equal(new[] { "08-rental-invoice.pdf", "activity" }, options.CaptureFilters);
+        }
+
+        [Fact]
         public void QaScreenshotScriptDefinesRequiredResolutionFolders()
         {
             var script = ReadRepositoryFile("scripts", "run-app-qa-screenshots.ps1");
@@ -46,6 +63,20 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Test-CaptureFilterMatch", script, StringComparison.Ordinal);
             Assert.Contains("Join-Path (Join-Path $sessionOutput $resolutionRun.Group) $resolutionRun.Name", script, StringComparison.Ordinal);
             Assert.Contains("InventoryManagementApp\\Assets\\Themes\\Good.json", script, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void QaPrintPdfScriptRunsAppModeAndValidatesExpectedPrintSurfaces()
+        {
+            var script = ReadRepositoryFile("scripts", "run-app-qa-print-pdfs.ps1");
+
+            Assert.Contains("--qa-print-pdfs", script, StringComparison.Ordinal);
+            Assert.Contains("[int]$ExpectedPdfCount = 19", script, StringComparison.Ordinal);
+            Assert.Contains("08-rental-invoice.pdf", script, StringComparison.Ordinal);
+            Assert.Contains("19-reports-preview.pdf", script, StringComparison.Ordinal);
+            Assert.Contains("Get-PdfPageCount", script, StringComparison.Ordinal);
+            Assert.Contains("does not start with a PDF header", script, StringComparison.Ordinal);
+            Assert.Contains("Open '$sessionOutput\\README.md' for the document manifest", script, StringComparison.Ordinal);
         }
 
         private static string ReadRepositoryFile(params string[] relativePathParts)

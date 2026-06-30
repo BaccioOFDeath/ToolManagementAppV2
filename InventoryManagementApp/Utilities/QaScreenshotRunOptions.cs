@@ -19,6 +19,7 @@ namespace InventoryManagementApp.Utilities
         public int? WindowWidth { get; init; }
         public int? WindowHeight { get; init; }
         public string[] CaptureFilters { get; init; } = Array.Empty<string>();
+        public bool PrintPdfMode { get; init; }
 
         public static QaScreenshotRunOptions? Parse(string[] args)
         {
@@ -36,12 +37,20 @@ namespace InventoryManagementApp.Utilities
             int? windowWidth = null;
             int? windowHeight = null;
             var captureFilters = Array.Empty<string>();
+            var printPdfMode = false;
 
             foreach (var arg in args)
             {
                 if (string.Equals(arg, "--qa-screenshots", StringComparison.OrdinalIgnoreCase))
                 {
                     enabled = true;
+                    continue;
+                }
+
+                if (string.Equals(arg, "--qa-print-pdfs", StringComparison.OrdinalIgnoreCase))
+                {
+                    enabled = true;
+                    printPdfMode = true;
                     continue;
                 }
 
@@ -110,7 +119,7 @@ namespace InventoryManagementApp.Utilities
                 return null;
 
             if (string.IsNullOrWhiteSpace(outputDirectory))
-                outputDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "qa-screenshots");
+                outputDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, printPdfMode ? "qa-print-pdfs" : "qa-screenshots");
 
             return new QaScreenshotRunOptions
             {
@@ -123,7 +132,8 @@ namespace InventoryManagementApp.Utilities
                 FullScreen = fullScreen,
                 WindowWidth = windowWidth,
                 WindowHeight = windowHeight,
-                CaptureFilters = captureFilters
+                CaptureFilters = captureFilters,
+                PrintPdfMode = printPdfMode
             };
         }
 

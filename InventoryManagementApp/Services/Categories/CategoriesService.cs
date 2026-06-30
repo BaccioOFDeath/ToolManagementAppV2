@@ -67,25 +67,22 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
             ct.ThrowIfCancellationRequested();
 
             await using var conn = _db.CreateConnection();
+            var existingId = await conn.ExecuteScalarAsync<long>(
+                "SELECT CategoryID FROM Categories WHERE Name=@n COLLATE NOCASE",
+                new { n = name });
+            if (existingId != 0)
+                return (int)existingId;
+
             var tx = conn.BeginTransaction();
             try
             {
-                var id = await conn.ExecuteScalarAsync<long>(
-                    "SELECT CategoryID FROM Categories WHERE Name=@n COLLATE NOCASE",
-                    new { n = name }, tx);
-                if (id != 0)
-                {
-                    tx.Commit();
-                    return (int)id;
-                }
-
                 var insertedRows = await conn.ExecuteAsync(
                     "INSERT INTO Categories(Name) VALUES(@n);",
                     new { n = name }, tx);
                 if (insertedRows == 0)
                     throw new InvalidOperationException("Unable to create category.");
 
-                id = await conn.ExecuteScalarAsync<long>(
+                var id = await conn.ExecuteScalarAsync<long>(
                     "SELECT last_insert_rowid();",
                     transaction: tx);
                 if (id < 1)

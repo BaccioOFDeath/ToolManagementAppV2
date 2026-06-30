@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -44,6 +45,7 @@ using InventoryManagementApp.Services.MobileCapture;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.Input;
+using InventoryManagementApp.Utilities.Printing;
 
 namespace InventoryManagementApp
 {
@@ -362,7 +364,10 @@ namespace InventoryManagementApp
                 // without depending on an ApplicationIdle pump in tests.
                 await qaMain.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
 
-                await RunQaScreenshotsAsync(qaMain, qaOptions);
+                if (qaOptions.PrintPdfMode)
+                    await RunQaPrintPdfsAsync(qaMain, qaOptions);
+                else
+                    await RunQaScreenshotsAsync(qaMain, qaOptions);
                 qaMain.Close();
                 return;
             }
@@ -734,6 +739,792 @@ namespace InventoryManagementApp
             await CapturePrintPreviewWindowAsync(mainWindow, CreateImportExportLogPreviewDocument(), Path.Combine(dialogsDir, "43-import-export-log-preview.png"), runLogPath, "Import export log preview", "Import / Export Log");
             await CapturePrintPreviewWindowAsync(mainWindow, CreateUserDirectoryPreviewDocument(), Path.Combine(dialogsDir, "44-user-directory-preview.png"), runLogPath, "User directory preview", "User Directory");
             await CapturePrintPreviewWindowAsync(mainWindow, CreateReportsPreviewDocument(), Path.Combine(dialogsDir, "45-reports-preview.png"), runLogPath, "Reports preview", "Active Rentals");
+        }
+
+        async Task RunQaPrintPdfsAsync(Window main, QaScreenshotRunOptions options)
+        {
+            Directory.CreateDirectory(options.OutputDirectory);
+            _qaCaptureRoot = options.OutputDirectory;
+            _qaCaptureFilters = options.CaptureFilters;
+
+            var runLogPath = Path.Combine(options.OutputDirectory, "qa-print-pdf-run.log");
+            var manifestPath = Path.Combine(options.OutputDirectory, "README.md");
+            File.WriteAllText(runLogPath, string.Empty);
+
+            await main.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
+
+            var qaPrintData = await SeedQaPrintDataAsync();
+            var exportedRows = new List<(string FileName, string Title, int Pages, long Bytes, string[] Markers)>();
+            foreach (var printable in CreateQaPrintableDocuments(qaPrintData))
+            {
+                var outputPath = Path.Combine(options.OutputDirectory, printable.FileName);
+                if (!ShouldCaptureQaScreenshot(outputPath, printable.Label))
+                    continue;
+
+                File.AppendAllText(runLogPath, $"{DateTime.Now:O} Exporting {printable.Label}.{Environment.NewLine}");
+                var document = printable.CreateDocument();
+                var text = new TextRange(document.ContentStart, document.ContentEnd).Text;
+                foreach (var marker in printable.ExpectedMarkers)
+                {
+                    if (!text.Contains(marker, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException($"Printable document '{printable.Title}' is missing expected marker '{marker}'.");
+                }
+
+                var result = FlowDocumentPdfExporter.Export(document, printable.Title, outputPath);
+                if (result.PageCount < 1)
+                    throw new InvalidOperationException($"Printable document '{printable.Title}' produced no PDF pages.");
+                if (result.FileSizeBytes < 4096)
+                    throw new InvalidOperationException($"Printable document '{printable.Title}' produced a suspiciously small PDF.");
+
+                exportedRows.Add((printable.FileName, printable.Title, result.PageCount, result.FileSizeBytes, printable.ExpectedMarkers));
+                File.AppendAllText(runLogPath, $"{DateTime.Now:O} Exported {printable.Label}: {result.PageCount} page(s), {result.FileSizeBytes} bytes.{Environment.NewLine}");
+            }
+
+            if (exportedRows.Count == 0)
+                throw new InvalidOperationException("QA print PDF run did not export any printable documents.");
+
+            var manifest = new StringBuilder();
+            manifest.AppendLine("# QA Print PDF Run");
+            manifest.AppendLine();
+            manifest.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            manifest.AppendLine($"PDF files: {exportedRows.Count}");
+            manifest.AppendLine();
+            manifest.AppendLine("Validation performed:");
+            manifest.AppendLine("- Seeded the isolated QA app database with representative inventory, customers, rentals, reservations, maintenance, calibration, kit, category, user, activity, and image records.");
+            manifest.AppendLine("- Created printable FlowDocuments from the seeded records so print output carries realistic data instead of empty placeholders.");
+            manifest.AppendLine("- Applied the shared print-preview document polish and page sizing.");
+            manifest.AppendLine("- Exported each paginated document to a PDF.");
+            manifest.AppendLine("- Checked every PDF has at least one page and a non-trivial file size.");
+            manifest.AppendLine("- Checked expected data markers before export so the sample document content is present.");
+            manifest.AppendLine();
+            manifest.AppendLine("Manual visual review checklist:");
+            manifest.AppendLine("- Header and footer are visible and not clipped.");
+            manifest.AppendLine("- Important identifiers, customer names, item numbers, dates, totals, and next actions are readable.");
+            manifest.AppendLine("- Tables and checklist lines stay inside the page width.");
+            manifest.AppendLine("- Page margins are consistent and leave room for printed output.");
+            manifest.AppendLine("- Multi-line content does not overlap adjacent rows or footer text.");
+            manifest.AppendLine();
+            manifest.AppendLine("Exported files:");
+            foreach (var row in exportedRows.OrderBy(row => row.FileName, StringComparer.OrdinalIgnoreCase))
+            {
+                manifest.AppendLine($"- `{row.FileName}` - {row.Title}; {row.Pages} page(s), {row.Bytes} bytes; markers: {string.Join(", ", row.Markers)}");
+            }
+
+            File.WriteAllText(manifestPath, manifest.ToString());
+        }
+
+        private sealed record QaPrintableDocument(
+            string FileName,
+            string Title,
+            string Label,
+            Func<FlowDocument> CreateDocument,
+            string[] ExpectedMarkers);
+
+        private sealed record QaPrintSeedData(
+            IReadOnlyList<ItemModel> Items,
+            IReadOnlyList<CustomerModel> Customers,
+            IReadOnlyList<QaPrintRental> Rentals,
+            IReadOnlyList<Reservation> Reservations,
+            IReadOnlyList<MaintenanceRecord> MaintenanceRecords,
+            IReadOnlyList<CalibrationRecord> CalibrationRecords,
+            IReadOnlyList<Kit> Kits,
+            IReadOnlyList<KitItem> KitItems,
+            IReadOnlyList<User> Users,
+            IReadOnlyList<string> Categories,
+            IReadOnlyList<string> ActivityLines,
+            string PrimaryItemImagePath,
+            string RentalReturnPhotoPath);
+
+        private sealed record QaPrintRental(
+            int RentalID,
+            int ItemID,
+            int CustomerID,
+            string ItemNumber,
+            string ItemName,
+            string ItemLocation,
+            string CustomerName,
+            string CustomerPhone,
+            string CustomerMobile,
+            DateTime RentalDate,
+            DateTime DueDate,
+            DateTime? ReturnDate,
+            string Status);
+
+        async Task<QaPrintSeedData> SeedQaPrintDataAsync()
+        {
+            var assetRoot = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets");
+            var itemImageDirectory = Path.Combine(assetRoot, "ItemImages");
+            var rentalPhotoDirectory = Path.Combine(assetRoot, "RentalPhotos");
+            var userPhotoDirectory = Path.Combine(assetRoot, "UserPhotos");
+            Directory.CreateDirectory(itemImageDirectory);
+            Directory.CreateDirectory(rentalPhotoDirectory);
+            Directory.CreateDirectory(userPhotoDirectory);
+
+            var itemImagePath = Path.Combine(itemImageDirectory, "qa-scan-item.png");
+            var torqueImagePath = Path.Combine(itemImageDirectory, "qa-torque-wrench.png");
+            var pressureImagePath = Path.Combine(itemImageDirectory, "qa-pressure-gauge.png");
+            var rentalPhotoPath = Path.Combine(rentalPhotoDirectory, "qa-rental-return-photo.png");
+            var userPhotoPath = Path.Combine(userPhotoDirectory, "qa-tech.png");
+
+            CreateQaPng(itemImagePath, "SCAN", "TL-101", Color.FromRgb(42, 94, 172), Color.FromRgb(232, 241, 255));
+            CreateQaPng(torqueImagePath, "TORQUE", "TL-204", Color.FromRgb(91, 111, 72), Color.FromRgb(239, 245, 231));
+            CreateQaPng(pressureImagePath, "GAUGE", "TL-318", Color.FromRgb(145, 68, 54), Color.FromRgb(255, 238, 232));
+            CreateQaPng(rentalPhotoPath, "RETURN", "PHOTO", Color.FromRgb(91, 84, 152), Color.FromRgb(241, 239, 255));
+            CreateQaPng(userPhotoPath, "QA", "TECH", Color.FromRgb(46, 116, 94), Color.FromRgb(232, 248, 240));
+
+            var db = Host.Services.GetRequiredService<DatabaseService>();
+            using var conn = db.CreateConnection();
+            using var tx = conn.BeginTransaction();
+
+            Execute(conn, tx, @"
+CREATE TABLE IF NOT EXISTS Categories (
+    CategoryID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL COLLATE NOCASE UNIQUE
+);
+CREATE TABLE IF NOT EXISTS Inventories (
+    InventoryID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Location TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS InventoryCategories (
+    InventoryCategoryID INTEGER PRIMARY KEY AUTOINCREMENT,
+    InventoryID INTEGER NOT NULL,
+    CategoryID INTEGER NOT NULL,
+    UNIQUE(InventoryID, CategoryID)
+);");
+
+            Execute(conn, tx, "DELETE FROM InventoryCategories;");
+            Execute(conn, tx, "DELETE FROM Categories;");
+            Execute(conn, tx, "DELETE FROM Inventories;");
+            Execute(conn, tx, "DELETE FROM KitItems;");
+            Execute(conn, tx, "DELETE FROM Kits;");
+            Execute(conn, tx, "DELETE FROM Reservations;");
+            Execute(conn, tx, "DELETE FROM CalibrationRecords;");
+            Execute(conn, tx, "DELETE FROM MaintenanceRecords;");
+            Execute(conn, tx, "DELETE FROM RentalPhotos;");
+            Execute(conn, tx, "DELETE FROM Rentals;");
+            Execute(conn, tx, "DELETE FROM ActivityLogs;");
+            Execute(conn, tx, "DELETE FROM Items;");
+            Execute(conn, tx, "DELETE FROM Customers;");
+
+            Execute(conn, tx, @"
+INSERT OR REPLACE INTO Users
+    (UserID, UserName, UserPhotoPath, PasswordHash, PasswordSalt, IsAdmin, Email, Phone, Mobile, Address, Role, IsActive, CreatedAt, PasswordExpired, FailedLoginAttempts, Permissions)
+VALUES
+    (2, 'qa.tech', @UserPhoto, 'seeded-hash', 'seeded-salt', 0, 'qa.tech@example.com', '09 555 0101', '021 555 0101', '17 Item Lane, Auckland', 'Workshop Staff', 1, @Now, 0, 0, @Permissions);",
+                new SqliteParameter("@UserPhoto", ToRelativeAssetPath(userPhotoPath)),
+                new SqliteParameter("@Now", DateTime.Now),
+                new SqliteParameter("@Permissions", User.BuildPermissions(User.PermissionLabels.Keys)));
+
+            Execute(conn, tx, @"
+INSERT INTO Customers (CustomerID, Company, Email, Contact, Phone, Mobile, Address) VALUES
+(12, 'North Harbour Motors', 'service@northharbour.example.com', 'Casey Morgan', '09 555 0190', '021 555 0190', '17 Foundry Road, Auckland'),
+(18, 'Auckland Fleet Service', 'advisor@aucklandfleet.example.com', 'Jordan Patel', '09 555 0118', '021 555 0118', '42 Workshop Drive, Auckland'),
+(24, 'Metro Panel Repairs', 'tools@metropanel.example.com', 'Riley Chen', '09 555 0124', '021 555 0124', '8 Paint Bay Road, Auckland');");
+
+            Execute(conn, tx, @"
+INSERT INTO Items
+    (ItemID, ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity, RentedQuantity, IsRentalItem, Price, ImagePath, IsPowered, IsCheckedOut, CheckedOutBy, CheckedOutTime, UpdatedAt, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount)
+VALUES
+    (101, 'TL-101', 'Scan Item', 'Bay 2 - Shelf A', 'ScanPro', 'SCAN-101', 'Equipment Supplier NZ', @Purchased1, 'Bi-directional diagnostic scanner with charger, leads, and carry case.', 'diagnostic scanner obd scanpro', 1, 1, 1, 85.00, @ItemImage, 1, 1, 'Auckland Fleet Service', @CheckedOut, @Now, 0, '', '', 17),
+    (102, 'TL-204', 'Torque Wrench', 'Calibration Cabinet', 'Norbar', 'TW-204', 'Precision Tools', @Purchased2, 'Half-inch torque wrench. Calibration due soon.', 'torque wrench calibration', 2, 0, 1, 45.00, @TorqueImage, 0, 0, '', NULL, @Now, 0, '', '', 9),
+    (103, 'TL-318', 'Pressure Gauge', 'Gauge Drawer 1', 'Wika', 'PG-318', 'Gauge Supplies', @Purchased3, 'Pressure gauge flagged overdue for calibration follow-up.', 'pressure gauge calibration overdue', 0, 1, 1, 35.00, @PressureImage, 0, 1, 'Metro Panel Repairs', @OverdueOut, @Now, 0, '', 'Calibration overdue by six days.', 12),
+    (104, 'TL-640', 'Adapter Pack', 'Bay 2 - Bin C', 'ScanPro', 'ADP-640', 'Equipment Supplier NZ', @Purchased4, 'Adapters included in diagnostics starter kit.', 'adapter kit diagnostics', 4, 0, 0, 15.00, '', 0, 0, '', NULL, @Now, 0, '', '', 3);",
+                new SqliteParameter("@Purchased1", DateTime.Today.AddYears(-2)),
+                new SqliteParameter("@Purchased2", DateTime.Today.AddYears(-1)),
+                new SqliteParameter("@Purchased3", DateTime.Today.AddYears(-3)),
+                new SqliteParameter("@Purchased4", DateTime.Today.AddMonths(-8)),
+                new SqliteParameter("@CheckedOut", DateTime.Today.AddDays(-2).AddHours(9)),
+                new SqliteParameter("@OverdueOut", DateTime.Today.AddDays(-9).AddHours(8)),
+                new SqliteParameter("@Now", DateTime.Now),
+                new SqliteParameter("@ItemImage", ToRelativeAssetPath(itemImagePath)),
+                new SqliteParameter("@TorqueImage", ToRelativeAssetPath(torqueImagePath)),
+                new SqliteParameter("@PressureImage", ToRelativeAssetPath(pressureImagePath)));
+
+            Execute(conn, tx, @"
+INSERT INTO Rentals (RentalID, ItemID, CustomerID, RentalDate, DueDate, ReturnDate, Status) VALUES
+(4128, 101, 18, @RentalOut, @RentalDue, NULL, 'Rented'),
+(4132, 103, 24, @OverdueOut, @OverdueDue, NULL, 'Overdue'),
+(4101, 102, 12, @ReturnedOut, @ReturnedDue, @ReturnedIn, 'Returned');",
+                new SqliteParameter("@RentalOut", DateTime.Today.AddDays(-2).AddHours(9)),
+                new SqliteParameter("@RentalDue", DateTime.Today.AddDays(3).AddHours(17)),
+                new SqliteParameter("@OverdueOut", DateTime.Today.AddDays(-9).AddHours(8)),
+                new SqliteParameter("@OverdueDue", DateTime.Today.AddDays(-2).AddHours(17)),
+                new SqliteParameter("@ReturnedOut", DateTime.Today.AddDays(-18).AddHours(10)),
+                new SqliteParameter("@ReturnedDue", DateTime.Today.AddDays(-12).AddHours(17)),
+                new SqliteParameter("@ReturnedIn", DateTime.Today.AddDays(-13).AddHours(15)));
+
+            Execute(conn, tx, @"
+INSERT INTO RentalPhotos (RentalID, ItemID, PhotoStage, FilePath, Notes, CreatedAt, CreatedBy) VALUES
+(4128, 101, 'Checkout', @RentalPhoto, 'Photo captured before release showing case, charger, and leads.', @Now, 'qa.tech'),
+(4101, 102, 'Return', @RentalPhoto, 'Returned clean and stored in calibration cabinet.', @ReturnedIn, 'qa.tech');",
+                new SqliteParameter("@RentalPhoto", ToRelativeAssetPath(rentalPhotoPath)),
+                new SqliteParameter("@Now", DateTime.Now),
+                new SqliteParameter("@ReturnedIn", DateTime.Today.AddDays(-13).AddHours(15)));
+
+            Execute(conn, tx, @"
+INSERT INTO MaintenanceRecords (MaintenanceID, ItemID, ScheduledDate, CompletedDate, MaintenanceType, Description, PerformedBy, Cost, Status, Notes, UserID, CreatedAt) VALUES
+(7201, 101, @MaintDue, NULL, 'Routine', 'Annual inspection and battery replacement.', 'Workshop QA', 149.95, 'Scheduled', 'Prepare charger and run diagnostic self-test before release.', 2, @Now),
+(7202, 104, @MaintDone, @MaintDone, 'Inspection', 'Adapter pin inspection and case clean.', 'Workshop QA', 89.50, 'Completed', 'Stored in Bay 2 after verification.', 2, @Now);",
+                new SqliteParameter("@MaintDue", DateTime.Today.AddDays(4)),
+                new SqliteParameter("@MaintDone", DateTime.Today.AddDays(-3)),
+                new SqliteParameter("@Now", DateTime.Now));
+
+            Execute(conn, tx, @"
+INSERT INTO CalibrationRecords (CalibrationID, ItemID, CalibrationDate, NextCalibrationDue, CalibratedBy, CertificateNumber, Standard, Result, Cost, Notes, UserID, CreatedAt) VALUES
+(8302, 102, @CalDate, @CalDue, 'Metro Calibrations', 'CAL-2026-0042', 'ISO 6789', 'Pass', 129.00, 'Certificate stored with item file.', 2, @Now),
+(8303, 103, @GaugeCalDate, @GaugeDue, 'Metro Calibrations', 'CAL-2025-1198', 'AS/NZS 1349', 'Review', 99.00, 'Overdue follow-up required before next rental.', 2, @Now);",
+                new SqliteParameter("@CalDate", DateTime.Today.AddMonths(-10)),
+                new SqliteParameter("@CalDue", DateTime.Today.AddMonths(2)),
+                new SqliteParameter("@GaugeCalDate", DateTime.Today.AddMonths(-13)),
+                new SqliteParameter("@GaugeDue", DateTime.Today.AddDays(-6)),
+                new SqliteParameter("@Now", DateTime.Now));
+
+            Execute(conn, tx, @"
+INSERT INTO Reservations (ReservationID, ItemID, CustomerID, ReservationDate, StartDate, EndDate, Quantity, Status, Notes, CreatedByUserID, CreatedAt, RentalID) VALUES
+(9103, 101, 12, @ReservationDate, @StartDate, @EndDate, 1, 'Confirmed', 'Call before pickup after lunch and verify accessories.', 2, @Now, NULL),
+(9104, 102, 18, @ReservationDate, @SecondStart, @SecondEnd, 1, 'Pending', 'Hold torque wrench while advisor confirms job timing.', 2, @Now, NULL),
+(9105, 104, 24, @ReservationDate, @ThirdStart, @ThirdEnd, 2, 'Fulfilled', 'Adapter pack added to returned rental handoff.', 2, @Now, 4101);",
+                new SqliteParameter("@ReservationDate", DateTime.Today.AddDays(-1)),
+                new SqliteParameter("@StartDate", DateTime.Today.AddDays(1)),
+                new SqliteParameter("@EndDate", DateTime.Today.AddDays(4)),
+                new SqliteParameter("@SecondStart", DateTime.Today.AddDays(2)),
+                new SqliteParameter("@SecondEnd", DateTime.Today.AddDays(5)),
+                new SqliteParameter("@ThirdStart", DateTime.Today.AddDays(-18)),
+                new SqliteParameter("@ThirdEnd", DateTime.Today.AddDays(-12)),
+                new SqliteParameter("@Now", DateTime.Now));
+
+            Execute(conn, tx, @"
+INSERT INTO Kits (KitID, KitNumber, Name, Description, Category, IsActive, CreatedByUserID, CreatedAt, UpdatedAt) VALUES
+(640, 'KIT-640', 'Diagnostics Starter Kit', 'Handheld scan item, charger, and adapter pack.', 'Diagnostics', 1, 2, @Now, @Now);
+INSERT INTO KitItems (KitItemID, KitID, ItemID, Quantity, IsOptional) VALUES
+(641, 640, 101, 1, 0),
+(642, 640, 104, 2, 0),
+(643, 640, 102, 1, 1);",
+                new SqliteParameter("@Now", DateTime.Now));
+
+            Execute(conn, tx, @"
+INSERT INTO Inventories (InventoryID, Location) VALUES
+(1, 'Main Workshop'),
+(2, 'Calibration Cabinet');
+INSERT INTO Categories (CategoryID, Name) VALUES
+(15, 'Diagnostics'),
+(21, 'Torque Tools'),
+(24, 'Pressure Testing');
+INSERT INTO InventoryCategories (InventoryID, CategoryID) VALUES
+(1, 15),
+(2, 21),
+(2, 24);");
+
+            Execute(conn, tx, @"
+INSERT INTO ActivityLogs (LogID, UserID, UserName, Action, Timestamp) VALUES
+(501, 2, 'qa.tech', 'Checked out Scan Item TL-101 to Auckland Fleet Service', @Activity1),
+(502, 2, 'qa.tech', 'Captured checkout photo for Rental 4128', @Activity2),
+(503, 2, 'qa.tech', 'Confirmed reservation 9103 for North Harbour Motors', @Activity3),
+(504, 1, 'admin', 'Updated backup retention settings', @Activity4),
+(505, 2, 'qa.tech', 'Marked Pressure Gauge TL-318 overdue follow-up required', @Activity5);",
+                new SqliteParameter("@Activity1", DateTime.Today.AddHours(8)),
+                new SqliteParameter("@Activity2", DateTime.Today.AddHours(8).AddMinutes(5)),
+                new SqliteParameter("@Activity3", DateTime.Today.AddHours(10).AddMinutes(42)),
+                new SqliteParameter("@Activity4", DateTime.Today.AddHours(9).AddMinutes(15)),
+                new SqliteParameter("@Activity5", DateTime.Today.AddHours(11)));
+
+            tx.Commit();
+
+            var items = new[]
+            {
+                new ItemModel { ItemID = 101, ItemNumber = "TL-101", Name = "Scan Item", Brand = "ScanPro", PartNumber = "SCAN-101", Supplier = "Equipment Supplier NZ", Location = "Bay 2 - Shelf A", Notes = "Bi-directional diagnostic scanner with charger, leads, and carry case.", Keywords = "diagnostic scanner obd scanpro", QuantityOnHand = 1, RentedQuantity = 1, IsRentalItem = true, Price = 85m, ImagePath = ToRelativeAssetPath(itemImagePath), IsPowered = true, IsCheckedOut = true, CheckedOutBy = "Auckland Fleet Service", CheckedOutTime = DateTime.Today.AddDays(-2).AddHours(9), CheckoutCount = 17 },
+                new ItemModel { ItemID = 102, ItemNumber = "TL-204", Name = "Torque Wrench", Brand = "Norbar", PartNumber = "TW-204", Supplier = "Precision Tools", Location = "Calibration Cabinet", Notes = "Half-inch torque wrench. Calibration due soon.", Keywords = "torque wrench calibration", QuantityOnHand = 2, RentedQuantity = 0, IsRentalItem = true, Price = 45m, ImagePath = ToRelativeAssetPath(torqueImagePath), CheckoutCount = 9 },
+                new ItemModel { ItemID = 103, ItemNumber = "TL-318", Name = "Pressure Gauge", Brand = "Wika", PartNumber = "PG-318", Supplier = "Gauge Supplies", Location = "Gauge Drawer 1", Notes = "Pressure gauge flagged overdue for calibration follow-up.", Keywords = "pressure gauge calibration overdue", QuantityOnHand = 0, RentedQuantity = 1, IsRentalItem = true, Price = 35m, ImagePath = ToRelativeAssetPath(pressureImagePath), IsCheckedOut = true, CheckedOutBy = "Metro Panel Repairs", CheckedOutTime = DateTime.Today.AddDays(-9).AddHours(8), IssuesNotes = "Calibration overdue by six days.", CheckoutCount = 12 },
+                new ItemModel { ItemID = 104, ItemNumber = "TL-640", Name = "Adapter Pack", Brand = "ScanPro", PartNumber = "ADP-640", Supplier = "Equipment Supplier NZ", Location = "Bay 2 - Bin C", Notes = "Adapters included in diagnostics starter kit.", Keywords = "adapter kit diagnostics", QuantityOnHand = 4, RentedQuantity = 0, IsRentalItem = false, Price = 15m, CheckoutCount = 3 }
+            };
+
+            var customers = new[]
+            {
+                new CustomerModel { CustomerID = 12, Company = "North Harbour Motors", Contact = "Casey Morgan", Email = "service@northharbour.example.com", Phone = "09 555 0190", Mobile = "021 555 0190", Address = "17 Foundry Road, Auckland" },
+                new CustomerModel { CustomerID = 18, Company = "Auckland Fleet Service", Contact = "Jordan Patel", Email = "advisor@aucklandfleet.example.com", Phone = "09 555 0118", Mobile = "021 555 0118", Address = "42 Workshop Drive, Auckland" },
+                new CustomerModel { CustomerID = 24, Company = "Metro Panel Repairs", Contact = "Riley Chen", Email = "tools@metropanel.example.com", Phone = "09 555 0124", Mobile = "021 555 0124", Address = "8 Paint Bay Road, Auckland" }
+            };
+
+            var rentals = new[]
+            {
+                new QaPrintRental(4128, 101, 18, "TL-101", "Scan Item", "Bay 2 - Shelf A", "Auckland Fleet Service", "09 555 0118", "021 555 0118", DateTime.Today.AddDays(-2).AddHours(9), DateTime.Today.AddDays(3).AddHours(17), null, "Rented"),
+                new QaPrintRental(4132, 103, 24, "TL-318", "Pressure Gauge", "Gauge Drawer 1", "Metro Panel Repairs", "09 555 0124", "021 555 0124", DateTime.Today.AddDays(-9).AddHours(8), DateTime.Today.AddDays(-2).AddHours(17), null, "Overdue"),
+                new QaPrintRental(4101, 102, 12, "TL-204", "Torque Wrench", "Calibration Cabinet", "North Harbour Motors", "09 555 0190", "021 555 0190", DateTime.Today.AddDays(-18).AddHours(10), DateTime.Today.AddDays(-12).AddHours(17), DateTime.Today.AddDays(-13).AddHours(15), "Returned")
+            };
+
+            return new QaPrintSeedData(
+                items,
+                customers,
+                rentals,
+                new[] { CreateSampleReservation(), new Reservation { ReservationID = 9104, ItemID = 102, CustomerID = 18, ItemNumber = "TL-204", ItemName = "Torque Wrench", CustomerName = "Auckland Fleet Service", ReservationDate = DateTime.Today.AddDays(-1), StartDate = DateTime.Today.AddDays(2), EndDate = DateTime.Today.AddDays(5), Quantity = 1, Status = "Pending", Notes = "Hold torque wrench while advisor confirms job timing." } },
+                new[] { CreateSampleMaintenanceRecord(), new MaintenanceRecord { MaintenanceID = 7202, ItemID = 104, ItemNumber = "TL-640", ItemName = "Adapter Pack", MaintenanceType = "Inspection", Description = "Adapter pin inspection and case clean.", ScheduledDate = DateTime.Today.AddDays(-3), CompletedDate = DateTime.Today.AddDays(-3), Status = "Completed", PerformedBy = "Workshop QA", Notes = "Stored in Bay 2 after verification.", Cost = 89.50m } },
+                new[] { CreateSampleCalibrationRecord(), new CalibrationRecord { CalibrationID = 8303, ItemID = 103, ItemNumber = "TL-318", ItemName = "Pressure Gauge", CalibrationDate = DateTime.Today.AddMonths(-13), NextCalibrationDue = DateTime.Today.AddDays(-6), CalibratedBy = "Metro Calibrations", CertificateNumber = "CAL-2025-1198", Standard = "AS/NZS 1349", Result = "Review", Cost = 99m, Notes = "Overdue follow-up required before next rental." } },
+                new[] { CreateSampleKit() },
+                new[] { CreateSampleKitItem(), new KitItem { KitItemID = 642, KitID = 640, ItemID = 104, ItemNumber = "TL-640", ItemName = "Adapter Pack", Quantity = 2, IsOptional = false }, new KitItem { KitItemID = 643, KitID = 640, ItemID = 102, ItemNumber = "TL-204", ItemName = "Torque Wrench", Quantity = 1, IsOptional = true } },
+                new[] { CreateSampleAdminUser(), new User { UserID = 2, UserName = "qa.tech", Role = "Workshop Staff", Email = "qa.tech@example.com", Phone = "09 555 0101", Mobile = "021 555 0101", Address = "17 Item Lane, Auckland", IsAdmin = false, IsActive = true, UserPhotoPath = ToRelativeAssetPath(userPhotoPath), Permissions = User.BuildPermissions(User.DefaultUserPermissions) } },
+                new[] { "Diagnostics", "Torque Tools", "Pressure Testing" },
+                new[] { "08:00 qa.tech | Checked out Scan Item TL-101 to Auckland Fleet Service", "08:05 qa.tech | Captured checkout photo for Rental 4128", "09:15 admin | Updated backup retention settings", "10:42 qa.tech | Confirmed reservation 9103 for North Harbour Motors", "11:00 qa.tech | Marked Pressure Gauge TL-318 overdue follow-up required" },
+                itemImagePath,
+                rentalPhotoPath);
+        }
+
+        static IReadOnlyList<QaPrintableDocument> CreateQaPrintableDocuments(QaPrintSeedData data) => new[]
+        {
+            new QaPrintableDocument("01-print-preview.pdf", "QA Preview", "Print preview", () => CreateSeededPrintPreviewDocument(data), new[] { "QA Print Preview", "TL-101", "Auckland Fleet Service" }),
+            new QaPrintableDocument("02-item-search-preview.pdf", "Item Search Intelligence", "Item search preview", () => CreateSeededItemSearchPreviewDocument(data), new[] { "Item Search Intelligence", "TL-101", "TL-318" }),
+            new QaPrintableDocument("03-dashboard-preview.pdf", "Dashboard Snapshot", "Dashboard preview", () => CreateSeededDashboardPreviewDocument(data), new[] { "Dashboard Snapshot", "Checked out", "Overdue" }),
+            new QaPrintableDocument("04-customer-directory.pdf", "Customer Directory", "Customer directory", () => CreateSeededCustomerDirectoryPreviewDocument(data), new[] { "Customer Directory", "North Harbour Motors", "Auckland Fleet Service" }),
+            new QaPrintableDocument("05-item-details.pdf", "Item Details - TL-101", "Item details", () => CreateSeededItemDetailsPreviewDocument(data), new[] { "Item Details - TL-101", "SCAN-101", "Auckland Fleet Service" }),
+            new QaPrintableDocument("06-rental-request.pdf", "Request 9103", "Rental request", () => CreateSeededRentalRequestPreviewDocument(data), new[] { "Request 9103", "North Harbour Motors", "Confirmed" }),
+            new QaPrintableDocument("07-rental-picking-slip.pdf", "Picking Slip - Rental 4128", "Rental picking slip", () => CreateSeededRentalPickingSlipPreviewDocument(data), new[] { "Picking Slip - Rental 4128", "Verify charger", "Auckland Fleet Service" }),
+            new QaPrintableDocument("08-rental-invoice.pdf", "Invoice - Rental 4128", "Rental invoice", () => CreateSeededRentalInvoicePreviewDocument(data), new[] { "Invoice - Rental 4128", "Total: $115.00", "Auckland Fleet Service" }),
+            new QaPrintableDocument("09-maintenance-schedule.pdf", "Maintenance Schedule", "Maintenance schedule", () => CreateSeededMaintenanceSchedulePreviewDocument(data), new[] { "Maintenance Schedule", "TL-101", "Routine" }),
+            new QaPrintableDocument("10-calibration-due.pdf", "Calibration Due Report", "Calibration due", () => CreateSeededCalibrationDuePreviewDocument(data), new[] { "Calibration Due Report", "Pressure Gauge", "Overdue" }),
+            new QaPrintableDocument("11-reservation-handoff.pdf", "Reservation 9103", "Reservation handoff", () => CreateSeededReservationHandoffPreviewDocument(data), new[] { "Reservation 9103", "Confirmed", "North Harbour Motors" }),
+            new QaPrintableDocument("12-reservation-directory.pdf", "Reservation Directory", "Reservation directory", () => CreateSeededReservationDirectoryPreviewDocument(data), new[] { "Reservation Directory", "9104", "Pending" }),
+            new QaPrintableDocument("13-kit-directory.pdf", "Kit Directory", "Kit directory", () => CreateSeededKitDirectoryPreviewDocument(data), new[] { "Kit Directory", "KIT-640", "Adapter Pack" }),
+            new QaPrintableDocument("14-category-directory.pdf", "Category Directory", "Category directory", () => CreateSeededCategoryDirectoryPreviewDocument(data), new[] { "Category Directory", "Diagnostics", "Pressure Testing" }),
+            new QaPrintableDocument("15-category-sheet.pdf", "Category Sheet - Diagnostics", "Category sheet", () => CreateSeededCategorySheetPreviewDocument(data), new[] { "Category Sheet - Diagnostics", "Matching inventory records", "TL-101" }),
+            new QaPrintableDocument("16-activity-logs.pdf", "Activity Logs", "Activity logs", () => CreateSeededActivityLogsPreviewDocument(data), new[] { "Activity Logs", "Checked out Scan Item", "Captured checkout photo" }),
+            new QaPrintableDocument("17-import-export-log.pdf", "Import / Export Log", "Import export log", () => CreateSeededImportExportLogPreviewDocument(data), new[] { "Import / Export Operation Log", "4 inventory rows", "3 customer rows" }),
+            new QaPrintableDocument("18-user-directory.pdf", "User Directory", "User directory", () => CreateSeededUserDirectoryPreviewDocument(data), new[] { "User Directory", "qa.tech", "Workshop Staff" }),
+            new QaPrintableDocument("19-reports-preview.pdf", "Active Rentals", "Reports preview", () => CreateSeededReportsPreviewDocument(data), new[] { "Active Rentals", "Overdue", "TL-318" })
+        };
+
+        static FlowDocument CreateSeededPrintPreviewDocument(QaPrintSeedData data)
+        {
+            var doc = CreatePreviewDocument(
+                "QA Print Preview",
+                "Seeded isolated database print package",
+                new[]
+                {
+                    $"Inventory rows: {data.Items.Count} | Customers: {data.Customers.Count} | Active rentals: {data.Rentals.Count(r => r.ReturnDate == null)}",
+                    "Rented: TL-101 Scan Item is checked out to Auckland Fleet Service.",
+                    "Overdue: TL-318 Pressure Gauge is out with Metro Panel Repairs and needs follow-up.",
+                    "Images: generated item and rental photo assets are embedded in selected print PDFs."
+                });
+            AddSeedSummaryTable(doc, data);
+            return doc;
+        }
+
+        static FlowDocument CreateSeededItemSearchPreviewDocument(QaPrintSeedData data)
+        {
+            var doc = CreatePreviewDocument("Item Search Intelligence", "Search term: calibration scanner", Array.Empty<string>());
+            AddPrintTable(
+                doc,
+                new[] { "Item #", "Name", "Status", "Location", "Customer / Issue" },
+                data.Items.Select(item => new[]
+                {
+                    item.ItemNumber,
+                    item.Name,
+                    item.IsCheckedOut ? "Checked out" : item.QuantityOnHand > 0 ? "Available" : "Unavailable",
+                    item.Location,
+                    item.IsCheckedOut ? item.CheckedOutBy : string.IsNullOrWhiteSpace(item.IssuesNotes) ? item.Notes : item.IssuesNotes
+                }));
+            AddPrintLines(doc, "Search Signals", new[]
+            {
+                "Recent searches: scanner, calibration, pressure gauge, adapter pack.",
+                "Unavailable demand: TL-318 Pressure Gauge is overdue and has zero available quantity.",
+                "Suggested action: confirm return date before promising pressure testing bookings."
+            });
+            return doc;
+        }
+
+        static FlowDocument CreateSeededDashboardPreviewDocument(QaPrintSeedData data)
+        {
+            var activeRentals = data.Rentals.Where(r => r.ReturnDate == null).ToList();
+            var overdue = activeRentals.Where(r => string.Equals(r.Status, "Overdue", StringComparison.OrdinalIgnoreCase)).ToList();
+            var doc = CreatePreviewDocument(
+                "Dashboard Snapshot",
+                "Printed for qa.tech from seeded QA data",
+                new[]
+                {
+                    $"Checked out active rentals: {activeRentals.Count}",
+                    $"Overdue rentals: {overdue.Count}",
+                    $"Open reservations: {data.Reservations.Count(r => !string.Equals(r.Status, "Fulfilled", StringComparison.OrdinalIgnoreCase))}",
+                    $"Maintenance/calibration follow-ups: {data.MaintenanceRecords.Count + data.CalibrationRecords.Count}"
+                });
+            AddPrintTable(
+                doc,
+                new[] { "Priority", "Record", "Next action" },
+                new[]
+                {
+                    new[] { "Return", "TL-101 with Auckland Fleet Service", "Confirm due-back date and accessories." },
+                    new[] { "Overdue", "TL-318 with Metro Panel Repairs", "Call customer and block new requests." },
+                    new[] { "Reservation", "9103 for North Harbour Motors", "Prepare scanner for pickup after lunch." }
+                });
+            return doc;
+        }
+
+        static FlowDocument CreateSeededCustomerDirectoryPreviewDocument(QaPrintSeedData data)
+        {
+            var doc = CreatePreviewDocument("Customer Directory", $"Visible customers: {data.Customers.Count}", Array.Empty<string>());
+            AddPrintTable(
+                doc,
+                new[] { "Customer", "Contact", "Phone", "Mobile", "Address" },
+                data.Customers.Select(c => new[] { c.Company, c.Contact, c.Phone, c.Mobile, c.Address }));
+            return doc;
+        }
+
+        static FlowDocument CreateSeededItemDetailsPreviewDocument(QaPrintSeedData data)
+        {
+            var item = data.Items.First(i => i.ItemNumber == "TL-101");
+            var rental = data.Rentals.First(r => r.ItemID == item.ItemID && r.ReturnDate == null);
+            var doc = CreatePreviewDocument(
+                "Item Details - TL-101",
+                $"{item.Name} | {item.Brand} | {item.Location}",
+                new[]
+                {
+                    $"Part number: {item.PartNumber}",
+                    $"Supplier: {item.Supplier}",
+                    $"Available: {item.QuantityOnHand} | Rented: {item.RentedQuantity} | Checkout count: {item.CheckoutCount}",
+                    $"Checked out to: {rental.CustomerName} | Due: {rental.DueDate:yyyy-MM-dd HH:mm}",
+                    $"Notes: {item.Notes}"
+                });
+            AddImageBlock(doc, data.PrimaryItemImagePath, "Generated QA item photo for TL-101.");
+            return doc;
+        }
+
+        static FlowDocument CreateSeededRentalRequestPreviewDocument(QaPrintSeedData data)
+        {
+            var request = data.Reservations.First(r => r.ReservationID == 9103);
+            return CreatePreviewDocument(
+                "Request 9103",
+                "Reservation request handoff",
+                new[]
+                {
+                    $"Customer: {request.CustomerName}",
+                    $"Requested item: {request.ItemNumber} {request.ItemName}",
+                    $"Start: {request.StartDate:yyyy-MM-dd} | End: {request.EndDate:yyyy-MM-dd} | Quantity: {request.Quantity}",
+                    $"Status: {request.Status}",
+                    $"Notes: {request.Notes}"
+                });
+        }
+
+        static FlowDocument CreateSeededRentalPickingSlipPreviewDocument(QaPrintSeedData data)
+        {
+            var rental = data.Rentals.First(r => r.RentalID == 4128);
+            var doc = CreatePreviewDocument(
+                "Picking Slip - Rental 4128",
+                "Advisor handoff before checkout",
+                new[]
+                {
+                    $"Item: {rental.ItemNumber} {rental.ItemName}",
+                    $"Customer: {rental.CustomerName} | Phone: {rental.CustomerPhone}",
+                    $"Out: {rental.RentalDate:yyyy-MM-dd HH:mm} | Due: {rental.DueDate:yyyy-MM-dd HH:mm}",
+                    "Verify charger, OBD leads, USB cable, and carry case before release.",
+                    "Capture checkout photo and file with the rental record."
+                });
+            AddImageBlock(doc, data.RentalReturnPhotoPath, "Generated QA checkout photo linked to rental 4128.");
+            return doc;
+        }
+
+        static FlowDocument CreateSeededRentalInvoicePreviewDocument(QaPrintSeedData data)
+        {
+            var rental = data.Rentals.First(r => r.RentalID == 4128);
+            var doc = CreatePreviewDocument(
+                "Invoice - Rental 4128",
+                $"Customer billing summary for {rental.CustomerName}",
+                Array.Empty<string>());
+            AddPrintTable(
+                doc,
+                new[] { "Line", "Description", "Amount" },
+                new[]
+                {
+                    new[] { "1", "TL-101 Scan Item rental charge", "$85.00" },
+                    new[] { "2", "Accessory pack handling", "$15.00" },
+                    new[] { "3", "Tax", "$15.00" },
+                    new[] { "", "Total: $115.00", "$115.00" }
+                });
+            return doc;
+        }
+
+        static FlowDocument CreateSeededMaintenanceSchedulePreviewDocument(QaPrintSeedData data)
+        {
+            var doc = CreatePreviewDocument("Maintenance Schedule", "Seeded maintenance workload", Array.Empty<string>());
+            AddPrintTable(
+                doc,
+                new[] { "Item #", "Item", "Type", "Scheduled", "Status", "Performed By" },
+                data.MaintenanceRecords.Select(r => new[] { r.ItemNumber, r.ItemName, r.MaintenanceType, r.ScheduledDate.ToString("yyyy-MM-dd"), r.Status, r.PerformedBy }));
+            return doc;
+        }
+
+        static FlowDocument CreateSeededCalibrationDuePreviewDocument(QaPrintSeedData data)
+        {
+            var doc = CreatePreviewDocument("Calibration Due Report", "Current calibration follow-up", Array.Empty<string>());
+            AddPrintTable(
+                doc,
+                new[] { "Item #", "Item", "Next Due", "Result", "Certificate", "Status" },
+                data.CalibrationRecords.Select(r => new[]
+                {
+                    r.ItemNumber,
+                    r.ItemName,
+                    r.NextCalibrationDue.ToString("yyyy-MM-dd"),
+                    r.Result,
+                    r.CertificateNumber,
+                    r.NextCalibrationDue.Date < DateTime.Today ? "Overdue" : "Due soon"
+                }));
+            return doc;
+        }
+
+        static FlowDocument CreateSeededReservationHandoffPreviewDocument(QaPrintSeedData data)
+        {
+            var reservation = data.Reservations.First(r => r.ReservationID == 9103);
+            return CreatePreviewDocument(
+                "Reservation 9103",
+                "Reservation handoff checklist",
+                new[]
+                {
+                    $"Customer: {reservation.CustomerName}",
+                    $"Item: {reservation.ItemNumber} {reservation.ItemName}",
+                    $"Status: {reservation.Status}",
+                    $"Window: {reservation.StartDate:yyyy-MM-dd} to {reservation.EndDate:yyyy-MM-dd}",
+                    "Shelf checklist: scanner, charger, OBD leads, USB cable, carry case.",
+                    $"Notes: {reservation.Notes}"
+                });
+        }
+
+        static FlowDocument CreateSeededReservationDirectoryPreviewDocument(QaPrintSeedData data)
+        {
+            var doc = CreatePreviewDocument("Reservation Directory", $"Visible reservations: {data.Reservations.Count}", Array.Empty<string>());
+            AddPrintTable(
+                doc,
+                new[] { "Hold #", "Item #", "Item", "Customer", "Start", "End", "Status" },
+                data.Reservations.Select(r => new[] { r.ReservationID.ToString(), r.ItemNumber, r.ItemName, r.CustomerName, r.StartDate.ToString("yyyy-MM-dd"), r.EndDate.ToString("yyyy-MM-dd"), r.Status }));
+            return doc;
+        }
+
+        static FlowDocument CreateSeededKitDirectoryPreviewDocument(QaPrintSeedData data)
+        {
+            var kit = data.Kits.First();
+            var doc = CreatePreviewDocument("Kit Directory", $"Visible kits: {data.Kits.Count}", new[] { $"{kit.KitNumber} {kit.Name} | {kit.Category} | {(kit.IsActive ? "Active" : "Inactive")}", kit.Description });
+            AddPrintTable(
+                doc,
+                new[] { "Item #", "Item", "Qty", "Required" },
+                data.KitItems.Select(i => new[] { i.ItemNumber, i.ItemName, i.Quantity.ToString(), i.IsOptional ? "Optional" : "Required" }));
+            return doc;
+        }
+
+        static FlowDocument CreateSeededCategoryDirectoryPreviewDocument(QaPrintSeedData data)
+        {
+            var doc = CreatePreviewDocument("Category Directory", $"Visible categories: {data.Categories.Count}", Array.Empty<string>());
+            AddPrintTable(
+                doc,
+                new[] { "Category", "Assigned sample items", "Review action" },
+                new[]
+                {
+                    new[] { "Diagnostics", "TL-101 Scan Item, TL-640 Adapter Pack", "Verify scanner and adapter aliases." },
+                    new[] { "Torque Tools", "TL-204 Torque Wrench", "Review calibration workflow alignment." },
+                    new[] { "Pressure Testing", "TL-318 Pressure Gauge", "Block new rentals until overdue calibration is resolved." }
+                });
+            return doc;
+        }
+
+        static FlowDocument CreateSeededCategorySheetPreviewDocument(QaPrintSeedData data)
+            => CreatePreviewDocument(
+                "Category Sheet - Diagnostics",
+                "Printed category checklist",
+                new[]
+                {
+                    "[x] Name matches staff language: Diagnostics",
+                    "[x] Matching inventory records are assigned: TL-101, TL-640",
+                    "[x] Search and filter coverage has been checked for scanner, diagnostic, and adapter keywords.",
+                    "Next review: confirm TL-101 checked-out demand before ordering another diagnostic scanner."
+                });
+
+        static FlowDocument CreateSeededActivityLogsPreviewDocument(QaPrintSeedData data)
+        {
+            var doc = CreatePreviewDocument("Activity Logs", $"Visible rows: {data.ActivityLines.Count}", Array.Empty<string>());
+            AddPrintTable(
+                doc,
+                new[] { "Activity" },
+                data.ActivityLines.Select(line => new[] { line }));
+            return doc;
+        }
+
+        static FlowDocument CreateSeededImportExportLogPreviewDocument(QaPrintSeedData data)
+            => CreatePreviewDocument(
+                "Import / Export Operation Log",
+                "Most recent QA operations",
+                new[]
+                {
+                    $"1. Items import completed with {data.Items.Count} inventory rows and image paths.",
+                    $"2. Customers export completed successfully with {data.Customers.Count} customer rows.",
+                    "3. Rental photo backup included checkout image for Rental 4128.",
+                    "4. Database backup saved to nightly archive."
+                });
+
+        static FlowDocument CreateSeededUserDirectoryPreviewDocument(QaPrintSeedData data)
+        {
+            var doc = CreatePreviewDocument("User Directory", $"Visible users: {data.Users.Count}", Array.Empty<string>());
+            AddPrintTable(
+                doc,
+                new[] { "User", "Role", "Admin", "Active", "Contact" },
+                data.Users.Select(u => new[] { u.UserName, u.Role, u.IsAdmin ? "Yes" : "No", u.IsActive ? "Yes" : "No", $"{u.Email} | {u.Phone}" }));
+            return doc;
+        }
+
+        static FlowDocument CreateSeededReportsPreviewDocument(QaPrintSeedData data)
+        {
+            var doc = CreatePreviewDocument("Active Rentals", "Last run just now - actionable seeded rows", Array.Empty<string>());
+            AddPrintTable(
+                doc,
+                new[] { "Status", "Rental", "Customer", "Due", "Next action" },
+                data.Rentals.Where(r => r.ReturnDate == null).Select(r => new[]
+                {
+                    r.Status,
+                    $"{r.ItemNumber} {r.ItemName}",
+                    r.CustomerName,
+                    r.DueDate.ToString("yyyy-MM-dd"),
+                    string.Equals(r.Status, "Overdue", StringComparison.OrdinalIgnoreCase)
+                        ? "Call customer and block new bookings."
+                        : "Confirm due-back date and accessory return."
+                }));
+            return doc;
+        }
+
+        static void AddSeedSummaryTable(FlowDocument doc, QaPrintSeedData data)
+        {
+            AddPrintTable(
+                doc,
+                new[] { "Area", "Seeded coverage" },
+                new[]
+                {
+                    new[] { "Inventory", $"{data.Items.Count} items with checked-out, rented, available, overdue, and image states." },
+                    new[] { "Customers", $"{data.Customers.Count} customers with phones, mobiles, and addresses." },
+                    new[] { "Rentals", $"{data.Rentals.Count} rentals covering rented, overdue, and returned states." },
+                    new[] { "Operations", "Reservations, maintenance, calibration, kits, categories, users, and activity logs." }
+                });
+        }
+
+        static void AddPrintLines(FlowDocument doc, string title, IEnumerable<string> lines)
+        {
+            doc.Blocks.Add(new Paragraph(new Bold(new Run(title)))
+            {
+                FontSize = 14,
+                Margin = new Thickness(0, 10, 0, 6)
+            });
+            foreach (var line in lines)
+            {
+                doc.Blocks.Add(new Paragraph(new Run(line))
+                {
+                    Margin = new Thickness(0, 0, 0, 5)
+                });
+            }
+        }
+
+        static void AddPrintTable(FlowDocument doc, IReadOnlyList<string> headers, IEnumerable<IReadOnlyList<string?>> rows)
+        {
+            var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 8, 0, 10) };
+            foreach (var _ in headers)
+                table.Columns.Add(new TableColumn());
+
+            var group = new TableRowGroup();
+            table.RowGroups.Add(group);
+            AddTableRow(group, headers.Select(h => (string?)h).ToArray(), true);
+            foreach (var row in rows)
+                AddTableRow(group, row.ToArray(), false);
+
+            doc.Blocks.Add(table);
+        }
+
+        static void AddTableRow(TableRowGroup group, IReadOnlyList<string?> values, bool isHeader)
+        {
+            var row = new TableRow { FontWeight = isHeader ? FontWeights.SemiBold : FontWeights.Normal };
+            foreach (var value in values)
+            {
+                row.Cells.Add(new TableCell(new Paragraph(new Run(string.IsNullOrWhiteSpace(value) ? "Not recorded" : value)))
+                {
+                    Padding = new Thickness(5, 3, 5, 3),
+                    BorderBrush = Brushes.LightGray,
+                    BorderThickness = new Thickness(0, 0, 0, 0.5)
+                });
+            }
+
+            group.Rows.Add(row);
+        }
+
+        static void AddImageBlock(FlowDocument doc, string imagePath, string caption)
+        {
+            if (!File.Exists(imagePath))
+                return;
+
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
+            bitmap.DecodePixelWidth = 220;
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            var image = new Image
+            {
+                Source = bitmap,
+                Width = 220,
+                Height = 130,
+                Stretch = Stretch.Uniform,
+                Margin = new Thickness(0, 4, 0, 4)
+            };
+            doc.Blocks.Add(new BlockUIContainer(image)
+            {
+                Margin = new Thickness(0, 6, 0, 2)
+            });
+            doc.Blocks.Add(new Paragraph(new Run(caption))
+            {
+                FontSize = 10,
+                Foreground = Brushes.DimGray,
+                Margin = new Thickness(0, 0, 0, 8)
+            });
+        }
+
+        static void CreateQaPng(string path, string title, string subtitle, Color accent, Color background)
+        {
+            if (File.Exists(path))
+                return;
+
+            const int width = 520;
+            const int height = 300;
+            var visual = new DrawingVisual();
+            using (var context = visual.RenderOpen())
+            {
+                context.DrawRectangle(new SolidColorBrush(background), null, new Rect(0, 0, width, height));
+                context.DrawRectangle(new SolidColorBrush(accent), null, new Rect(0, 0, width, 72));
+                context.DrawRectangle(null, new Pen(new SolidColorBrush(accent), 6), new Rect(8, 8, width - 16, height - 16));
+
+                var typeface = new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
+                context.DrawText(
+                    new FormattedText(title, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, 36, Brushes.White, 1.0),
+                    new Point(28, 16));
+                context.DrawText(
+                    new FormattedText(subtitle, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, 44, new SolidColorBrush(accent), 1.0),
+                    new Point(28, 118));
+                context.DrawText(
+                    new FormattedText("Generated QA print asset", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, 20, Brushes.DimGray, 1.0),
+                    new Point(28, 214));
+            }
+
+            var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+            bitmap.Render(visual);
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(bitmap));
+
+            Directory.CreateDirectory(Path.GetDirectoryName(path) ?? ".");
+            using var stream = File.Create(path);
+            encoder.Save(stream);
+        }
+
+        static string ToRelativeAssetPath(string absolutePath)
+        {
+            var relative = Path.GetRelativePath(AppDomain.CurrentDomain.BaseDirectory, absolutePath);
+            return relative.Replace(Path.DirectorySeparatorChar, '/').Replace(Path.AltDirectorySeparatorChar, '/');
+        }
+
+        static void Execute(SqliteConnection conn, SqliteTransaction tx, string sql, params SqliteParameter[] parameters)
+        {
+            using var cmd = new SqliteCommand(sql, conn, tx);
+            if (parameters.Length > 0)
+                cmd.Parameters.AddRange(parameters);
+            cmd.ExecuteNonQuery();
         }
 
         static string EnsureCaptureDirectory(string root, string folderName)
@@ -1284,7 +2075,7 @@ namespace InventoryManagementApp
         static FlowDocument CreateItemDetailsPreviewDocument()
             => CreatePreviewDocument(
                 "Item Details - TL-101",
-                "Scan Item | Launch | Bay 2 - Shelf A",
+                "Scan Item | ScanPro | Bay 2 - Shelf A",
                 new[]
                 {
                     "Part number: SCAN-101",
@@ -1565,7 +2356,7 @@ namespace InventoryManagementApp
             ItemNumber = "TL-101",
             PartNumber = "SCAN-101",
             Name = "Scan Item",
-            Brand = "Launch",
+            Brand = "ScanPro",
             Location = "Bay 2 - Shelf A",
             Notes = "Bi-directional diagnostic scanner with charger and leads.",
             QuantityOnHand = 2,
