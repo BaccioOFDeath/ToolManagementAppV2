@@ -197,7 +197,16 @@ namespace InventoryManagementApp.Services.Items
 
         public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(folderPath))
+                throw new ArgumentNullException(nameof(folderPath));
+            if (keySelector is null)
+                throw new ArgumentNullException(nameof(keySelector));
+
             _auth.EnsurePermission(User.PermissionImportExport);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!Directory.Exists(folderPath))
+                throw new DirectoryNotFoundException($"Image import folder not found: {folderPath}");
+
             return ImportItemImagesInternalAsync(folderPath, keySelector, progress, cancellationToken);
         }
 
@@ -214,11 +223,9 @@ namespace InventoryManagementApp.Services.Items
 
         private async Task<ImageImportResult> ImportItemImagesInternalAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress, CancellationToken cancellationToken)
         {
-            var result = new ImageImportResult();
-            if (string.IsNullOrWhiteSpace(folderPath) || keySelector == null)
-                return result;
-
             cancellationToken.ThrowIfCancellationRequested();
+
+            var result = new ImageImportResult();
             var items = new List<ItemModel>();
             await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
                 .WithCancellation(cancellationToken))
@@ -258,6 +265,7 @@ namespace InventoryManagementApp.Services.Items
 
             var supported = new HashSet<string>(new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif" }, StringComparer.OrdinalIgnoreCase);
 
+            cancellationToken.ThrowIfCancellationRequested();
             var files = await Task.Run(() => Directory.EnumerateFiles(folderPath).ToList(), cancellationToken);
             var total = files.Count;
             var processed = 0;
