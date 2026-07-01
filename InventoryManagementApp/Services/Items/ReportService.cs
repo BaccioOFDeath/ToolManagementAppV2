@@ -113,12 +113,16 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<FlowDocument> GenerateCustomerReport()
         {
-            var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
-            var totalCustomers = await _customerService.CountCustomersAsync(CancellationToken.None).ConfigureAwait(false);
-            var reportCustomers = customers.Take(DetailedReportResultLimit).ToList();
-            var lines = reportCustomers.Select(c =>
+            var customersTask = _customerService.SearchCustomersAsync(string.Empty, CancellationToken.None);
+            var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);
+
+            await Task.WhenAll(customersTask, totalCustomersTask).ConfigureAwait(false);
+            var customers = await customersTask.ConfigureAwait(false);
+            var totalCustomers = await totalCustomersTask.ConfigureAwait(false);
+
+            var lines = customers.Select(c =>
                 $"Customer ID: {c.CustomerID} | Company: {c.Company} | Email: {c.Email} | Contact: {c.Contact} | Phone: {c.Phone} | Mobile: {c.Mobile} | Address: {c.Address}");
-            return BuildReport("Customer Report", AddExactReportLimitNotice(lines, reportCustomers.Count, totalCustomers, "customers"));
+            return BuildReport("Customer Report", AddExactReportLimitNotice(lines, customers.Count, totalCustomers, "customers"));
         }
 
         public async Task<FlowDocument> GenerateUserReport()
