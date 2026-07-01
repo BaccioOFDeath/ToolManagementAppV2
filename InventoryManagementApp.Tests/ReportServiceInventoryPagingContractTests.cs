@@ -7,7 +7,7 @@ namespace InventoryManagementApp.Tests
     public class ReportServiceInventoryPagingContractTests
     {
         [Fact]
-        public void InventoryReportAndSummaryCountUseBoundedItemPages()
+        public void InventoryReportUsesBoundedItemPagesWithoutObsoleteCountHelper()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
             var inventoryReport = ExtractMethod(
@@ -17,10 +17,6 @@ namespace InventoryManagementApp.Tests
             var collectorMethod = ExtractMethod(
                 source,
                 "private async Task<List<ItemModel>> CollectInventoryReportItemsAsync()",
-                "private async Task<int> CountItemsAsync()");
-            var countMethod = ExtractMethod(
-                source,
-                "private async Task<int> CountItemsAsync()",
                 "private static string FormatLimitedCount(int count)");
 
             Assert.Contains("private const int InventoryReportPageSize = 500;", source, StringComparison.Ordinal);
@@ -28,9 +24,8 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("new ItemPage(1, int.MaxValue)", inventoryReport, StringComparison.Ordinal);
 
             AssertUsesBoundedReportPages(collectorMethod);
-            AssertUsesBoundedReportPages(countMethod);
             Assert.DoesNotContain("new ItemPage(1, int.MaxValue)", collectorMethod, StringComparison.Ordinal);
-            Assert.DoesNotContain("new ItemPage(1, int.MaxValue)", countMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("private async Task<int> CountItemsAsync()", source, StringComparison.Ordinal);
         }
 
         [Fact]
