@@ -236,6 +236,8 @@ namespace InventoryManagementApp.Services.Maintenance
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
+            NormalizeMaintenanceRecordForSave(record);
+
             var id = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -283,6 +285,8 @@ namespace InventoryManagementApp.Services.Maintenance
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
+            NormalizeMaintenanceRecordForSave(record);
+
             var updated = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -326,6 +330,9 @@ namespace InventoryManagementApp.Services.Maintenance
             if (maintenanceID < 1)
                 throw new ArgumentOutOfRangeException(nameof(maintenanceID), "Maintenance ID must be greater than 0.");
 
+            var normalizedPerformedBy = NormalizeOptionalText(performedBy);
+            var normalizedNotes = NormalizeOptionalText(notes);
+
             var completed = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -341,8 +348,8 @@ namespace InventoryManagementApp.Services.Maintenance
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@MaintenanceID", maintenanceID);
                 cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
-                cmd.Parameters.AddWithValue("@PerformedBy", performedBy);
-                cmd.Parameters.AddWithValue("@Notes", notes);
+                cmd.Parameters.AddWithValue("@PerformedBy", normalizedPerformedBy);
+                cmd.Parameters.AddWithValue("@Notes", normalizedNotes);
                 if (cmd.ExecuteNonQuery() == 0)
                     throw new InvalidOperationException("Maintenance record not found.");
 
@@ -394,6 +401,23 @@ namespace InventoryManagementApp.Services.Maintenance
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
             };
         }
+
+        private static void NormalizeMaintenanceRecordForSave(MaintenanceRecord record)
+        {
+            record.MaintenanceType = NormalizeOptionalText(record.MaintenanceType);
+            record.Description = NormalizeOptionalText(record.Description);
+            record.PerformedBy = NormalizeOptionalText(record.PerformedBy);
+            record.Status = NormalizeMaintenanceStatus(record.Status);
+            record.Notes = NormalizeOptionalText(record.Notes);
+        }
+
+        private static string NormalizeMaintenanceStatus(string? status)
+        {
+            var normalizedStatus = NormalizeOptionalText(status);
+            return string.IsNullOrEmpty(normalizedStatus) ? "Scheduled" : normalizedStatus;
+        }
+
+        private static string NormalizeOptionalText(string? value) => value?.Trim() ?? string.Empty;
 
         private static void EnsureMaintenanceCreateSucceeded(int affectedRows)
         {

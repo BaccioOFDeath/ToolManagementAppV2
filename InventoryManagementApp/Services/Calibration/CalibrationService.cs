@@ -257,6 +257,8 @@ namespace InventoryManagementApp.Services.Calibration
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
+            NormalizeCalibrationRecordForSave(record);
+
             var id = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -303,6 +305,8 @@ namespace InventoryManagementApp.Services.Calibration
                 throw new ArgumentOutOfRangeException(nameof(record.CalibrationID), "Calibration ID must be greater than 0.");
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
+
+            NormalizeCalibrationRecordForSave(record);
 
             var updated = await Task.Run(() =>
             {
@@ -384,6 +388,17 @@ namespace InventoryManagementApp.Services.Calibration
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
             };
         }
+
+        private static void NormalizeCalibrationRecordForSave(CalibrationRecord record)
+        {
+            record.CalibratedBy = NormalizeOptionalText(record.CalibratedBy);
+            record.CertificateNumber = NormalizeOptionalText(record.CertificateNumber);
+            record.Standard = NormalizeOptionalText(record.Standard);
+            record.Result = NormalizeOptionalText(record.Result);
+            record.Notes = NormalizeOptionalText(record.Notes);
+        }
+
+        private static string NormalizeOptionalText(string? value) => value?.Trim() ?? string.Empty;
 
         private static void EnsureCalibrationCreateSucceeded(int affectedRows)
         {
