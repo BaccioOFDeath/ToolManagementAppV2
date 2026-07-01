@@ -68,16 +68,23 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<FlowDocument> GenerateRentalReport(bool activeOnly = true)
         {
-            var rentals = activeOnly
-                ? await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false)
-                : await _rentalService.GetAllRentalsAsync().ConfigureAwait(false);
+            var rentalsTask = activeOnly
+                ? _rentalService.GetActiveRentalsAsync()
+                : _rentalService.GetAllRentalsAsync();
+            var totalRentalsTask = activeOnly
+                ? _rentalService.CountActiveRentalsAsync()
+                : _rentalService.CountRentalsAsync();
+
+            await Task.WhenAll(rentalsTask, totalRentalsTask).ConfigureAwait(false);
+            var rentals = await rentalsTask.ConfigureAwait(false);
+            var totalRentals = await totalRentalsTask.ConfigureAwait(false);
 
             var title = activeOnly ? "Active Rental Report" : "Full Rental History Report";
 
             var lines = rentals.Select(r =>
                 $"Rental ID: {r.RentalID} | Item ID: {r.ItemID} | Customer ID: {r.CustomerID} | Rental Date: {r.RentalDate:yyyy-MM-dd} | Due Date: {r.DueDate:yyyy-MM-dd} | Return Date: {(r.ReturnDate.HasValue ? r.ReturnDate.Value.ToString("yyyy-MM-dd") : "N/A")} | Status: {r.Status}");
 
-            return BuildReport(title, AddReportLimitNotice(lines, rentals.Count, "rental records"));
+            return BuildReport(title, AddExactReportLimitNotice(lines, rentals.Count, totalRentals, "rental records"));
         }
 
         public async Task<FlowDocument> GenerateRentalFrequencyReport(int topN = 20)
@@ -110,18 +117,30 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<FlowDocument> GenerateCustomerReport()
         {
-            var customers = await _customerService.GetAllCustomersAsync().ConfigureAwait(false);
+            var customersTask = _customerService.SearchCustomersAsync(string.Empty, CancellationToken.None);
+            var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);
+
+            await Task.WhenAll(customersTask, totalCustomersTask).ConfigureAwait(false);
+            var customers = await customersTask.ConfigureAwait(false);
+            var totalCustomers = await totalCustomersTask.ConfigureAwait(false);
+
             var lines = customers.Select(c =>
                 $"Customer ID: {c.CustomerID} | Company: {c.Company} | Email: {c.Email} | Contact: {c.Contact} | Phone: {c.Phone} | Mobile: {c.Mobile} | Address: {c.Address}");
-            return BuildReport("Customer Report", AddReportLimitNotice(lines, customers.Count, "customers"));
+            return BuildReport("Customer Report", AddExactReportLimitNotice(lines, customers.Count, totalCustomers, "customers"));
         }
 
         public async Task<FlowDocument> GenerateUserReport()
         {
-            var users = await _userService.GetAllUsersAsync(CancellationToken.None).ConfigureAwait(false);
+            var usersTask = _userService.GetAllUsersAsync(CancellationToken.None);
+            var totalUsersTask = _userService.CountUsersAsync(CancellationToken.None);
+
+            await Task.WhenAll(usersTask, totalUsersTask).ConfigureAwait(false);
+            var users = await usersTask.ConfigureAwait(false);
+            var totalUsers = await totalUsersTask.ConfigureAwait(false);
+
             var lines = users.Select(u =>
                 $"User ID: {u.UserID} | User Name: {u.UserName} | Admin: {u.IsAdmin}");
-            return BuildReport("User Report", AddReportLimitNotice(lines, users.Count, "users"));
+            return BuildReport("User Report", AddExactReportLimitNotice(lines, users.Count, totalUsers, "users"));
         }
 
         public async Task<FlowDocument> GenerateSummaryReport()
@@ -131,13 +150,31 @@ namespace InventoryManagementApp.Services.Items
             var totalActiveRentalsTask = _rentalService.CountActiveRentalsAsync();
             var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);
             var totalUsersTask = _userService.CountUsersAsync(CancellationToken.None);
+            var overdueMaintenanceTask = _maintenanceService?.CountOverdueMaintenanceAsync();
+            var upcomingMaintenanceTask = _maintenanceService?.CountUpcomingMaintenanceAsync(30);
+            var overdueCalibrationTask = _calibrationService?.CountOverdueCalibrationAsync();
+            var upcomingCalibrationTask = _calibrationService?.CountUpcomingCalibrationAsync(30);
+            var activeReservationsTask = _reservationService?.CountActiveReservationsAsync();
+            var upcomingReservationsTask = _reservationService?.CountUpcomingReservationsAsync(7);
+            var activeKitsTask = _kitService?.CountActiveKitsAsync();
 
-            await Task.WhenAll(
+            var summaryTasks = new List<Task>
+            {
                 totalItemsTask,
                 totalRentalsTask,
                 totalActiveRentalsTask,
                 totalCustomersTask,
-                totalUsersTask).ConfigureAwait(false);
+                totalUsersTask
+            };
+            AddIfNotNull(summaryTasks, overdueMaintenanceTask);
+            AddIfNotNull(summaryTasks, upcomingMaintenanceTask);
+            AddIfNotNull(summaryTasks, overdueCalibrationTask);
+            AddIfNotNull(summaryTasks, upcomingCalibrationTask);
+            AddIfNotNull(summaryTasks, activeReservationsTask);
+            AddIfNotNull(summaryTasks, upcomingReservationsTask);
+            AddIfNotNull(summaryTasks, activeKitsTask);
+
+            await Task.WhenAll(summaryTasks).ConfigureAwait(false);
 
             var totalItems = await totalItemsTask.ConfigureAwait(false);
             var totalRentals = await totalRentalsTask.ConfigureAwait(false);
@@ -154,42 +191,33 @@ namespace InventoryManagementApp.Services.Items
                 $"Total Users: {totalUsers}"
             };
 
-            if (_maintenanceService != null)
+            if (overdueMaintenanceTask != null && upcomingMaintenanceTask != null)
             {
-                var overdueMaintenanceTask = _maintenanceService.CountOverdueMaintenanceAsync();
-                var upcomingMaintenanceTask = _maintenanceService.CountUpcomingMaintenanceAsync(30);
-                await Task.WhenAll(overdueMaintenanceTask, upcomingMaintenanceTask).ConfigureAwait(false);
                 var overdueMaintenance = await overdueMaintenanceTask.ConfigureAwait(false);
                 var upcomingMaintenance = await upcomingMaintenanceTask.ConfigureAwait(false);
                 lines.Add($"Overdue Maintenance: {overdueMaintenance}");
                 lines.Add($"Upcoming Maintenance (30 days): {upcomingMaintenance}");
             }
 
-            if (_calibrationService != null)
+            if (overdueCalibrationTask != null && upcomingCalibrationTask != null)
             {
-                var overdueCalibrationTask = _calibrationService.CountOverdueCalibrationAsync();
-                var upcomingCalibrationTask = _calibrationService.CountUpcomingCalibrationAsync(30);
-                await Task.WhenAll(overdueCalibrationTask, upcomingCalibrationTask).ConfigureAwait(false);
                 var overdueCalibration = await overdueCalibrationTask.ConfigureAwait(false);
                 var upcomingCalibration = await upcomingCalibrationTask.ConfigureAwait(false);
                 lines.Add($"Overdue Calibrations: {overdueCalibration}");
                 lines.Add($"Upcoming Calibrations (30 days): {upcomingCalibration}");
             }
 
-            if (_reservationService != null)
+            if (activeReservationsTask != null && upcomingReservationsTask != null)
             {
-                var activeReservationsTask = _reservationService.CountActiveReservationsAsync();
-                var upcomingReservationsTask = _reservationService.CountUpcomingReservationsAsync(7);
-                await Task.WhenAll(activeReservationsTask, upcomingReservationsTask).ConfigureAwait(false);
                 var activeReservations = await activeReservationsTask.ConfigureAwait(false);
                 var upcomingReservations = await upcomingReservationsTask.ConfigureAwait(false);
                 lines.Add($"Active Reservations: {activeReservations}");
                 lines.Add($"Upcoming Reservations (7 days): {upcomingReservations}");
             }
 
-            if (_kitService != null)
+            if (activeKitsTask != null)
             {
-                var activeKits = await _kitService.CountActiveKitsAsync().ConfigureAwait(false);
+                var activeKits = await activeKitsTask.ConfigureAwait(false);
                 lines.Add($"Active Kits: {activeKits}");
             }
 
@@ -201,16 +229,23 @@ namespace InventoryManagementApp.Services.Items
             if (_maintenanceService == null)
                 return BuildReport("Maintenance Report", new[] { "Maintenance service not available" });
 
-            var records = overdueOnly
-                ? await _maintenanceService.GetOverdueMaintenanceAsync().ConfigureAwait(false)
-                : await _maintenanceService.GetAllMaintenanceRecordsAsync().ConfigureAwait(false);
+            var recordsTask = overdueOnly
+                ? _maintenanceService.GetOverdueMaintenanceAsync()
+                : _maintenanceService.GetAllMaintenanceRecordsAsync();
+            var totalRecordsTask = overdueOnly
+                ? _maintenanceService.CountOverdueMaintenanceAsync()
+                : _maintenanceService.CountMaintenanceRecordsAsync();
+
+            await Task.WhenAll(recordsTask, totalRecordsTask).ConfigureAwait(false);
+            var records = await recordsTask.ConfigureAwait(false);
+            var totalRecords = await totalRecordsTask.ConfigureAwait(false);
 
             var title = overdueOnly ? "Overdue Maintenance Report" : "Maintenance Schedule Report";
 
             var lines = records.Select(m =>
                 $"Maintenance ID: {m.MaintenanceID} | Item: {m.ItemNumber} - {m.ItemName} | Type: {m.MaintenanceType} | Scheduled: {m.ScheduledDate:yyyy-MM-dd} | Status: {m.StatusDisplay} | Cost: ${m.Cost:F2}");
 
-            return BuildReport(title, AddReportLimitNotice(lines, records.Count, "maintenance records"));
+            return BuildReport(title, AddExactReportLimitNotice(lines, records.Count, totalRecords, "maintenance records"));
         }
 
         public async Task<FlowDocument> GenerateCalibrationReport(bool overdueOnly = false)
@@ -218,16 +253,23 @@ namespace InventoryManagementApp.Services.Items
             if (_calibrationService == null)
                 return BuildReport("Calibration Report", new[] { "Calibration service not available" });
 
-            var records = overdueOnly
-                ? await _calibrationService.GetOverdueCalibrationAsync().ConfigureAwait(false)
-                : await _calibrationService.GetAllCalibrationRecordsAsync().ConfigureAwait(false);
+            var recordsTask = overdueOnly
+                ? _calibrationService.GetOverdueCalibrationAsync()
+                : _calibrationService.GetAllCalibrationRecordsAsync();
+            var totalRecordsTask = overdueOnly
+                ? _calibrationService.CountOverdueCalibrationAsync()
+                : _calibrationService.CountCalibrationRecordsAsync();
+
+            await Task.WhenAll(recordsTask, totalRecordsTask).ConfigureAwait(false);
+            var records = await recordsTask.ConfigureAwait(false);
+            var totalRecords = await totalRecordsTask.ConfigureAwait(false);
 
             var title = overdueOnly ? "Overdue Calibration Report" : "Calibration Records Report";
 
             var lines = records.Select(c =>
                 $"Calibration ID: {c.CalibrationID} | Item: {c.ItemNumber} - {c.ItemName} | Date: {c.CalibrationDate:yyyy-MM-dd} | Next Due: {c.NextCalibrationDue:yyyy-MM-dd} | Status: {c.StatusDisplay} | Certificate Number: {c.CertificateNumber}");
 
-            return BuildReport(title, AddReportLimitNotice(lines, records.Count, "calibration records"));
+            return BuildReport(title, AddExactReportLimitNotice(lines, records.Count, totalRecords, "calibration records"));
         }
 
         public async Task<FlowDocument> GenerateReservationReport(bool activeOnly = true)
@@ -235,16 +277,23 @@ namespace InventoryManagementApp.Services.Items
             if (_reservationService == null)
                 return BuildReport("Reservation Report", new[] { "Reservation service not available" });
 
-            var reservations = activeOnly
-                ? await _reservationService.GetActiveReservationsAsync().ConfigureAwait(false)
-                : await _reservationService.GetAllReservationsAsync().ConfigureAwait(false);
+            var reservationsTask = activeOnly
+                ? _reservationService.GetActiveReservationsAsync()
+                : _reservationService.GetAllReservationsAsync();
+            var totalReservationsTask = activeOnly
+                ? _reservationService.CountActiveReservationsAsync()
+                : _reservationService.CountReservationsAsync();
+
+            await Task.WhenAll(reservationsTask, totalReservationsTask).ConfigureAwait(false);
+            var reservations = await reservationsTask.ConfigureAwait(false);
+            var totalReservations = await totalReservationsTask.ConfigureAwait(false);
 
             var title = activeOnly ? "Active Reservations Report" : "All Reservations Report";
 
             var lines = reservations.Select(r =>
                 $"Reservation ID: {r.ReservationID} | Item: {r.ItemNumber} - {r.ItemName} | Customer: {r.CustomerName} | Start: {r.StartDate:yyyy-MM-dd} | End: {r.EndDate:yyyy-MM-dd} | Quantity: {r.Quantity} | Status: {r.StatusDisplay}");
 
-            return BuildReport(title, AddReportLimitNotice(lines, reservations.Count, "reservations"));
+            return BuildReport(title, AddExactReportLimitNotice(lines, reservations.Count, totalReservations, "reservations"));
         }
 
         public async Task<FlowDocument> GenerateKitReport()
@@ -252,17 +301,24 @@ namespace InventoryManagementApp.Services.Items
             if (_kitService == null)
                 return BuildReport("Kit Report", new[] { "Kit service not available" });
 
-            var kits = await _kitService.GetActiveKitsAsync().ConfigureAwait(false);
+            var kitsTask = _kitService.GetActiveKitsAsync();
+            var totalActiveKitsTask = _kitService.CountActiveKitsAsync();
+
+            await Task.WhenAll(kitsTask, totalActiveKitsTask).ConfigureAwait(false);
+            var kits = await kitsTask.ConfigureAwait(false);
+            var totalActiveKits = await totalActiveKitsTask.ConfigureAwait(false);
+            var itemCounts = await _kitService.CountKitItemsByKitIdsAsync(kits.Select(kit => kit.KitID)).ConfigureAwait(false);
             var lines = new List<string>();
 
             foreach (var kit in kits)
             {
-                var items = await _kitService.GetKitItemsAsync(kit.KitID).ConfigureAwait(false);
-                var itemCount = FormatLimitedCount(items.Count);
+                var itemCount = itemCounts.TryGetValue(kit.KitID, out var count)
+                    ? FormatLimitedCount(count)
+                    : "0";
                 lines.Add($"Kit Number: {kit.KitNumber} | Kit Name: {kit.Name} | Category: {kit.Category} | Item Count: {itemCount} | Status: {(kit.IsActive ? "Active" : "Inactive")}");
             }
 
-            return BuildReport("Active Kits Report", AddReportLimitNotice(lines, kits.Count, "active kits"));
+            return BuildReport("Active Kits Report", AddExactReportLimitNotice(lines, kits.Count, totalActiveKits, "active kits"));
         }
 
         private async Task<List<ItemModel>> CollectInventoryReportItemsAsync()
@@ -292,13 +348,19 @@ namespace InventoryManagementApp.Services.Items
         private static string FormatLimitedCount(int count) =>
             count >= DetailedReportResultLimit ? $"{DetailedReportResultLimit}+" : count.ToString();
 
-        private static IEnumerable<string> AddReportLimitNotice(IEnumerable<string> lines, int recordCount, string recordLabel)
+        private static void AddIfNotNull(List<Task> tasks, Task? task)
+        {
+            if (task != null)
+                tasks.Add(task);
+        }
+
+        private static IEnumerable<string> AddExactReportLimitNotice(IEnumerable<string> lines, int displayedCount, int totalCount, string recordLabel)
         {
             foreach (var line in lines)
                 yield return line;
 
-            if (recordCount >= DetailedReportResultLimit)
-                yield return $"Note: This report shows the first {DetailedReportResultLimit} {recordLabel}. Use filters or exports for a narrower full-detail review.";
+            if (totalCount > displayedCount)
+                yield return $"Note: This report shows the first {displayedCount} of {totalCount} {recordLabel}. Use filters or exports for a narrower full-detail review.";
         }
 
         FlowDocument BuildReport(string title, IEnumerable<string> lines)
