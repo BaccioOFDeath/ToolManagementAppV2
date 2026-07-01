@@ -35,7 +35,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("\"/obj/\"", fallbackBlock, StringComparison.Ordinal);
             Assert.Contains("\"/publish/\"", fallbackBlock, StringComparison.Ordinal);
             Assert.Contains("StartsWith($ignoredPathPrefix, [System.StringComparison]::OrdinalIgnoreCase)", fallbackBlock, StringComparison.Ordinal);
-            Assert.Contains("Contains($ignoredPathSegment, [System.StringComparison]::OrdinalIgnoreCase)", fallbackBlock, StringComparison.Ordinal);
+            Assert.Contains("IndexOf($ignoredPathSegment, [System.StringComparison]::OrdinalIgnoreCase) -ge 0", fallbackBlock, StringComparison.Ordinal);
             Assert.DoesNotContain("$relative -notmatch '(^|/)\\.[^/]+($|/)'", fallbackBlock, StringComparison.Ordinal);
         }
 
