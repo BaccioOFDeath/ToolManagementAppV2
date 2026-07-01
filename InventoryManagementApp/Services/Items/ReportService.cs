@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Collections.Generic;
 using System.Linq;
@@ -302,11 +303,15 @@ namespace InventoryManagementApp.Services.Items
 
         FlowDocument BuildReport(string title, IEnumerable<string> lines)
         {
+            var preparedAt = DateTime.Now;
             var doc = new FlowDocument
             {
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
                 FontSize = 12,
-                PageWidth = 800
+                PagePadding = new Thickness(48, 40, 48, 40),
+                MinPageWidth = 720,
+                MaxPageWidth = 960,
+                ColumnWidth = double.PositiveInfinity
             };
 
             var header = new Paragraph(new Run(title))
@@ -314,21 +319,55 @@ namespace InventoryManagementApp.Services.Items
                 FontSize = 18,
                 FontWeight = FontWeights.Bold,
                 TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 0, 0, 20)
+                Margin = new Thickness(0, 0, 0, 6)
             };
             doc.Blocks.Add(header);
+
+            var preparedLine = new Paragraph(new Run($"Prepared {preparedAt:yyyy-MM-dd HH:mm}"))
+            {
+                FontSize = 10,
+                Foreground = Brushes.DimGray,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 20)
+            };
+            doc.Blocks.Add(preparedLine);
 
             var reportLines = lines as IReadOnlyCollection<string> ?? lines.ToList();
             if (reportLines.Count == 0)
                 reportLines = new[] { "No report records found." };
 
             foreach (var line in reportLines)
+                AddReportLine(doc, line);
+
+            var footer = new Paragraph(new Run("End of report"))
             {
-                var p = new Paragraph(new Run(line)) { Margin = new Thickness(0, 0, 0, 10) };
-                doc.Blocks.Add(p);
-            }
+                FontSize = 10,
+                Foreground = Brushes.DimGray,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 18, 0, 0)
+            };
+            doc.Blocks.Add(footer);
 
             return doc;
+        }
+
+        private static void AddReportLine(FlowDocument doc, string line)
+        {
+            var isNotice = line.StartsWith("Note:", StringComparison.Ordinal);
+            var paragraph = new Paragraph(new Run(line))
+            {
+                Margin = isNotice ? new Thickness(0, 8, 0, 14) : new Thickness(0, 0, 0, 8),
+                LineHeight = 18
+            };
+
+            if (isNotice)
+            {
+                paragraph.FontStyle = FontStyles.Italic;
+                paragraph.Foreground = Brushes.DarkSlateGray;
+                paragraph.Background = Brushes.AliceBlue;
+            }
+
+            doc.Blocks.Add(paragraph);
         }
     }
 }
