@@ -25,6 +25,7 @@ namespace InventoryManagementApp.Services.Customers
     public class CustomerService : ICustomerService
     {
         private const int MaxCustomerSearchResults = 500;
+        private const int CustomerExportPageSize = 500;
 
         private readonly DatabaseService _dbService;
         private readonly ILogger<CustomerService> _logger;
@@ -395,13 +396,53 @@ namespace InventoryManagementApp.Services.Customers
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var all = await GetAllCustomersInternalAsync(cancellationToken);
+            var all = await CollectCustomersForExportAsync(cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 CsvHelperUtil.ExportCustomersToCsv(filePath, all);
             }, cancellationToken);
+        }
+
+        async Task<List<CustomerModel>> CollectCustomersForExportAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            const string sql = @"
+                SELECT * FROM Customers
+                ORDER BY Company ASC, Contact ASC, CustomerID ASC
+                LIMIT @CustomerExportPageSize OFFSET @CustomerExportOffset";
+            var customers = new List<CustomerModel>();
+            var offset = 0;
+            using var conn = _dbService.CreateConnection();
+
+            try
+            {
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var p = new[]
+                    {
+                        new SqliteParameter("@CustomerExportPageSize", CustomerExportPageSize),
+                        new SqliteParameter("@CustomerExportOffset", offset)
+                    };
+                    var page = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapCustomer, p, cancellationToken).ConfigureAwait(false);
+                    customers.AddRange(page);
+
+                    if (page.Count < CustomerExportPageSize)
+                        break;
+
+                    offset += CustomerExportPageSize;
+                }
+
+                return customers;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to collect customers for export");
+                throw;
+            }
         }
 
         async Task InsertCustomerAsync(SqliteConnection conn, SqliteTransaction? tran, CustomerModel customer, CancellationToken cancellationToken)
@@ -635,7 +676,7 @@ namespace InventoryManagementApp.Services.Customers
             _auth.EnsurePermission(User.PermissionImportExport);
             cancellationToken.ThrowIfCancellationRequested();
 
-            var all = await GetAllCustomersAsync(cancellationToken).ConfigureAwait(false);
+            var all = await CollectCustomersForExportAsync(cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             await exporter.ExportAsync(filePath, all, cancellationToken).ConfigureAwait(false);
         }

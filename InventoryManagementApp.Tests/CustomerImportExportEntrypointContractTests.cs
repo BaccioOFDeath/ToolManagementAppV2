@@ -44,11 +44,49 @@ namespace InventoryManagementApp.Tests
                 exportMethod.IndexOf("if (exporter is null)", StringComparison.Ordinal) < exportMethod.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
                 "Generic customer exports should reject a missing exporter before authorization or row collection.");
             Assert.True(
-                exportMethod.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal) < exportMethod.IndexOf("GetAllCustomersAsync", StringComparison.Ordinal),
+                exportMethod.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal) < exportMethod.IndexOf("CollectCustomersForExportAsync", StringComparison.Ordinal),
                 "Generic customer exports should still authorize before collecting customer rows.");
             Assert.True(
-                exportMethod.IndexOf("GetAllCustomersAsync", StringComparison.Ordinal) < exportMethod.IndexOf("exporter.ExportAsync", StringComparison.Ordinal),
+                exportMethod.IndexOf("CollectCustomersForExportAsync", StringComparison.Ordinal) < exportMethod.IndexOf("exporter.ExportAsync", StringComparison.Ordinal),
                 "Generic customer exports should collect rows before exporter handoff.");
+        }
+
+        [Fact]
+        public void CustomerExportsCollectRowsWithBoundedPagesBeforeWriterWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Customers", "CustomerService.cs");
+            var csvExportMethod = ExtractMethod(
+                source,
+                "async Task ExportCustomersToCsvInternalAsync",
+                "async Task<List<CustomerModel>> CollectCustomersForExportAsync");
+            var collectorMethod = ExtractMethod(
+                source,
+                "async Task<List<CustomerModel>> CollectCustomersForExportAsync",
+                "async Task InsertCustomerAsync");
+            var genericExportMethod = ExtractMethod(
+                source,
+                "public async Task ExportCustomersAsync",
+                "static void NotifyChanged");
+
+            Assert.Contains("private const int CustomerExportPageSize = 500;", source, StringComparison.Ordinal);
+            Assert.Contains("var offset = 0;", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("while (true)", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("LIMIT @CustomerExportPageSize OFFSET @CustomerExportOffset", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("ORDER BY Company ASC, Contact ASC, CustomerID ASC", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("new SqliteParameter(\"@CustomerExportPageSize\", CustomerExportPageSize)", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("new SqliteParameter(\"@CustomerExportOffset\", offset)", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("customers.AddRange(page);", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("if (page.Count < CustomerExportPageSize)", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("offset += CustomerExportPageSize;", collectorMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("GetAllCustomersInternalAsync", csvExportMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("GetAllCustomersAsync", genericExportMethod, StringComparison.Ordinal);
+
+            Assert.True(
+                csvExportMethod.IndexOf("var all = await CollectCustomersForExportAsync(cancellationToken)", StringComparison.Ordinal) < csvExportMethod.IndexOf("CsvHelperUtil.ExportCustomersToCsv", StringComparison.Ordinal),
+                "CSV customer exports should finish bounded collection before handing rows to the CSV writer.");
+            Assert.True(
+                genericExportMethod.IndexOf("var all = await CollectCustomersForExportAsync(cancellationToken)", StringComparison.Ordinal) < genericExportMethod.IndexOf("exporter.ExportAsync", StringComparison.Ordinal),
+                "Generic customer exports should finish bounded collection before handing rows to the exporter.");
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)
