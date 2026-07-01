@@ -92,7 +92,7 @@ $matches = Get-ChildItem -Path . -Recurse -File -Force |
         $normalizedRelative = "/$relative/"
         $isIgnoredPathSegment = $false
         foreach ($ignoredPathSegment in $ignoredPathSegments) {
-            if ($normalizedRelative.Contains($ignoredPathSegment, [System.StringComparison]::OrdinalIgnoreCase)) {
+            if ($normalizedRelative.IndexOf($ignoredPathSegment, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
                 $isIgnoredPathSegment = $true
                 break
             }
