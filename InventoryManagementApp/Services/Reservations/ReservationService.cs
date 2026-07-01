@@ -59,6 +59,21 @@ namespace InventoryManagementApp.Services.Reservations
             });
         }
 
+        public async Task<int> CountReservationsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(r.ReservationID)
+                    FROM Reservations r
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID";
+                using var cmd = new SqliteCommand(sql, conn);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
         /// <summary>
         /// Retrieves all active reservations (pending or confirmed status), ordered by start date.
         /// </summary>
@@ -195,7 +210,7 @@ namespace InventoryManagementApp.Services.Reservations
                     JOIN Customers c ON r.CustomerID = c.CustomerID
                     WHERE r.Status IN ('Pending', 'Confirmed')";
                 using var cmd = new SqliteCommand(sql, conn);
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
             });
         }
 
@@ -216,7 +231,7 @@ namespace InventoryManagementApp.Services.Reservations
                     AND r.StartDate <= @FutureDate";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@FutureDate", DateTime.Now.AddDays(days));
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
             });
         }
 
