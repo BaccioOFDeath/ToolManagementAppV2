@@ -143,6 +143,9 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("HexColorConverter", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedColor=\"{Binding BackgroundColor", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedColor=\"{Binding AccentColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedColor=\"{Binding SearchBarBackgroundColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedColor=\"{Binding SearchBarBorderColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedColor=\"{Binding SearchBarInnerBorderColor", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedColor=\"{Binding HoverColor", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedColor=\"{Binding SelectedColor", xaml, StringComparison.Ordinal);
             Assert.Contains("Selected text", xaml, StringComparison.Ordinal);

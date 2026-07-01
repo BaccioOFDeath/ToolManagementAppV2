@@ -57,6 +57,11 @@ namespace InventoryManagementApp.Tests.ViewModels
             viewModel.BackgroundImageStretch = "Uniform";
             viewModel.DashboardHeaderColor = "123456";
             viewModel.RentalsHeaderColor = "654321";
+            viewModel.SearchBarBackgroundColor = "010203";
+            viewModel.SearchBarBorderColor = "040506";
+            viewModel.SearchBarInnerBorderColor = "070809";
+            viewModel.SearchBarBorderThickness = 3;
+            viewModel.SearchBarInnerBorderThickness = 1.5;
 
             await viewModel.SaveCommand.ExecuteAsync(null);
             var loaded = await ((ISettingsService)settingsService).GetAppThemeSettingsAsync();
@@ -72,10 +77,17 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Equal("Uniform", loaded.BackgroundImageStretch);
             Assert.Equal("#123456", loaded.DashboardHeaderColor);
             Assert.Equal("#654321", loaded.RentalsHeaderColor);
+            Assert.Equal("#010203", loaded.SearchBarBackgroundColor);
+            Assert.Equal("#040506", loaded.SearchBarBorderColor);
+            Assert.Equal("#070809", loaded.SearchBarInnerBorderColor);
+            Assert.Equal(3, loaded.SearchBarBorderThickness);
+            Assert.Equal(1.5, loaded.SearchBarInnerBorderThickness);
             Assert.Equal("Theme saved and applied.", viewModel.Status);
             Assert.NotNull(themeService.LastCustomTheme);
             Assert.Equal("#112233", themeService.LastCustomTheme!.BackgroundColor);
             Assert.Equal("#123456", themeService.LastCustomTheme.DashboardHeaderColor);
+            Assert.Equal("#070809", themeService.LastCustomTheme.SearchBarInnerBorderColor);
+            Assert.Equal(1.5, themeService.LastCustomTheme.SearchBarInnerBorderThickness);
             Assert.True(themeService.CustomApplyCount > 1);
         }
 
@@ -314,6 +326,9 @@ namespace InventoryManagementApp.Tests.ViewModels
                     InputColor = settings.InputColor,
                     ButtonColor = settings.ButtonColor,
                     BorderColor = settings.BorderColor,
+                    SearchBarBackgroundColor = settings.SearchBarBackgroundColor,
+                    SearchBarBorderColor = settings.SearchBarBorderColor,
+                    SearchBarInnerBorderColor = settings.SearchBarInnerBorderColor,
                     TextColor = settings.TextColor,
                     MutedTextColor = settings.MutedTextColor,
                     AccentColor = settings.AccentColor,
@@ -360,6 +375,8 @@ namespace InventoryManagementApp.Tests.ViewModels
                     BorderOpacity = settings.BorderOpacity,
                     BorderThickness = settings.BorderThickness,
                     ControlBorderThickness = settings.ControlBorderThickness,
+                    SearchBarBorderThickness = settings.SearchBarBorderThickness,
+                    SearchBarInnerBorderThickness = settings.SearchBarInnerBorderThickness,
                     DividerOpacity = settings.DividerOpacity,
                     CardCornerRadius = settings.CardCornerRadius,
                     PanelCornerRadius = settings.PanelCornerRadius,

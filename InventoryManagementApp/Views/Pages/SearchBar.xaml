@@ -31,8 +31,8 @@
                      HorizontalAlignment="Stretch"
                      Margin="0"
                      Background="{DynamicResource SearchBarBackgroundBrush}"
-                     BorderBrush="{DynamicResource SearchBarBorderBrush}"
-                     BorderThickness="{DynamicResource SearchBarBorderThickness}"
+                     BorderBrush="{DynamicResource SearchBarInnerBorderBrush}"
+                     BorderThickness="{DynamicResource SearchBarInnerBorderThickness}"
                      Text="{Binding Text, ElementName=Root, UpdateSourceTrigger=PropertyChanged}">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Enter" Command="{Binding SearchCommand, ElementName=Root}"/>

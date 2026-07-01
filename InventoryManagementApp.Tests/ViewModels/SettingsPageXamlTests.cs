@@ -78,6 +78,11 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("InputColor", xaml, StringComparison.Ordinal);
             Assert.Contains("ButtonColor", xaml, StringComparison.Ordinal);
             Assert.Contains("BorderColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("SearchBarBackgroundColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("SearchBarBorderColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("SearchBarInnerBorderColor", xaml, StringComparison.Ordinal);
+            Assert.Contains("Search bar outside border", xaml, StringComparison.Ordinal);
+            Assert.Contains("Search bar inside border", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowColor", xaml, StringComparison.Ordinal);
             Assert.Contains("FontFamily", xaml, StringComparison.Ordinal);
             Assert.Contains("SurfaceAltOpacity", xaml, StringComparison.Ordinal);
@@ -91,6 +96,10 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("BorderOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("BorderThickness", xaml, StringComparison.Ordinal);
             Assert.Contains("ControlBorderThickness", xaml, StringComparison.Ordinal);
+            Assert.Contains("SearchBarBorderThickness", xaml, StringComparison.Ordinal);
+            Assert.Contains("SearchBarInnerBorderThickness", xaml, StringComparison.Ordinal);
+            Assert.Contains("Search bar outside border width", xaml, StringComparison.Ordinal);
+            Assert.Contains("Search bar inside border width", xaml, StringComparison.Ordinal);
             Assert.Contains("DividerOpacity", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowBlurRadius", xaml, StringComparison.Ordinal);
             Assert.Contains("ShadowDepth", xaml, StringComparison.Ordinal);

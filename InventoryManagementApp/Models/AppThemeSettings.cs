@@ -16,6 +16,7 @@ namespace InventoryManagementApp.Models
         public string BorderColor { get; set; } = "#FF2563EB";
         public string SearchBarBackgroundColor { get; set; } = string.Empty;
         public string SearchBarBorderColor { get; set; } = string.Empty;
+        public string SearchBarInnerBorderColor { get; set; } = string.Empty;
         public string TextColor { get; set; } = "#FF111827";
         public string MutedTextColor { get; set; } = "#FF5B6472";
         public string AccentColor { get; set; } = "#FF2563EB";
@@ -67,6 +68,7 @@ namespace InventoryManagementApp.Models
         public double BorderThickness { get; set; } = 1.0;
         public double ControlBorderThickness { get; set; } = 1.0;
         public double SearchBarBorderThickness { get; set; } = 1.0;
+        public double SearchBarInnerBorderThickness { get; set; } = 1.0;
         public double DividerOpacity { get; set; } = 1.0;
         public double CardCornerRadius { get; set; } = 6.0;
         public double PanelCornerRadius { get; set; } = 4.0;
@@ -370,7 +372,9 @@ namespace InventoryManagementApp.Models
 
             settings.SearchBarBackgroundColor = settings.InputColor;
             settings.SearchBarBorderColor = settings.AccentColor;
+            settings.SearchBarInnerBorderColor = settings.BorderColor;
             settings.SearchBarBorderThickness = Math.Max(1, settings.ControlBorderThickness);
+            settings.SearchBarInnerBorderThickness = Math.Max(0, settings.ControlBorderThickness);
 
             return settings;
         }
@@ -389,6 +393,7 @@ namespace InventoryManagementApp.Models
             BorderColor = NormalizeColor(BorderColor, defaults.BorderColor);
             SearchBarBackgroundColor = NormalizeColor(SearchBarBackgroundColor, defaults.SearchBarBackgroundColor);
             SearchBarBorderColor = NormalizeColor(SearchBarBorderColor, defaults.SearchBarBorderColor);
+            SearchBarInnerBorderColor = NormalizeColor(SearchBarInnerBorderColor, defaults.SearchBarInnerBorderColor);
             TextColor = NormalizeColor(TextColor, defaults.TextColor);
             MutedTextColor = NormalizeColor(MutedTextColor, defaults.MutedTextColor);
             AccentColor = NormalizeColor(AccentColor, defaults.AccentColor);
@@ -434,6 +439,7 @@ namespace InventoryManagementApp.Models
             BorderThickness = Clamp(BorderThickness, 0, 6);
             ControlBorderThickness = Clamp(ControlBorderThickness, 0, 6);
             SearchBarBorderThickness = Clamp(SearchBarBorderThickness, 0, 6);
+            SearchBarInnerBorderThickness = Clamp(SearchBarInnerBorderThickness, 0, 6);
             DividerOpacity = Clamp01(DividerOpacity);
             CardCornerRadius = Clamp(CardCornerRadius, 0, 32);
             PanelCornerRadius = Clamp(PanelCornerRadius, 0, 32);

@@ -21,6 +21,7 @@ public class AppThemeSettingsTests
             BorderThickness = 99,
             ControlBorderThickness = -1,
             SearchBarBorderThickness = 99,
+            SearchBarInnerBorderThickness = 99,
             DividerOpacity = double.PositiveInfinity,
             ShadowBlurRadius = 99,
             ShadowDepth = -4,
@@ -51,6 +52,7 @@ public class AppThemeSettingsTests
         Assert.Equal(6, settings.BorderThickness);
         Assert.Equal(0, settings.ControlBorderThickness);
         Assert.Equal(6, settings.SearchBarBorderThickness);
+        Assert.Equal(6, settings.SearchBarInnerBorderThickness);
         Assert.Equal(0, settings.DividerOpacity);
         Assert.Equal(48, settings.ShadowBlurRadius);
         Assert.Equal(0, settings.ShadowDepth);
@@ -108,6 +110,7 @@ public class AppThemeSettingsTests
         settings.WarningColor = "#GGGGGG";
         settings.SearchBarBackgroundColor = "112233";
         settings.SearchBarBorderColor = "not-a-color";
+        settings.SearchBarInnerBorderColor = "445566";
 
         settings.Normalize();
 
@@ -116,6 +119,7 @@ public class AppThemeSettingsTests
         Assert.Equal("#FFC99500", settings.WarningColor);
         Assert.Equal("#112233", settings.SearchBarBackgroundColor);
         Assert.Equal("#FFF5B700", settings.SearchBarBorderColor);
+        Assert.Equal("#445566", settings.SearchBarInnerBorderColor);
     }
 
     [Fact]
@@ -134,7 +138,9 @@ public class AppThemeSettingsTests
         settings.ControlBorderThickness = 2.5;
         settings.SearchBarBackgroundColor = "#FF101010";
         settings.SearchBarBorderColor = "#FFFFCC00";
+        settings.SearchBarInnerBorderColor = "#FF334455";
         settings.SearchBarBorderThickness = 4.5;
+        settings.SearchBarInnerBorderThickness = 1.5;
         settings.DividerOpacity = 0.44;
         settings.SurfaceShadowScale = 1.8;
         settings.ControlShadowScale = 0.7;
@@ -158,7 +164,9 @@ public class AppThemeSettingsTests
         Assert.Equal(2.5, roundTripped.ControlBorderThickness);
         Assert.Equal("#FF101010", roundTripped.SearchBarBackgroundColor);
         Assert.Equal("#FFFFCC00", roundTripped.SearchBarBorderColor);
+        Assert.Equal("#FF334455", roundTripped.SearchBarInnerBorderColor);
         Assert.Equal(4.5, roundTripped.SearchBarBorderThickness);
+        Assert.Equal(1.5, roundTripped.SearchBarInnerBorderThickness);
         Assert.Equal(0.44, roundTripped.DividerOpacity);
         Assert.Equal(1.8, roundTripped.SurfaceShadowScale);
         Assert.Equal(0.7, roundTripped.ControlShadowScale);

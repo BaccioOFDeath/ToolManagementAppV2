@@ -120,7 +120,9 @@ namespace InventoryManagementApp.Services
                 Set(resources, "TextBoxBackgroundBrush", inputBrush);
                 Set(resources, "SearchBarBackgroundBrush", CreateBrush(settings.SearchBarBackgroundColor, settings.InputOpacity));
                 Set(resources, "SearchBarBorderBrush", CreateBrush(settings.SearchBarBorderColor, settings.BorderOpacity));
+                Set(resources, "SearchBarInnerBorderBrush", CreateBrush(settings.SearchBarInnerBorderColor, settings.BorderOpacity));
                 Set(resources, "SearchBarBorderThickness", new Thickness(settings.SearchBarBorderThickness));
+                Set(resources, "SearchBarInnerBorderThickness", new Thickness(settings.SearchBarInnerBorderThickness));
                 Set(resources, "ComboBoxPopupBackgroundBrush", CreateBrush(settings.SurfaceAltColor, settings.MenuDropDownOpacity));
                 Set(resources, "ForegroundBrush", CreateBrush(settings.TextColor, 1));
                 Set(resources, "ForegroundMutedBrush", CreateBrush(settings.MutedTextColor, 1));
