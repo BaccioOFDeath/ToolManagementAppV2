@@ -150,13 +150,31 @@ namespace InventoryManagementApp.Services.Items
             var totalActiveRentalsTask = _rentalService.CountActiveRentalsAsync();
             var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);
             var totalUsersTask = _userService.CountUsersAsync(CancellationToken.None);
+            var overdueMaintenanceTask = _maintenanceService?.CountOverdueMaintenanceAsync();
+            var upcomingMaintenanceTask = _maintenanceService?.CountUpcomingMaintenanceAsync(30);
+            var overdueCalibrationTask = _calibrationService?.CountOverdueCalibrationAsync();
+            var upcomingCalibrationTask = _calibrationService?.CountUpcomingCalibrationAsync(30);
+            var activeReservationsTask = _reservationService?.CountActiveReservationsAsync();
+            var upcomingReservationsTask = _reservationService?.CountUpcomingReservationsAsync(7);
+            var activeKitsTask = _kitService?.CountActiveKitsAsync();
 
-            await Task.WhenAll(
+            var summaryTasks = new List<Task>
+            {
                 totalItemsTask,
                 totalRentalsTask,
                 totalActiveRentalsTask,
                 totalCustomersTask,
-                totalUsersTask).ConfigureAwait(false);
+                totalUsersTask
+            };
+            AddIfNotNull(summaryTasks, overdueMaintenanceTask);
+            AddIfNotNull(summaryTasks, upcomingMaintenanceTask);
+            AddIfNotNull(summaryTasks, overdueCalibrationTask);
+            AddIfNotNull(summaryTasks, upcomingCalibrationTask);
+            AddIfNotNull(summaryTasks, activeReservationsTask);
+            AddIfNotNull(summaryTasks, upcomingReservationsTask);
+            AddIfNotNull(summaryTasks, activeKitsTask);
+
+            await Task.WhenAll(summaryTasks).ConfigureAwait(false);
 
             var totalItems = await totalItemsTask.ConfigureAwait(false);
             var totalRentals = await totalRentalsTask.ConfigureAwait(false);
@@ -173,42 +191,33 @@ namespace InventoryManagementApp.Services.Items
                 $"Total Users: {totalUsers}"
             };
 
-            if (_maintenanceService != null)
+            if (overdueMaintenanceTask != null && upcomingMaintenanceTask != null)
             {
-                var overdueMaintenanceTask = _maintenanceService.CountOverdueMaintenanceAsync();
-                var upcomingMaintenanceTask = _maintenanceService.CountUpcomingMaintenanceAsync(30);
-                await Task.WhenAll(overdueMaintenanceTask, upcomingMaintenanceTask).ConfigureAwait(false);
                 var overdueMaintenance = await overdueMaintenanceTask.ConfigureAwait(false);
                 var upcomingMaintenance = await upcomingMaintenanceTask.ConfigureAwait(false);
                 lines.Add($"Overdue Maintenance: {overdueMaintenance}");
                 lines.Add($"Upcoming Maintenance (30 days): {upcomingMaintenance}");
             }
 
-            if (_calibrationService != null)
+            if (overdueCalibrationTask != null && upcomingCalibrationTask != null)
             {
-                var overdueCalibrationTask = _calibrationService.CountOverdueCalibrationAsync();
-                var upcomingCalibrationTask = _calibrationService.CountUpcomingCalibrationAsync(30);
-                await Task.WhenAll(overdueCalibrationTask, upcomingCalibrationTask).ConfigureAwait(false);
                 var overdueCalibration = await overdueCalibrationTask.ConfigureAwait(false);
                 var upcomingCalibration = await upcomingCalibrationTask.ConfigureAwait(false);
                 lines.Add($"Overdue Calibrations: {overdueCalibration}");
                 lines.Add($"Upcoming Calibrations (30 days): {upcomingCalibration}");
             }
 
-            if (_reservationService != null)
+            if (activeReservationsTask != null && upcomingReservationsTask != null)
             {
-                var activeReservationsTask = _reservationService.CountActiveReservationsAsync();
-                var upcomingReservationsTask = _reservationService.CountUpcomingReservationsAsync(7);
-                await Task.WhenAll(activeReservationsTask, upcomingReservationsTask).ConfigureAwait(false);
                 var activeReservations = await activeReservationsTask.ConfigureAwait(false);
                 var upcomingReservations = await upcomingReservationsTask.ConfigureAwait(false);
                 lines.Add($"Active Reservations: {activeReservations}");
                 lines.Add($"Upcoming Reservations (7 days): {upcomingReservations}");
             }
 
-            if (_kitService != null)
+            if (activeKitsTask != null)
             {
-                var activeKits = await _kitService.CountActiveKitsAsync().ConfigureAwait(false);
+                var activeKits = await activeKitsTask.ConfigureAwait(false);
                 lines.Add($"Active Kits: {activeKits}");
             }
 
@@ -298,12 +307,14 @@ namespace InventoryManagementApp.Services.Items
             await Task.WhenAll(kitsTask, totalActiveKitsTask).ConfigureAwait(false);
             var kits = await kitsTask.ConfigureAwait(false);
             var totalActiveKits = await totalActiveKitsTask.ConfigureAwait(false);
+            var itemCounts = await _kitService.CountKitItemsByKitIdsAsync(kits.Select(kit => kit.KitID)).ConfigureAwait(false);
             var lines = new List<string>();
 
             foreach (var kit in kits)
             {
-                var items = await _kitService.GetKitItemsAsync(kit.KitID).ConfigureAwait(false);
-                var itemCount = FormatLimitedCount(items.Count);
+                var itemCount = itemCounts.TryGetValue(kit.KitID, out var count)
+                    ? FormatLimitedCount(count)
+                    : "0";
                 lines.Add($"Kit Number: {kit.KitNumber} | Kit Name: {kit.Name} | Category: {kit.Category} | Item Count: {itemCount} | Status: {(kit.IsActive ? "Active" : "Inactive")}");
             }
 
@@ -336,6 +347,12 @@ namespace InventoryManagementApp.Services.Items
 
         private static string FormatLimitedCount(int count) =>
             count >= DetailedReportResultLimit ? $"{DetailedReportResultLimit}+" : count.ToString();
+
+        private static void AddIfNotNull(List<Task> tasks, Task? task)
+        {
+            if (task != null)
+                tasks.Add(task);
+        }
 
         private static IEnumerable<string> AddExactReportLimitNotice(IEnumerable<string> lines, int displayedCount, int totalCount, string recordLabel)
         {
