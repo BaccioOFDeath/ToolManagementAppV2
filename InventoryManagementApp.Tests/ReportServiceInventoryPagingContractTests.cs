@@ -149,7 +149,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void RemainingSummaryOptionalCountsShowWhenDirectoryCapsMayApply()
+        public void SummaryReservationAndKitCountsUseExactCountApis()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
             var summaryReport = ExtractMethod(
@@ -157,13 +157,20 @@ namespace InventoryManagementApp.Tests
                 "public async Task<FlowDocument> GenerateSummaryReport()",
                 "public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)");
 
-            Assert.Contains("$\"Active Reservations: {FormatLimitedCount(activeReservations.Count)}\"", summaryReport, StringComparison.Ordinal);
-            Assert.Contains("$\"Upcoming Reservations (7 days): {FormatLimitedCount(upcomingReservations.Count)}\"", summaryReport, StringComparison.Ordinal);
-            Assert.Contains("$\"Active Kits: {FormatLimitedCount(activeKits.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var activeReservationsTask = _reservationService.CountActiveReservationsAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var upcomingReservationsTask = _reservationService.CountUpcomingReservationsAsync(7);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var activeKits = await _kitService.CountActiveKitsAsync().ConfigureAwait(false);", summaryReport, StringComparison.Ordinal);
 
-            Assert.DoesNotContain("$\"Active Reservations: {activeReservations.Count}\"", summaryReport, StringComparison.Ordinal);
-            Assert.DoesNotContain("$\"Upcoming Reservations (7 days): {upcomingReservations.Count}\"", summaryReport, StringComparison.Ordinal);
-            Assert.DoesNotContain("$\"Active Kits: {activeKits.Count}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Active Reservations: {activeReservations}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Upcoming Reservations (7 days): {upcomingReservations}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Active Kits: {activeKits}\"", summaryReport, StringComparison.Ordinal);
+
+            Assert.DoesNotContain("var activeReservationsTask = _reservationService.GetActiveReservationsAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("var upcomingReservationsTask = _reservationService.GetUpcomingReservationsAsync(7);", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("var activeKits = await _kitService.GetActiveKitsAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Active Reservations: {FormatLimitedCount(activeReservations.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Upcoming Reservations (7 days): {FormatLimitedCount(upcomingReservations.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Active Kits: {FormatLimitedCount(activeKits.Count)}\"", summaryReport, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -231,6 +238,45 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("WHERE c.NextCalibrationDue >= @Now", upcomingCalibrationCount, StringComparison.Ordinal);
             Assert.Contains("AND c.NextCalibrationDue <= @FutureDate", upcomingCalibrationCount, StringComparison.Ordinal);
             Assert.DoesNotContain("LIMIT @CalibrationListLimit", upcomingCalibrationCount, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ReservationAndKitServicesProvideExactSummaryCounts()
+        {
+            var reservationSource = ReadRepoFile("InventoryManagementApp", "Services", "Reservations", "ReservationService.cs");
+            var kitSource = ReadRepoFile("InventoryManagementApp", "Services", "Kits", "KitService.cs");
+            var activeReservationCount = ExtractMethod(
+                reservationSource,
+                "public async Task<int> CountActiveReservationsAsync()",
+                "public async Task<int> CountUpcomingReservationsAsync(int days = 7)");
+            var upcomingReservationCount = ExtractMethod(
+                reservationSource,
+                "public async Task<int> CountUpcomingReservationsAsync(int days = 7)",
+                "public async Task<Reservation?> GetReservationByIdAsync(int reservationID)");
+            var activeKitCount = ExtractMethod(
+                kitSource,
+                "public async Task<int> CountActiveKitsAsync()",
+                "public async Task<Kit?> GetKitByIdAsync(int kitID)");
+
+            Assert.Contains("SELECT COUNT(r.ReservationID)", activeReservationCount, StringComparison.Ordinal);
+            Assert.Contains("FROM Reservations r", activeReservationCount, StringComparison.Ordinal);
+            Assert.Contains("JOIN Items i ON r.ItemID = i.ItemID", activeReservationCount, StringComparison.Ordinal);
+            Assert.Contains("JOIN Customers c ON r.CustomerID = c.CustomerID", activeReservationCount, StringComparison.Ordinal);
+            Assert.Contains("WHERE r.Status IN ('Pending', 'Confirmed')", activeReservationCount, StringComparison.Ordinal);
+            Assert.DoesNotContain("LIMIT @ReservationListLimit", activeReservationCount, StringComparison.Ordinal);
+
+            Assert.Contains("if (days < 0)", upcomingReservationCount, StringComparison.Ordinal);
+            Assert.Contains("SELECT COUNT(r.ReservationID)", upcomingReservationCount, StringComparison.Ordinal);
+            Assert.Contains("FROM Reservations r", upcomingReservationCount, StringComparison.Ordinal);
+            Assert.Contains("JOIN Items i ON r.ItemID = i.ItemID", upcomingReservationCount, StringComparison.Ordinal);
+            Assert.Contains("JOIN Customers c ON r.CustomerID = c.CustomerID", upcomingReservationCount, StringComparison.Ordinal);
+            Assert.Contains("AND r.StartDate <= @FutureDate", upcomingReservationCount, StringComparison.Ordinal);
+            Assert.DoesNotContain("LIMIT @ReservationListLimit", upcomingReservationCount, StringComparison.Ordinal);
+
+            Assert.Contains("SELECT COUNT(KitID)", activeKitCount, StringComparison.Ordinal);
+            Assert.Contains("FROM Kits", activeKitCount, StringComparison.Ordinal);
+            Assert.Contains("WHERE IsActive = 1", activeKitCount, StringComparison.Ordinal);
+            Assert.DoesNotContain("LIMIT @KitListLimit", activeKitCount, StringComparison.Ordinal);
         }
 
         private static void AssertUsesBoundedReportPages(string method)

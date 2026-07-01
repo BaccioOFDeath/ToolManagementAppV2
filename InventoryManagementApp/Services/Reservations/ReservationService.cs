@@ -183,6 +183,43 @@ namespace InventoryManagementApp.Services.Reservations
             });
         }
 
+        public async Task<int> CountActiveReservationsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(r.ReservationID)
+                    FROM Reservations r
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID
+                    WHERE r.Status IN ('Pending', 'Confirmed')";
+                using var cmd = new SqliteCommand(sql, conn);
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            });
+        }
+
+        public async Task<int> CountUpcomingReservationsAsync(int days = 7)
+        {
+            if (days < 0)
+                throw new ArgumentOutOfRangeException(nameof(days), "Days must be greater than or equal to 0.");
+
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(r.ReservationID)
+                    FROM Reservations r
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID
+                    WHERE r.Status IN ('Pending', 'Confirmed')
+                    AND r.StartDate <= @FutureDate";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@FutureDate", DateTime.Now.AddDays(days));
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            });
+        }
+
         public async Task<Reservation?> GetReservationByIdAsync(int reservationID)
         {
             if (reservationID < 1)

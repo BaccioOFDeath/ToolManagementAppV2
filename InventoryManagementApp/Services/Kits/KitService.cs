@@ -83,6 +83,20 @@ namespace InventoryManagementApp.Services.Kits
             });
         }
 
+        public async Task<int> CountActiveKitsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(KitID)
+                    FROM Kits
+                    WHERE IsActive = 1";
+                using var cmd = new SqliteCommand(sql, conn);
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            });
+        }
+
         /// <summary>
         /// Retrieves a specific kit by its ID.
         /// </summary>
