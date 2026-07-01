@@ -34,7 +34,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void SummaryReportUsesCustomerCountWithoutMaterializingCustomerDirectory()
+        public void SummaryReportUsesCountApisWithoutMaterializingCappedDirectories()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
             var summaryReport = ExtractMethod(
@@ -42,11 +42,47 @@ namespace InventoryManagementApp.Tests
                 "public async Task<FlowDocument> GenerateSummaryReport()",
                 "public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)");
 
+            Assert.Contains("var totalRentalsTask = _rentalService.CountRentalsAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var totalActiveRentalsTask = _rentalService.CountActiveRentalsAsync();", summaryReport, StringComparison.Ordinal);
             Assert.Contains("var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var totalUsersTask = _userService.CountUsersAsync(CancellationToken.None);", summaryReport, StringComparison.Ordinal);
+
+            Assert.Contains("var totalRentals = await totalRentalsTask.ConfigureAwait(false);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var totalActiveRentals = await totalActiveRentalsTask.ConfigureAwait(false);", summaryReport, StringComparison.Ordinal);
             Assert.Contains("var totalCustomers = await totalCustomersTask.ConfigureAwait(false);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var totalUsers = await totalUsersTask.ConfigureAwait(false);", summaryReport, StringComparison.Ordinal);
+
+            Assert.Contains("$\"Total Rentals (History): {totalRentals}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Active Rentals: {totalActiveRentals}\"", summaryReport, StringComparison.Ordinal);
             Assert.Contains("$\"Total Customers: {totalCustomers}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Total Users: {totalUsers}\"", summaryReport, StringComparison.Ordinal);
+
+            Assert.DoesNotContain("var totalRentalsTask = _rentalService.GetAllRentalsAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("var totalActiveRentalsTask = _rentalService.GetActiveRentalsAsync();", summaryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("var totalCustomersTask = _customerService.GetAllCustomersAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("var totalUsersTask = _userService.GetAllUsersAsync(CancellationToken.None);", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Total Rentals (History): {totalRentals.Count}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Active Rentals: {totalActiveRentals.Count}\"", summaryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("$\"Total Customers: {totalCustomers.Count}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Total Users: {totalUsers.Count}\"", summaryReport, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void RentalServiceProvidesVisibleTotalRentalCountForSummaryReports()
+        {
+            var interfaceSource = ReadRepoFile("InventoryManagementApp", "Interfaces", "IRentalService.cs");
+            var rentalServiceSource = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+            var countMethod = ExtractMethod(
+                rentalServiceSource,
+                "public async Task<int> CountRentalsAsync()",
+                "public async Task<int> CountActiveRentalsAsync()");
+
+            Assert.Contains("Task<int> CountRentalsAsync();", interfaceSource, StringComparison.Ordinal);
+            Assert.Contains("SELECT COUNT(r.RentalID)", countMethod, StringComparison.Ordinal);
+            Assert.Contains("FROM Rentals r", countMethod, StringComparison.Ordinal);
+            Assert.Contains("JOIN Items t ON r.ItemID = t.ItemID", countMethod, StringComparison.Ordinal);
+            Assert.Contains("JOIN Customers c ON r.CustomerID = c.CustomerID", countMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("LIMIT @RentalListLimit", countMethod, StringComparison.Ordinal);
         }
 
         private static void AssertUsesBoundedReportPages(string method)
