@@ -63,7 +63,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void CappedDetailedReportsUseExactTruncationNoticesWhereCountsExist()
+        public void CappedDetailedReportsUseParallelExactTruncationCounts()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
             var rentalReport = ExtractMethod(
@@ -102,10 +102,16 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private const int DetailedReportResultLimit = 500;", source, StringComparison.Ordinal);
             Assert.DoesNotContain("AddReportLimitNotice", source, StringComparison.Ordinal);
 
+            Assert.Contains("var rentalsTask = activeOnly", rentalReport, StringComparison.Ordinal);
+            Assert.Contains("? _rentalService.GetActiveRentalsAsync()", rentalReport, StringComparison.Ordinal);
+            Assert.Contains(": _rentalService.GetAllRentalsAsync();", rentalReport, StringComparison.Ordinal);
+            Assert.Contains("var totalRentalsTask = activeOnly", rentalReport, StringComparison.Ordinal);
+            Assert.Contains("? _rentalService.CountActiveRentalsAsync()", rentalReport, StringComparison.Ordinal);
+            Assert.Contains(": _rentalService.CountRentalsAsync();", rentalReport, StringComparison.Ordinal);
+            Assert.Contains("await Task.WhenAll(rentalsTask, totalRentalsTask).ConfigureAwait(false);", rentalReport, StringComparison.Ordinal);
+            Assert.Contains("var rentals = await rentalsTask.ConfigureAwait(false);", rentalReport, StringComparison.Ordinal);
+            Assert.Contains("var totalRentals = await totalRentalsTask.ConfigureAwait(false);", rentalReport, StringComparison.Ordinal);
             Assert.Contains("AddExactReportLimitNotice(lines, rentals.Count, totalRentals, \"rental records\")", rentalReport, StringComparison.Ordinal);
-            Assert.Contains("var totalRentals = activeOnly", rentalReport, StringComparison.Ordinal);
-            Assert.Contains("? await _rentalService.CountActiveRentalsAsync().ConfigureAwait(false)", rentalReport, StringComparison.Ordinal);
-            Assert.Contains(": await _rentalService.CountRentalsAsync().ConfigureAwait(false);", rentalReport, StringComparison.Ordinal);
 
             Assert.Contains("var customersTask = _customerService.SearchCustomersAsync(string.Empty, CancellationToken.None);", customerReport, StringComparison.Ordinal);
             Assert.Contains("var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);", customerReport, StringComparison.Ordinal);
@@ -116,24 +122,51 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("_customerService.GetAllCustomersAsync()", customerReport, StringComparison.Ordinal);
             Assert.DoesNotContain("customers.Take(DetailedReportResultLimit)", customerReport, StringComparison.Ordinal);
 
-            Assert.Contains("var totalUsers = await _userService.CountUsersAsync(CancellationToken.None).ConfigureAwait(false);", userReport, StringComparison.Ordinal);
+            Assert.Contains("var usersTask = _userService.GetAllUsersAsync(CancellationToken.None);", userReport, StringComparison.Ordinal);
+            Assert.Contains("var totalUsersTask = _userService.CountUsersAsync(CancellationToken.None);", userReport, StringComparison.Ordinal);
+            Assert.Contains("await Task.WhenAll(usersTask, totalUsersTask).ConfigureAwait(false);", userReport, StringComparison.Ordinal);
+            Assert.Contains("var users = await usersTask.ConfigureAwait(false);", userReport, StringComparison.Ordinal);
+            Assert.Contains("var totalUsers = await totalUsersTask.ConfigureAwait(false);", userReport, StringComparison.Ordinal);
             Assert.Contains("AddExactReportLimitNotice(lines, users.Count, totalUsers, \"users\")", userReport, StringComparison.Ordinal);
 
-            Assert.Contains("var totalRecords = overdueOnly", maintenanceReport, StringComparison.Ordinal);
-            Assert.Contains("? await _maintenanceService.CountOverdueMaintenanceAsync().ConfigureAwait(false)", maintenanceReport, StringComparison.Ordinal);
-            Assert.Contains(": await _maintenanceService.CountMaintenanceRecordsAsync().ConfigureAwait(false);", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains("var recordsTask = overdueOnly", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains("? _maintenanceService.GetOverdueMaintenanceAsync()", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains(": _maintenanceService.GetAllMaintenanceRecordsAsync();", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains("var totalRecordsTask = overdueOnly", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains("? _maintenanceService.CountOverdueMaintenanceAsync()", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains(": _maintenanceService.CountMaintenanceRecordsAsync();", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains("await Task.WhenAll(recordsTask, totalRecordsTask).ConfigureAwait(false);", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains("var records = await recordsTask.ConfigureAwait(false);", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains("var totalRecords = await totalRecordsTask.ConfigureAwait(false);", maintenanceReport, StringComparison.Ordinal);
             Assert.Contains("AddExactReportLimitNotice(lines, records.Count, totalRecords, \"maintenance records\")", maintenanceReport, StringComparison.Ordinal);
 
-            Assert.Contains("var totalRecords = overdueOnly", calibrationReport, StringComparison.Ordinal);
-            Assert.Contains("? await _calibrationService.CountOverdueCalibrationAsync().ConfigureAwait(false)", calibrationReport, StringComparison.Ordinal);
-            Assert.Contains(": await _calibrationService.CountCalibrationRecordsAsync().ConfigureAwait(false);", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("var recordsTask = overdueOnly", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("? _calibrationService.GetOverdueCalibrationAsync()", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains(": _calibrationService.GetAllCalibrationRecordsAsync();", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("var totalRecordsTask = overdueOnly", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("? _calibrationService.CountOverdueCalibrationAsync()", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains(": _calibrationService.CountCalibrationRecordsAsync();", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("await Task.WhenAll(recordsTask, totalRecordsTask).ConfigureAwait(false);", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("var records = await recordsTask.ConfigureAwait(false);", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("var totalRecords = await totalRecordsTask.ConfigureAwait(false);", calibrationReport, StringComparison.Ordinal);
             Assert.Contains("AddExactReportLimitNotice(lines, records.Count, totalRecords, \"calibration records\")", calibrationReport, StringComparison.Ordinal);
 
-            Assert.Contains("var totalReservations = activeOnly", reservationReport, StringComparison.Ordinal);
-            Assert.Contains("? await _reservationService.CountActiveReservationsAsync().ConfigureAwait(false)", reservationReport, StringComparison.Ordinal);
-            Assert.Contains(": await _reservationService.CountReservationsAsync().ConfigureAwait(false);", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("var reservationsTask = activeOnly", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("? _reservationService.GetActiveReservationsAsync()", reservationReport, StringComparison.Ordinal);
+            Assert.Contains(": _reservationService.GetAllReservationsAsync();", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("var totalReservationsTask = activeOnly", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("? _reservationService.CountActiveReservationsAsync()", reservationReport, StringComparison.Ordinal);
+            Assert.Contains(": _reservationService.CountReservationsAsync();", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("await Task.WhenAll(reservationsTask, totalReservationsTask).ConfigureAwait(false);", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("var reservations = await reservationsTask.ConfigureAwait(false);", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("var totalReservations = await totalReservationsTask.ConfigureAwait(false);", reservationReport, StringComparison.Ordinal);
             Assert.Contains("AddExactReportLimitNotice(lines, reservations.Count, totalReservations, \"reservations\")", reservationReport, StringComparison.Ordinal);
 
+            Assert.Contains("var kitsTask = _kitService.GetActiveKitsAsync();", kitReport, StringComparison.Ordinal);
+            Assert.Contains("var totalActiveKitsTask = _kitService.CountActiveKitsAsync();", kitReport, StringComparison.Ordinal);
+            Assert.Contains("await Task.WhenAll(kitsTask, totalActiveKitsTask).ConfigureAwait(false);", kitReport, StringComparison.Ordinal);
+            Assert.Contains("var kits = await kitsTask.ConfigureAwait(false);", kitReport, StringComparison.Ordinal);
+            Assert.Contains("var totalActiveKits = await totalActiveKitsTask.ConfigureAwait(false);", kitReport, StringComparison.Ordinal);
             Assert.Contains("AddExactReportLimitNotice(lines, kits.Count, totalActiveKits, \"active kits\")", kitReport, StringComparison.Ordinal);
             Assert.Contains("var itemCount = FormatLimitedCount(items.Count);", kitReport, StringComparison.Ordinal);
 
