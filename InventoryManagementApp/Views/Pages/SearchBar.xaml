@@ -2,7 +2,10 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Name="Root">
-    <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Padding="4,3">
+    <Border Background="{DynamicResource SearchBarBackgroundBrush}"
+            BorderBrush="{DynamicResource SearchBarBorderBrush}"
+            BorderThickness="{DynamicResource SearchBarBorderThickness}"
+            Padding="4,3">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -27,6 +30,9 @@
                      MinWidth="180"
                      HorizontalAlignment="Stretch"
                      Margin="0"
+                     Background="{DynamicResource SearchBarBackgroundBrush}"
+                     BorderBrush="{DynamicResource SearchBarBorderBrush}"
+                     BorderThickness="{DynamicResource SearchBarBorderThickness}"
                      Text="{Binding Text, ElementName=Root, UpdateSourceTrigger=PropertyChanged}">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Enter" Command="{Binding SearchCommand, ElementName=Root}"/>

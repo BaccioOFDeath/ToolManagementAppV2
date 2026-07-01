@@ -89,7 +89,7 @@
                         Command="{Binding SwitchUserCommand}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
-                        ToolTip="Switch user">
+                        ToolTip="Log out">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="26" Height="26" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,6,0">
                             <controls:UserAvatar UserName="{Binding CurrentUserName}"
@@ -99,7 +99,10 @@
                         </Border>
                         <StackPanel Width="132" VerticalAlignment="Center">
                             <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text=" | Log out" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold"/>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </Button>

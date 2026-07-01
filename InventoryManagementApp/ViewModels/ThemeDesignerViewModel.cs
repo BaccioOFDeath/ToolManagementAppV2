@@ -155,6 +155,18 @@ namespace InventoryManagementApp.ViewModels
             set => SetString(value, (settings, newValue) => settings.BorderColor = newValue, nameof(BorderColor));
         }
 
+        public string SearchBarBackgroundColor
+        {
+            get => _settings.SearchBarBackgroundColor;
+            set => SetString(value, (settings, newValue) => settings.SearchBarBackgroundColor = newValue, nameof(SearchBarBackgroundColor));
+        }
+
+        public string SearchBarBorderColor
+        {
+            get => _settings.SearchBarBorderColor;
+            set => SetString(value, (settings, newValue) => settings.SearchBarBorderColor = newValue, nameof(SearchBarBorderColor));
+        }
+
         public string TextColor
         {
             get => _settings.TextColor;
@@ -447,6 +459,12 @@ namespace InventoryManagementApp.ViewModels
         {
             get => _settings.ControlBorderThickness;
             set => SetDouble(value, (settings, newValue) => settings.ControlBorderThickness = newValue, nameof(ControlBorderThickness));
+        }
+
+        public double SearchBarBorderThickness
+        {
+            get => _settings.SearchBarBorderThickness;
+            set => SetDouble(value, (settings, newValue) => settings.SearchBarBorderThickness = newValue, nameof(SearchBarBorderThickness));
         }
 
         public double DividerOpacity
@@ -890,6 +908,8 @@ namespace InventoryManagementApp.ViewModels
             _settings.InputColor = "#FF000000";
             _settings.ButtonColor = "#FF1F1F1F";
             _settings.BorderColor = "#FFFFFF00";
+            _settings.SearchBarBackgroundColor = "#FF000000";
+            _settings.SearchBarBorderColor = "#FFFFFF00";
             _settings.TextColor = "#FFFFFFFF";
             _settings.MutedTextColor = "#FFE5E7EB";
             _settings.AccentColor = "#FFFFFF00";
@@ -918,6 +938,7 @@ namespace InventoryManagementApp.ViewModels
             _settings.BorderOpacity = 1;
             _settings.BorderThickness = 2;
             _settings.ControlBorderThickness = 2;
+            _settings.SearchBarBorderThickness = 2;
             _settings.DividerOpacity = 1;
             _settings.EnableSurfaceShadows = false;
             _settings.EnableControlShadows = false;
@@ -1015,6 +1036,8 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(InputColor));
             OnPropertyChanged(nameof(ButtonColor));
             OnPropertyChanged(nameof(BorderColor));
+            OnPropertyChanged(nameof(SearchBarBackgroundColor));
+            OnPropertyChanged(nameof(SearchBarBorderColor));
             OnPropertyChanged(nameof(TextColor));
             OnPropertyChanged(nameof(MutedTextColor));
             OnPropertyChanged(nameof(AccentColor));
@@ -1064,6 +1087,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(BorderOpacity));
             OnPropertyChanged(nameof(BorderThickness));
             OnPropertyChanged(nameof(ControlBorderThickness));
+            OnPropertyChanged(nameof(SearchBarBorderThickness));
             OnPropertyChanged(nameof(DividerOpacity));
             OnPropertyChanged(nameof(CardCornerRadius));
             OnPropertyChanged(nameof(PanelCornerRadius));

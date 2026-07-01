@@ -14,6 +14,7 @@
     <Thickness x:Key="ThemeBorderThickness">1</Thickness>
     <Thickness x:Key="ThemeSubtleBorderThickness">1</Thickness>
     <Thickness x:Key="ThemeControlBorderThickness">1</Thickness>
+    <Thickness x:Key="SearchBarBorderThickness">1</Thickness>
     <Thickness x:Key="ThemeBorderlessThickness">0</Thickness>
 
     <CornerRadius x:Key="ThemeCardCornerRadius">6</CornerRadius>
@@ -48,6 +49,8 @@
     <SolidColorBrush x:Key="ThemeAppBackgroundOverlayBrush" Color="#00FFFFFF"/>
     <SolidColorBrush x:Key="MainContentBackgroundBrush" Color="#00000000"/>
     <SolidColorBrush x:Key="ThemeShellHeaderBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="SearchBarBackgroundBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="SearchBarBorderBrush" Color="#FF2563EB"/>
     <SolidColorBrush x:Key="PageHeaderDashboardBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="PageHeaderSearchBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="PageHeaderManageItemsBrush" Color="#FFFFFFFF"/>
