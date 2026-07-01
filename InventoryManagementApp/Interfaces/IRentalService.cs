@@ -32,6 +32,7 @@ namespace InventoryManagementApp.Interfaces
             throw new NotSupportedException("This rental service does not support swapping rental items.");
         Task DeleteRentalAsync(int rentalID);
         Task<List<Rental>> GetActiveRentalsAsync();
+        Task<int> CountRentalsAsync();
         Task<int> CountActiveRentalsAsync();
         Task<List<Rental>> GetOverdueRentalsAsync();
         Task<List<Rental>> GetAllRentalsAsync();

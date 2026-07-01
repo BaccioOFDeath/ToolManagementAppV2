@@ -390,6 +390,17 @@ namespace InventoryManagementApp.Services.Rentals
             WeakReferenceMessenger.Default.Send(new DomainDataChangedMessage(scope, entityId));
         }
 
+        public async Task<int> CountRentalsAsync()
+        {
+            using var conn = _dbService.CreateConnection();
+            const string sql = @"
+                SELECT COUNT(r.RentalID)
+                FROM Rentals r
+                JOIN Items t ON r.ItemID = t.ItemID
+                JOIN Customers c ON r.CustomerID = c.CustomerID";
+            return Convert.ToInt32(await SqliteHelper.ExecuteScalarAsync(conn, sql).ConfigureAwait(false) ?? 0);
+        }
+
         public async Task<int> CountActiveRentalsAsync()
         {
             using var conn = _dbService.CreateConnection();
