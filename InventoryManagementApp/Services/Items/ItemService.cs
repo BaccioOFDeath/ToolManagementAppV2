@@ -33,6 +33,7 @@ namespace InventoryManagementApp.Services.Items
         private readonly DatabaseService _dbService;
         private readonly IItemRepository _repository;
         private const int MaxQuantityOnHand = 10000;
+        private const int ImageImportCatalogPageSize = 500;
     
         private readonly ILogger<ItemService> _logger;
         private readonly IAuthorizationService _auth;
@@ -226,25 +227,36 @@ namespace InventoryManagementApp.Services.Items
             cancellationToken.ThrowIfCancellationRequested();
 
             var result = new ImageImportResult();
-            var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
-                .WithCancellation(cancellationToken))
-                items.Add(item);
             var groups = new Dictionary<string, List<ItemModel>>(StringComparer.OrdinalIgnoreCase);
-            foreach (var item in items)
+            var pageNumber = 1;
+
+            while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var keys = keySelector(item);
-                if (keys == null) continue;
-                foreach (var key in keys)
+                var pageItemCount = 0;
+
+                await foreach (var item in GetItemsAsync(new ItemPage(pageNumber, ImageImportCatalogPageSize), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
+                    .WithCancellation(cancellationToken))
                 {
-                    var k = (key ?? string.Empty).Trim().ToUpperInvariant();
-                    if (string.IsNullOrWhiteSpace(k))
-                        continue;
-                    if (!groups.TryGetValue(k, out var list))
-                        groups[k] = list = new List<ItemModel>();
-                    list.Add(item);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    pageItemCount++;
+                    var keys = keySelector(item);
+                    if (keys == null) continue;
+                    foreach (var key in keys)
+                    {
+                        var k = (key ?? string.Empty).Trim().ToUpperInvariant();
+                        if (string.IsNullOrWhiteSpace(k))
+                            continue;
+                        if (!groups.TryGetValue(k, out var list))
+                            groups[k] = list = new List<ItemModel>();
+                        list.Add(item);
+                    }
                 }
+
+                if (pageItemCount < ImageImportCatalogPageSize)
+                    break;
+
+                pageNumber++;
             }
 
             string destDir;
