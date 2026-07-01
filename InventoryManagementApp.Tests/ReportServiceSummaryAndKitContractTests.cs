@@ -82,7 +82,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("WHERE KitID IN ({string.Join(\", \", parameterNames)})", countMethod, StringComparison.Ordinal);
             Assert.Contains("GROUP BY KitID", countMethod, StringComparison.Ordinal);
             Assert.Contains("cmd.Parameters.AddWithValue(parameterNames[index], distinctKitIds[index]);", countMethod, StringComparison.Ordinal);
-            Assert.Contains("counts[kitId] = reader.GetInt32(reader.GetOrdinal(\"ItemCount\"));", countMethod, StringComparison.Ordinal);
+            Assert.Contains("counts[kitId] = Convert.ToInt32(reader[\"ItemCount\"] ?? 0);", countMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("reader.GetInt32(reader.GetOrdinal(\"ItemCount\"))", countMethod, StringComparison.Ordinal);
             Assert.DoesNotContain("LIMIT @KitItemListLimit", countMethod, StringComparison.Ordinal);
         }
 
