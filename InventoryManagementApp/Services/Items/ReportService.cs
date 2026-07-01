@@ -125,7 +125,7 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<FlowDocument> GenerateSummaryReport()
         {
-            var totalItemsTask = CountItemsAsync();
+            var totalItemsTask = _itemService.CountItemsAsync(new ItemFilter(null, SortField.Name, SortDirection.Ascending, false), CancellationToken.None);
             var totalRentalsTask = _rentalService.CountRentalsAsync();
             var totalActiveRentalsTask = _rentalService.CountActiveRentalsAsync();
             var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);
