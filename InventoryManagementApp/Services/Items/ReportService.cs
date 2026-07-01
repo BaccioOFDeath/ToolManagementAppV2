@@ -155,24 +155,24 @@ namespace InventoryManagementApp.Services.Items
 
             if (_maintenanceService != null)
             {
-                var overdueMaintenanceTask = _maintenanceService.GetOverdueMaintenanceAsync();
-                var upcomingMaintenanceTask = _maintenanceService.GetUpcomingMaintenanceAsync(30);
-                await Task.WhenAll(overdueMaintenanceTask, upcomingMaintenanceTask);
-                var overdueMaintenance = await overdueMaintenanceTask;
-                var upcomingMaintenance = await upcomingMaintenanceTask;
-                lines.Add($"Overdue Maintenance: {FormatLimitedCount(overdueMaintenance.Count)}");
-                lines.Add($"Upcoming Maintenance (30 days): {FormatLimitedCount(upcomingMaintenance.Count)}");
+                var overdueMaintenanceTask = _maintenanceService.CountOverdueMaintenanceAsync();
+                var upcomingMaintenanceTask = _maintenanceService.CountUpcomingMaintenanceAsync(30);
+                await Task.WhenAll(overdueMaintenanceTask, upcomingMaintenanceTask).ConfigureAwait(false);
+                var overdueMaintenance = await overdueMaintenanceTask.ConfigureAwait(false);
+                var upcomingMaintenance = await upcomingMaintenanceTask.ConfigureAwait(false);
+                lines.Add($"Overdue Maintenance: {overdueMaintenance}");
+                lines.Add($"Upcoming Maintenance (30 days): {upcomingMaintenance}");
             }
 
             if (_calibrationService != null)
             {
-                var overdueCalibrationTask = _calibrationService.GetOverdueCalibrationAsync();
-                var upcomingCalibrationTask = _calibrationService.GetUpcomingCalibrationAsync(30);
-                await Task.WhenAll(overdueCalibrationTask, upcomingCalibrationTask);
-                var overdueCalibration = await overdueCalibrationTask;
-                var upcomingCalibration = await upcomingCalibrationTask;
-                lines.Add($"Overdue Calibrations: {FormatLimitedCount(overdueCalibration.Count)}");
-                lines.Add($"Upcoming Calibrations (30 days): {FormatLimitedCount(upcomingCalibration.Count)}");
+                var overdueCalibrationTask = _calibrationService.CountOverdueCalibrationAsync();
+                var upcomingCalibrationTask = _calibrationService.CountUpcomingCalibrationAsync(30);
+                await Task.WhenAll(overdueCalibrationTask, upcomingCalibrationTask).ConfigureAwait(false);
+                var overdueCalibration = await overdueCalibrationTask.ConfigureAwait(false);
+                var upcomingCalibration = await upcomingCalibrationTask.ConfigureAwait(false);
+                lines.Add($"Overdue Calibrations: {overdueCalibration}");
+                lines.Add($"Upcoming Calibrations (30 days): {upcomingCalibration}");
             }
 
             if (_reservationService != null)

@@ -121,6 +121,22 @@ namespace InventoryManagementApp.Services.Maintenance
             });
         }
 
+        public async Task<int> CountOverdueMaintenanceAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(m.MaintenanceID)
+                    FROM MaintenanceRecords m
+                    JOIN Items i ON m.ItemID = i.ItemID
+                    WHERE m.Status = 'Scheduled' AND m.ScheduledDate < @Now";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Now", DateTime.Now);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
         public async Task<List<MaintenanceRecord>> GetUpcomingMaintenanceAsync(int days = 30)
         {
             if (days < 0)
@@ -149,6 +165,29 @@ namespace InventoryManagementApp.Services.Maintenance
                     records.Add(MapMaintenanceRecord(reader));
                 }
                 return records;
+            });
+        }
+
+        public async Task<int> CountUpcomingMaintenanceAsync(int days = 30)
+        {
+            if (days < 0)
+                throw new ArgumentOutOfRangeException(nameof(days), "Days must be greater than or equal to 0.");
+
+            return await Task.Run(() =>
+            {
+                var now = DateTime.Now;
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(m.MaintenanceID)
+                    FROM MaintenanceRecords m
+                    JOIN Items i ON m.ItemID = i.ItemID
+                    WHERE m.Status = 'Scheduled'
+                    AND m.ScheduledDate >= @Now
+                    AND m.ScheduledDate <= @FutureDate";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Now", now);
+                cmd.Parameters.AddWithValue("@FutureDate", now.AddDays(days));
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
             });
         }
 

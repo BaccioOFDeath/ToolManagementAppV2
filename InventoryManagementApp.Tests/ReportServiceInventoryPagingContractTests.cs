@@ -120,7 +120,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void SummaryOptionalCountsShowWhenDirectoryCapsMayApply()
+        public void SummaryMaintenanceAndCalibrationCountsUseExactCountApis()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
             var summaryReport = ExtractMethod(
@@ -128,18 +128,39 @@ namespace InventoryManagementApp.Tests
                 "public async Task<FlowDocument> GenerateSummaryReport()",
                 "public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)");
 
-            Assert.Contains("$\"Overdue Maintenance: {FormatLimitedCount(overdueMaintenance.Count)}\"", summaryReport, StringComparison.Ordinal);
-            Assert.Contains("$\"Upcoming Maintenance (30 days): {FormatLimitedCount(upcomingMaintenance.Count)}\"", summaryReport, StringComparison.Ordinal);
-            Assert.Contains("$\"Overdue Calibrations: {FormatLimitedCount(overdueCalibration.Count)}\"", summaryReport, StringComparison.Ordinal);
-            Assert.Contains("$\"Upcoming Calibrations (30 days): {FormatLimitedCount(upcomingCalibration.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var overdueMaintenanceTask = _maintenanceService.CountOverdueMaintenanceAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var upcomingMaintenanceTask = _maintenanceService.CountUpcomingMaintenanceAsync(30);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var overdueCalibrationTask = _calibrationService.CountOverdueCalibrationAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var upcomingCalibrationTask = _calibrationService.CountUpcomingCalibrationAsync(30);", summaryReport, StringComparison.Ordinal);
+
+            Assert.Contains("$\"Overdue Maintenance: {overdueMaintenance}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Upcoming Maintenance (30 days): {upcomingMaintenance}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Overdue Calibrations: {overdueCalibration}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Upcoming Calibrations (30 days): {upcomingCalibration}\"", summaryReport, StringComparison.Ordinal);
+
+            Assert.DoesNotContain("var overdueMaintenanceTask = _maintenanceService.GetOverdueMaintenanceAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("var upcomingMaintenanceTask = _maintenanceService.GetUpcomingMaintenanceAsync(30);", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("var overdueCalibrationTask = _calibrationService.GetOverdueCalibrationAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("var upcomingCalibrationTask = _calibrationService.GetUpcomingCalibrationAsync(30);", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Overdue Maintenance: {FormatLimitedCount(overdueMaintenance.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Upcoming Maintenance (30 days): {FormatLimitedCount(upcomingMaintenance.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Overdue Calibrations: {FormatLimitedCount(overdueCalibration.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Upcoming Calibrations (30 days): {FormatLimitedCount(upcomingCalibration.Count)}\"", summaryReport, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void RemainingSummaryOptionalCountsShowWhenDirectoryCapsMayApply()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
+            var summaryReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateSummaryReport()",
+                "public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)");
+
             Assert.Contains("$\"Active Reservations: {FormatLimitedCount(activeReservations.Count)}\"", summaryReport, StringComparison.Ordinal);
             Assert.Contains("$\"Upcoming Reservations (7 days): {FormatLimitedCount(upcomingReservations.Count)}\"", summaryReport, StringComparison.Ordinal);
             Assert.Contains("$\"Active Kits: {FormatLimitedCount(activeKits.Count)}\"", summaryReport, StringComparison.Ordinal);
 
-            Assert.DoesNotContain("$\"Overdue Maintenance: {overdueMaintenance.Count}\"", summaryReport, StringComparison.Ordinal);
-            Assert.DoesNotContain("$\"Upcoming Maintenance (30 days): {upcomingMaintenance.Count}\"", summaryReport, StringComparison.Ordinal);
-            Assert.DoesNotContain("$\"Overdue Calibrations: {overdueCalibration.Count}\"", summaryReport, StringComparison.Ordinal);
-            Assert.DoesNotContain("$\"Upcoming Calibrations (30 days): {upcomingCalibration.Count}\"", summaryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("$\"Active Reservations: {activeReservations.Count}\"", summaryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("$\"Upcoming Reservations (7 days): {upcomingReservations.Count}\"", summaryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("$\"Active Kits: {activeKits.Count}\"", summaryReport, StringComparison.Ordinal);
@@ -161,6 +182,55 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("JOIN Items t ON r.ItemID = t.ItemID", countMethod, StringComparison.Ordinal);
             Assert.Contains("JOIN Customers c ON r.CustomerID = c.CustomerID", countMethod, StringComparison.Ordinal);
             Assert.DoesNotContain("LIMIT @RentalListLimit", countMethod, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void MaintenanceAndCalibrationServicesProvideExactSummaryCounts()
+        {
+            var maintenanceSource = ReadRepoFile("InventoryManagementApp", "Services", "Maintenance", "MaintenanceService.cs");
+            var calibrationSource = ReadRepoFile("InventoryManagementApp", "Services", "Calibration", "CalibrationService.cs");
+            var overdueMaintenanceCount = ExtractMethod(
+                maintenanceSource,
+                "public async Task<int> CountOverdueMaintenanceAsync()",
+                "public async Task<List<MaintenanceRecord>> GetUpcomingMaintenanceAsync(int days = 30)");
+            var upcomingMaintenanceCount = ExtractMethod(
+                maintenanceSource,
+                "public async Task<int> CountUpcomingMaintenanceAsync(int days = 30)",
+                "public async Task<MaintenanceRecord?> GetMaintenanceRecordByIdAsync(int maintenanceID)");
+            var overdueCalibrationCount = ExtractMethod(
+                calibrationSource,
+                "public async Task<int> CountOverdueCalibrationAsync()",
+                "public async Task<List<CalibrationRecord>> GetUpcomingCalibrationAsync(int days = 30)");
+            var upcomingCalibrationCount = ExtractMethod(
+                calibrationSource,
+                "public async Task<int> CountUpcomingCalibrationAsync(int days = 30)",
+                "public async Task<CalibrationRecord?> GetLatestCalibrationForItemAsync(int itemID)");
+
+            Assert.Contains("SELECT COUNT(m.MaintenanceID)", overdueMaintenanceCount, StringComparison.Ordinal);
+            Assert.Contains("FROM MaintenanceRecords m", overdueMaintenanceCount, StringComparison.Ordinal);
+            Assert.Contains("JOIN Items i ON m.ItemID = i.ItemID", overdueMaintenanceCount, StringComparison.Ordinal);
+            Assert.Contains("WHERE m.Status = 'Scheduled' AND m.ScheduledDate < @Now", overdueMaintenanceCount, StringComparison.Ordinal);
+            Assert.DoesNotContain("LIMIT @MaintenanceListLimit", overdueMaintenanceCount, StringComparison.Ordinal);
+
+            Assert.Contains("SELECT COUNT(m.MaintenanceID)", upcomingMaintenanceCount, StringComparison.Ordinal);
+            Assert.Contains("FROM MaintenanceRecords m", upcomingMaintenanceCount, StringComparison.Ordinal);
+            Assert.Contains("JOIN Items i ON m.ItemID = i.ItemID", upcomingMaintenanceCount, StringComparison.Ordinal);
+            Assert.Contains("AND m.ScheduledDate >= @Now", upcomingMaintenanceCount, StringComparison.Ordinal);
+            Assert.Contains("AND m.ScheduledDate <= @FutureDate", upcomingMaintenanceCount, StringComparison.Ordinal);
+            Assert.DoesNotContain("LIMIT @MaintenanceListLimit", upcomingMaintenanceCount, StringComparison.Ordinal);
+
+            Assert.Contains("SELECT COUNT(c.CalibrationID)", overdueCalibrationCount, StringComparison.Ordinal);
+            Assert.Contains("FROM CalibrationRecords c", overdueCalibrationCount, StringComparison.Ordinal);
+            Assert.Contains("JOIN Items i ON c.ItemID = i.ItemID", overdueCalibrationCount, StringComparison.Ordinal);
+            Assert.Contains("WHERE c.NextCalibrationDue < @Now", overdueCalibrationCount, StringComparison.Ordinal);
+            Assert.DoesNotContain("LIMIT @CalibrationListLimit", overdueCalibrationCount, StringComparison.Ordinal);
+
+            Assert.Contains("SELECT COUNT(c.CalibrationID)", upcomingCalibrationCount, StringComparison.Ordinal);
+            Assert.Contains("FROM CalibrationRecords c", upcomingCalibrationCount, StringComparison.Ordinal);
+            Assert.Contains("JOIN Items i ON c.ItemID = i.ItemID", upcomingCalibrationCount, StringComparison.Ordinal);
+            Assert.Contains("WHERE c.NextCalibrationDue >= @Now", upcomingCalibrationCount, StringComparison.Ordinal);
+            Assert.Contains("AND c.NextCalibrationDue <= @FutureDate", upcomingCalibrationCount, StringComparison.Ordinal);
+            Assert.DoesNotContain("LIMIT @CalibrationListLimit", upcomingCalibrationCount, StringComparison.Ordinal);
         }
 
         private static void AssertUsesBoundedReportPages(string method)
