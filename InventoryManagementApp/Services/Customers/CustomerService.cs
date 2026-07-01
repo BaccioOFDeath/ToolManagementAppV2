@@ -563,6 +563,11 @@ namespace InventoryManagementApp.Services.Customers
 
         public async Task<int> ImportCustomersAsync(string filePath, IDataImporter<Customer> importer, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+            if (importer is null)
+                throw new ArgumentNullException(nameof(importer));
+
             _auth.EnsureAdmin();
             cancellationToken.ThrowIfCancellationRequested();
             
@@ -622,6 +627,11 @@ namespace InventoryManagementApp.Services.Customers
 
         public async Task ExportCustomersAsync(string filePath, IDataExporter<Customer> exporter, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+            if (exporter is null)
+                throw new ArgumentNullException(nameof(exporter));
+
             _auth.EnsurePermission(User.PermissionImportExport);
             cancellationToken.ThrowIfCancellationRequested();
 
