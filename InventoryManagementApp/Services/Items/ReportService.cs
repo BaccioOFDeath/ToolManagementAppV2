@@ -177,19 +177,19 @@ namespace InventoryManagementApp.Services.Items
 
             if (_reservationService != null)
             {
-                var activeReservationsTask = _reservationService.GetActiveReservationsAsync();
-                var upcomingReservationsTask = _reservationService.GetUpcomingReservationsAsync(7);
-                await Task.WhenAll(activeReservationsTask, upcomingReservationsTask);
-                var activeReservations = await activeReservationsTask;
-                var upcomingReservations = await upcomingReservationsTask;
-                lines.Add($"Active Reservations: {FormatLimitedCount(activeReservations.Count)}");
-                lines.Add($"Upcoming Reservations (7 days): {FormatLimitedCount(upcomingReservations.Count)}");
+                var activeReservationsTask = _reservationService.CountActiveReservationsAsync();
+                var upcomingReservationsTask = _reservationService.CountUpcomingReservationsAsync(7);
+                await Task.WhenAll(activeReservationsTask, upcomingReservationsTask).ConfigureAwait(false);
+                var activeReservations = await activeReservationsTask.ConfigureAwait(false);
+                var upcomingReservations = await upcomingReservationsTask.ConfigureAwait(false);
+                lines.Add($"Active Reservations: {activeReservations}");
+                lines.Add($"Upcoming Reservations (7 days): {upcomingReservations}");
             }
 
             if (_kitService != null)
             {
-                var activeKits = await _kitService.GetActiveKitsAsync();
-                lines.Add($"Active Kits: {FormatLimitedCount(activeKits.Count)}");
+                var activeKits = await _kitService.CountActiveKitsAsync().ConfigureAwait(false);
+                lines.Add($"Active Kits: {activeKits}");
             }
 
             return BuildReport("Application Summary Report", lines);
