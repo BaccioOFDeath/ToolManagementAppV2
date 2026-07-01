@@ -21,7 +21,7 @@ namespace InventoryManagementApp.Tests
             var countMethod = ExtractMethod(
                 source,
                 "private async Task<int> CountItemsAsync()",
-                "FlowDocument BuildReport(string title, IEnumerable<string> lines)");
+                "private static string FormatLimitedCount(int count)");
 
             Assert.Contains("private const int InventoryReportPageSize = 500;", source, StringComparison.Ordinal);
             Assert.Contains("var items = await CollectInventoryReportItemsAsync().ConfigureAwait(false);", inventoryReport, StringComparison.Ordinal);
@@ -65,6 +65,84 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("$\"Active Rentals: {totalActiveRentals.Count}\"", summaryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("$\"Total Customers: {totalCustomers.Count}\"", summaryReport, StringComparison.Ordinal);
             Assert.DoesNotContain("$\"Total Users: {totalUsers.Count}\"", summaryReport, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CappedDetailedReportsDisclosePotentiallyTruncatedRows()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
+            var rentalReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateRentalReport(bool activeOnly = true)",
+                "public async Task<FlowDocument> GenerateRentalFrequencyReport(int topN = 20)");
+            var customerReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateCustomerReport()",
+                "public async Task<FlowDocument> GenerateUserReport()");
+            var userReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateUserReport()",
+                "public async Task<FlowDocument> GenerateSummaryReport()");
+            var maintenanceReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)",
+                "public async Task<FlowDocument> GenerateCalibrationReport(bool overdueOnly = false)");
+            var calibrationReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateCalibrationReport(bool overdueOnly = false)",
+                "public async Task<FlowDocument> GenerateReservationReport(bool activeOnly = true)");
+            var reservationReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateReservationReport(bool activeOnly = true)",
+                "public async Task<FlowDocument> GenerateKitReport()");
+            var kitReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateKitReport()",
+                "private async Task<List<ItemModel>> CollectInventoryReportItemsAsync()");
+            var limitNotice = ExtractMethod(
+                source,
+                "private static string FormatLimitedCount(int count)",
+                "FlowDocument BuildReport(string title, IEnumerable<string> lines)");
+
+            Assert.Contains("private const int DetailedReportResultLimit = 500;", source, StringComparison.Ordinal);
+            Assert.Contains("AddReportLimitNotice(lines, rentals.Count, \"rental records\")", rentalReport, StringComparison.Ordinal);
+            Assert.Contains("AddReportLimitNotice(lines, customers.Count, \"customers\")", customerReport, StringComparison.Ordinal);
+            Assert.Contains("AddReportLimitNotice(lines, users.Count, \"users\")", userReport, StringComparison.Ordinal);
+            Assert.Contains("AddReportLimitNotice(lines, records.Count, \"maintenance records\")", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains("AddReportLimitNotice(lines, records.Count, \"calibration records\")", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("AddReportLimitNotice(lines, reservations.Count, \"reservations\")", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("AddReportLimitNotice(lines, kits.Count, \"active kits\")", kitReport, StringComparison.Ordinal);
+            Assert.Contains("var itemCount = FormatLimitedCount(items.Count);", kitReport, StringComparison.Ordinal);
+
+            Assert.Contains("count >= DetailedReportResultLimit ? $\"{DetailedReportResultLimit}+\" : count.ToString();", limitNotice, StringComparison.Ordinal);
+            Assert.Contains("This report shows the first {DetailedReportResultLimit}", limitNotice, StringComparison.Ordinal);
+            Assert.Contains("Use filters or exports for a narrower full-detail review.", limitNotice, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void SummaryOptionalCountsShowWhenDirectoryCapsMayApply()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
+            var summaryReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateSummaryReport()",
+                "public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)");
+
+            Assert.Contains("$\"Overdue Maintenance: {FormatLimitedCount(overdueMaintenance.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Upcoming Maintenance (30 days): {FormatLimitedCount(upcomingMaintenance.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Overdue Calibrations: {FormatLimitedCount(overdueCalibration.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Upcoming Calibrations (30 days): {FormatLimitedCount(upcomingCalibration.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Active Reservations: {FormatLimitedCount(activeReservations.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Upcoming Reservations (7 days): {FormatLimitedCount(upcomingReservations.Count)}\"", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Active Kits: {FormatLimitedCount(activeKits.Count)}\"", summaryReport, StringComparison.Ordinal);
+
+            Assert.DoesNotContain("$\"Overdue Maintenance: {overdueMaintenance.Count}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Upcoming Maintenance (30 days): {upcomingMaintenance.Count}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Overdue Calibrations: {overdueCalibration.Count}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Upcoming Calibrations (30 days): {upcomingCalibration.Count}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Active Reservations: {activeReservations.Count}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Upcoming Reservations (7 days): {upcomingReservations.Count}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Active Kits: {activeKits.Count}\"", summaryReport, StringComparison.Ordinal);
         }
 
         [Fact]
