@@ -82,7 +82,8 @@ namespace InventoryManagementApp.Services.Items
         {
             if (item is null)
                 throw new ArgumentNullException(nameof(item));
-            
+
+            NormalizeItemForSave(item);
             _auth.EnsurePermission(User.PermissionManageItems);
             await AddItemInternalAsync(item, cancellationToken).ConfigureAwait(false);
             if (_activityLog != null)
@@ -104,7 +105,8 @@ namespace InventoryManagementApp.Services.Items
         {
             if (item is null)
                 throw new ArgumentNullException(nameof(item));
-            
+
+            NormalizeItemForSave(item);
             _auth.EnsurePermission(User.PermissionManageItems);
             await UpdateItemInternalAsync(item, cancellationToken).ConfigureAwait(false);
             if (_activityLog != null)
@@ -711,6 +713,12 @@ namespace InventoryManagementApp.Services.Items
         {
             _auth.EnsurePermission(User.PermissionManageItems);
             var changedItems = changes?.ToList() ?? new List<ItemModel>();
+            foreach (var item in changedItems)
+            {
+                ArgumentNullException.ThrowIfNull(item);
+                NormalizeItemForSave(item);
+            }
+
             await _repository.SaveChangesAsync(changedItems, ct).ConfigureAwait(false);
             NotifyChanged(DomainDataScope.Items | DomainDataScope.Reports, changedItems.FirstOrDefault()?.ItemID);
         }
@@ -775,6 +783,11 @@ namespace InventoryManagementApp.Services.Items
                 transaction.Rollback();
                 throw;
             }
+        }
+
+        private static void NormalizeItemForSave(ItemModel item)
+        {
+            NormalizeImportedItem(item);
         }
 
         private static void NormalizeImportedItem(ItemModel item)
