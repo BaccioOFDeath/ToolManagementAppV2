@@ -11,8 +11,7 @@ Current repository evidence:
 - The active application remains `InventoryManagementApp`, a WPF desktop app targeting `net10.0-windows` with SQLite persistence through `DatabaseService`.
 - The repository default branch is `master`.
 - Recent scheduled work has focused on release safety: validation diagnostics, dependency-audit visibility, bounded list/report/export reads, import/export setup guards, stale-write guards, and more honest printable report output.
-- The latest completed merged work before this note paged customer export row collection through deterministic 500-row batches for both CSV and generic customer export workflows.
-- Draft PR #1458 remains open for detailed-report truncation/count behavior and should not be merged until real Windows/.NET validation is available.
+- Recent merged work completed the detailed-report truncation/count behavior in PR #1458 and paged customer export row collection through deterministic 500-row batches for both CSV and generic customer export workflows.
 - This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
@@ -53,20 +52,20 @@ Recent completed slices that should not be repeated unless fresh evidence shows 
 - Local and CI validation paths now clean stale validation artifacts and publish output before producing fresh manifests.
 - Item, customer, rental, reservation, maintenance, calibration, kit, activity-log, user, report, and export workflows have been progressively bounded or routed through count APIs where large reads were risky.
 - Item and customer import/export entry points now reject missing setup before authorization or expensive work in the recently touched paths.
-- Generated reports now have stronger document layout, visible empty states, readable labels, honest capped-result notices, and exact summary counts for the completed report paths.
+- Generated reports now have stronger document layout, visible empty states, readable labels, honest capped-result notices, exact summary counts, and exact detailed-report truncation counts for the completed report paths.
 - Customer exports now collect rows through a deterministic paged collector rather than loading the full directory in one database read.
+- Item imports now normalize imported identity/detail text before duplicate checks and inserts across CSV and generic importer paths.
 
 ## Highest-Value Next Work
 
 Prioritize the following before adding unrelated new features:
 
 1. Run `pwsh -File scripts/run-full-validation.ps1` on a Windows/.NET-capable checkout and capture the actual restore, audit, build, test, publish, banned-word, and artifact-manifest results.
-2. Validate draft PR #1458 with the full runner before deciding whether to mark it ready, update it, or close it.
-3. Review the dedicated vulnerable-package audit output plus any NU190x warnings from repository-level NuGet auditing, then update affected packages or document intentional risk decisions.
-4. Smoke test the WPF app visually on Windows, especially dark-theme top navigation dropdowns, context menus, combo boxes, print preview, report preview, and theme-customized popup surfaces.
-5. Continue replacing brittle source-text tests with behavior-focused tests where practical, especially when touching the same workflow for a real fix.
-6. Harden item import data normalization so CSV and generic item imports trim item identity/detail fields before duplicate checks and inserts, matching the data-quality direction already applied to customer and activity-log workflows.
-7. Consider true streaming or exporter-specific flows for very large exports if future evidence shows the current paged-then-handoff export collectors still create unacceptable memory pressure.
+2. Review the dedicated vulnerable-package audit output plus any NU190x warnings from repository-level NuGet auditing, then update affected packages or document intentional risk decisions.
+3. Smoke test the WPF app visually on Windows, especially dark-theme top navigation dropdowns, context menus, combo boxes, print preview, report preview, and theme-customized popup surfaces.
+4. Continue replacing brittle source-text tests with behavior-focused tests where practical, especially when touching the same workflow for a real fix.
+5. Consider true streaming or exporter-specific flows for very large exports if future evidence shows the current paged-then-handoff export collectors still create unacceptable memory pressure.
+6. Keep tightening import/export data-quality behavior where current evidence shows user-entered or file-imported text can bypass validation, duplicate detection, or professional output expectations.
 
 ## App Completion Status
 
