@@ -468,7 +468,7 @@ namespace InventoryManagementApp.Services.Items
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
                     "SELECT ItemNumber FROM Items",
-                    r => r.GetString(0),
+                    r => r.GetString(0).Trim(),
                     null, cancellationToken),
                 StringComparer.OrdinalIgnoreCase);
             using var transaction = conn.BeginTransaction();
@@ -487,18 +487,18 @@ namespace InventoryManagementApp.Services.Items
                         invalidRows.Add(row);
                         continue;
                     }
-                    var itemNumber = CsvHelperUtil.GetMapped(cols, headers, map, "ItemNumber");
-                    var name = CsvHelperUtil.GetMapped(cols, headers, map, nameof(ItemImportDto.Name));
-                    var location = CsvHelperUtil.GetMapped(cols, headers, map, "Location");
-                    var brand = CsvHelperUtil.GetMapped(cols, headers, map, "Brand");
-                    var partNumber = CsvHelperUtil.GetMapped(cols, headers, map, "PartNumber");
-                    var supplier = CsvHelperUtil.GetMapped(cols, headers, map, "Supplier");
-                    var purchased = CsvHelperUtil.GetMapped(cols, headers, map, "PurchasedDate");
-                    var notes = CsvHelperUtil.GetMapped(cols, headers, map, "Notes");
-                    var keywords = CsvHelperUtil.GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords));
-                    var quantity = CsvHelperUtil.GetMapped(cols, headers, map, "AvailableQuantity");
-                    var powered = CsvHelperUtil.GetMapped(cols, headers, map, "IsPowered");
-                    var rental = CsvHelperUtil.GetMapped(cols, headers, map, "IsRentalItem");
+                    var itemNumber = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "ItemNumber"));
+                    var name = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, nameof(ItemImportDto.Name)));
+                    var location = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "Location"));
+                    var brand = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "Brand"));
+                    var partNumber = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "PartNumber"));
+                    var supplier = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "Supplier"));
+                    var purchased = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "PurchasedDate"));
+                    var notes = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "Notes"));
+                    var keywords = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)));
+                    var quantity = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "AvailableQuantity"));
+                    var powered = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "IsPowered"));
+                    var rental = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "IsRentalItem"));
 
                     bool skip = false;
                     if (string.IsNullOrWhiteSpace(itemNumber))
@@ -742,7 +742,7 @@ namespace InventoryManagementApp.Services.Items
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
                     "SELECT ItemNumber FROM Items",
-                    r => r.GetString(0),
+                    r => r.GetString(0).Trim(),
                     null, cancellationToken),
                 StringComparer.OrdinalIgnoreCase);
             using var transaction = conn.BeginTransaction();
@@ -752,6 +752,7 @@ namespace InventoryManagementApp.Services.Items
                 foreach (var item in items)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    NormalizeImportedItem(item);
 
                     if (string.IsNullOrWhiteSpace(item.ItemNumber))
                         item.ItemNumber = GenerateNextImportedItemNumber(existingNumbers);
@@ -775,6 +776,25 @@ namespace InventoryManagementApp.Services.Items
                 throw;
             }
         }
+
+        private static void NormalizeImportedItem(ItemModel item)
+        {
+            item.ItemNumber = NormalizeImportedText(item.ItemNumber) ?? string.Empty;
+            item.Name = NormalizeImportedText(item.Name) ?? string.Empty;
+            item.Location = NormalizeImportedText(item.Location) ?? string.Empty;
+            item.Brand = NormalizeImportedText(item.Brand) ?? string.Empty;
+            item.PartNumber = NormalizeImportedText(item.PartNumber) ?? string.Empty;
+            item.Supplier = NormalizeImportedText(item.Supplier) ?? string.Empty;
+            item.Notes = NormalizeImportedText(item.Notes) ?? string.Empty;
+            item.Keywords = NormalizeImportedText(item.Keywords) ?? string.Empty;
+            item.ImagePath = NormalizeImportedText(item.ImagePath) ?? string.Empty;
+            item.CheckedOutBy = NormalizeImportedText(item.CheckedOutBy) ?? string.Empty;
+            item.CheckedInBy = NormalizeImportedText(item.CheckedInBy) ?? string.Empty;
+            item.MissingComponentsNotes = NormalizeImportedText(item.MissingComponentsNotes) ?? string.Empty;
+            item.IssuesNotes = NormalizeImportedText(item.IssuesNotes) ?? string.Empty;
+        }
+
+        private static string? NormalizeImportedText(string? value) => value?.Trim();
 
         private static string GenerateNextImportedItemNumber(ISet<string> existingNumbers)
         {
