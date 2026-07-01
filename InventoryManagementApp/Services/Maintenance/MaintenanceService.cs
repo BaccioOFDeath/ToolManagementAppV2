@@ -58,6 +58,20 @@ namespace InventoryManagementApp.Services.Maintenance
             });
         }
 
+        public async Task<int> CountMaintenanceRecordsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(m.MaintenanceID)
+                    FROM MaintenanceRecords m
+                    JOIN Items i ON m.ItemID = i.ItemID";
+                using var cmd = new SqliteCommand(sql, conn);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
         /// <summary>
         /// Retrieves all maintenance records for a specific item.
         /// </summary>
