@@ -65,7 +65,7 @@ namespace InventoryManagementApp.Tests
             var kitReport = ExtractMethod(
                 source,
                 "public async Task<FlowDocument> GenerateKitReport()",
-                "private async Task<int> CountItemsAsync()");
+                "private async Task<List<ItemModel>> CollectInventoryReportItemsAsync()");
 
             Assert.Contains("Log ID: {l.LogID}", activityLogReport, StringComparison.Ordinal);
             Assert.Contains("User ID: {l.UserID}", activityLogReport, StringComparison.Ordinal);
@@ -114,6 +114,37 @@ namespace InventoryManagementApp.Tests
                 buildReport.IndexOf("if (reportLines.Count == 0)", StringComparison.Ordinal) <
                 buildReport.IndexOf("foreach (var line in reportLines)", StringComparison.Ordinal),
                 "Expected empty report output to be filled before report paragraphs are rendered.");
+        }
+
+        [Fact]
+        public void BuildReportUsesProfessionalPrintPreviewLayout()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
+
+            var buildReport = ExtractMethod(
+                source,
+                "FlowDocument BuildReport(string title, IEnumerable<string> lines)",
+                "private static void AddReportLine(FlowDocument doc, string line)");
+            var addReportLine = ExtractMethod(
+                source,
+                "private static void AddReportLine(FlowDocument doc, string line)",
+                "    }\n}");
+
+            Assert.Contains("PagePadding = new Thickness(48, 40, 48, 40)", buildReport, StringComparison.Ordinal);
+            Assert.Contains("MinPageWidth = 720", buildReport, StringComparison.Ordinal);
+            Assert.Contains("MaxPageWidth = 960", buildReport, StringComparison.Ordinal);
+            Assert.Contains("ColumnWidth = double.PositiveInfinity", buildReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("PageWidth = 800", buildReport, StringComparison.Ordinal);
+
+            Assert.Contains("var preparedAt = DateTime.Now;", buildReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Prepared {preparedAt:yyyy-MM-dd HH:mm}\"", buildReport, StringComparison.Ordinal);
+            Assert.Contains("new Run(\"End of report\")", buildReport, StringComparison.Ordinal);
+            Assert.Contains("AddReportLine(doc, line);", buildReport, StringComparison.Ordinal);
+
+            Assert.Contains("line.StartsWith(\"Note:\", StringComparison.Ordinal)", addReportLine, StringComparison.Ordinal);
+            Assert.Contains("paragraph.FontStyle = FontStyles.Italic;", addReportLine, StringComparison.Ordinal);
+            Assert.Contains("paragraph.Foreground = Brushes.DarkSlateGray;", addReportLine, StringComparison.Ordinal);
+            Assert.Contains("paragraph.Background = Brushes.AliceBlue;", addReportLine, StringComparison.Ordinal);
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)
