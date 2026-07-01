@@ -110,11 +110,34 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("cancellationToken.ThrowIfCancellationRequested();", internalMethod, StringComparison.Ordinal);
             Assert.True(
-                internalMethod.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < internalMethod.IndexOf("var items = new List<ItemModel>();", StringComparison.Ordinal),
-                "Image imports should honor cancellation before collecting item rows.");
+                internalMethod.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < internalMethod.IndexOf("var groups = new Dictionary", StringComparison.Ordinal),
+                "Image imports should honor cancellation before collecting item match keys.");
             Assert.True(
                 internalMethod.IndexOf("cancellationToken.ThrowIfCancellationRequested();", internalMethod.IndexOf("var supported = new HashSet<string>", StringComparison.Ordinal), StringComparison.Ordinal) < internalMethod.IndexOf("Directory.EnumerateFiles(folderPath)", StringComparison.Ordinal),
                 "Image imports should honor cancellation before enumerating image files.");
+        }
+
+        [Fact]
+        public void ImageImportCatalogBuildUsesBoundedPagesBeforeFileEnumeration()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
+            var internalMethod = ExtractMethod(
+                source,
+                "private async Task<ImageImportResult> ImportItemImagesInternalAsync",
+                "protected virtual Task CopyFileAsync");
+
+            Assert.Contains("private const int ImageImportCatalogPageSize = 500;", source, StringComparison.Ordinal);
+            Assert.Contains("var pageNumber = 1;", internalMethod, StringComparison.Ordinal);
+            Assert.Contains("while (true)", internalMethod, StringComparison.Ordinal);
+            Assert.Contains("var pageItemCount = 0;", internalMethod, StringComparison.Ordinal);
+            Assert.Contains("new ItemPage(pageNumber, ImageImportCatalogPageSize)", internalMethod, StringComparison.Ordinal);
+            Assert.Contains("pageItemCount++;", internalMethod, StringComparison.Ordinal);
+            Assert.Contains("if (pageItemCount < ImageImportCatalogPageSize)", internalMethod, StringComparison.Ordinal);
+            Assert.Contains("pageNumber++;", internalMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("new ItemPage(1, int.MaxValue)", internalMethod, StringComparison.Ordinal);
+            Assert.True(
+                internalMethod.IndexOf("new ItemPage(pageNumber, ImageImportCatalogPageSize)", StringComparison.Ordinal) < internalMethod.IndexOf("Directory.EnumerateFiles(folderPath)", StringComparison.Ordinal),
+                "Image imports should finish paged catalog matching before file enumeration starts.");
         }
 
         [Fact]
