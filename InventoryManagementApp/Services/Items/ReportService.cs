@@ -125,10 +125,10 @@ namespace InventoryManagementApp.Services.Items
         public async Task<FlowDocument> GenerateSummaryReport()
         {
             var totalItemsTask = CountItemsAsync();
-            var totalRentalsTask = _rentalService.GetAllRentalsAsync();
-            var totalActiveRentalsTask = _rentalService.GetActiveRentalsAsync();
+            var totalRentalsTask = _rentalService.CountRentalsAsync();
+            var totalActiveRentalsTask = _rentalService.CountActiveRentalsAsync();
             var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);
-            var totalUsersTask = _userService.GetAllUsersAsync(CancellationToken.None);
+            var totalUsersTask = _userService.CountUsersAsync(CancellationToken.None);
 
             await Task.WhenAll(
                 totalItemsTask,
@@ -146,10 +146,10 @@ namespace InventoryManagementApp.Services.Items
             var lines = new List<string>
             {
                 $"Total Items: {totalItems}",
-                $"Total Rentals (History): {totalRentals.Count}",
-                $"Active Rentals: {totalActiveRentals.Count}",
+                $"Total Rentals (History): {totalRentals}",
+                $"Active Rentals: {totalActiveRentals}",
                 $"Total Customers: {totalCustomers}",
-                $"Total Users: {totalUsers.Count}"
+                $"Total Users: {totalUsers}"
             };
 
             if (_maintenanceService != null)
