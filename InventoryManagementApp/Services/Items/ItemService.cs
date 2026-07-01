@@ -34,6 +34,7 @@ namespace InventoryManagementApp.Services.Items
         private readonly IItemRepository _repository;
         private const int MaxQuantityOnHand = 10000;
         private const int ImageImportCatalogPageSize = 500;
+        private const int ItemExportPageSize = 500;
     
         private readonly ILogger<ItemService> _logger;
         private readonly IAuthorizationService _auth;
@@ -637,17 +638,38 @@ namespace InventoryManagementApp.Services.Items
 
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
-                .WithCancellation(cancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                items.Add(item);
-            }
+            var items = await CollectItemsForExportAsync(cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
             await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items).ConfigureAwait(false);
+        }
+
+        private async Task<List<ItemModel>> CollectItemsForExportAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var items = new List<ItemModel>();
+            var pageNumber = 1;
+
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var pageItemCount = 0;
+
+                await foreach (var item in GetItemsAsync(new ItemPage(pageNumber, ItemExportPageSize), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
+                    .WithCancellation(cancellationToken))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    pageItemCount++;
+                    items.Add(item);
+                }
+
+                if (pageItemCount < ItemExportPageSize)
+                    break;
+
+                pageNumber++;
+            }
+
+            return items;
         }
 
         public async Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default)
@@ -782,18 +804,7 @@ namespace InventoryManagementApp.Services.Items
                 throw new ArgumentNullException(nameof(exporter));
 
             _auth.EnsurePermission(User.PermissionImportExport);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Note: Using int.MaxValue as page size loads all items into memory.
-            // For very large inventories (>10,000 items), consider implementing streaming export.
-            // Current implementation matches existing CSV export behavior.
-            var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
-                .WithCancellation(cancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                items.Add(item);
-            }
+            var items = await CollectItemsForExportAsync(cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
             await exporter.ExportAsync(filePath, items, cancellationToken).ConfigureAwait(false);
