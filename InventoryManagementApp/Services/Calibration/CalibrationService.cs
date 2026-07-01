@@ -117,6 +117,22 @@ namespace InventoryManagementApp.Services.Calibration
             });
         }
 
+        public async Task<int> CountOverdueCalibrationAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(c.CalibrationID)
+                    FROM CalibrationRecords c
+                    JOIN Items i ON c.ItemID = i.ItemID
+                    WHERE c.NextCalibrationDue < @Now";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Now", DateTime.Now);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
         public async Task<List<CalibrationRecord>> GetUpcomingCalibrationAsync(int days = 30)
         {
             if (days < 0)
@@ -144,6 +160,28 @@ namespace InventoryManagementApp.Services.Calibration
                     records.Add(MapCalibrationRecord(reader));
                 }
                 return records;
+            });
+        }
+
+        public async Task<int> CountUpcomingCalibrationAsync(int days = 30)
+        {
+            if (days < 0)
+                throw new ArgumentOutOfRangeException(nameof(days), "Days must be greater than or equal to 0.");
+
+            return await Task.Run(() =>
+            {
+                var now = DateTime.Now;
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(c.CalibrationID)
+                    FROM CalibrationRecords c
+                    JOIN Items i ON c.ItemID = i.ItemID
+                    WHERE c.NextCalibrationDue >= @Now
+                    AND c.NextCalibrationDue <= @FutureDate";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Now", now);
+                cmd.Parameters.AddWithValue("@FutureDate", now.AddDays(days));
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
             });
         }
 
