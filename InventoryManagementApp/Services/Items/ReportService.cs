@@ -127,7 +127,7 @@ namespace InventoryManagementApp.Services.Items
             var totalItemsTask = CountItemsAsync();
             var totalRentalsTask = _rentalService.GetAllRentalsAsync();
             var totalActiveRentalsTask = _rentalService.GetActiveRentalsAsync();
-            var totalCustomersTask = _customerService.GetAllCustomersAsync();
+            var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);
             var totalUsersTask = _userService.GetAllUsersAsync(CancellationToken.None);
 
             await Task.WhenAll(
@@ -148,7 +148,7 @@ namespace InventoryManagementApp.Services.Items
                 $"Total Items: {totalItems}",
                 $"Total Rentals (History): {totalRentals.Count}",
                 $"Active Rentals: {totalActiveRentals.Count}",
-                $"Total Customers: {totalCustomers.Count}",
+                $"Total Customers: {totalCustomers}",
                 $"Total Users: {totalUsers.Count}"
             };
 
