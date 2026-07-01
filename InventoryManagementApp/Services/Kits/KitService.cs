@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
@@ -93,7 +94,45 @@ namespace InventoryManagementApp.Services.Kits
                     FROM Kits
                     WHERE IsActive = 1";
                 using var cmd = new SqliteCommand(sql, conn);
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
+        public async Task<Dictionary<int, int>> CountKitItemsByKitIdsAsync(IEnumerable<int> kitIds)
+        {
+            if (kitIds == null)
+                throw new ArgumentNullException(nameof(kitIds));
+
+            var distinctKitIds = kitIds.Distinct().ToList();
+            if (distinctKitIds.Any(id => id < 1))
+                throw new ArgumentOutOfRangeException(nameof(kitIds), "Kit IDs must be greater than 0.");
+            if (distinctKitIds.Count == 0)
+                return new Dictionary<int, int>();
+
+            return await Task.Run(() =>
+            {
+                var counts = distinctKitIds.ToDictionary(id => id, _ => 0);
+                using var conn = _databaseService.CreateConnection();
+                var parameterNames = distinctKitIds
+                    .Select((_, index) => $"@KitID{index}")
+                    .ToList();
+                var sql = $@"
+                    SELECT KitID, COUNT(KitItemID) AS ItemCount
+                    FROM KitItems
+                    WHERE KitID IN ({string.Join(", ", parameterNames)})
+                    GROUP BY KitID";
+                using var cmd = new SqliteCommand(sql, conn);
+                for (var index = 0; index < distinctKitIds.Count; index++)
+                    cmd.Parameters.AddWithValue(parameterNames[index], distinctKitIds[index]);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var kitId = reader.GetInt32(reader.GetOrdinal("KitID"));
+                    counts[kitId] = reader.GetInt32(reader.GetOrdinal("ItemCount"));
+                }
+
+                return counts;
             });
         }
 
@@ -363,7 +402,7 @@ namespace InventoryManagementApp.Services.Kits
                     AND (i.ItemID IS NULL OR i.AvailableQuantity < ki.Quantity)";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitID", kitID);
-                var missingItems = Convert.ToInt32(cmd.ExecuteScalar());
+                var missingItems = Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
                 return missingItems == 0;
             });
         }
@@ -472,7 +511,7 @@ namespace InventoryManagementApp.Services.Kits
         {
             using var cmd = new SqliteCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ID", id);
-            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            return Convert.ToInt32(cmd.ExecuteScalar() ?? 0) > 0;
         }
 
         private static object ToDbNullableText(string? value)
