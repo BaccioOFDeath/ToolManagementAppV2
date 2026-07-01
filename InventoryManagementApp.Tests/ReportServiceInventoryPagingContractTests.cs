@@ -100,17 +100,32 @@ namespace InventoryManagementApp.Tests
                 "FlowDocument BuildReport(string title, IEnumerable<string> lines)");
 
             Assert.Contains("private const int DetailedReportResultLimit = 500;", source, StringComparison.Ordinal);
-            Assert.Contains("AddReportLimitNotice(lines, rentals.Count, \"rental records\")", rentalReport, StringComparison.Ordinal);
-            Assert.Contains("AddReportLimitNotice(lines, customers.Count, \"customers\")", customerReport, StringComparison.Ordinal);
-            Assert.Contains("AddReportLimitNotice(lines, users.Count, \"users\")", userReport, StringComparison.Ordinal);
+            Assert.Contains("AddExactReportLimitNotice(lines, rentals.Count, totalRentals, \"rental records\")", rentalReport, StringComparison.Ordinal);
+            Assert.Contains("var totalRentals = activeOnly", rentalReport, StringComparison.Ordinal);
+            Assert.Contains("? await _rentalService.CountActiveRentalsAsync().ConfigureAwait(false)", rentalReport, StringComparison.Ordinal);
+            Assert.Contains(": await _rentalService.CountRentalsAsync().ConfigureAwait(false);", rentalReport, StringComparison.Ordinal);
+
+            Assert.Contains("var totalCustomers = await _customerService.CountCustomersAsync(CancellationToken.None).ConfigureAwait(false);", customerReport, StringComparison.Ordinal);
+            Assert.Contains("var reportCustomers = customers.Take(DetailedReportResultLimit).ToList();", customerReport, StringComparison.Ordinal);
+            Assert.Contains("AddExactReportLimitNotice(lines, reportCustomers.Count, totalCustomers, \"customers\")", customerReport, StringComparison.Ordinal);
+
+            Assert.Contains("var totalUsers = await _userService.CountUsersAsync(CancellationToken.None).ConfigureAwait(false);", userReport, StringComparison.Ordinal);
+            Assert.Contains("AddExactReportLimitNotice(lines, users.Count, totalUsers, \"users\")", userReport, StringComparison.Ordinal);
+
             Assert.Contains("AddReportLimitNotice(lines, records.Count, \"maintenance records\")", maintenanceReport, StringComparison.Ordinal);
+            Assert.Contains("AddExactReportLimitNotice(lines, records.Count, totalOverdueMaintenance, \"maintenance records\")", maintenanceReport, StringComparison.Ordinal);
             Assert.Contains("AddReportLimitNotice(lines, records.Count, \"calibration records\")", calibrationReport, StringComparison.Ordinal);
+            Assert.Contains("AddExactReportLimitNotice(lines, records.Count, totalOverdueCalibration, \"calibration records\")", calibrationReport, StringComparison.Ordinal);
             Assert.Contains("AddReportLimitNotice(lines, reservations.Count, \"reservations\")", reservationReport, StringComparison.Ordinal);
-            Assert.Contains("AddReportLimitNotice(lines, kits.Count, \"active kits\")", kitReport, StringComparison.Ordinal);
+            Assert.Contains("AddExactReportLimitNotice(lines, reservations.Count, totalActiveReservations, \"reservations\")", reservationReport, StringComparison.Ordinal);
+            Assert.Contains("AddExactReportLimitNotice(lines, kits.Count, totalActiveKits, \"active kits\")", kitReport, StringComparison.Ordinal);
             Assert.Contains("var itemCount = FormatLimitedCount(items.Count);", kitReport, StringComparison.Ordinal);
 
             Assert.Contains("count >= DetailedReportResultLimit ? $\"{DetailedReportResultLimit}+\" : count.ToString();", limitNotice, StringComparison.Ordinal);
-            Assert.Contains("This report shows the first {DetailedReportResultLimit}", limitNotice, StringComparison.Ordinal);
+            Assert.Contains("recordCount >= DetailedReportResultLimit", limitNotice, StringComparison.Ordinal);
+            Assert.Contains("Additional records may exist.", limitNotice, StringComparison.Ordinal);
+            Assert.Contains("totalCount > displayedCount", limitNotice, StringComparison.Ordinal);
+            Assert.Contains("$\"Note: This report shows the first {displayedCount} of {totalCount} {recordLabel}.", limitNotice, StringComparison.Ordinal);
             Assert.Contains("Use filters or exports for a narrower full-detail review.", limitNotice, StringComparison.Ordinal);
         }
 
