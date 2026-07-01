@@ -129,7 +129,7 @@ namespace InventoryManagementApp.Services.Kits
                 while (reader.Read())
                 {
                     var kitId = reader.GetInt32(reader.GetOrdinal("KitID"));
-                    counts[kitId] = reader.GetInt32(reader.GetOrdinal("ItemCount"));
+                    counts[kitId] = Convert.ToInt32(reader["ItemCount"] ?? 0);
                 }
 
                 return counts;
