@@ -58,6 +58,20 @@ namespace InventoryManagementApp.Services.Calibration
             });
         }
 
+        public async Task<int> CountCalibrationRecordsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(c.CalibrationID)
+                    FROM CalibrationRecords c
+                    JOIN Items i ON c.ItemID = i.ItemID";
+                using var cmd = new SqliteCommand(sql, conn);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
         /// <summary>
         /// Retrieves all calibration records for a specific item.
         /// </summary>
