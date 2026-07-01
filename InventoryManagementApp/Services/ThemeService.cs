@@ -67,9 +67,13 @@ namespace InventoryManagementApp.Services
                 var resources = app.Resources;
                 var borderThickness = settings.BordersVisible ? new Thickness(settings.BorderThickness) : new Thickness(0);
                 var controlBorderThickness = settings.BordersVisible ? new Thickness(settings.ControlBorderThickness) : new Thickness(0);
+                var searchBarBorderThickness = settings.BordersVisible ? new Thickness(settings.SearchBarBorderThickness) : new Thickness(0);
+                var searchBarInnerBorderThickness = settings.BordersVisible ? new Thickness(settings.SearchBarInnerBorderThickness) : new Thickness(0);
                 var dividerThickness = settings.BordersVisible ? new Thickness(0, 0, 0, settings.BorderThickness) : new Thickness(0);
                 var borderBrush = CreateBrush(settings.BorderColor, settings.BorderOpacity * 0.55);
                 var dividerBrush = CreateBrush(settings.BorderColor, settings.BorderOpacity * settings.DividerOpacity * 0.55);
+                var searchBarBorderBrush = settings.BordersVisible ? CreateBrush(settings.SearchBarBorderColor, settings.BorderOpacity) : Brushes.Transparent;
+                var searchBarInnerBorderBrush = settings.BordersVisible ? CreateBrush(settings.SearchBarInnerBorderColor, settings.BorderOpacity) : Brushes.Transparent;
                 var surfaceOpacity = settings.UseGlassSurfaces ? Math.Min(settings.SurfaceOpacity, 0.72) : settings.SurfaceOpacity;
                 var surfaceAltOpacity = settings.UseGlassSurfaces ? Math.Min(settings.SurfaceAltOpacity, 0.62) : settings.SurfaceAltOpacity;
                 var navigationOpacity = settings.UseGlassSurfaces ? Math.Min(settings.NavigationOpacity, 0.74) : settings.NavigationOpacity;
@@ -119,10 +123,10 @@ namespace InventoryManagementApp.Services
                 Set(resources, "TransparentSurfaceBrush", Brushes.Transparent);
                 Set(resources, "TextBoxBackgroundBrush", inputBrush);
                 Set(resources, "SearchBarBackgroundBrush", CreateBrush(settings.SearchBarBackgroundColor, settings.InputOpacity));
-                Set(resources, "SearchBarBorderBrush", CreateBrush(settings.SearchBarBorderColor, settings.BorderOpacity));
-                Set(resources, "SearchBarInnerBorderBrush", CreateBrush(settings.SearchBarInnerBorderColor, settings.BorderOpacity));
-                Set(resources, "SearchBarBorderThickness", new Thickness(settings.SearchBarBorderThickness));
-                Set(resources, "SearchBarInnerBorderThickness", new Thickness(settings.SearchBarInnerBorderThickness));
+                Set(resources, "SearchBarBorderBrush", searchBarBorderBrush);
+                Set(resources, "SearchBarInnerBorderBrush", searchBarInnerBorderBrush);
+                Set(resources, "SearchBarBorderThickness", searchBarBorderThickness);
+                Set(resources, "SearchBarInnerBorderThickness", searchBarInnerBorderThickness);
                 Set(resources, "ComboBoxPopupBackgroundBrush", CreateBrush(settings.SurfaceAltColor, settings.MenuDropDownOpacity));
                 Set(resources, "ForegroundBrush", CreateBrush(settings.TextColor, 1));
                 Set(resources, "ForegroundMutedBrush", CreateBrush(settings.MutedTextColor, 1));
