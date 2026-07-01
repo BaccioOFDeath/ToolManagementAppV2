@@ -33,6 +33,22 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("new ItemPage(1, int.MaxValue)", countMethod, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void SummaryReportUsesCustomerCountWithoutMaterializingCustomerDirectory()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ReportService.cs");
+            var summaryReport = ExtractMethod(
+                source,
+                "public async Task<FlowDocument> GenerateSummaryReport()",
+                "public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)");
+
+            Assert.Contains("var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var totalCustomers = await totalCustomersTask.ConfigureAwait(false);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("$\"Total Customers: {totalCustomers}\"", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("var totalCustomersTask = _customerService.GetAllCustomersAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("$\"Total Customers: {totalCustomers.Count}\"", summaryReport, StringComparison.Ordinal);
+        }
+
         private static void AssertUsesBoundedReportPages(string method)
         {
             Assert.Contains("var pageNumber = 1;", method, StringComparison.Ordinal);
