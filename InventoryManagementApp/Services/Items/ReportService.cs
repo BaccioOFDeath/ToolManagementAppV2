@@ -288,30 +288,6 @@ namespace InventoryManagementApp.Services.Items
             return items;
         }
 
-        private async Task<int> CountItemsAsync()
-        {
-            var count = 0;
-            var pageNumber = 1;
-
-            while (true)
-            {
-                var pageItemCount = 0;
-                await foreach (var _ in _itemService.GetItemsAsync(new ItemPage(pageNumber, InventoryReportPageSize), SortField.Name, SortDirection.Ascending, isRentalItem: false)
-                    .WithCancellation(CancellationToken.None).ConfigureAwait(false))
-                {
-                    count++;
-                    pageItemCount++;
-                }
-
-                if (pageItemCount < InventoryReportPageSize)
-                    break;
-
-                pageNumber++;
-            }
-
-            return count;
-        }
-
         private static string FormatLimitedCount(int count) =>
             count >= DetailedReportResultLimit ? $"{DetailedReportResultLimit}+" : count.ToString();
 
