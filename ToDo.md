@@ -12,6 +12,7 @@ Current repository evidence:
 - The repository default branch is `master`.
 - Recent scheduled work has focused on release safety: validation diagnostics, dependency-audit visibility, bounded list/report/export reads, import/export setup guards, stale-write guards, and more honest printable report output.
 - Recent merged work completed the detailed-report truncation/count behavior in PR #1458 and paged customer export row collection through deterministic 500-row batches for both CSV and generic customer export workflows.
+- Item and customer import rows now normalize imported text before required-field validation, duplicate checks, in-file duplicate reservation, and insert work.
 - This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
@@ -55,6 +56,7 @@ Recent completed slices that should not be repeated unless fresh evidence shows 
 - Generated reports now have stronger document layout, visible empty states, readable labels, honest capped-result notices, exact summary counts, and exact detailed-report truncation counts for the completed report paths.
 - Customer exports now collect rows through a deterministic paged collector rather than loading the full directory in one database read.
 - Item imports now normalize imported identity/detail text before duplicate checks and inserts across CSV and generic importer paths.
+- Customer imports now normalize imported company, email, contact, phone, mobile, and address text before validation, persisted duplicate checks, in-file duplicate reservation, and inserts across CSV and generic importer paths.
 
 ## Highest-Value Next Work
 
@@ -65,7 +67,7 @@ Prioritize the following before adding unrelated new features:
 3. Smoke test the WPF app visually on Windows, especially dark-theme top navigation dropdowns, context menus, combo boxes, print preview, report preview, and theme-customized popup surfaces.
 4. Continue replacing brittle source-text tests with behavior-focused tests where practical, especially when touching the same workflow for a real fix.
 5. Consider true streaming or exporter-specific flows for very large exports if future evidence shows the current paged-then-handoff export collectors still create unacceptable memory pressure.
-6. Keep tightening import/export data-quality behavior where current evidence shows user-entered or file-imported text can bypass validation, duplicate detection, or professional output expectations.
+6. Keep tightening import/export data-quality behavior only where current evidence shows another concrete user-entered or file-imported text path can bypass validation, duplicate detection, or professional output expectations.
 
 ## App Completion Status
 
@@ -79,7 +81,7 @@ Completed or substantially implemented:
 
 Still needing attention:
 
-- Full test suite green after the latest source-contract, dependency, reporting, export, and validation-runner changes.
+- Full test suite green after the latest source-contract, dependency, reporting, export, import, and validation-runner changes.
 - Runtime WPF walkthrough of core workflows on Windows.
 - Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, dialogs, and theme-customized popup surfaces.
 - Print and report preview QA for capped, empty, and large-data documents.

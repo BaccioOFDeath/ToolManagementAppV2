@@ -349,7 +349,7 @@ namespace InventoryManagementApp.Services.Customers
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var c = customers[i];
-                    NormalizeCustomerForSave(c);
+                    NormalizeImportedCustomer(c);
                     var row = i + 2;
                     var reason = GetSkipReason(c);
                     if (reason != null)
@@ -540,13 +540,36 @@ namespace InventoryManagementApp.Services.Customers
 
         static void NormalizeCustomerForSave(CustomerModel customer)
         {
-            customer.Company = (customer.Company ?? string.Empty).Trim();
-            customer.Email = (customer.Email ?? string.Empty).Trim();
-            customer.Contact = (customer.Contact ?? string.Empty).Trim();
-            customer.Phone = (customer.Phone ?? string.Empty).Trim();
-            customer.Mobile = (customer.Mobile ?? string.Empty).Trim();
-            customer.Address = (customer.Address ?? string.Empty).Trim();
+            NormalizeImportedCustomer(customer);
         }
+
+        static CustomerModel CreateImportedCustomerModel(Customer customer)
+        {
+            var customerModel = new CustomerModel
+            {
+                Company = customer.Company,
+                Email = customer.Email,
+                Contact = customer.Contact,
+                Phone = customer.Phone,
+                Mobile = customer.Mobile,
+                Address = customer.Address
+            };
+
+            NormalizeImportedCustomer(customerModel);
+            return customerModel;
+        }
+
+        static void NormalizeImportedCustomer(CustomerModel customer)
+        {
+            customer.Company = NormalizeImportedText(customer.Company) ?? string.Empty;
+            customer.Email = NormalizeImportedText(customer.Email) ?? string.Empty;
+            customer.Contact = NormalizeImportedText(customer.Contact) ?? string.Empty;
+            customer.Phone = NormalizeImportedText(customer.Phone) ?? string.Empty;
+            customer.Mobile = NormalizeImportedText(customer.Mobile) ?? string.Empty;
+            customer.Address = NormalizeImportedText(customer.Address) ?? string.Empty;
+        }
+
+        static string? NormalizeImportedText(string? value) => value?.Trim();
 
         static void ValidateCustomerRequiredFields(CustomerModel customer)
         {
@@ -626,16 +649,7 @@ namespace InventoryManagementApp.Services.Customers
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var customerModel = new CustomerModel
-                    {
-                        Company = customer.Company ?? string.Empty,
-                        Email = customer.Email ?? string.Empty,
-                        Contact = customer.Contact ?? string.Empty,
-                        Phone = customer.Phone ?? string.Empty,
-                        Mobile = customer.Mobile ?? string.Empty,
-                        Address = customer.Address ?? string.Empty
-                    };
-                    NormalizeCustomerForSave(customerModel);
+                    var customerModel = CreateImportedCustomerModel(customer);
 
                     var skipReason = GetSkipReason(customerModel);
                     if (skipReason != null)
