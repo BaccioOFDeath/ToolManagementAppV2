@@ -107,9 +107,14 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("? await _rentalService.CountActiveRentalsAsync().ConfigureAwait(false)", rentalReport, StringComparison.Ordinal);
             Assert.Contains(": await _rentalService.CountRentalsAsync().ConfigureAwait(false);", rentalReport, StringComparison.Ordinal);
 
-            Assert.Contains("var totalCustomers = await _customerService.CountCustomersAsync(CancellationToken.None).ConfigureAwait(false);", customerReport, StringComparison.Ordinal);
-            Assert.Contains("var reportCustomers = customers.Take(DetailedReportResultLimit).ToList();", customerReport, StringComparison.Ordinal);
-            Assert.Contains("AddExactReportLimitNotice(lines, reportCustomers.Count, totalCustomers, \"customers\")", customerReport, StringComparison.Ordinal);
+            Assert.Contains("var customersTask = _customerService.SearchCustomersAsync(string.Empty, CancellationToken.None);", customerReport, StringComparison.Ordinal);
+            Assert.Contains("var totalCustomersTask = _customerService.CountCustomersAsync(CancellationToken.None);", customerReport, StringComparison.Ordinal);
+            Assert.Contains("await Task.WhenAll(customersTask, totalCustomersTask).ConfigureAwait(false);", customerReport, StringComparison.Ordinal);
+            Assert.Contains("var customers = await customersTask.ConfigureAwait(false);", customerReport, StringComparison.Ordinal);
+            Assert.Contains("var totalCustomers = await totalCustomersTask.ConfigureAwait(false);", customerReport, StringComparison.Ordinal);
+            Assert.Contains("AddExactReportLimitNotice(lines, customers.Count, totalCustomers, \"customers\")", customerReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("_customerService.GetAllCustomersAsync()", customerReport, StringComparison.Ordinal);
+            Assert.DoesNotContain("customers.Take(DetailedReportResultLimit)", customerReport, StringComparison.Ordinal);
 
             Assert.Contains("var totalUsers = await _userService.CountUsersAsync(CancellationToken.None).ConfigureAwait(false);", userReport, StringComparison.Ordinal);
             Assert.Contains("AddExactReportLimitNotice(lines, users.Count, totalUsers, \"users\")", userReport, StringComparison.Ordinal);
@@ -136,6 +141,23 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("totalCount > displayedCount", limitNotice, StringComparison.Ordinal);
             Assert.Contains("$\"Note: This report shows the first {displayedCount} of {totalCount} {recordLabel}.", limitNotice, StringComparison.Ordinal);
             Assert.Contains("Use filters or exports for a narrower full-detail review.", limitNotice, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomerServiceProvidesBoundedCustomerReportSource()
+        {
+            var interfaceSource = ReadRepoFile("InventoryManagementApp", "Interfaces", "ICustomerService.cs");
+            var customerServiceSource = ReadRepoFile("InventoryManagementApp", "Services", "Customers", "CustomerService.cs");
+            var searchMethod = ExtractMethod(
+                customerServiceSource,
+                "async Task<List<CustomerModel>> SearchCustomersInternalAsync(string searchTerm, CancellationToken cancellationToken)",
+                "async Task<CustomerImportResult> ImportCustomersFromCsvInternalAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken)");
+
+            Assert.Contains("Task<List<Customer>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default);", interfaceSource, StringComparison.Ordinal);
+            Assert.Contains("private const int MaxCustomerSearchResults = 500;", customerServiceSource, StringComparison.Ordinal);
+            Assert.Contains("ORDER BY Company ASC, Contact ASC, CustomerID ASC", searchMethod, StringComparison.Ordinal);
+            Assert.Contains("LIMIT @CustomerSearchLimit", searchMethod, StringComparison.Ordinal);
+            Assert.Contains("new SqliteParameter(\"@CustomerSearchLimit\", MaxCustomerSearchResults)", searchMethod, StringComparison.Ordinal);
         }
 
         [Fact]
