@@ -1,78 +1,74 @@
 # Current Status And Remaining Work
 
-Last updated: 2026-07-01.
+Last updated: 2026-07-02.
+
+## Current Release State
+
+The application is feature-rich and actively maintained, but it is not in a clean release state until the full Windows/.NET validation runner is executed and confirmed green on a current checkout.
+
+Current repository evidence:
+
+- The active application remains `InventoryManagementApp`, a WPF desktop app targeting `net10.0-windows` with SQLite persistence through `DatabaseService`.
+- The repository default branch is `master`.
+- Recent scheduled work has focused on release safety: validation diagnostics, dependency-audit visibility, bounded list/report/export reads, import/export setup guards, stale-write guards, and more honest printable report output.
+- The latest completed merged work before this note paged customer export row collection through deterministic 500-row batches for both CSV and generic customer export workflows.
+- Draft PR #1458 remains open for detailed-report truncation/count behavior and should not be merged until real Windows/.NET validation is available.
+- This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
 
-- Restore passes: `dotnet restore InventoryManagementApp.sln`.
-- Build passes: `dotnet build InventoryManagementApp.sln --no-restore`.
-- Full test suite most recently reported failures in brittle source-text contract tests.
-- A 2026-06-24 cleanup pass loosened the known brittle source-contract assertions for category, reservation, kit, rentals, maintenance/calibration, Import / Export, and item/rental workflow tests so they guard behavior markers without exact formatting/count assumptions.
-- A 2026-06-24 incremental Items pass hardened load-more failures so they clear visible rows and show operator feedback instead of escaping silently.
-- A 2026-06-24 dependency maintenance pass pinned the app to `Microsoft.Data.Sqlite` 10.0.9 and `SQLitePCLRaw.bundle_e_sqlite3` 3.0.3 so restore should resolve the supported `SourceGear.sqlite3` native package instead of the deprecated legacy native SQLite package.
-- A 2026-06-24 dependency consolidation pass aligned the app's direct `Microsoft.Extensions.*` runtime package pins with the net10 package line at 10.0.9.
-- A 2026-06-24 test infrastructure pass aligned the xUnit/VSTest package pins with the net10 test project by updating `Microsoft.NET.Test.Sdk`, `xunit`, and `xunit.runner.visualstudio` plus dependency-contract coverage.
-- A 2026-06-24 test dependency hygiene pass isolated `xunit.runner.visualstudio` test adapter assets with `PrivateAssets`/`IncludeAssets` metadata and source-contract coverage.
-- A 2026-06-24 test dependency hygiene pass kept all direct test-only package references private to the test project, including `Microsoft.NET.Test.Sdk`, `Moq`, `xunit`, and `xunit.runner.visualstudio`.
-- A 2026-06-24 dependency-security pass added repository-level NuGet auditing in `Directory.Build.props` with transitive audit mode and dependency-contract coverage.
-- A 2026-06-24 CI validation repair retargeted the Build and Test workflow to `master`/`main`, moved it to the net10 SDK, runs the solution-level restore/build/test commands, and includes the banned-word check before build.
-- A 2026-06-24 CI validation hardening pass replaced the banned-word script's broken no-`rg` fallback with a PowerShell file scan and added dependency-contract coverage so Windows runners can still check source text when ripgrep is unavailable.
-- A 2026-06-24 CI validation hardening follow-up made the no-`rg` fallback use either Windows PowerShell (`powershell.exe`) or PowerShell Core (`pwsh`) so the script remains usable on non-Windows validation hosts that have PowerShell Core but not ripgrep.
-- A 2026-06-24 CI publish repair added an explicit `win-x64` restore before the workflow's `--no-restore` publish step so runtime-specific assets are present for the Windows publish job.
-- A 2026-06-24 banned-word fallback hardening pass aligned the `rg` path and PowerShell fallback so both skip generated `bin` and `obj` folders, with dependency-contract coverage for both exclusion paths.
-- A 2026-06-24 CI validation consolidation pass added `BANNED_WORD_CHECK_FORCE_POWERSHELL=1` so the Build and Test workflow exercises the PowerShell banned-word fallback even when `rg` is available.
-- A 2026-06-24 banned-word fallback scan hardening pass limited the PowerShell fallback to known text/source file extensions and a few text file names, avoiding binary asset scans when the forced fallback runs in CI.
-- A 2026-06-24 validation readiness pass added `scripts/run-full-validation.ps1` to run the current restore, build, test, publish, normal banned-word, and forced PowerShell fallback validation sequence from one Windows/.NET-capable checkout.
-- A 2026-06-25 validation hardening pass excluded generated `publish/` output from both banned-word scan paths so the full validation runner can publish before running banned-word checks without scanning publish artifacts.
-- A 2026-06-25 validation runner hardening pass cleans the `publish/` output folder before publishing so full validation reports only freshly produced artifacts.
-- A 2026-06-25 validation runner visibility pass adds an explicit `dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive` audit step after restore so dependency advisory review has a dedicated log section.
-- A 2026-06-25 CI validation visibility pass adds the same explicit vulnerable-package audit step to the Windows Build and Test workflow immediately after restore, with dependency-contract coverage so CI and the local runner stay aligned.
-- A 2026-06-25 CI publish hardening pass cleans `publish/` before the workflow publishes artifacts, matching the local full validation runner's stale-output protection and guarding the ordering with source-contract coverage.
-- A 2026-06-25 documentation contract pass aligned the README manual validation sequence with the runner and CI by documenting the `publish/` cleanup before manual `dotnet publish`, with source-contract coverage for the command ordering.
-- A 2026-06-25 validation runner robustness pass resets and captures `$LASTEXITCODE` around each named validation step so PowerShell-native steps cannot inherit stale external-process exit codes.
-- A 2026-06-25 CI sequence alignment pass moves both Build and Test workflow banned-word scans after publish and before artifact upload so CI mirrors the full validation runner and README manual validation order.
-- A 2026-06-25 validation runner fast-path pass keeps `-SkipPublish` as a restore/audit/build/test-only shortcut and guards that publish, cleanup, and banned-word scans remain in the full validation path.
-- A 2026-07-01 validation diagnostics honesty pass clears stale `TestResults/` and full-run `publish/` output during the runner's opening cleanup step so early-failure artifact manifests cannot report previous-run test or publish artifacts.
-- Focused navigation menu tests pass after the dark-theme dropdown hover fix.
-- Banned-word script passes after line-ending cleanup, seeded CSV exclusions, and replacing the remaining standalone hits.
+Use the checked-in validation runner from a Windows/.NET-capable checkout:
 
-## Validation Needed Next
+```powershell
+pwsh -File scripts/run-full-validation.ps1
+```
 
-The current priority is to rerun full validation after the 2026-06-24 contract-test cleanup, SQLite native package pin, Microsoft.Extensions net10 package alignment, net10 test infrastructure alignment, xUnit runner asset isolation, private test-only package metadata, repository-level NuGet audit guard, Build and Test workflow retargeting, banned-word fallback repair, CI publish restore repair, generated-folder exclusion alignment, forced PowerShell fallback CI validation, PowerShell text-file scan narrowing, the checked-in validation runner, generated `publish/` output exclusion, publish-output cleanup, the explicit dependency-audit runner step, the matching CI vulnerable-package audit step, CI publish-output cleanup, README manual validation cleanup documentation, validation runner exit-code hardening, CI validation-sequence alignment, SkipPublish fast-path scoping, and up-front cleanup of manifest artifact groups:
+For a faster compile-and-test checkpoint without publish/source-scan phases:
 
-- `pwsh -File scripts/run-full-validation.ps1`
+```powershell
+pwsh -File scripts/run-full-validation.ps1 -SkipPublish
+```
 
-The runner executes:
+The full runner is expected to:
 
-- clean existing validation logs, stale `TestResults/`, and, for full validation, stale `publish/` output before restore/build/test can fail and write a manifest
-- `dotnet restore InventoryManagementApp.sln`
-- `dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive`
-- `dotnet build InventoryManagementApp.sln --configuration Release --no-restore`
-- `dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal`
-- `dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64`
-- clean existing `publish/` output again immediately before publish
-- `dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish`
-- `scripts/check-banned-words.sh`
-- `BANNED_WORD_CHECK_FORCE_POWERSHELL=1 scripts/check-banned-words.sh`
+- clear stale `ValidationLogs/`, `TestResults/`, and full-run `publish/` output before early validation steps can leave misleading artifact manifests
+- run solution restore
+- run the dedicated vulnerable-package audit with transitive dependencies included
+- build the solution in Release
+- run the test suite
+- restore the WPF app for `win-x64`
+- clear `publish/` again immediately before publishing
+- publish the WPF app
+- run the banned-word scan through the normal path
+- run the forced PowerShell banned-word fallback path
+- write validation diagnostics including `environment.txt`, `package-audit.txt`, MSBuild binary logs, `step-summary.txt`, and `artifact-manifest.txt`
 
-For the faster compile-and-test checkpoint, run:
+When validation is available, inspect `ValidationLogs/artifact-manifest.txt` first. It groups validation logs, test results, and publish output so failed or partial runs can be triaged without guessing which artifacts are fresh.
 
-- `pwsh -File scripts/run-full-validation.ps1 -SkipPublish`
+## Recently Completed Reliability Work
 
-Confirm during restore and dependency audit that the SQLite advisory is gone, that `SQLitePCLRaw.bundle_e_sqlite3` resolves through `SourceGear.sqlite3` 3.50.4.5 or newer, that the Microsoft.Extensions 10.0.9 pins restore without downgrade/conflict warnings, that the updated xUnit/VSTest packages discover and run the net10 test project cleanly, that direct test-only package references remain private assets, that repository-level NuGet auditing reports direct and transitive vulnerabilities through NU190x warnings, that the explicit vulnerable-package audit prints any remaining direct/transitive advisories in its own section, that the runtime-specific publish restore creates the `win-x64` assets used by the no-restore publish step, that stale `TestResults/` and full-run `publish/` output are removed before early validation steps can fail and write an artifact manifest, that stale files are removed from `publish/` again before fresh artifacts are produced in both the local runner and Build and Test workflow, that PowerShell-native runner steps are not affected by stale external-process exit codes, that the full validation path still runs the banned-word script through its normal `rg` path plus both PowerShell fallback command paths (`powershell.exe` and `pwsh`, where available), that both banned-word scan paths skip generated `bin`, `obj`, and `publish` folders, that the forced fallback mode works while `rg` is present, that the PowerShell fallback scans source/text files without scanning binary assets, that `-SkipPublish` stops after restore/audit/build/test without touching publish output, and that GitHub Actions now runs the Windows net10 Build and Test workflow for `master`/`main` pushes and pull requests with restore, the dedicated vulnerable-package audit, build, test, runtime restore, clean publish output, publish, both banned-word validation paths, and artifact upload. If tests still fail, prefer behavior-focused tests or smaller targeted source-contract checks over exact multi-line source snippets.
+Recent completed slices that should not be repeated unless fresh evidence shows a regression:
 
-## Immediate Cleanup Queue
+- Validation runner and CI diagnostics now capture environment details, package-audit output, step summaries, artifact manifests, MSBuild logs, test results, and publish artifacts.
+- Local and CI validation paths now clean stale validation artifacts and publish output before producing fresh manifests.
+- Item, customer, rental, reservation, maintenance, calibration, kit, activity-log, user, report, and export workflows have been progressively bounded or routed through count APIs where large reads were risky.
+- Item and customer import/export entry points now reject missing setup before authorization or expensive work in the recently touched paths.
+- Generated reports now have stronger document layout, visible empty states, readable labels, honest capped-result notices, and exact summary counts for the completed report paths.
+- Customer exports now collect rows through a deterministic paged collector rather than loading the full directory in one database read.
 
-1. Re-run full validation with `pwsh -File scripts/run-full-validation.ps1` after the source-contract cleanup, dependency pins, publish-output scan exclusion, publish-output cleanup, explicit dependency audit step, matching CI audit step, CI publish cleanup, README manual validation cleanup documentation, runner exit-code hardening, CI validation-sequence alignment, SkipPublish fast-path scoping, and up-front manifest artifact cleanup.
-2. Confirm the retargeted GitHub Actions Build and Test workflow runs on the next `master`/`main` pull request with the net10 SDK, dedicated vulnerable-package audit, build/test, runtime restore, clean publish output, publish, both banned-word validation paths, and artifact upload.
-3. Review the runner's dedicated vulnerable-package audit output plus any NU190x warnings surfaced by repository-level direct/transitive NuGet auditing, then update affected packages or document intentional risk decisions.
-4. Smoke test the dark-theme top navigation dropdown visually in the running WPF app.
-5. Confirm the SQLite native package advisory is cleared during restore and continue the broader production dependency/security review.
-6. Continue replacing brittle source-text tests with behavior-focused tests where practical.
+## Highest-Value Next Work
+
+Prioritize the following before adding unrelated new features:
+
+1. Run `pwsh -File scripts/run-full-validation.ps1` on a Windows/.NET-capable checkout and capture the actual restore, audit, build, test, publish, banned-word, and artifact-manifest results.
+2. Validate draft PR #1458 with the full runner before deciding whether to mark it ready, update it, or close it.
+3. Review the dedicated vulnerable-package audit output plus any NU190x warnings from repository-level NuGet auditing, then update affected packages or document intentional risk decisions.
+4. Smoke test the WPF app visually on Windows, especially dark-theme top navigation dropdowns, context menus, combo boxes, print preview, report preview, and theme-customized popup surfaces.
+5. Continue replacing brittle source-text tests with behavior-focused tests where practical, especially when touching the same workflow for a real fix.
+6. Harden item import data normalization so CSV and generic item imports trim item identity/detail fields before duplicate checks and inserts, matching the data-quality direction already applied to customer and activity-log workflows.
+7. Consider true streaming or exporter-specific flows for very large exports if future evidence shows the current paged-then-handoff export collectors still create unacceptable memory pressure.
 
 ## App Completion Status
-
-The application is feature-rich and builds locally, but it is not in a clean release state until the full test suite is rerun and confirmed green after the latest source-contract cleanup.
 
 Completed or substantially implemented:
 
@@ -80,10 +76,12 @@ Completed or substantially implemented:
 - SQLite persistence through the existing service layer.
 - Permission-aware navigation and guarded service operations.
 - Broad XAML/source-contract coverage across pages and workflows.
+- Validation scripts and CI diagnostics for release-readiness evidence.
 
 Still needing attention:
 
-- Full test suite green after the contract-test cleanup.
+- Full test suite green after the latest source-contract, dependency, reporting, export, and validation-runner changes.
 - Runtime WPF walkthrough of core workflows on Windows.
-- Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, and theme-customized popup surfaces.
-- Production dependency/security review.
+- Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, dialogs, and theme-customized popup surfaces.
+- Print and report preview QA for capped, empty, and large-data documents.
+- Production dependency/security review based on current audit output.
