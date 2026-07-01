@@ -22,6 +22,8 @@ namespace InventoryManagementApp.Services.Items
 {
     public class ReportService
     {
+        private const int InventoryReportPageSize = 500;
+
         readonly IItemService _itemService;
         readonly IRentalService _rentalService;
         readonly ActivityLogService _activityLogService;
@@ -56,10 +58,7 @@ namespace InventoryManagementApp.Services.Items
 
         public async Task<FlowDocument> GenerateInventoryReport()
         {
-            var items = new List<ItemModel>();
-            await foreach (var item in _itemService.GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, isRentalItem: false)
-                .WithCancellation(CancellationToken.None).ConfigureAwait(false))
-                items.Add(item);
+            var items = await CollectInventoryReportItemsAsync().ConfigureAwait(false);
             var lines = items.Select(t =>
                 $"Item ID: {t.ItemID} | Item Number: {t.ItemNumber} | Quantity: {t.QuantityOnHand} | Location: {t.Location} | Supplier: {t.Supplier}");
             return BuildReport("Inventory Report", lines);
@@ -264,12 +263,51 @@ namespace InventoryManagementApp.Services.Items
             return BuildReport("Active Kits Report", lines);
         }
 
+        private async Task<List<ItemModel>> CollectInventoryReportItemsAsync()
+        {
+            var items = new List<ItemModel>();
+            var pageNumber = 1;
+
+            while (true)
+            {
+                var pageItemCount = 0;
+                await foreach (var item in _itemService.GetItemsAsync(new ItemPage(pageNumber, InventoryReportPageSize), SortField.Name, SortDirection.Ascending, isRentalItem: false)
+                    .WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    items.Add(item);
+                    pageItemCount++;
+                }
+
+                if (pageItemCount < InventoryReportPageSize)
+                    break;
+
+                pageNumber++;
+            }
+
+            return items;
+        }
+
         private async Task<int> CountItemsAsync()
         {
             var count = 0;
-            await foreach (var _ in _itemService.GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, isRentalItem: false)
-                .WithCancellation(CancellationToken.None))
-                count++;
+            var pageNumber = 1;
+
+            while (true)
+            {
+                var pageItemCount = 0;
+                await foreach (var _ in _itemService.GetItemsAsync(new ItemPage(pageNumber, InventoryReportPageSize), SortField.Name, SortDirection.Ascending, isRentalItem: false)
+                    .WithCancellation(CancellationToken.None).ConfigureAwait(false))
+                {
+                    count++;
+                    pageItemCount++;
+                }
+
+                if (pageItemCount < InventoryReportPageSize)
+                    break;
+
+                pageNumber++;
+            }
+
             return count;
         }
 
