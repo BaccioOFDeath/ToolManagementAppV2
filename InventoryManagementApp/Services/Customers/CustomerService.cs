@@ -571,6 +571,8 @@ namespace InventoryManagementApp.Services.Customers
 
         static string? NormalizeImportedText(string? value) => value?.Trim();
 
+        static string NormalizeCustomerReadText(string? value) => value?.Trim() ?? string.Empty;
+
         static void ValidateCustomerRequiredFields(CustomerModel customer)
         {
             var reason = GetSkipReason(customer);
@@ -617,12 +619,12 @@ namespace InventoryManagementApp.Services.Customers
         CustomerModel MapCustomer(IDataRecord r) => new()
         {
             CustomerID = Convert.ToInt32(r["CustomerID"]),
-            Company = r["Company"]?.ToString() ?? string.Empty,
-            Email = r["Email"]?.ToString() ?? string.Empty,
-            Contact = r["Contact"]?.ToString() ?? string.Empty,
-            Phone = r["Phone"]?.ToString() ?? string.Empty,
-            Mobile = r["Mobile"]?.ToString() ?? string.Empty,
-            Address = r["Address"]?.ToString() ?? string.Empty
+            Company = NormalizeCustomerReadText(r["Company"]?.ToString()),
+            Email = NormalizeCustomerReadText(r["Email"]?.ToString()),
+            Contact = NormalizeCustomerReadText(r["Contact"]?.ToString()),
+            Phone = NormalizeCustomerReadText(r["Phone"]?.ToString()),
+            Mobile = NormalizeCustomerReadText(r["Mobile"]?.ToString()),
+            Address = NormalizeCustomerReadText(r["Address"]?.ToString())
         };
 
         public async Task<int> ImportCustomersAsync(string filePath, IDataImporter<Customer> importer, CancellationToken cancellationToken = default)
