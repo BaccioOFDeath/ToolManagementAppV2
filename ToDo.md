@@ -20,6 +20,7 @@ Current repository evidence:
 - Rental/email/company configuration text now normalizes user-entered display and delivery settings before persistence and readback while preserving password/API-key secret values.
 - Category/inventory linking now sends domain refresh messages when a new association is created, and inventory ensure/update now refreshes dependent item/report/category views when a normalized location label changes.
 - Settings readback now normalizes setting keys consistently with save/delete paths, item label settings trim/default display text, and item-detail visibility saves persist and broadcast a complete field map.
+- Rental list, history, and frequency readback now trims legacy item/customer/display text before screens, reports, reminders, and printable rental documents consume it.
 - This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
@@ -73,6 +74,7 @@ Recent completed slices that should not be repeated unless fresh evidence shows 
 - Rental configuration paths now trim email delivery, company/contact, backup, SMS provider/sender, and reminder template settings at the configuration boundary, defaulting whitespace-only display values while preserving untrimmed secret settings.
 - Category/inventory association changes now refresh dependent category, item, and report views when new links are created; inventory location ensures now update stale labels and refresh only when a row actually changes.
 - Settings key readback now matches normalized write/delete behavior, all-settings readback normalizes keys, item label settings trim/default display text, and item-detail visibility saves canonical full field maps.
+- Rental row mapping and rental frequency summaries now trim legacy joined item/customer/display text before returning models to rental grids, dashboard/report summaries, reminders, and printable documents.
 
 ## Highest-Value Next Work
 
@@ -83,7 +85,7 @@ Prioritize the following before adding unrelated new features:
 3. Smoke test the WPF app visually on Windows, especially dark-theme top navigation dropdowns, context menus, combo boxes, print preview, report preview, and theme-customized popup surfaces.
 4. Continue replacing brittle source-text tests with behavior-focused tests where practical, especially when touching the same workflow for a real fix.
 5. Consider true streaming or exporter-specific flows for very large exports if future evidence shows the current paged-then-handoff export collectors still create unacceptable memory pressure.
-6. Keep tightening import/export, save-path, operational-record, configuration, and document-output data-quality behavior only where current evidence shows another concrete user-entered or file-imported text path can bypass validation, duplicate detection, search/report consistency, permission consistency, delivery reliability, or professional output expectations.
+6. Keep tightening import/export, save-path, operational-record, configuration, and document-output data-quality behavior only where current evidence shows another concrete user-entered, file-imported, or legacy stored value can bypass validation, duplicate detection, search/report consistency, permission consistency, delivery reliability, or professional output expectations.
 
 ## App Completion Status
 
@@ -97,7 +99,7 @@ Completed or substantially implemented:
 
 Still needing attention:
 
-- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, and settings normalization changes.
+- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, settings normalization, and rental readback normalization changes.
 - Runtime WPF walkthrough of core workflows on Windows.
 - Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, dialogs, and theme-customized popup surfaces.
 - Print and report preview QA for capped, empty, and large-data documents.
