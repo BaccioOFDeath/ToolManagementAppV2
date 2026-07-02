@@ -22,6 +22,7 @@ Current repository evidence:
 - Settings readback now normalizes setting keys consistently with save/delete paths, item label settings trim/default display text, and item-detail visibility saves persist and broadcast a complete field map.
 - Rental list, history, and frequency readback now trims legacy item/customer/display text before screens, reports, reminders, and printable rental documents consume it.
 - Item repository readback now trims legacy item identity, detail, checkout attribution, image path, and incomplete/problem-note text through the shared item projection before grids, exports, dashboards, image import matching, reports, and item detail views consume it.
+- Reservation list and detail readback now trims legacy item number, item name, customer name, image path, status, and notes through the shared reservation mapper before reservation grids, upcoming views, detail views, reports, previews, and printable reservation-related output consume it.
 - This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
@@ -77,6 +78,7 @@ Recent completed slices that should not be repeated unless fresh evidence shows 
 - Settings key readback now matches normalized write/delete behavior, all-settings readback normalizes keys, item label settings trim/default display text, and item-detail visibility saves canonical full field maps.
 - Rental row mapping and rental frequency summaries now trim legacy joined item/customer/display text before returning models to rental grids, dashboard/report summaries, reminders, and printable documents.
 - Item repository projection now trims item number, name, location, brand, part number, supplier, notes, keywords, image path, checkout user names, missing-components notes, and issue notes before item read models reach search grids, details, dashboards, exports, image import matching, checked-out lists, incomplete lists, and reports.
+- Reservation row mapping now trims item number, item name, customer name, image path, status, and notes before reservation models reach all-reservation lists, active/upcoming lists, item/customer reservation histories, detail views, reports, previews, and printable reservation-related output.
 
 ## Highest-Value Next Work
 
@@ -101,7 +103,7 @@ Completed or substantially implemented:
 
 Still needing attention:
 
-- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, settings normalization, rental readback normalization, and item readback normalization changes.
+- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, settings normalization, rental readback normalization, item readback normalization, and reservation readback normalization changes.
 - Runtime WPF walkthrough of core workflows on Windows.
 - Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, dialogs, and theme-customized popup surfaces.
 - Print and report preview QA for capped, empty, and large-data documents.

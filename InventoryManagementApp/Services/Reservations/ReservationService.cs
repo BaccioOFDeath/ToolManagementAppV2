@@ -477,20 +477,26 @@ namespace InventoryManagementApp.Services.Reservations
                 ReservationID = reader.GetInt32(reader.GetOrdinal("ReservationID")),
                 ItemID = reader.GetInt32(reader.GetOrdinal("ItemID")),
                 CustomerID = reader.GetInt32(reader.GetOrdinal("CustomerID")),
-                ItemNumber = reader.IsDBNull(reader.GetOrdinal("ItemNumber")) ? "" : reader.GetString(reader.GetOrdinal("ItemNumber")),
-                ItemName = reader.IsDBNull(reader.GetOrdinal("ItemName")) ? "" : reader.GetString(reader.GetOrdinal("ItemName")),
-                CustomerName = reader.IsDBNull(reader.GetOrdinal("CustomerName")) ? "" : reader.GetString(reader.GetOrdinal("CustomerName")),
-                ImagePath = reader.IsDBNull(reader.GetOrdinal("ImagePath")) ? "" : reader.GetString(reader.GetOrdinal("ImagePath")),
+                ItemNumber = NormalizeReservationReadText(reader, "ItemNumber"),
+                ItemName = NormalizeReservationReadText(reader, "ItemName"),
+                CustomerName = NormalizeReservationReadText(reader, "CustomerName"),
+                ImagePath = NormalizeReservationReadText(reader, "ImagePath"),
                 ReservationDate = reader.GetDateTime(reader.GetOrdinal("ReservationDate")),
                 StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
                 EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
                 Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
-                Status = reader.GetString(reader.GetOrdinal("Status")),
-                Notes = reader.IsDBNull(reader.GetOrdinal("Notes")) ? "" : reader.GetString(reader.GetOrdinal("Notes")),
+                Status = NormalizeReservationReadText(reader, "Status"),
+                Notes = NormalizeReservationReadText(reader, "Notes"),
                 CreatedByUserID = reader.GetInt32(reader.GetOrdinal("CreatedByUserID")),
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
                 RentalID = reader.IsDBNull(reader.GetOrdinal("RentalID")) ? null : reader.GetInt32(reader.GetOrdinal("RentalID"))
             };
+        }
+
+        private static string NormalizeReservationReadText(SqliteDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal).Trim();
         }
 
         private static void ValidateReservation(Reservation reservation, bool requireExistingId)
