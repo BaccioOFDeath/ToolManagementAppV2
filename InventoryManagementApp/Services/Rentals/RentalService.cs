@@ -147,13 +147,18 @@ namespace InventoryManagementApp.Services.Rentals
 
         string ValidateString(object? value, string field)
         {
-            var text = value?.ToString();
-            if (string.IsNullOrWhiteSpace(text))
+            var text = NormalizeRentalReadText(value);
+            if (string.IsNullOrEmpty(text))
             {
                 _logger.LogWarning("{Field} was null or empty while mapping rental", field);
                 return string.Empty;
             }
             return text;
+        }
+
+        private static string NormalizeRentalReadText(object? value)
+        {
+            return value?.ToString()?.Trim() ?? string.Empty;
         }
 
         /// <summary>
@@ -510,8 +515,8 @@ namespace InventoryManagementApp.Services.Rentals
                 frequencies.Add(new ItemRentalFrequency
                 {
                     ItemID = Convert.ToInt32(reader["ItemID"]),
-                    ItemNumber = reader["ItemNumber"]?.ToString() ?? string.Empty,
-                    ItemName = reader["NameDescription"]?.ToString() ?? string.Empty,
+                    ItemNumber = NormalizeRentalReadText(reader["ItemNumber"]),
+                    ItemName = NormalizeRentalReadText(reader["NameDescription"]),
                     RentalCount = Convert.ToInt32(reader["RentalCount"])
                 });
             }
