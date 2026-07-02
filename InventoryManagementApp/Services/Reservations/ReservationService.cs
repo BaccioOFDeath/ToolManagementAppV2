@@ -263,6 +263,7 @@ namespace InventoryManagementApp.Services.Reservations
         public async Task<int> CreateReservationAsync(Reservation reservation)
         {
             ValidateReservation(reservation, requireExistingId: false);
+            NormalizeReservationForSave(reservation);
 
             var id = await Task.Run(() =>
             {
@@ -283,7 +284,7 @@ namespace InventoryManagementApp.Services.Reservations
                 cmd.Parameters.AddWithValue("@StartDate", reservation.StartDate);
                 cmd.Parameters.AddWithValue("@EndDate", reservation.EndDate);
                 cmd.Parameters.AddWithValue("@Quantity", reservation.Quantity);
-                cmd.Parameters.AddWithValue("@Status", NormalizeStatus(reservation.Status));
+                cmd.Parameters.AddWithValue("@Status", reservation.Status);
                 cmd.Parameters.AddWithValue("@Notes", ToDbNullableText(reservation.Notes));
                 cmd.Parameters.AddWithValue("@CreatedByUserID", _userContext.CurrentUser?.UserID ?? 0);
                 cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
@@ -304,6 +305,7 @@ namespace InventoryManagementApp.Services.Reservations
         public async Task<bool> UpdateReservationAsync(Reservation reservation)
         {
             ValidateReservation(reservation, requireExistingId: true);
+            NormalizeReservationForSave(reservation);
 
             var updated = await Task.Run(() =>
             {
@@ -330,7 +332,7 @@ namespace InventoryManagementApp.Services.Reservations
                 cmd.Parameters.AddWithValue("@StartDate", reservation.StartDate);
                 cmd.Parameters.AddWithValue("@EndDate", reservation.EndDate);
                 cmd.Parameters.AddWithValue("@Quantity", reservation.Quantity);
-                cmd.Parameters.AddWithValue("@Status", NormalizeStatus(reservation.Status));
+                cmd.Parameters.AddWithValue("@Status", reservation.Status);
                 cmd.Parameters.AddWithValue("@Notes", ToDbNullableText(reservation.Notes));
                 cmd.Parameters.AddWithValue("@RentalID", reservation.RentalID.HasValue ? (object)reservation.RentalID.Value : DBNull.Value);
                 var updatedRows = cmd.ExecuteNonQuery();
@@ -507,6 +509,12 @@ namespace InventoryManagementApp.Services.Reservations
                 throw new ArgumentException("End date must be on or after start date.", nameof(reservation.EndDate));
         }
 
+        private static void NormalizeReservationForSave(Reservation reservation)
+        {
+            reservation.Status = NormalizeStatus(reservation.Status);
+            reservation.Notes = NormalizeOptionalText(reservation.Notes);
+        }
+
         private static void EnsureReservationExists(SqliteConnection conn, int reservationID)
         {
             if (!RecordExists(conn, "SELECT COUNT(*) FROM Reservations WHERE ReservationID = @ID", reservationID))
@@ -570,8 +578,11 @@ namespace InventoryManagementApp.Services.Reservations
 
         private static object ToDbNullableText(string? value)
         {
-            return string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
+            var normalized = NormalizeOptionalText(value);
+            return string.IsNullOrEmpty(normalized) ? DBNull.Value : normalized;
         }
+
+        private static string NormalizeOptionalText(string? value) => value?.Trim() ?? string.Empty;
 
         static void NotifyChanged(DomainDataScope scope, int? entityId = null)
         {

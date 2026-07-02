@@ -15,6 +15,7 @@ Current repository evidence:
 - Item and customer import rows now normalize imported text before required-field validation, duplicate checks, in-file duplicate reservation, and insert work.
 - Normal item add/update/bulk-save paths now normalize user-entered item text before duplicate checks and repository persistence, sharing the import trimming rules for item identity/detail fields.
 - Maintenance and calibration create/update workflows now normalize operational record text before persistence, and maintenance completion trims performer and notes before marking a record completed.
+- Reservation create/update and kit create/update workflows now normalize persisted workflow text before reference checks and database writes.
 - This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
@@ -62,6 +63,8 @@ Recent completed slices that should not be repeated unless fresh evidence shows 
 - Normal item add/update/bulk-save paths now normalize user-entered item text before duplicate checks, repository persistence, and activity-log messages.
 - Maintenance create/update and completion paths now normalize persisted operational record text before reference checks and database writes.
 - Calibration create/update paths now normalize persisted operational record text before reference checks and database writes.
+- Reservation create/update paths now normalize status and notes before reference checks, filter-facing status persistence, and database writes.
+- Kit create/update paths now normalize kit number, name, description, and category before insert/update persistence.
 
 ## Highest-Value Next Work
 
