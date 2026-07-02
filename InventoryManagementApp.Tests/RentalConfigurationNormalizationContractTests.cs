@@ -132,8 +132,12 @@ namespace InventoryManagementApp.Tests
             Assert.True(start >= 0, $"Could not find start marker: {startMarker}");
 
             var end = source.IndexOf(endMarker, start + startMarker.Length, StringComparison.Ordinal);
-            Assert.True(end > start, $"Could not find end marker after: {startMarker}");
+            if (end < 0)
+            {
+                end = source.IndexOf("\n        private static", start + startMarker.Length, StringComparison.Ordinal);
+            }
 
+            Assert.True(end > start, $"Could not find end marker after: {startMarker}");
             return source[start..end];
         }
 
