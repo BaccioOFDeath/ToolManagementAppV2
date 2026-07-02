@@ -24,7 +24,7 @@ Date: 2026-07-02
 
 - GitHub connector source readback confirmed the XAML uses wrapping bounded maintenance metric cards, lower split minimums, shrinkable pane shells, explicit schedule-grid virtualization/scrollbars, full-row selection, bounded empty state, and reachable handoff scrolling.
 - GitHub connector source readback confirmed `MaintenancePageResponsiveContractTests` covers the responsive layout contracts and preserved maintenance commands/row handlers.
-- GitHub connector compare/readback confirmed this branch is scoped to Maintenance XAML, one source-contract test, this progress note, and `ToDo.md`.
+- GitHub connector compare/readback confirmed this branch is scoped to Maintenance XAML, one source-contract test, and this progress note.
 - Local `dotnet`/PowerShell/WPF validation could not be run in the scheduled Linux environment because direct checkout is blocked and the required Windows/.NET tooling is unavailable.
 
 ## Follow-up
