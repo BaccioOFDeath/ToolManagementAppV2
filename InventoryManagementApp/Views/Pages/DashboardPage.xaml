@@ -5,6 +5,21 @@
       xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
       Background="{DynamicResource MainContentBackgroundBrush}"
       Focusable="True">
+    <Page.Resources>
+        <Style x:Key="DashboardMetricCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
+            <Setter Property="MinWidth" Value="150"/>
+            <Setter Property="MaxWidth" Value="230"/>
+            <Setter Property="MinHeight" Value="72"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Margin" Value="0,0,6,6"/>
+        </Style>
+        <Style x:Key="DashboardMetricValueText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+    </Page.Resources>
+
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -15,7 +30,7 @@
 
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="10,6" Margin="0,0,0,6">
             <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Left" MinWidth="250" Margin="0,0,14,0" VerticalAlignment="Center">
+                <StackPanel DockPanel.Dock="Left" MinWidth="210" MaxWidth="320" Margin="0,0,14,0" VerticalAlignment="Center">
                     <TextBlock Text="Dashboard Command Center" Style="{StaticResource PageTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="Live workload, demand, and exception signals for the next counter action."
                                Style="{StaticResource CaptionTextBlock}"
@@ -25,12 +40,12 @@
                 </StackPanel>
 
                 <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
-                    <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Open Items" Command="{Binding OpenItemsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Open Rentals" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Snapshot" Command="{Binding PrintDashboardSnapshotCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Import / Export" Command="{Binding OpenImportExportCommand}"/>
+                    <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Open Items" Command="{Binding OpenItemsCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Open Rentals" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Print Snapshot" Command="{Binding PrintDashboardSnapshotCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Import / Export" Command="{Binding OpenImportExportCommand}" Margin="0,0,0,4"/>
                 </WrapPanel>
 
                 <ItemsControl ItemsSource="{Binding StatCards}" Margin="0,0,8,0" VerticalAlignment="Center">
@@ -41,7 +56,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource DesktopSummaryCard}" MinWidth="92" Margin="0,0,6,4" Padding="9,5">
+                            <Border Style="{StaticResource DesktopSummaryCard}" MinWidth="92" MaxWidth="160" Margin="0,0,6,4" Padding="9,5">
                                 <StackPanel>
                                     <TextBlock Text="{Binding Value}"
                                                FontSize="18"
@@ -60,53 +75,60 @@
             </DockPanel>
         </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource DesktopNoteCard}" Padding="8,5" Margin="0,0,0,6">
-            <UniformGrid Columns="4">
-                <StackPanel Margin="0,0,10,0">
+        <WrapPanel Grid.Row="1" Margin="0,0,0,6">
+            <Border Style="{StaticResource DashboardMetricCard}">
+                <StackPanel>
                     <TextBlock Text="Checked out" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding CheckedOutItems.Count}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                    <TextBlock Text="{Binding CheckedOutItems.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource AccentBrush}"/>
                     <TextBlock Text="Return or inspect before shift end." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
-                <StackPanel Margin="0,0,10,0">
+            </Border>
+            <Border Style="{StaticResource DashboardMetricCard}">
+                <StackPanel>
                     <TextBlock Text="Active rentals" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding RentedItems.Count}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                    <TextBlock Text="{Binding RentedItems.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource AccentBrush}"/>
                     <TextBlock Text="Review due dates." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
-                <StackPanel Margin="0,0,10,0">
+            </Border>
+            <Border Style="{StaticResource DashboardMetricCard}">
+                <StackPanel>
                     <TextBlock Text="Items with issues" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding IncompleteItems.Count}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}"/>
+                    <TextBlock Text="{Binding IncompleteItems.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource WarningBrush}"/>
                     <TextBlock Text="Prioritize missing parts." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DashboardMetricCard}">
                 <StackPanel>
                     <TextBlock Text="Activity rows" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding RecentActivity.Count}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                    <TextBlock Text="{Binding RecentActivity.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource AccentBrush}"/>
                     <TextBlock Text="Open latest audit rows." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
-            </UniformGrid>
-        </Border>
+            </Border>
+        </WrapPanel>
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" MinWidth="520"/>
-                <ColumnDefinition Width="*" MinWidth="360"/>
+                <ColumnDefinition Width="1.65*" MinWidth="0"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="0.95*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}" Padding="0" Margin="0,0,0,6">
+            <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource Card}" Padding="0" MinWidth="0" Margin="0,0,0,6">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                         <DockPanel LastChildFill="False">
-                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                                <TextBlock Text="Active Rentals" Style="{StaticResource SubheadingTextBlock}"/>
-                                <TextBlock Text="Due dates needing follow-up." Style="{StaticResource CaptionTextBlock}"/>
+                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="0">
+                                <TextBlock Text="Active Rentals" Style="{StaticResource SubheadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="Due dates needing follow-up." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                                <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedRentalCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Return" Command="{Binding ReturnSelectedRentalCommand}"/>
-                            </StackPanel>
+                            <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                                <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedRentalCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Return" Command="{Binding ReturnSelectedRentalCommand}" Margin="0,0,0,4"/>
+                            </WrapPanel>
                         </DockPanel>
                     </Border>
                     <DataGrid x:Name="RentedItemsGrid"
@@ -115,7 +137,13 @@
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
                               SelectionMode="Single"
+                              SelectionUnit="FullRow"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               Style="{StaticResource VirtualizedDataGridStyle}"
                               RowHeight="44"
                               MouseDoubleClick="RentedItemsGrid_MouseDoubleClick"
@@ -136,9 +164,9 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="76"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="72"/>
                             <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
-                            <DataGridTextColumn Header="Due" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd}}" Width="88"/>
+                            <DataGridTextColumn Header="Due" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd}}" Width="84"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
@@ -151,19 +179,21 @@
                 </DockPanel>
             </Border>
 
-            <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Style="{StaticResource Card}" Padding="0" Margin="0,0,6,0">
+            <GridSplitter Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+
+            <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0" Margin="0,0,6,0">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                         <DockPanel LastChildFill="False">
-                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                                <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}"/>
-                                <TextBlock Text="Away from shelf with holder context." Style="{StaticResource CaptionTextBlock}"/>
+                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="0">
+                                <TextBlock Text="Checked-Out Items" Style="{StaticResource SubheadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="Away from shelf with holder context." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                                <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCheckedOutItemCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Check In" Command="{Binding CheckInSelectedItemCommand}" Margin="0,0,4,0"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintCheckedOutItemsCommand}"/>
-                            </StackPanel>
+                            <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                                <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCheckedOutItemCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Check In" Command="{Binding CheckInSelectedItemCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintCheckedOutItemsCommand}" Margin="0,0,0,4"/>
+                            </WrapPanel>
                         </DockPanel>
                     </Border>
                     <DataGrid x:Name="CheckedOutItemsGrid"
@@ -172,7 +202,13 @@
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               CanUserAddRows="False"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
                               SelectionMode="Single"
+                              SelectionUnit="FullRow"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               Style="{StaticResource VirtualizedDataGridStyle}"
                               RowHeight="44"
                               MouseDoubleClick="CheckedOutItemsGrid_MouseDoubleClick"
@@ -193,11 +229,11 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="92"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="86"/>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
-                            <DataGridTextColumn Header="Holder" Binding="{Binding CheckedOutBy}" Width="112"/>
-                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="104"/>
-                            <DataGridTextColumn Header="Out Since" Binding="{Binding CheckedOutTime, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="118"/>
+                            <DataGridTextColumn Header="Holder" Binding="{Binding CheckedOutBy}" Width="102"/>
+                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="92"/>
+                            <DataGridTextColumn Header="Out Since" Binding="{Binding CheckedOutTime, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="108"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
@@ -211,15 +247,15 @@
                 </DockPanel>
             </Border>
 
-            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource Card}" Padding="0">
-                <TabControl>
+            <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+                <TabControl MinWidth="0">
                     <TabItem Header="Recent Activity">
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                                 <DockPanel LastChildFill="False">
-                                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                                        <TextBlock Text="Audit Trail" Style="{StaticResource SubheadingTextBlock}"/>
-                                        <TextBlock Text="Open the selected activity workflow." Style="{StaticResource CaptionTextBlock}"/>
+                                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="0">
+                                        <TextBlock Text="Audit Trail" Style="{StaticResource SubheadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="Open the selected activity workflow." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <Button Style="{StaticResource GhostButton}" Content="Open Related" Command="{Binding OpenActivityDestinationCommand}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                 </DockPanel>
@@ -233,13 +269,19 @@
                                       AutoGenerateColumns="False"
                                       IsReadOnly="True"
                                       CanUserAddRows="False"
+                                      EnableRowVirtualization="True"
+                                      EnableColumnVirtualization="True"
                                       SelectionMode="Single"
+                                      SelectionUnit="FullRow"
+                                      ScrollViewer.CanContentScroll="True"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                                       Style="{StaticResource VirtualizedDataGridStyle}"
                                       MouseDoubleClick="RecentActivityGrid_MouseDoubleClick"
                                       PreviewMouseRightButtonDown="DashboardGrid_PreviewMouseRightButtonDown">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="When" Binding="{Binding Timestamp, StringFormat={}{0:HH:mm}}" Width="70"/>
-                                    <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="95"/>
+                                    <DataGridTextColumn Header="When" Binding="{Binding Timestamp, StringFormat={}{0:HH:mm}}" Width="64"/>
+                                    <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="90"/>
                                     <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="*"/>
                                 </DataGrid.Columns>
                                 <DataGrid.ContextMenu>
@@ -255,9 +297,9 @@
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                                 <DockPanel LastChildFill="False">
-                                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                                        <TextBlock Text="Needs Attention" Style="{StaticResource SubheadingTextBlock}"/>
-                                        <TextBlock Text="Incomplete records and missing-component notes for follow-up." Style="{StaticResource CaptionTextBlock}"/>
+                                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="0">
+                                        <TextBlock Text="Needs Attention" Style="{StaticResource SubheadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="Incomplete records and missing-component notes for follow-up." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedIncompleteItemCommand}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                 </DockPanel>
@@ -268,14 +310,20 @@
                                       AutoGenerateColumns="False"
                                       IsReadOnly="True"
                                       CanUserAddRows="False"
+                                      EnableRowVirtualization="True"
+                                      EnableColumnVirtualization="True"
                                       SelectionMode="Single"
+                                      SelectionUnit="FullRow"
+                                      ScrollViewer.CanContentScroll="True"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                                       Style="{StaticResource VirtualizedDataGridStyle}"
                                       MouseDoubleClick="IncompleteItemsGrid_MouseDoubleClick"
                                       PreviewMouseRightButtonDown="DashboardGrid_PreviewMouseRightButtonDown">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="90"/>
+                                    <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="82"/>
                                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                                    <DataGridTextColumn Header="Notes" Binding="{Binding MissingComponentsNotes}" Width="160"/>
+                                    <DataGridTextColumn Header="Notes" Binding="{Binding MissingComponentsNotes}" Width="130"/>
                                 </DataGrid.Columns>
                                 <DataGrid.ContextMenu>
                                     <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
@@ -290,14 +338,14 @@
                         <DockPanel>
                             <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}" Margin="0">
                                 <DockPanel LastChildFill="False">
-                                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                                        <TextBlock Text="Commonly Used Items" Style="{StaticResource SubheadingTextBlock}"/>
-                                        <TextBlock Text="High-frequency counter items." Style="{StaticResource CaptionTextBlock}"/>
+                                    <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="0">
+                                        <TextBlock Text="Commonly Used Items" Style="{StaticResource SubheadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="High-frequency counter items." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                                     </StackPanel>
-                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                                        <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCommonItemCommand}" Margin="0,0,4,0"/>
-                                        <Button Style="{StaticResource GhostButton}" Content="Check Out / In" Command="{Binding ToggleSelectedCommonItemCommand}"/>
-                                    </StackPanel>
+                                    <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                                        <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCommonItemCommand}" Margin="0,0,4,4"/>
+                                        <Button Style="{StaticResource GhostButton}" Content="Check Out / In" Command="{Binding ToggleSelectedCommonItemCommand}" Margin="0,0,0,4"/>
+                                    </WrapPanel>
                                 </DockPanel>
                             </Border>
                             <DataGrid x:Name="CommonItemsGrid"
@@ -306,7 +354,13 @@
                                       AutoGenerateColumns="False"
                                       IsReadOnly="True"
                                       CanUserAddRows="False"
+                                      EnableRowVirtualization="True"
+                                      EnableColumnVirtualization="True"
                                       SelectionMode="Single"
+                                      SelectionUnit="FullRow"
+                                      ScrollViewer.CanContentScroll="True"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                                       Style="{StaticResource VirtualizedDataGridStyle}"
                                       RowHeight="44"
                                       MouseDoubleClick="CommonItemsGrid_MouseDoubleClick"
@@ -327,11 +381,11 @@
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-                                    <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="82"/>
+                                    <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="76"/>
                                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                                    <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="82"/>
-                                    <DataGridTextColumn Header="Use" Binding="{Binding CheckoutCount}" Width="54"/>
-                                    <DataGridTemplateColumn Header="Status" Width="90">
+                                    <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="78"/>
+                                    <DataGridTextColumn Header="Use" Binding="{Binding CheckoutCount}" Width="52"/>
+                                    <DataGridTemplateColumn Header="Status" Width="82">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
@@ -358,7 +412,7 @@
 
         <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Padding="6,3" Margin="0,6,0,0">
             <DockPanel LastChildFill="True">
-                <TextBlock Text="{Binding OperationsSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding OperationsSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,12,0" TextWrapping="Wrap"/>
                 <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
             </DockPanel>
         </Border>
