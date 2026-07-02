@@ -18,6 +18,7 @@ Current repository evidence:
 - Reservation create/update and kit create/update workflows now normalize persisted workflow text before reference checks and database writes.
 - User create/update workflows now normalize profile and access text before first-user/existing-user checks and database writes, including canonicalized permission keys and nullable optional profile fields.
 - Rental/email/company configuration text now normalizes user-entered display and delivery settings before persistence and readback while preserving password/API-key secret values.
+- Category/inventory linking now sends domain refresh messages when a new association is created, and inventory ensure/update now refreshes dependent item/report/category views when a normalized location label changes.
 - This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
@@ -69,6 +70,7 @@ Recent completed slices that should not be repeated unless fresh evidence shows 
 - Kit create/update paths now normalize kit number, name, description, and category before insert/update persistence.
 - User create/update paths now normalize username, photo path, contact fields, role, and permissions before workflow checks and persistence, with blank optional profile/access fields stored as database null values.
 - Rental configuration paths now trim email delivery, company/contact, backup, SMS provider/sender, and reminder template settings at the configuration boundary, defaulting whitespace-only display values while preserving untrimmed secret settings.
+- Category/inventory association changes now refresh dependent category, item, and report views when new links are created; inventory location ensures now update stale labels and refresh only when a row actually changes.
 
 ## Highest-Value Next Work
 
@@ -93,7 +95,7 @@ Completed or substantially implemented:
 
 Still needing attention:
 
-- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, and user/profile normalization changes.
+- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, and category/inventory refresh changes.
 - Runtime WPF walkthrough of core workflows on Windows.
 - Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, dialogs, and theme-customized popup surfaces.
 - Print and report preview QA for capped, empty, and large-data documents.

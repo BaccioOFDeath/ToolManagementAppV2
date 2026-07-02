@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Messaging;
 using Dapper;
+using InventoryManagementApp.Messages;
 using InventoryManagementApp.Services.Categories;
 using InventoryManagementApp.Services.Core;
 using Xunit;
@@ -38,6 +41,31 @@ public class CategoriesServiceTests
     }
 
     [Fact]
+    public async Task LinkCategoryToInventory_NotifiesWhenNewAssociationIsCreatedOnly()
+    {
+        await using var db = new DatabaseService(":memory:");
+        var svc = new CategoriesService(db);
+        await svc.EnsureSchemaAsync();
+        await svc.EnsureInventoryAsync(1, "Main");
+        var categoryId = await svc.EnsureCategoryAsync("Tools");
+
+        using var recorder = new DomainMessageRecorder();
+
+        await svc.LinkCategoryToInventoryAsync(categoryId, 1);
+
+        var message = Assert.Single(recorder.Messages);
+        Assert.True(message.Includes(DomainDataScope.Categories));
+        Assert.True(message.Includes(DomainDataScope.Items));
+        Assert.True(message.Includes(DomainDataScope.Reports));
+        Assert.Equal(categoryId, message.EntityId);
+
+        recorder.Messages.Clear();
+        await svc.LinkCategoryToInventoryAsync(categoryId, 1);
+
+        Assert.Empty(recorder.Messages);
+    }
+
+    [Fact]
     public async Task EnsureInventoryAsync_CreatesMissingInventoryRow()
     {
         await using var db = new DatabaseService(":memory:");
@@ -50,6 +78,35 @@ public class CategoriesServiceTests
         var location = await conn.ExecuteScalarAsync<string>(
             "SELECT Location FROM Inventories WHERE InventoryID=1");
         Assert.Equal("Main", location);
+    }
+
+    [Fact]
+    public async Task EnsureInventoryAsync_UpdatesExistingInventoryLocationAndNotifiesOnChangeOnly()
+    {
+        await using var db = new DatabaseService(":memory:");
+        var svc = new CategoriesService(db);
+        await svc.EnsureSchemaAsync();
+        await svc.EnsureInventoryAsync(1, "Main");
+
+        using var recorder = new DomainMessageRecorder();
+
+        await svc.EnsureInventoryAsync(1, "  Warehouse  ");
+
+        await using var conn = db.CreateConnection();
+        var location = await conn.ExecuteScalarAsync<string>(
+            "SELECT Location FROM Inventories WHERE InventoryID=1");
+        Assert.Equal("Warehouse", location);
+
+        var message = Assert.Single(recorder.Messages);
+        Assert.True(message.Includes(DomainDataScope.Categories));
+        Assert.True(message.Includes(DomainDataScope.Items));
+        Assert.True(message.Includes(DomainDataScope.Reports));
+        Assert.Equal(1, message.EntityId);
+
+        recorder.Messages.Clear();
+        await svc.EnsureInventoryAsync(1, "Warehouse");
+
+        Assert.Empty(recorder.Messages);
     }
 
     [Fact]
@@ -78,6 +135,22 @@ public class CategoriesServiceTests
 
         await using var conn = db.CreateConnection();
         var count = await conn.ExecuteScalarAsync<long>("SELECT COUNT(*) FROM Categories");
+        Assert.Equal(0, count);
+    }
+
+    [Fact]
+    public async Task EnsureInventoryAsync_HonorsCancellationBeforeCreatingInventory()
+    {
+        await using var db = new DatabaseService(":memory:");
+        var svc = new CategoriesService(db);
+        await svc.EnsureSchemaAsync();
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => svc.EnsureInventoryAsync(1, "Main", cts.Token));
+
+        await using var conn = db.CreateConnection();
+        var count = await conn.ExecuteScalarAsync<long>("SELECT COUNT(*) FROM Inventories");
         Assert.Equal(0, count);
     }
 
@@ -112,6 +185,51 @@ public class CategoriesServiceTests
     }
 
     [Fact]
+    public void LinkCategoryToInventoryNotifiesOnlyWhenANewAssociationIsInserted()
+    {
+        var source = ReadRepoFile("InventoryManagementApp", "Services", "Categories", "CategoriesService.cs");
+        var method = ExtractMethod(
+            source,
+            "public async Task LinkCategoryToInventoryAsync(int categoryId, int inventoryId, CancellationToken ct = default)",
+            "public async Task EnsureInventoryAsync");
+
+        Assert.Contains("var linkedRows = await conn.ExecuteAsync(", method, StringComparison.Ordinal);
+        Assert.Contains("INSERT OR IGNORE INTO InventoryCategories", method, StringComparison.Ordinal);
+        Assert.Contains("if (linkedRows > 0)", method, StringComparison.Ordinal);
+        Assert.Contains("NotifyChanged(DomainDataScope.Categories | DomainDataScope.Items | DomainDataScope.Reports, categoryId);", method, StringComparison.Ordinal);
+        Assert.True(
+            method.IndexOf("var linkedRows = await conn.ExecuteAsync(", StringComparison.Ordinal) <
+            method.IndexOf("if (linkedRows > 0)", StringComparison.Ordinal),
+            "Category/inventory linking should decide whether to refresh from the actual inserted-row result.");
+    }
+
+    [Fact]
+    public void EnsureInventoryAsyncUpsertsLocationAndNotifiesOnlyWhenRowsChange()
+    {
+        var source = ReadRepoFile("InventoryManagementApp", "Services", "Categories", "CategoriesService.cs");
+        var method = ExtractMethod(
+            source,
+            "public async Task EnsureInventoryAsync(int inventoryId, string location, CancellationToken ct = default)",
+            "public async Task<List<CategoryDto>> GetCategoriesForInventoryAsync");
+
+        Assert.Contains("location = string.IsNullOrWhiteSpace(location) ? \"Main\" : location.Trim();", method, StringComparison.Ordinal);
+        Assert.Contains("var changedRows = await conn.ExecuteAsync(", method, StringComparison.Ordinal);
+        Assert.Contains("ON CONFLICT(InventoryID) DO UPDATE SET Location = excluded.Location", method, StringComparison.Ordinal);
+        Assert.Contains("WHERE Inventories.Location <> excluded.Location;", method, StringComparison.Ordinal);
+        Assert.Contains("if (changedRows > 0)", method, StringComparison.Ordinal);
+        Assert.Contains("NotifyChanged(DomainDataScope.Categories | DomainDataScope.Items | DomainDataScope.Reports, inventoryId);", method, StringComparison.Ordinal);
+        Assert.DoesNotContain("INSERT OR IGNORE INTO Inventories", method, StringComparison.Ordinal);
+        Assert.True(
+            method.IndexOf("location = string.IsNullOrWhiteSpace(location) ? \"Main\" : location.Trim();", StringComparison.Ordinal) <
+            method.IndexOf("var changedRows = await conn.ExecuteAsync(", StringComparison.Ordinal),
+            "Inventory location text should be normalized before upsert parameters are bound.");
+        Assert.True(
+            method.IndexOf("if (changedRows > 0)", StringComparison.Ordinal) <
+            method.IndexOf("NotifyChanged(DomainDataScope.Categories | DomainDataScope.Items | DomainDataScope.Reports, inventoryId);", StringComparison.Ordinal),
+            "Inventory refresh messages should be sent only after the upsert reports a changed row.");
+    }
+
+    [Fact]
     public void CategoryServiceHonorsCancellationBeforeConnectionWork()
     {
         var source = ReadRepoFile("InventoryManagementApp", "Services", "Categories", "CategoriesService.cs");
@@ -130,6 +248,10 @@ public class CategoriesServiceTests
             "public async Task EnsureInventoryAsync");
         AssertCancellationGuardBeforeConnection(
             source,
+            "public async Task EnsureInventoryAsync(int inventoryId, string location, CancellationToken ct = default)",
+            "public async Task<List<CategoryDto>> GetCategoriesForInventoryAsync");
+        AssertCancellationGuardBeforeConnection(
+            source,
             "public async Task<List<CategoryDto>> GetCategoriesForInventoryAsync(int inventoryId, CancellationToken ct = default)",
             "public async Task<bool> RenameCategoryAsync");
         AssertCancellationGuardBeforeConnection(
@@ -140,6 +262,21 @@ public class CategoriesServiceTests
             source,
             "public async Task<bool> DeleteCategoryAsync(int categoryId, CancellationToken ct = default)",
             "private static async Task EnsureInventoryExistsAsync");
+    }
+
+    private sealed class DomainMessageRecorder : IDisposable
+    {
+        public DomainMessageRecorder()
+        {
+            WeakReferenceMessenger.Default.Register<DomainDataChangedMessage>(this, (_, message) => Messages.Add(message));
+        }
+
+        public List<DomainDataChangedMessage> Messages { get; } = new();
+
+        public void Dispose()
+        {
+            WeakReferenceMessenger.Default.UnregisterAll(this);
+        }
     }
 
     private static void AssertCancellationGuardBeforeConnection(string source, string startMarker, string endMarker)
