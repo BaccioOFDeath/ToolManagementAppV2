@@ -74,7 +74,7 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("Location, Brand, PartNumber, Supplier", projection, StringComparison.Ordinal);
             Assert.DoesNotContain("Notes, Keywords", projection, StringComparison.Ordinal);
             Assert.DoesNotContain("ImagePath, IsCheckedOut, CheckedOutBy", projection, StringComparison.Ordinal);
-            Assert.DoesNotContain("CheckedInBy, CheckedInTime", projection, StringComparison.Ordinal);
+            Assert.DoesNotContain("CheckedOutBy, CheckedOutTime, CheckedInBy", projection, StringComparison.Ordinal);
             Assert.DoesNotContain("IsIncomplete, MissingComponentsNotes, IssuesNotes", projection, StringComparison.Ordinal);
         }
 
