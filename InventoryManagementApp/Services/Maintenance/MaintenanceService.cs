@@ -120,7 +120,7 @@ namespace InventoryManagementApp.Services.Maintenance
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
                     JOIN Items i ON m.ItemID = i.ItemID
-                    WHERE m.Status = 'Scheduled' AND m.ScheduledDate < @Now
+                    WHERE TRIM(IFNULL(m.Status, '')) = 'Scheduled' AND m.ScheduledDate < @Now
                     ORDER BY m.ScheduledDate ASC
                     LIMIT @MaintenanceListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -144,7 +144,7 @@ namespace InventoryManagementApp.Services.Maintenance
                     SELECT COUNT(m.MaintenanceID)
                     FROM MaintenanceRecords m
                     JOIN Items i ON m.ItemID = i.ItemID
-                    WHERE m.Status = 'Scheduled' AND m.ScheduledDate < @Now";
+                    WHERE TRIM(IFNULL(m.Status, '')) = 'Scheduled' AND m.ScheduledDate < @Now";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Now", DateTime.Now);
                 return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
@@ -164,7 +164,7 @@ namespace InventoryManagementApp.Services.Maintenance
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
                     JOIN Items i ON m.ItemID = i.ItemID
-                    WHERE m.Status = 'Scheduled' 
+                    WHERE TRIM(IFNULL(m.Status, '')) = 'Scheduled'
                     AND m.ScheduledDate >= @Now 
                     AND m.ScheduledDate <= @FutureDate
                     ORDER BY m.ScheduledDate ASC
@@ -195,7 +195,7 @@ namespace InventoryManagementApp.Services.Maintenance
                     SELECT COUNT(m.MaintenanceID)
                     FROM MaintenanceRecords m
                     JOIN Items i ON m.ItemID = i.ItemID
-                    WHERE m.Status = 'Scheduled'
+                    WHERE TRIM(IFNULL(m.Status, '')) = 'Scheduled'
                     AND m.ScheduledDate >= @Now
                     AND m.ScheduledDate <= @FutureDate";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -387,19 +387,25 @@ namespace InventoryManagementApp.Services.Maintenance
             {
                 MaintenanceID = reader.GetInt32(reader.GetOrdinal("MaintenanceID")),
                 ItemID = reader.GetInt32(reader.GetOrdinal("ItemID")),
-                ItemNumber = reader.IsDBNull(reader.GetOrdinal("ItemNumber")) ? "" : reader.GetString(reader.GetOrdinal("ItemNumber")),
-                ItemName = reader.IsDBNull(reader.GetOrdinal("ItemName")) ? "" : reader.GetString(reader.GetOrdinal("ItemName")),
+                ItemNumber = NormalizeMaintenanceReadText(reader, "ItemNumber"),
+                ItemName = NormalizeMaintenanceReadText(reader, "ItemName"),
                 ScheduledDate = reader.GetDateTime(reader.GetOrdinal("ScheduledDate")),
                 CompletedDate = reader.IsDBNull(reader.GetOrdinal("CompletedDate")) ? null : reader.GetDateTime(reader.GetOrdinal("CompletedDate")),
-                MaintenanceType = reader.GetString(reader.GetOrdinal("MaintenanceType")),
-                Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? "" : reader.GetString(reader.GetOrdinal("Description")),
-                PerformedBy = reader.IsDBNull(reader.GetOrdinal("PerformedBy")) ? "" : reader.GetString(reader.GetOrdinal("PerformedBy")),
+                MaintenanceType = NormalizeMaintenanceReadText(reader, "MaintenanceType"),
+                Description = NormalizeMaintenanceReadText(reader, "Description"),
+                PerformedBy = NormalizeMaintenanceReadText(reader, "PerformedBy"),
                 Cost = reader.GetDecimal(reader.GetOrdinal("Cost")),
-                Status = reader.GetString(reader.GetOrdinal("Status")),
-                Notes = reader.IsDBNull(reader.GetOrdinal("Notes")) ? "" : reader.GetString(reader.GetOrdinal("Notes")),
+                Status = NormalizeMaintenanceReadText(reader, "Status"),
+                Notes = NormalizeMaintenanceReadText(reader, "Notes"),
                 UserID = reader.IsDBNull(reader.GetOrdinal("UserID")) ? 0 : reader.GetInt32(reader.GetOrdinal("UserID")),
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
             };
+        }
+
+        private static string NormalizeMaintenanceReadText(SqliteDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal).Trim();
         }
 
         private static void NormalizeMaintenanceRecordForSave(MaintenanceRecord record)

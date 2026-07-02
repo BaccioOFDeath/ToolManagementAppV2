@@ -24,6 +24,7 @@ Current repository evidence:
 - Item repository readback now trims legacy item identity, detail, checkout attribution, image path, and incomplete/problem-note text through the shared item projection before grids, exports, dashboards, image import matching, reports, and item detail views consume it.
 - Reservation list and detail readback now trims legacy item number, item name, customer name, image path, status, and notes through the shared reservation mapper before reservation grids, upcoming views, detail views, reports, previews, and printable reservation-related output consume it.
 - Customer list, detail, search, and export readback now trims legacy company, email, contact, phone, mobile, and address text through the shared customer mapper before customer directory screens, handoff views, reports, printable output, and CSV/generic exports consume it.
+- Maintenance and calibration readback now trims legacy operational-record and joined item text before list/detail/report/print consumers receive those models, and maintenance overdue/upcoming filters now match legacy padded `Scheduled` statuses.
 - This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
@@ -81,6 +82,9 @@ Recent completed slices that should not be repeated unless fresh evidence shows 
 - Item repository projection now trims item number, name, location, brand, part number, supplier, notes, keywords, image path, checkout user names, missing-components notes, and issue notes before item read models reach search grids, details, dashboards, exports, image import matching, checked-out lists, incomplete lists, and reports.
 - Reservation row mapping now trims item number, item name, customer name, image path, status, and notes before reservation models reach all-reservation lists, active/upcoming lists, item/customer reservation histories, detail views, reports, previews, and printable reservation-related output.
 - Customer service mapping now trims company, email, contact, phone, mobile, and address before customer list, detail, search, paged export, report, print, rental handoff, and reservation handoff consumers receive customer read models.
+- Maintenance row mapping now trims item number, item name, maintenance type, description, performer, status, and notes before maintenance grids, detail views, reports, and printable operational output consume those models.
+- Maintenance overdue/upcoming list and count filters now compare scheduled status through trimmed null-safe SQL so legacy padded `Scheduled` statuses remain visible in scheduled-work workflows.
+- Calibration row mapping now trims item number, item name, technician, certificate number, standard, result, and notes before calibration grids, latest-calibration details, reports, and printable operational output consume those models.
 
 ## Highest-Value Next Work
 
@@ -91,7 +95,7 @@ Prioritize the following before adding unrelated new features:
 3. Smoke test the WPF app visually on Windows, especially dark-theme top navigation dropdowns, context menus, combo boxes, print preview, report preview, and theme-customized popup surfaces.
 4. Continue replacing brittle source-text tests with behavior-focused tests where practical, especially when touching the same workflow for a real fix.
 5. Consider true streaming or exporter-specific flows for very large exports if future evidence shows the current paged-then-handoff export collectors still create unacceptable memory pressure.
-6. Keep tightening import/export, save-path, operational-record, configuration, and document-output data-quality behavior only where current evidence shows another concrete user-entered, file-imported, or legacy stored value can bypass validation, duplicate detection, search/report consistency, permission consistency, delivery reliability, or professional output expectations.
+6. Keep tightening import/export, save-path, configuration, and document-output data-quality behavior only where current evidence shows another concrete user-entered, file-imported, or legacy stored value can bypass validation, duplicate detection, search/report consistency, permission consistency, delivery reliability, or professional output expectations.
 
 ## App Completion Status
 
@@ -105,7 +109,7 @@ Completed or substantially implemented:
 
 Still needing attention:
 
-- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, settings normalization, rental readback normalization, item readback normalization, reservation readback normalization, and customer readback normalization changes.
+- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, settings normalization, rental readback normalization, item readback normalization, reservation readback normalization, customer readback normalization, and operational-record readback normalization changes.
 - Runtime WPF walkthrough of core workflows on Windows.
 - Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, dialogs, and theme-customized popup surfaces.
 - Print and report preview QA for capped, empty, and large-data documents.

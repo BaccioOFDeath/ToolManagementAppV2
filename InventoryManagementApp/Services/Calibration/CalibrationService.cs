@@ -374,19 +374,25 @@ namespace InventoryManagementApp.Services.Calibration
             {
                 CalibrationID = reader.GetInt32(reader.GetOrdinal("CalibrationID")),
                 ItemID = reader.GetInt32(reader.GetOrdinal("ItemID")),
-                ItemNumber = reader.IsDBNull(reader.GetOrdinal("ItemNumber")) ? "" : reader.GetString(reader.GetOrdinal("ItemNumber")),
-                ItemName = reader.IsDBNull(reader.GetOrdinal("ItemName")) ? "" : reader.GetString(reader.GetOrdinal("ItemName")),
+                ItemNumber = NormalizeCalibrationReadText(reader, "ItemNumber"),
+                ItemName = NormalizeCalibrationReadText(reader, "ItemName"),
                 CalibrationDate = reader.GetDateTime(reader.GetOrdinal("CalibrationDate")),
                 NextCalibrationDue = reader.GetDateTime(reader.GetOrdinal("NextCalibrationDue")),
-                CalibratedBy = reader.IsDBNull(reader.GetOrdinal("CalibratedBy")) ? "" : reader.GetString(reader.GetOrdinal("CalibratedBy")),
-                CertificateNumber = reader.IsDBNull(reader.GetOrdinal("CertificateNumber")) ? "" : reader.GetString(reader.GetOrdinal("CertificateNumber")),
-                Standard = reader.IsDBNull(reader.GetOrdinal("Standard")) ? "" : reader.GetString(reader.GetOrdinal("Standard")),
-                Result = reader.IsDBNull(reader.GetOrdinal("Result")) ? "" : reader.GetString(reader.GetOrdinal("Result")),
+                CalibratedBy = NormalizeCalibrationReadText(reader, "CalibratedBy"),
+                CertificateNumber = NormalizeCalibrationReadText(reader, "CertificateNumber"),
+                Standard = NormalizeCalibrationReadText(reader, "Standard"),
+                Result = NormalizeCalibrationReadText(reader, "Result"),
                 Cost = reader.GetDecimal(reader.GetOrdinal("Cost")),
-                Notes = reader.IsDBNull(reader.GetOrdinal("Notes")) ? "" : reader.GetString(reader.GetOrdinal("Notes")),
+                Notes = NormalizeCalibrationReadText(reader, "Notes"),
                 UserID = reader.IsDBNull(reader.GetOrdinal("UserID")) ? 0 : reader.GetInt32(reader.GetOrdinal("UserID")),
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
             };
+        }
+
+        private static string NormalizeCalibrationReadText(SqliteDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal).Trim();
         }
 
         private static void NormalizeCalibrationRecordForSave(CalibrationRecord record)
