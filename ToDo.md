@@ -28,6 +28,8 @@ Current repository evidence:
 - Activity Audit Workbench layout now uses wrapping bounded metrics, lower split minimums, explicit grid virtualization/scrollbars, and bounded handoff/empty-state areas for scaled desktop reliability.
 - Users Workbench layout now uses wrapping bounded account summary cards, lower directory/detail split pressure, explicit user-grid virtualization/scrollbars, bounded empty state, and reachable access/security handoff scrolling.
 - Reports Workbench layout now uses wrapping bounded report metrics, lower report-results/handoff split pressure, explicit result-grid virtualization/scrollbars, bounded empty state, and bounded row-handoff scrolling.
+- Maintenance Workbench layout now uses wrapping bounded schedule metrics, lower schedule/handoff split pressure, explicit schedule-grid virtualization/scrollbars, bounded empty state, reachable technician handoff scrolling, and wrapping footer actions.
+- Calibration Workbench layout now uses wrapping bounded certificate metrics, lower register/handoff split pressure, explicit calibration-grid virtualization/scrollbars, bounded empty state, reachable certificate handoff scrolling, and wrapping footer actions.
 - This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
@@ -91,6 +93,8 @@ Recent completed slices that should not be repeated unless fresh evidence shows 
 - Activity Audit Workbench now has source-backed responsive layout contracts for wrapping audit metrics, reduced fixed split pressure, grid virtualization/scrolling, bounded empty state, bounded selected-log handoff, and preserved audit actions.
 - Users Workbench now has source-backed responsive layout contracts for wrapping account metrics, reduced fixed split pressure, directory grid virtualization/scrolling, bounded empty state, reachable handoff scrolling, and preserved account actions.
 - Reports Workbench now has source-backed responsive layout contracts for wrapping report metrics, reduced fixed split pressure, result grid virtualization/scrolling, bounded empty state, bounded row-handoff scrolling, and preserved report actions.
+- Maintenance Workbench now has source-backed responsive layout contracts for wrapping schedule metrics, reduced fixed split pressure, grid virtualization/scrolling, bounded empty state, reachable technician handoff scrolling, wrapping footer actions, and preserved maintenance actions.
+- Calibration Workbench now has source-backed responsive layout contracts for wrapping certificate metrics, reduced fixed split pressure, grid virtualization/scrolling, bounded empty state, reachable certificate handoff scrolling, wrapping footer actions, and preserved calibration actions.
 
 ## Highest-Value Next Work
 
@@ -98,7 +102,7 @@ Prioritize the following before adding unrelated new features:
 
 1. Run `pwsh -File scripts/run-full-validation.ps1` on a Windows/.NET-capable checkout and capture the actual restore, audit, build, test, publish, banned-word, and artifact-manifest results.
 2. Review the dedicated vulnerable-package audit output plus any NU190x warnings from repository-level NuGet auditing, then update affected packages or document intentional risk decisions.
-3. Smoke test the WPF app visually on Windows, especially dark-theme top navigation dropdowns, context menus, combo boxes, print preview, report preview, Activity Logs, Users, Reports, and theme-customized popup surfaces.
+3. Smoke test the WPF app visually on Windows, especially dark-theme top navigation dropdowns, context menus, combo boxes, print preview, report preview, Activity Logs, Users, Reports, Maintenance, Calibration, and theme-customized popup surfaces.
 4. Continue replacing brittle source-text tests with behavior-focused tests where practical, especially when touching the same workflow for a real fix.
 5. Consider true streaming or exporter-specific flows for very large exports if future evidence shows the current paged-then-handoff export collectors still create unacceptable memory pressure.
 6. Keep tightening import/export, save-path, configuration, and document-output data-quality behavior only where current evidence shows another concrete user-entered, file-imported, or legacy stored value can bypass validation, duplicate detection, search/report consistency, permission consistency, delivery reliability, or professional output expectations.
@@ -115,7 +119,7 @@ Completed or substantially implemented:
 
 Still needing attention:
 
-- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, settings normalization, rental readback normalization, item readback normalization, reservation readback normalization, customer readback normalization, operational-record readback normalization, Activity Logs responsive layout, Users responsive layout, and Reports responsive layout changes.
+- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, settings normalization, rental readback normalization, item readback normalization, reservation readback normalization, customer readback normalization, operational-record readback normalization, Activity Logs responsive layout, Users responsive layout, Reports responsive layout, Maintenance responsive layout, and Calibration responsive layout changes.
 - Runtime WPF walkthrough of core workflows on Windows.
 - Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, dialogs, and theme-customized popup surfaces.
 - Print and report preview QA for capped, empty, and large-data documents.
