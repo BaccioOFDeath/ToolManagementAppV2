@@ -3,11 +3,15 @@ using System.IO;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO.Compression;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
 using System.Linq;
+using System.Reflection;
+using System.Text.Json;
 
 namespace InventoryManagementApp.Services.Core
 {
@@ -633,17 +637,14 @@ namespace InventoryManagementApp.Services.Core
         /// <exception cref="IOException">Thrown when the backup operation fails.</exception>
         public void BackupDatabase(string backupFilePath)
         {
-            var dataSource = ConnectionString
-                .Split(';')
-                .FirstOrDefault(x => x.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
-                ?.Substring("Data Source=".Length)
-                .Trim();
-
-            if (string.IsNullOrWhiteSpace(dataSource) || !File.Exists(dataSource))
-                throw new InvalidOperationException("Database file path could not be determined.");
+            var dataSource = GetDatabaseFilePath();
 
             try
             {
+                var backupDirectory = Path.GetDirectoryName(Path.GetFullPath(backupFilePath));
+                if (!string.IsNullOrWhiteSpace(backupDirectory))
+                    Directory.CreateDirectory(backupDirectory);
+
                 using var source = CreateConnection();
                 var builder = new SqliteConnectionStringBuilder
                 {
@@ -674,5 +675,228 @@ namespace InventoryManagementApp.Services.Core
                 cancellationToken.ThrowIfCancellationRequested();
                 BackupDatabase(backupFilePath);
             }, cancellationToken);
+
+        public Task BackupApplicationAsync(string backupFilePath, CancellationToken cancellationToken)
+            => Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                CreateApplicationBackupPackage(backupFilePath, cancellationToken);
+            }, cancellationToken);
+
+        public Task<string> RestoreApplicationBackupAsync(string backupFilePath, string safetyBackupDirectory, CancellationToken cancellationToken)
+            => Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return RestoreApplicationBackupPackage(backupFilePath, safetyBackupDirectory, cancellationToken);
+            }, cancellationToken);
+
+        private string GetDatabaseFilePath()
+        {
+            var dataSource = ConnectionString
+                .Split(';')
+                .FirstOrDefault(x => x.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+                ?.Substring("Data Source=".Length)
+                .Trim();
+
+            if (string.IsNullOrWhiteSpace(dataSource) || !File.Exists(dataSource))
+                throw new InvalidOperationException("Database file path could not be determined.");
+
+            return Path.GetFullPath(dataSource);
+        }
+
+        private static string GetApplicationRoot()
+            => DeploymentPathResolver.GetDeploymentRoot(AppContext.BaseDirectory);
+
+        private static string GetAssetsDirectory()
+            => Path.Combine(GetApplicationRoot(), AppAssetHelper.AssetsDirectoryName);
+
+        private void CreateApplicationBackupPackage(string backupFilePath, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(backupFilePath))
+                throw new ArgumentException("Backup package path is required.", nameof(backupFilePath));
+
+            var packagePath = Path.GetFullPath(backupFilePath);
+            var packageDirectory = Path.GetDirectoryName(packagePath);
+            if (!string.IsNullOrWhiteSpace(packageDirectory))
+                Directory.CreateDirectory(packageDirectory);
+
+            var tempDirectory = Path.Combine(Path.GetTempPath(), "InventoryManagementAppBackup-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDirectory);
+
+            try
+            {
+                var stagedDatabasePath = Path.Combine(tempDirectory, "inventory.db");
+                BackupDatabase(stagedDatabasePath);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (File.Exists(packagePath))
+                    File.Delete(packagePath);
+
+                var assetsDirectory = GetAssetsDirectory();
+                var assetFiles = Directory.Exists(assetsDirectory)
+                    ? Directory.EnumerateFiles(assetsDirectory, "*", SearchOption.AllDirectories).ToList()
+                    : new System.Collections.Generic.List<string>();
+
+                using var archive = ZipFile.Open(packagePath, ZipArchiveMode.Create);
+                archive.CreateEntryFromFile(stagedDatabasePath, "database/inventory.db", CompressionLevel.Optimal);
+
+                foreach (var assetFile in assetFiles)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var relativeAssetPath = Path.GetRelativePath(assetsDirectory, assetFile).Replace('\\', '/');
+                    archive.CreateEntryFromFile(assetFile, $"assets/{relativeAssetPath}", CompressionLevel.Optimal);
+                }
+
+                var manifest = new
+                {
+                    Format = "InventoryManagementApp.FullBackup",
+                    FormatVersion = 1,
+                    CreatedAtUtc = DateTimeOffset.UtcNow,
+                    AppVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? string.Empty,
+                    DatabaseFile = "database/inventory.db",
+                    AssetsRoot = "assets/",
+                    AssetCount = assetFiles.Count
+                };
+                var manifestJson = JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true });
+                var manifestEntry = archive.CreateEntry("manifest.json", CompressionLevel.Optimal);
+                using var manifestStream = manifestEntry.Open();
+                using var writer = new StreamWriter(manifestStream);
+                writer.Write(manifestJson);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create application backup package");
+                throw new IOException("Failed to create application backup package.", ex);
+            }
+            finally
+            {
+                TryDeleteDirectory(tempDirectory);
+            }
+        }
+
+        private string RestoreApplicationBackupPackage(string backupFilePath, string safetyBackupDirectory, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(backupFilePath))
+                throw new ArgumentException("Backup package path is required.", nameof(backupFilePath));
+            if (!File.Exists(backupFilePath))
+                throw new FileNotFoundException("Backup package was not found.", backupFilePath);
+
+            var safetyDirectory = string.IsNullOrWhiteSpace(safetyBackupDirectory)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                : safetyBackupDirectory;
+            Directory.CreateDirectory(safetyDirectory);
+            var safetyBackupPath = Path.Combine(
+                safetyDirectory,
+                $"pre-restore-{DateTime.Now:yyyyMMdd-HHmmss}.inventory-backup.zip");
+
+            CreateApplicationBackupPackage(safetyBackupPath, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var tempDirectory = Path.Combine(Path.GetTempPath(), "InventoryManagementAppRestore-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDirectory);
+
+            try
+            {
+                ExtractBackupPackage(backupFilePath, tempDirectory, cancellationToken);
+                var restoredDatabasePath = Path.Combine(tempDirectory, "database", "inventory.db");
+                if (!File.Exists(restoredDatabasePath))
+                    throw new InvalidDataException("Backup package does not contain database/inventory.db.");
+
+                var databasePath = GetDatabaseFilePath();
+                var databaseDirectory = Path.GetDirectoryName(databasePath);
+                if (!string.IsNullOrWhiteSpace(databaseDirectory))
+                    Directory.CreateDirectory(databaseDirectory);
+
+                SqliteConnection.ClearAllPools();
+                File.Copy(restoredDatabasePath, databasePath, overwrite: true);
+                DeleteSqliteSidecarFiles(databasePath);
+
+                var currentAssetsDirectory = GetAssetsDirectory();
+                var restoredAssetsDirectory = Path.Combine(tempDirectory, "assets");
+                if (Directory.Exists(currentAssetsDirectory))
+                    Directory.Delete(currentAssetsDirectory, recursive: true);
+                if (Directory.Exists(restoredAssetsDirectory))
+                    CopyDirectory(restoredAssetsDirectory, currentAssetsDirectory, cancellationToken);
+                else
+                    Directory.CreateDirectory(currentAssetsDirectory);
+
+                return safetyBackupPath;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to restore application backup package");
+                throw new IOException("Failed to restore application backup package.", ex);
+            }
+            finally
+            {
+                TryDeleteDirectory(tempDirectory);
+            }
+        }
+
+        private static void ExtractBackupPackage(string backupFilePath, string destinationDirectory, CancellationToken cancellationToken)
+        {
+            var destinationRoot = Path.GetFullPath(destinationDirectory);
+            using var archive = ZipFile.OpenRead(backupFilePath);
+            foreach (var entry in archive.Entries)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (string.IsNullOrWhiteSpace(entry.Name))
+                    continue;
+
+                var destinationPath = Path.GetFullPath(Path.Combine(destinationRoot, entry.FullName));
+                if (!destinationPath.StartsWith(destinationRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("Backup package contains an invalid file path.");
+
+                var directory = Path.GetDirectoryName(destinationPath);
+                if (!string.IsNullOrWhiteSpace(directory))
+                    Directory.CreateDirectory(directory);
+                entry.ExtractToFile(destinationPath, overwrite: true);
+            }
+        }
+
+        private static void CopyDirectory(string sourceDirectory, string destinationDirectory, CancellationToken cancellationToken)
+        {
+            Directory.CreateDirectory(destinationDirectory);
+            foreach (var directory in Directory.EnumerateDirectories(sourceDirectory, "*", SearchOption.AllDirectories))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var relativePath = Path.GetRelativePath(sourceDirectory, directory);
+                Directory.CreateDirectory(Path.Combine(destinationDirectory, relativePath));
+            }
+
+            foreach (var file in Directory.EnumerateFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var relativePath = Path.GetRelativePath(sourceDirectory, file);
+                var destinationPath = Path.Combine(destinationDirectory, relativePath);
+                var destinationParent = Path.GetDirectoryName(destinationPath);
+                if (!string.IsNullOrWhiteSpace(destinationParent))
+                    Directory.CreateDirectory(destinationParent);
+                File.Copy(file, destinationPath, overwrite: true);
+            }
+        }
+
+        private static void DeleteSqliteSidecarFiles(string databasePath)
+        {
+            foreach (var suffix in new[] { "-wal", "-shm" })
+            {
+                var sidecar = databasePath + suffix;
+                if (File.Exists(sidecar))
+                    File.Delete(sidecar);
+            }
+        }
+
+        private static void TryDeleteDirectory(string directory)
+        {
+            try
+            {
+                if (Directory.Exists(directory))
+                    Directory.Delete(directory, recursive: true);
+            }
+            catch
+            {
+                // Temporary cleanup failure should not hide the backup or restore result.
+            }
+        }
     }
 }

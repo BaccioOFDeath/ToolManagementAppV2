@@ -56,7 +56,7 @@ namespace InventoryManagementApp.ViewModels
             : $"Image import requires the {User.PermissionLabels[User.PermissionImportExport]} permission. Ask an admin to grant it before mapping photos to {LabelProvider.Instance.ItemLabelPlural}.";
 
         public string BackupSummary =>
-            "Create a database backup before large imports, bulk cleanup, or workstation changes.";
+            "Create or restore a full recovery package containing the database and app assets.";
 
         private string? _selectedImportExportLog;
         public string? SelectedImportExportLog
@@ -88,6 +88,7 @@ namespace InventoryManagementApp.ViewModels
         /// keeping the interface responsive while the operation runs.
         /// </remarks>
         public IAsyncRelayCommand BackupDatabaseCommand { get; }
+        public IAsyncRelayCommand RestoreBackupCommand { get; }
 
         public ObservableCollection<string> ImportExportLogs { get; } = new();
 
@@ -158,6 +159,7 @@ namespace InventoryManagementApp.ViewModels
             ImportCustomersCommand = new AsyncRelayCommand(ct => ImportCustomersAsync(ct));
             ExportCustomersCommand = new AsyncRelayCommand(ct => ExportCustomersAsync(ct));
             BackupDatabaseCommand = new AsyncRelayCommand(ct => BackupDatabaseAsync(ct));
+            RestoreBackupCommand = new AsyncRelayCommand(ct => RestoreBackupAsync(ct));
             ClearImportExportLogsCommand = new RelayCommand(ClearImportExportLogs, () => HasLogEntries);
         }
 
@@ -471,7 +473,7 @@ namespace InventoryManagementApp.ViewModels
         }
 
         /// <summary>
-        /// Prompts the user for a destination file and backs up the database asynchronously.
+        /// Prompts the user for a destination file and backs up the database plus app assets asynchronously.
         /// </summary>
         /// <remarks>
         /// The backup is performed using asynchronous I/O, allowing the UI thread to remain responsive
@@ -487,32 +489,82 @@ namespace InventoryManagementApp.ViewModels
                 var initialDirectory = _rentalConfigService == null
                     ? null
                     : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
-                path = _fileDialogService.SaveFile("SQLite Database|*.db", initialDirectory);
+                path = _fileDialogService.SaveFile("Inventory Backup Package|*.inventory-backup.zip|Zip Files|*.zip", initialDirectory);
                 if (string.IsNullOrWhiteSpace(path))
                 {
-                    await CancelFileSelectionAsync("Database backup destination selection was cancelled.", "Database Backup");
+                    await CancelFileSelectionAsync("Full backup destination selection was cancelled.", "Full Backup");
                     return;
                 }
 
-                await _databaseService.BackupDatabaseAsync(path, cancellationToken);
-                var successMessage = $"Successfully backed up database to {path}.";
+                await _databaseService.BackupApplicationAsync(path, cancellationToken);
+                var successMessage = $"Successfully created full backup package at {path}.";
                 AddLog(successMessage);
-                await _dialogService.ShowInfoAsync(successMessage, "Database Backup");
+                await _dialogService.ShowInfoAsync(successMessage, "Full Backup");
             }
             catch (OperationCanceledException)
             {
-                const string message = "Database backup was cancelled.";
+                const string message = "Full backup was cancelled.";
                 AddLog(message);
-                await _dialogService.ShowInfoAsync(message, "Database Backup");
+                await _dialogService.ShowInfoAsync(message, "Full Backup");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to backup database to {Path}", path);
+                _logger.LogError(ex, "Failed to create full backup package at {Path}", path);
                 var failureMessage = string.IsNullOrWhiteSpace(path)
-                    ? $"Failed to start database backup: {ex.Message}"
-                    : $"Failed to backup database to {path}: {ex.Message}";
+                    ? $"Failed to start full backup: {ex.Message}"
+                    : $"Failed to create full backup package at {path}: {ex.Message}";
                 AddLog(failureMessage);
-                await _dialogService.ShowInfoAsync(failureMessage, "Database Backup");
+                await _dialogService.ShowInfoAsync(failureMessage, "Full Backup");
+            }
+        }
+
+        async Task RestoreBackupAsync(CancellationToken cancellationToken)
+        {
+            string? path = null;
+
+            try
+            {
+                var initialDirectory = _rentalConfigService == null
+                    ? null
+                    : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
+                path = _fileDialogService.OpenFile("Inventory Backup Package|*.inventory-backup.zip;*.zip|All Files|*.*", initialDirectory);
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    await CancelFileSelectionAsync("Backup package selection was cancelled.", "Restore Backup");
+                    return;
+                }
+
+                var confirmed = await _dialogService.ShowConfirmationAsync(
+                    "Restoring a backup will replace the current database and app assets. A safety backup of the current data will be created first. Continue?",
+                    "Restore Backup").ConfigureAwait(false);
+                if (!confirmed)
+                {
+                    const string cancelledMessage = "Restore backup was cancelled before changes were made.";
+                    AddLog(cancelledMessage);
+                    await _dialogService.ShowInfoAsync(cancelledMessage, "Restore Backup").ConfigureAwait(false);
+                    return;
+                }
+
+                var safetyBackupDirectory = initialDirectory ?? Path.GetDirectoryName(path) ?? AppContext.BaseDirectory;
+                var safetyBackupPath = await _databaseService.RestoreApplicationBackupAsync(path, safetyBackupDirectory, cancellationToken).ConfigureAwait(false);
+                var successMessage = $"Successfully restored backup package from {path}. Safety backup created at {safetyBackupPath}. Restart the app before continuing work.";
+                AddLog(successMessage);
+                await _dialogService.ShowInfoAsync(successMessage, "Restore Backup").ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                const string message = "Restore backup was cancelled.";
+                AddLog(message);
+                await _dialogService.ShowInfoAsync(message, "Restore Backup").ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to restore backup package from {Path}", path);
+                var failureMessage = string.IsNullOrWhiteSpace(path)
+                    ? $"Failed to start backup restore: {ex.Message}"
+                    : $"Failed to restore backup package from {path}: {ex.Message}";
+                AddLog(failureMessage);
+                await _dialogService.ShowInfoAsync(failureMessage, "Restore Backup").ConfigureAwait(false);
             }
         }
     }

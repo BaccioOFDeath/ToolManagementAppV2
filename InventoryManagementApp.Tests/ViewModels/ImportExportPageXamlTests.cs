@@ -36,6 +36,7 @@ namespace InventoryManagementApp.Tests.ViewModels
                 "ImportCustomersCommand",
                 "ExportCustomersCommand",
                 "BackupDatabaseCommand",
+                "RestoreBackupCommand",
                 "OpenImageImportMappingWindowCommand",
                 "ClearImportExportLogsCommand",
                 "ImportExportLogGrid_MouseDoubleClick",
@@ -112,8 +113,9 @@ namespace InventoryManagementApp.Tests.ViewModels
                 "await _dialogService.ShowInfoAsync(errorMessage, \"Export Customers\");",
                 "await _dialogService.ShowInfoAsync(failureMessage, \"Export Customers\");",
                 "await _dialogService.ShowInfoAsync(message, \"Export Customers\");",
-                "await _dialogService.ShowInfoAsync(failureMessage, \"Database Backup\");",
-                "await _dialogService.ShowInfoAsync(message, \"Database Backup\");");
+                "await _dialogService.ShowInfoAsync(failureMessage, \"Full Backup\");",
+                "await _dialogService.ShowInfoAsync(message, \"Full Backup\");",
+                "await _dialogService.ShowInfoAsync(failureMessage, \"Restore Backup\").ConfigureAwait(false);");
         }
 
         [Fact]
@@ -126,12 +128,12 @@ namespace InventoryManagementApp.Tests.ViewModels
                 "async Task BackupDatabaseAsync(CancellationToken cancellationToken)",
                 "string? path = null;",
                 "var initialDirectory = _rentalConfigService == null",
-                "path = _fileDialogService.SaveFile(\"SQLite Database|*.db\", initialDirectory);",
+                "path = _fileDialogService.SaveFile(\"Inventory Backup Package|*.inventory-backup.zip|Zip Files|*.zip\", initialDirectory);",
                 "var failureMessage = string.IsNullOrWhiteSpace(path)",
-                "? $\"Failed to start database backup: {ex.Message}\"",
-                ": $\"Failed to backup database to {path}: {ex.Message}\";",
+                "? $\"Failed to start full backup: {ex.Message}\"",
+                ": $\"Failed to create full backup package at {path}: {ex.Message}\";",
                 "AddLog(failureMessage);",
-                "await _dialogService.ShowInfoAsync(failureMessage, \"Database Backup\");");
+                "await _dialogService.ShowInfoAsync(failureMessage, \"Full Backup\");");
         }
 
         [Fact]
@@ -148,7 +150,8 @@ namespace InventoryManagementApp.Tests.ViewModels
                 "await CancelFileSelectionAsync($\"{plural} export destination selection was cancelled.\", $\"Export {plural}\");",
                 "await CancelFileSelectionAsync(\"Customer import file selection was cancelled.\", \"Import Customers\");",
                 "await CancelFileSelectionAsync(\"Customer export destination selection was cancelled.\", \"Export Customers\");",
-                "await CancelFileSelectionAsync(\"Database backup destination selection was cancelled.\", \"Database Backup\");");
+                "await CancelFileSelectionAsync(\"Full backup destination selection was cancelled.\", \"Full Backup\");",
+                "await CancelFileSelectionAsync(\"Backup package selection was cancelled.\", \"Restore Backup\");");
         }
 
         [Fact]
@@ -169,8 +172,10 @@ namespace InventoryManagementApp.Tests.ViewModels
                 "var successMessage = $\"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).\";",
                 "var successMessage = $\"Successfully exported customers to {path} ({exporter.FormatName} format).\";",
                 "await _dialogService.ShowInfoAsync(successMessage, \"Export Customers\");",
-                "var successMessage = $\"Successfully backed up database to {path}.\";",
-                "await _dialogService.ShowInfoAsync(successMessage, \"Database Backup\");");
+                "var successMessage = $\"Successfully created full backup package at {path}.\";",
+                "await _dialogService.ShowInfoAsync(successMessage, \"Full Backup\");",
+                "var successMessage = $\"Successfully restored backup package from {path}. Safety backup created at {safetyBackupPath}. Restart the app before continuing work.\";",
+                "await _dialogService.ShowInfoAsync(successMessage, \"Restore Backup\")");
         }
 
         [Fact]

@@ -64,8 +64,8 @@
                     <Border Style="{StaticResource DataOperationStatCard}">
                         <StackPanel>
                             <TextBlock Text="PROTECTION" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="Backup First" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
-                            <TextBlock Text="Restore point ready" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Full Backup" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="Database and assets" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource DesktopSummaryCard}" Padding="12,10" MinHeight="78">
@@ -91,7 +91,7 @@
                         <Button Style="{StaticResource PrimaryButton}" Content="Export Items" Command="{Binding ExportItemsCommand}" MinWidth="118" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Import Customers" Command="{Binding ImportCustomersCommand}" MinWidth="132" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Export Customers" Command="{Binding ExportCustomersCommand}" MinWidth="132" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource DataActionButton}" Content="Backup Database" Command="{Binding BackupDatabaseCommand}"/>
+                        <Button Style="{StaticResource DataActionButton}" Content="Create Full Backup" Command="{Binding BackupDatabaseCommand}"/>
                         <Button Style="{StaticResource DataActionButton}" Content="Cancel Import" Command="{Binding CancelImportItemsCommand}" IsEnabled="{Binding ImportItemsCommand.IsRunning}"/>
                     </WrapPanel>
                 </DockPanel>
@@ -155,7 +155,7 @@
                                             <TextBlock Text="Recovery Point" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                                             <TextBlock Text="{Binding BackupSummary}" Style="{StaticResource DataLaneText}"/>
                                             <TextBlock Text="Recommended before large imports, image remaps, and workstation migration." Style="{StaticResource DataLaneText}"/>
-                                            <Button Style="{StaticResource PrimaryButton}" Content="Backup Database" Command="{Binding BackupDatabaseCommand}" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                                            <Button Style="{StaticResource PrimaryButton}" Content="Create Full Backup" Command="{Binding BackupDatabaseCommand}" HorizontalAlignment="Left" Margin="0,10,0,0"/>
                                         </StackPanel>
                                     </Border>
                                     <Border Style="{StaticResource DataLaneCard}">
@@ -355,12 +355,15 @@
                                     </StackPanel>
                                 </Border>
                                 <StackPanel Grid.Row="1" Margin="12">
-                                    <TextBlock Text="Database Backup" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Full Backup and Restore" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                                     <TextBlock Text="{Binding BackupSummary}" TextWrapping="Wrap" Margin="0,4,0,12"/>
                                     <Border Style="{StaticResource DataLaneCard}">
-                                        <TextBlock Text="Recommended before imports, image remaps, customer cleanup, or workstation migration." TextWrapping="Wrap"/>
+                                        <TextBlock Text="Recommended before imports, image remaps, customer cleanup, workstation migration, or restoring older data." TextWrapping="Wrap"/>
                                     </Border>
-                                    <Button Style="{StaticResource PrimaryButton}" Content="Choose Backup File" Command="{Binding BackupDatabaseCommand}" HorizontalAlignment="Left" Margin="0,6,0,0"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <Button Style="{StaticResource PrimaryButton}" Content="Create Full Backup" Command="{Binding BackupDatabaseCommand}" HorizontalAlignment="Left" Margin="0,0,6,0"/>
+                                        <Button Style="{StaticResource GhostButton}" Content="Restore Backup" Command="{Binding RestoreBackupCommand}" HorizontalAlignment="Left"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </Grid>
                         </Border>
