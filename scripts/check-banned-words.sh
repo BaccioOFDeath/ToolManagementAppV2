@@ -57,6 +57,16 @@ $allowedRelativePaths = @(
 $allowedPathPrefixes = @(
     "Legacy Tool Manager/Legacy data/"
 )
+$ignoredPathPrefixes = @(
+    ".git/",
+    "ValidationLogs/",
+    "TestResults/"
+)
+$ignoredPathSegments = @(
+    "/bin/",
+    "/obj/",
+    "/publish/"
+)
 $matches = Get-ChildItem -Path . -Recurse -File -Force |
     Where-Object {
         $relative = $_.FullName.Substring($root.Length).TrimStart([char[]]@('\', '/')).Replace('\', '/')
@@ -71,9 +81,25 @@ $matches = Get-ChildItem -Path . -Recurse -File -Force |
             }
         }
 
-        $relative -notlike ".git/*" -and
-            $relative -notmatch '(^|/)\.[^/]+($|/)' -and
-            $relative -notmatch '(^|/)(bin|obj|publish)/' -and
+        $isIgnoredPathPrefix = $false
+        foreach ($ignoredPathPrefix in $ignoredPathPrefixes) {
+            if ($relative.StartsWith($ignoredPathPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                $isIgnoredPathPrefix = $true
+                break
+            }
+        }
+
+        $normalizedRelative = "/$relative/"
+        $isIgnoredPathSegment = $false
+        foreach ($ignoredPathSegment in $ignoredPathSegments) {
+            if ($normalizedRelative.IndexOf($ignoredPathSegment, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                $isIgnoredPathSegment = $true
+                break
+            }
+        }
+
+        -not $isIgnoredPathPrefix -and
+            -not $isIgnoredPathSegment -and
             -not $isAllowedRelativePath -and
             -not $isAllowedPathPrefix -and
             ($textFileExtensions -contains $extension -or $textFileNames -contains $fileName)
@@ -96,12 +122,14 @@ POWERSHELL
   exit 127
 fi
 
-if rg --ignore-case --line-number \
+if rg --hidden --ignore-case --line-number \
   --glob '!Items.csv' \
   --glob '!items.csv' \
   --glob '!scripts/check-banned-words.sh' \
   --glob '!Legacy Tool Manager/Legacy data/**' \
   --glob '!.git/**' \
+  --glob '!ValidationLogs/**' \
+  --glob '!TestResults/**' \
   --glob '!**/bin/**' \
   --glob '!**/obj/**' \
   --glob '!**/publish/**' \

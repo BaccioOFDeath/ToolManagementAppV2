@@ -59,6 +59,21 @@ namespace InventoryManagementApp.Services.Reservations
             });
         }
 
+        public async Task<int> CountReservationsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(r.ReservationID)
+                    FROM Reservations r
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID";
+                using var cmd = new SqliteCommand(sql, conn);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
         /// <summary>
         /// Retrieves all active reservations (pending or confirmed status), ordered by start date.
         /// </summary>
@@ -183,6 +198,43 @@ namespace InventoryManagementApp.Services.Reservations
             });
         }
 
+        public async Task<int> CountActiveReservationsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(r.ReservationID)
+                    FROM Reservations r
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID
+                    WHERE r.Status IN ('Pending', 'Confirmed')";
+                using var cmd = new SqliteCommand(sql, conn);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
+        public async Task<int> CountUpcomingReservationsAsync(int days = 7)
+        {
+            if (days < 0)
+                throw new ArgumentOutOfRangeException(nameof(days), "Days must be greater than or equal to 0.");
+
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(r.ReservationID)
+                    FROM Reservations r
+                    JOIN Items i ON r.ItemID = i.ItemID
+                    JOIN Customers c ON r.CustomerID = c.CustomerID
+                    WHERE r.Status IN ('Pending', 'Confirmed')
+                    AND r.StartDate <= @FutureDate";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@FutureDate", DateTime.Now.AddDays(days));
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
         public async Task<Reservation?> GetReservationByIdAsync(int reservationID)
         {
             if (reservationID < 1)
@@ -211,6 +263,7 @@ namespace InventoryManagementApp.Services.Reservations
         public async Task<int> CreateReservationAsync(Reservation reservation)
         {
             ValidateReservation(reservation, requireExistingId: false);
+            NormalizeReservationForSave(reservation);
 
             var id = await Task.Run(() =>
             {
@@ -231,7 +284,7 @@ namespace InventoryManagementApp.Services.Reservations
                 cmd.Parameters.AddWithValue("@StartDate", reservation.StartDate);
                 cmd.Parameters.AddWithValue("@EndDate", reservation.EndDate);
                 cmd.Parameters.AddWithValue("@Quantity", reservation.Quantity);
-                cmd.Parameters.AddWithValue("@Status", NormalizeStatus(reservation.Status));
+                cmd.Parameters.AddWithValue("@Status", reservation.Status);
                 cmd.Parameters.AddWithValue("@Notes", ToDbNullableText(reservation.Notes));
                 cmd.Parameters.AddWithValue("@CreatedByUserID", _userContext.CurrentUser?.UserID ?? 0);
                 cmd.Parameters.AddWithValue("@CreatedAt", DateTime.Now);
@@ -252,6 +305,7 @@ namespace InventoryManagementApp.Services.Reservations
         public async Task<bool> UpdateReservationAsync(Reservation reservation)
         {
             ValidateReservation(reservation, requireExistingId: true);
+            NormalizeReservationForSave(reservation);
 
             var updated = await Task.Run(() =>
             {
@@ -278,7 +332,7 @@ namespace InventoryManagementApp.Services.Reservations
                 cmd.Parameters.AddWithValue("@StartDate", reservation.StartDate);
                 cmd.Parameters.AddWithValue("@EndDate", reservation.EndDate);
                 cmd.Parameters.AddWithValue("@Quantity", reservation.Quantity);
-                cmd.Parameters.AddWithValue("@Status", NormalizeStatus(reservation.Status));
+                cmd.Parameters.AddWithValue("@Status", reservation.Status);
                 cmd.Parameters.AddWithValue("@Notes", ToDbNullableText(reservation.Notes));
                 cmd.Parameters.AddWithValue("@RentalID", reservation.RentalID.HasValue ? (object)reservation.RentalID.Value : DBNull.Value);
                 var updatedRows = cmd.ExecuteNonQuery();
@@ -423,20 +477,26 @@ namespace InventoryManagementApp.Services.Reservations
                 ReservationID = reader.GetInt32(reader.GetOrdinal("ReservationID")),
                 ItemID = reader.GetInt32(reader.GetOrdinal("ItemID")),
                 CustomerID = reader.GetInt32(reader.GetOrdinal("CustomerID")),
-                ItemNumber = reader.IsDBNull(reader.GetOrdinal("ItemNumber")) ? "" : reader.GetString(reader.GetOrdinal("ItemNumber")),
-                ItemName = reader.IsDBNull(reader.GetOrdinal("ItemName")) ? "" : reader.GetString(reader.GetOrdinal("ItemName")),
-                CustomerName = reader.IsDBNull(reader.GetOrdinal("CustomerName")) ? "" : reader.GetString(reader.GetOrdinal("CustomerName")),
-                ImagePath = reader.IsDBNull(reader.GetOrdinal("ImagePath")) ? "" : reader.GetString(reader.GetOrdinal("ImagePath")),
+                ItemNumber = NormalizeReservationReadText(reader, "ItemNumber"),
+                ItemName = NormalizeReservationReadText(reader, "ItemName"),
+                CustomerName = NormalizeReservationReadText(reader, "CustomerName"),
+                ImagePath = NormalizeReservationReadText(reader, "ImagePath"),
                 ReservationDate = reader.GetDateTime(reader.GetOrdinal("ReservationDate")),
                 StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
                 EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
                 Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
-                Status = reader.GetString(reader.GetOrdinal("Status")),
-                Notes = reader.IsDBNull(reader.GetOrdinal("Notes")) ? "" : reader.GetString(reader.GetOrdinal("Notes")),
+                Status = NormalizeReservationReadText(reader, "Status"),
+                Notes = NormalizeReservationReadText(reader, "Notes"),
                 CreatedByUserID = reader.GetInt32(reader.GetOrdinal("CreatedByUserID")),
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
                 RentalID = reader.IsDBNull(reader.GetOrdinal("RentalID")) ? null : reader.GetInt32(reader.GetOrdinal("RentalID"))
             };
+        }
+
+        private static string NormalizeReservationReadText(SqliteDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal).Trim();
         }
 
         private static void ValidateReservation(Reservation reservation, bool requireExistingId)
@@ -453,6 +513,12 @@ namespace InventoryManagementApp.Services.Reservations
                 throw new ArgumentOutOfRangeException(nameof(reservation.Quantity), "Quantity must be greater than 0.");
             if (reservation.EndDate < reservation.StartDate)
                 throw new ArgumentException("End date must be on or after start date.", nameof(reservation.EndDate));
+        }
+
+        private static void NormalizeReservationForSave(Reservation reservation)
+        {
+            reservation.Status = NormalizeStatus(reservation.Status);
+            reservation.Notes = NormalizeOptionalText(reservation.Notes);
         }
 
         private static void EnsureReservationExists(SqliteConnection conn, int reservationID)
@@ -518,8 +584,11 @@ namespace InventoryManagementApp.Services.Reservations
 
         private static object ToDbNullableText(string? value)
         {
-            return string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
+            var normalized = NormalizeOptionalText(value);
+            return string.IsNullOrEmpty(normalized) ? DBNull.Value : normalized;
         }
+
+        private static string NormalizeOptionalText(string? value) => value?.Trim() ?? string.Empty;
 
         static void NotifyChanged(DomainDataScope scope, int? entityId = null)
         {

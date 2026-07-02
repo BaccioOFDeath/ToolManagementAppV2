@@ -15,19 +15,60 @@ namespace InventoryManagementApp.Tests
                 "public async Task SaveSettingAsync",
                 "        /// <summary>\n        /// Retrieves a setting value from the database.");
 
-            Assert.Contains("var normalizedKey = key.Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("var normalizedKey = NormalizeRequiredSettingKey(key, nameof(key));", method, StringComparison.Ordinal);
             Assert.Contains("new SqliteParameter(\"@Key\", normalizedKey)", method, StringComparison.Ordinal);
             Assert.Contains("var affectedRows = await SqliteHelper.ExecuteNonQueryAsync", method, StringComparison.Ordinal);
             Assert.Contains("EnsureSettingsWriteSucceeded(affectedRows, normalizedKey);", method, StringComparison.Ordinal);
             Assert.Contains("Failed to save setting '{normalizedKey}'.", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("new SqliteParameter(\"@Key\", key)", method, StringComparison.Ordinal);
             Assert.DoesNotContain("await SqliteHelper.ExecuteNonQueryAsync(conn, UpsertSql, p, cancellationToken).ConfigureAwait(false);", method, StringComparison.Ordinal);
 
             Assert.True(
-                method.IndexOf("var normalizedKey = key.Trim();", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@Key\", normalizedKey)", StringComparison.Ordinal),
+                method.IndexOf("var normalizedKey = NormalizeRequiredSettingKey(key, nameof(key));", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@Key\", normalizedKey)", StringComparison.Ordinal),
                 "Single setting writes should bind the normalized key.");
             Assert.True(
                 method.IndexOf("var affectedRows = await SqliteHelper.ExecuteNonQueryAsync", StringComparison.Ordinal) < method.IndexOf("EnsureSettingsWriteSucceeded(affectedRows, normalizedKey);", StringComparison.Ordinal),
                 "Single setting writes should capture affected rows before checking the upsert result.");
+        }
+
+        [Fact]
+        public void GetSettingNormalizesKeysAndRejectsBlankKeysBeforeConnectionWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Settings", "SettingsService.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task<string?> GetSettingAsync",
+                "public async Task<Dictionary<string, string>> GetAllSettingsAsync");
+
+            Assert.Contains("var normalizedKey = NormalizeOptionalSettingKey(key);", method, StringComparison.Ordinal);
+            Assert.Contains("if (normalizedKey is null)", method, StringComparison.Ordinal);
+            Assert.Contains("return null;", method, StringComparison.Ordinal);
+            Assert.Contains("new SqliteParameter(\"@Key\", normalizedKey)", method, StringComparison.Ordinal);
+            Assert.Contains("Retrieving setting {Key} canceled or timed out", method, StringComparison.Ordinal);
+            Assert.Contains("Failed to retrieve setting '{normalizedKey}'.", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("new SqliteParameter(\"@Key\", key)", method, StringComparison.Ordinal);
+
+            Assert.True(
+                method.IndexOf("if (normalizedKey is null)", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection();", StringComparison.Ordinal),
+                "Blank read keys should return without opening a database connection.");
+            Assert.True(
+                method.IndexOf("var normalizedKey = NormalizeOptionalSettingKey(key);", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@Key\", normalizedKey)", StringComparison.Ordinal),
+                "Setting reads should bind the normalized key.");
+        }
+
+        [Fact]
+        public void GetAllSettingsNormalizesReturnedKeysAndSkipsBlankStoredKeys()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Settings", "SettingsService.cs");
+            var method = ExtractMethod(
+                source,
+                "public async Task<Dictionary<string, string>> GetAllSettingsAsync",
+                "        /// <summary>\n        /// Updates or inserts multiple settings within a single transaction.");
+
+            Assert.Contains("var key = NormalizeOptionalSettingKey(rdr[\"Key\"]?.ToString());", method, StringComparison.Ordinal);
+            Assert.Contains("if (key != null && value != null)", method, StringComparison.Ordinal);
+            Assert.Contains("dict[key] = value;", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("dict[rdr[\"Key\"]", method, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -41,7 +82,7 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("var normalizedSettings = new List<KeyValuePair<string, string>>(settings.Count);", method, StringComparison.Ordinal);
             Assert.Contains("var normalizedKeys = new HashSet<string>(StringComparer.Ordinal);", method, StringComparison.Ordinal);
-            Assert.Contains("var normalizedKey = kv.Key.Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("var normalizedKey = NormalizeRequiredSettingKey(kv.Key, nameof(settings));", method, StringComparison.Ordinal);
             Assert.Contains("throw new ArgumentException(\"Duplicate setting keys are not allowed.\", nameof(settings));", method, StringComparison.Ordinal);
             Assert.Contains("normalizedSettings.Add(new KeyValuePair<string, string>(normalizedKey, kv.Value));", method, StringComparison.Ordinal);
             Assert.Contains("foreach (var kv in normalizedSettings)", method, StringComparison.Ordinal);
@@ -68,20 +109,66 @@ namespace InventoryManagementApp.Tests
             var method = ExtractMethod(
                 source,
                 "public async Task DeleteSettingAsync",
-                "static void EnsureSettingsWriteSucceeded");
+                "static string? NormalizeOptionalSettingKey");
 
-            Assert.Contains("if (string.IsNullOrWhiteSpace(key))", method, StringComparison.Ordinal);
-            Assert.Contains("throw new ArgumentException(\"Key cannot be null or empty.\", nameof(key));", method, StringComparison.Ordinal);
-            Assert.Contains("var normalizedKey = key.Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("var normalizedKey = NormalizeRequiredSettingKey(key, nameof(key));", method, StringComparison.Ordinal);
             Assert.Contains("new SqliteParameter(\"@Key\", normalizedKey)", method, StringComparison.Ordinal);
             Assert.Contains("No setting found for key {Key}", method, StringComparison.Ordinal);
+            Assert.DoesNotContain("new SqliteParameter(\"@Key\", key)", method, StringComparison.Ordinal);
 
             Assert.True(
-                method.IndexOf("if (string.IsNullOrWhiteSpace(key))", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection();", StringComparison.Ordinal),
+                method.IndexOf("var normalizedKey = NormalizeRequiredSettingKey(key, nameof(key));", StringComparison.Ordinal) < method.IndexOf("using var conn = _dbService.CreateConnection();", StringComparison.Ordinal),
                 "Invalid delete keys should fail before opening a database connection.");
             Assert.True(
-                method.IndexOf("var normalizedKey = key.Trim();", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@Key\", normalizedKey)", StringComparison.Ordinal),
+                method.IndexOf("var normalizedKey = NormalizeRequiredSettingKey(key, nameof(key));", StringComparison.Ordinal) < method.IndexOf("new SqliteParameter(\"@Key\", normalizedKey)", StringComparison.Ordinal),
                 "Setting delete should bind the normalized key.");
+        }
+
+        [Fact]
+        public void SettingKeyNormalizationHelpersPreserveReadAndWriteContracts()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Settings", "SettingsService.cs");
+
+            Assert.Contains("static string? NormalizeOptionalSettingKey(string? key)", source, StringComparison.Ordinal);
+            Assert.Contains("string.IsNullOrWhiteSpace(key) ? null : key.Trim();", source, StringComparison.Ordinal);
+            Assert.Contains("static string NormalizeRequiredSettingKey(string key, string parameterName)", source, StringComparison.Ordinal);
+            Assert.Contains("var normalizedKey = NormalizeOptionalSettingKey(key);", source, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentException(\"Key cannot be null or empty.\", parameterName);", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ItemDisplaySettingsNormalizeLabelsAndCanonicalizeVisibilitySaves()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Settings", "SettingsService.cs");
+            var singular = ExtractMethod(
+                source,
+                "public async Task SaveItemLabelSingularAsync",
+                "public async Task<string> GetItemLabelPluralAsync");
+            var plural = ExtractMethod(
+                source,
+                "public async Task SaveItemLabelPluralAsync",
+                "public async Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync");
+            var visibility = ExtractMethod(
+                source,
+                "public async Task SaveItemDetailVisibilityAsync",
+                "public async Task<double> GetItemCardSizeAsync");
+
+            Assert.Contains("return NormalizeDisplayLabel(value, \"Item\");", source, StringComparison.Ordinal);
+            Assert.Contains("return NormalizeDisplayLabel(value, \"Items\");", source, StringComparison.Ordinal);
+            Assert.Contains("var normalizedLabel = NormalizeDisplayLabel(label, \"Item\");", singular, StringComparison.Ordinal);
+            Assert.Contains("await SaveSettingAsync(ItemLabelSingularKey, normalizedLabel, cancellationToken).ConfigureAwait(false);", singular, StringComparison.Ordinal);
+            Assert.Contains("var normalizedLabel = NormalizeDisplayLabel(label, \"Items\");", plural, StringComparison.Ordinal);
+            Assert.Contains("await SaveSettingAsync(ItemLabelPluralKey, normalizedLabel, cancellationToken).ConfigureAwait(false);", plural, StringComparison.Ordinal);
+            Assert.Contains("static string NormalizeDisplayLabel(string? label, string defaultLabel)", source, StringComparison.Ordinal);
+            Assert.Contains("string.IsNullOrWhiteSpace(label) ? defaultLabel : label.Trim();", source, StringComparison.Ordinal);
+
+            Assert.Contains("if (visibility is null)", visibility, StringComparison.Ordinal);
+            Assert.Contains("throw new ArgumentNullException(nameof(visibility));", visibility, StringComparison.Ordinal);
+            Assert.Contains("var normalizedVisibility = Enum.GetValues<ItemDetailField>()", visibility, StringComparison.Ordinal);
+            Assert.Contains("visibility.TryGetValue(f, out var visible) ? visible : true", visibility, StringComparison.Ordinal);
+            Assert.Contains("var dict = normalizedVisibility.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value);", visibility, StringComparison.Ordinal);
+            Assert.Contains("ItemDetailVisibilityChanged?.Invoke(this, normalizedVisibility);", visibility, StringComparison.Ordinal);
+            Assert.DoesNotContain("ItemDetailVisibilityChanged?.Invoke(this, new Dictionary<ItemDetailField, bool>(visibility));", visibility, StringComparison.Ordinal);
         }
 
         [Fact]

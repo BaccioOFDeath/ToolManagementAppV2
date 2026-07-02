@@ -1,78 +1,113 @@
 # Current Status And Remaining Work
 
-Last updated: 2026-07-01.
+Last updated: 2026-07-02.
+
+## Current Release State
+
+The application is feature-rich and actively maintained, but it is not in a clean release state until the full Windows/.NET validation runner is executed and confirmed green on a current checkout.
+
+Current repository evidence:
+
+- The active application remains `InventoryManagementApp`, a WPF desktop app targeting `net10.0-windows` with SQLite persistence through `DatabaseService`.
+- The repository default branch is `master`.
+- Recent scheduled work has focused on release safety: validation diagnostics, dependency-audit visibility, bounded list/report/export reads, import/export setup guards, stale-write guards, and more honest printable report output.
+- Recent merged work completed the detailed-report truncation/count behavior in PR #1458 and paged customer export row collection through deterministic 500-row batches for both CSV and generic customer export workflows.
+- Item and customer import rows now normalize imported text before required-field validation, duplicate checks, in-file duplicate reservation, and insert work.
+- Normal item add/update/bulk-save paths now normalize user-entered item text before duplicate checks and repository persistence, sharing the import trimming rules for item identity/detail fields.
+- Maintenance and calibration create/update workflows now normalize operational record text before persistence, and maintenance completion trims performer and notes before marking a record completed.
+- Reservation create/update and kit create/update workflows now normalize persisted workflow text before reference checks and database writes.
+- User create/update workflows now normalize profile and access text before first-user/existing-user checks and database writes, including canonicalized permission keys and nullable optional profile fields.
+- Rental/email/company configuration text now normalizes user-entered display and delivery settings before persistence and readback while preserving password/API-key secret values.
+- Category/inventory linking now sends domain refresh messages when a new association is created, and inventory ensure/update now refreshes dependent item/report/category views when a normalized location label changes.
+- Settings readback now normalizes setting keys consistently with save/delete paths, item label settings trim/default display text, and item-detail visibility saves persist and broadcast a complete field map.
+- Rental list, history, and frequency readback now trims legacy item/customer/display text before screens, reports, reminders, and printable rental documents consume it.
+- Item repository readback now trims legacy item identity, detail, checkout attribution, image path, and incomplete/problem-note text through the shared item projection before grids, exports, dashboards, image import matching, reports, and item detail views consume it.
+- Reservation list and detail readback now trims legacy item number, item name, customer name, image path, status, and notes through the shared reservation mapper before reservation grids, upcoming views, detail views, reports, previews, and printable reservation-related output consume it.
+- Customer list, detail, search, and export readback now trims legacy company, email, contact, phone, mobile, and address text through the shared customer mapper before customer directory screens, handoff views, reports, printable output, and CSV/generic exports consume it.
+- Maintenance and calibration readback now trims legacy operational-record and joined item text before list/detail/report/print consumers receive those models, and maintenance overdue/upcoming filters now match legacy padded `Scheduled` statuses.
+- Activity Audit Workbench layout now uses wrapping bounded metrics, lower split minimums, explicit grid virtualization/scrollbars, and bounded handoff/empty-state areas for scaled desktop reliability.
+- Users Workbench layout now uses wrapping bounded account summary cards, lower directory/detail split pressure, explicit user-grid virtualization/scrollbars, bounded empty state, and reachable access/security handoff scrolling.
+- Reports Workbench layout now uses wrapping bounded report metrics, lower report-results/handoff split pressure, explicit result-grid virtualization/scrollbars, bounded empty state, and bounded row-handoff scrolling.
+- Maintenance Workbench layout now uses wrapping bounded schedule metrics, lower schedule/handoff split pressure, explicit schedule-grid virtualization/scrollbars, bounded empty state, reachable technician handoff scrolling, and wrapping footer actions.
+- Calibration Workbench layout now uses wrapping bounded certificate metrics, lower register/handoff split pressure, explicit calibration-grid virtualization/scrollbars, bounded empty state, reachable certificate handoff scrolling, and wrapping footer actions.
+- This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
 
-- Restore passes: `dotnet restore InventoryManagementApp.sln`.
-- Build passes: `dotnet build InventoryManagementApp.sln --no-restore`.
-- Full test suite most recently reported failures in brittle source-text contract tests.
-- A 2026-06-24 cleanup pass loosened the known brittle source-contract assertions for category, reservation, kit, rentals, maintenance/calibration, Import / Export, and item/rental workflow tests so they guard behavior markers without exact formatting/count assumptions.
-- A 2026-06-24 incremental Items pass hardened load-more failures so they clear visible rows and show operator feedback instead of escaping silently.
-- A 2026-06-24 dependency maintenance pass pinned the app to `Microsoft.Data.Sqlite` 10.0.9 and `SQLitePCLRaw.bundle_e_sqlite3` 3.0.3 so restore should resolve the supported `SourceGear.sqlite3` native package instead of the deprecated legacy native SQLite package.
-- A 2026-06-24 dependency consolidation pass aligned the app's direct `Microsoft.Extensions.*` runtime package pins with the net10 package line at 10.0.9.
-- A 2026-06-24 test infrastructure pass aligned the xUnit/VSTest package pins with the net10 test project by updating `Microsoft.NET.Test.Sdk`, `xunit`, and `xunit.runner.visualstudio` plus dependency-contract coverage.
-- A 2026-06-24 test dependency hygiene pass isolated `xunit.runner.visualstudio` test adapter assets with `PrivateAssets`/`IncludeAssets` metadata and source-contract coverage.
-- A 2026-06-24 test dependency hygiene pass kept all direct test-only package references private to the test project, including `Microsoft.NET.Test.Sdk`, `Moq`, `xunit`, and `xunit.runner.visualstudio`.
-- A 2026-06-24 dependency-security pass added repository-level NuGet auditing in `Directory.Build.props` with transitive audit mode and dependency-contract coverage.
-- A 2026-06-24 CI validation repair retargeted the Build and Test workflow to `master`/`main`, moved it to the net10 SDK, runs the solution-level restore/build/test commands, and includes the banned-word check before build.
-- A 2026-06-24 CI validation hardening pass replaced the banned-word script's broken no-`rg` fallback with a PowerShell file scan and added dependency-contract coverage so Windows runners can still check source text when ripgrep is unavailable.
-- A 2026-06-24 CI validation hardening follow-up made the no-`rg` fallback use either Windows PowerShell (`powershell.exe`) or PowerShell Core (`pwsh`) so the script remains usable on non-Windows validation hosts that have PowerShell Core but not ripgrep.
-- A 2026-06-24 CI publish repair added an explicit `win-x64` restore before the workflow's `--no-restore` publish step so runtime-specific assets are present for the Windows publish job.
-- A 2026-06-24 banned-word fallback hardening pass aligned the `rg` path and PowerShell fallback so both skip generated `bin` and `obj` folders, with dependency-contract coverage for both exclusion paths.
-- A 2026-06-24 CI validation consolidation pass added `BANNED_WORD_CHECK_FORCE_POWERSHELL=1` so the Build and Test workflow exercises the PowerShell banned-word fallback even when `rg` is available.
-- A 2026-06-24 banned-word fallback scan hardening pass limited the PowerShell fallback to known text/source file extensions and a few text file names, avoiding binary asset scans when the forced fallback runs in CI.
-- A 2026-06-24 validation readiness pass added `scripts/run-full-validation.ps1` to run the current restore, build, test, publish, normal banned-word, and forced PowerShell fallback validation sequence from one Windows/.NET-capable checkout.
-- A 2026-06-25 validation hardening pass excluded generated `publish/` output from both banned-word scan paths so the full validation runner can publish before running banned-word checks without scanning publish artifacts.
-- A 2026-06-25 validation runner hardening pass cleans the `publish/` output folder before publishing so full validation reports only freshly produced artifacts.
-- A 2026-06-25 validation runner visibility pass adds an explicit `dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive` audit step after restore so dependency advisory review has a dedicated log section.
-- A 2026-06-25 CI validation visibility pass adds the same explicit vulnerable-package audit step to the Windows Build and Test workflow immediately after restore, with dependency-contract coverage so CI and the local runner stay aligned.
-- A 2026-06-25 CI publish hardening pass cleans `publish/` before the workflow publishes artifacts, matching the local full validation runner's stale-output protection and guarding the ordering with source-contract coverage.
-- A 2026-06-25 documentation contract pass aligned the README manual validation sequence with the runner and CI by documenting the `publish/` cleanup before manual `dotnet publish`, with source-contract coverage for the command ordering.
-- A 2026-06-25 validation runner robustness pass resets and captures `$LASTEXITCODE` around each named validation step so PowerShell-native steps cannot inherit stale external-process exit codes.
-- A 2026-06-25 CI sequence alignment pass moves both Build and Test workflow banned-word scans after publish and before artifact upload so CI mirrors the full validation runner and README manual validation order.
-- A 2026-06-25 validation runner fast-path pass keeps `-SkipPublish` as a restore/audit/build/test-only shortcut and guards that publish, cleanup, and banned-word scans remain in the full validation path.
-- A 2026-07-01 validation diagnostics honesty pass clears stale `TestResults/` and full-run `publish/` output during the runner's opening cleanup step so early-failure artifact manifests cannot report previous-run test or publish artifacts.
-- Focused navigation menu tests pass after the dark-theme dropdown hover fix.
-- Banned-word script passes after line-ending cleanup, seeded CSV exclusions, and replacing the remaining standalone hits.
+Use the checked-in validation runner from a Windows/.NET-capable checkout:
 
-## Validation Needed Next
+```powershell
+pwsh -File scripts/run-full-validation.ps1
+```
 
-The current priority is to rerun full validation after the 2026-06-24 contract-test cleanup, SQLite native package pin, Microsoft.Extensions net10 package alignment, net10 test infrastructure alignment, xUnit runner asset isolation, private test-only package metadata, repository-level NuGet audit guard, Build and Test workflow retargeting, banned-word fallback repair, CI publish restore repair, generated-folder exclusion alignment, forced PowerShell fallback CI validation, PowerShell text-file scan narrowing, the checked-in validation runner, generated `publish/` output exclusion, publish-output cleanup, the explicit dependency-audit runner step, the matching CI vulnerable-package audit step, CI publish-output cleanup, README manual validation cleanup documentation, validation runner exit-code hardening, CI validation-sequence alignment, SkipPublish fast-path scoping, and up-front cleanup of manifest artifact groups:
+For a faster compile-and-test checkpoint without publish/source-scan phases:
 
-- `pwsh -File scripts/run-full-validation.ps1`
+```powershell
+pwsh -File scripts/run-full-validation.ps1 -SkipPublish
+```
 
-The runner executes:
+The full runner is expected to:
 
-- clean existing validation logs, stale `TestResults/`, and, for full validation, stale `publish/` output before restore/build/test can fail and write a manifest
-- `dotnet restore InventoryManagementApp.sln`
-- `dotnet list InventoryManagementApp.sln package --vulnerable --include-transitive`
-- `dotnet build InventoryManagementApp.sln --configuration Release --no-restore`
-- `dotnet test InventoryManagementApp.sln --configuration Release --no-build --verbosity normal`
-- `dotnet restore InventoryManagementApp/InventoryManagementApp.csproj --runtime win-x64`
-- clean existing `publish/` output again immediately before publish
-- `dotnet publish InventoryManagementApp/InventoryManagementApp.csproj -c Release -r win-x64 --self-contained false --no-restore -o ./publish`
-- `scripts/check-banned-words.sh`
-- `BANNED_WORD_CHECK_FORCE_POWERSHELL=1 scripts/check-banned-words.sh`
+- clear stale `ValidationLogs/`, `TestResults/`, and full-run `publish/` output before early validation steps can leave misleading artifact manifests
+- run solution restore
+- run the dedicated vulnerable-package audit with transitive dependencies included
+- build the solution in Release
+- run the test suite
+- restore the WPF app for `win-x64`
+- clear `publish/` again immediately before publishing
+- publish the WPF app
+- run the banned-word scan through the normal path
+- run the forced PowerShell banned-word fallback path
+- write validation diagnostics including `environment.txt`, `package-audit.txt`, MSBuild binary logs, `step-summary.txt`, and `artifact-manifest.txt`
 
-For the faster compile-and-test checkpoint, run:
+When validation is available, inspect `ValidationLogs/artifact-manifest.txt` first. It groups validation logs, test results, and publish output so failed or partial runs can be triaged without guessing which artifacts are fresh.
 
-- `pwsh -File scripts/run-full-validation.ps1 -SkipPublish`
+## Recently Completed Reliability Work
 
-Confirm during restore and dependency audit that the SQLite advisory is gone, that `SQLitePCLRaw.bundle_e_sqlite3` resolves through `SourceGear.sqlite3` 3.50.4.5 or newer, that the Microsoft.Extensions 10.0.9 pins restore without downgrade/conflict warnings, that the updated xUnit/VSTest packages discover and run the net10 test project cleanly, that direct test-only package references remain private assets, that repository-level NuGet auditing reports direct and transitive vulnerabilities through NU190x warnings, that the explicit vulnerable-package audit prints any remaining direct/transitive advisories in its own section, that the runtime-specific publish restore creates the `win-x64` assets used by the no-restore publish step, that stale `TestResults/` and full-run `publish/` output are removed before early validation steps can fail and write an artifact manifest, that stale files are removed from `publish/` again before fresh artifacts are produced in both the local runner and Build and Test workflow, that PowerShell-native runner steps are not affected by stale external-process exit codes, that the full validation path still runs the banned-word script through its normal `rg` path plus both PowerShell fallback command paths (`powershell.exe` and `pwsh`, where available), that both banned-word scan paths skip generated `bin`, `obj`, and `publish` folders, that the forced fallback mode works while `rg` is present, that the PowerShell fallback scans source/text files without scanning binary assets, that `-SkipPublish` stops after restore/audit/build/test without touching publish output, and that GitHub Actions now runs the Windows net10 Build and Test workflow for `master`/`main` pushes and pull requests with restore, the dedicated vulnerable-package audit, build, test, runtime restore, clean publish output, publish, both banned-word validation paths, and artifact upload. If tests still fail, prefer behavior-focused tests or smaller targeted source-contract checks over exact multi-line source snippets.
+Recent completed slices that should not be repeated unless fresh evidence shows a regression:
 
-## Immediate Cleanup Queue
+- Validation runner and CI diagnostics now capture environment details, package-audit output, step summaries, artifact manifests, MSBuild logs, test results, and publish artifacts.
+- Local and CI validation paths now clean stale validation artifacts and publish output before producing fresh manifests.
+- Item, customer, rental, reservation, maintenance, calibration, kit, activity-log, user, report, and export workflows have been progressively bounded or routed through count APIs where large reads were risky.
+- Item and customer import/export entry points now reject missing setup before authorization or expensive work in the recently touched paths.
+- Generated reports now have stronger document layout, visible empty states, readable labels, honest capped-result notices, exact summary counts, and exact detailed-report truncation counts for the completed report paths.
+- Customer exports now collect rows through a deterministic paged collector rather than loading the full directory in one database read.
+- Item imports now normalize imported identity/detail text before duplicate checks and inserts across CSV and generic importer paths.
+- Customer imports now normalize imported company, email, contact, phone, mobile, and address text before validation, persisted duplicate checks, in-file duplicate reservation, and inserts across CSV and generic importer paths.
+- Normal item add/update/bulk-save paths now normalize user-entered item text before duplicate checks, repository persistence, and activity-log messages.
+- Maintenance create/update and completion paths now normalize persisted operational record text before reference checks and database writes.
+- Calibration create/update paths now normalize persisted operational record text before reference checks and database writes.
+- Reservation create/update paths now normalize status and notes before reference checks, filter-facing status persistence, and database writes.
+- Kit create/update paths now normalize kit number, name, description, and category before insert/update persistence.
+- User create/update paths now normalize username, photo path, contact fields, role, and permissions before workflow checks and persistence, with blank optional profile/access fields stored as database null values.
+- Rental configuration paths now trim email delivery, company/contact, backup, SMS provider/sender, and reminder template settings at the configuration boundary, defaulting whitespace-only display values while preserving untrimmed secret settings.
+- Category/inventory association changes now refresh dependent category, item, and report views when new links are created; inventory location ensures now update stale labels and refresh only when a row actually changes.
+- Settings key readback now matches normalized write/delete behavior, all-settings readback normalizes keys, item label settings trim/default display text, and item-detail visibility saves canonical full field maps.
+- Rental row mapping and rental frequency summaries now trim legacy joined item/customer/display text before returning models to rental grids, dashboard/report summaries, reminders, and printable documents.
+- Item repository projection now trims item number, name, location, brand, part number, supplier, notes, keywords, image path, checkout user names, missing-components notes, and issue notes before item read models reach search grids, details, dashboards, exports, image import matching, checked-out lists, incomplete lists, and reports.
+- Reservation row mapping now trims item number, item name, customer name, image path, status, and notes before reservation models reach all-reservation lists, active/upcoming lists, item/customer reservation histories, detail views, reports, previews, and printable reservation-related output.
+- Customer service mapping now trims company, email, contact, phone, mobile, and address before customer list, detail, search, paged export, report, print, rental handoff, and reservation handoff consumers receive customer read models.
+- Maintenance row mapping now trims item number, item name, maintenance type, description, performer, status, and notes before maintenance grids, detail views, reports, and printable operational output consume those models.
+- Maintenance overdue/upcoming list and count filters now compare scheduled status through trimmed null-safe SQL so legacy padded `Scheduled` statuses remain visible in scheduled-work workflows.
+- Calibration row mapping now trims item number, item name, technician, certificate number, standard, result, and notes before calibration grids, latest-calibration details, reports, and printable operational output consume those models.
+- Activity Audit Workbench now has source-backed responsive layout contracts for wrapping audit metrics, reduced fixed split pressure, grid virtualization/scrolling, bounded empty state, bounded selected-log handoff, and preserved audit actions.
+- Users Workbench now has source-backed responsive layout contracts for wrapping account metrics, reduced fixed split pressure, directory grid virtualization/scrolling, bounded empty state, reachable handoff scrolling, and preserved account actions.
+- Reports Workbench now has source-backed responsive layout contracts for wrapping report metrics, reduced fixed split pressure, result grid virtualization/scrolling, bounded empty state, bounded row-handoff scrolling, and preserved report actions.
+- Maintenance Workbench now has source-backed responsive layout contracts for wrapping schedule metrics, reduced fixed split pressure, grid virtualization/scrolling, bounded empty state, reachable technician handoff scrolling, wrapping footer actions, and preserved maintenance actions.
+- Calibration Workbench now has source-backed responsive layout contracts for wrapping certificate metrics, reduced fixed split pressure, grid virtualization/scrolling, bounded empty state, reachable certificate handoff scrolling, wrapping footer actions, and preserved calibration actions.
 
-1. Re-run full validation with `pwsh -File scripts/run-full-validation.ps1` after the source-contract cleanup, dependency pins, publish-output scan exclusion, publish-output cleanup, explicit dependency audit step, matching CI audit step, CI publish cleanup, README manual validation cleanup documentation, runner exit-code hardening, CI validation-sequence alignment, SkipPublish fast-path scoping, and up-front manifest artifact cleanup.
-2. Confirm the retargeted GitHub Actions Build and Test workflow runs on the next `master`/`main` pull request with the net10 SDK, dedicated vulnerable-package audit, build/test, runtime restore, clean publish output, publish, both banned-word validation paths, and artifact upload.
-3. Review the runner's dedicated vulnerable-package audit output plus any NU190x warnings surfaced by repository-level direct/transitive NuGet auditing, then update affected packages or document intentional risk decisions.
-4. Smoke test the dark-theme top navigation dropdown visually in the running WPF app.
-5. Confirm the SQLite native package advisory is cleared during restore and continue the broader production dependency/security review.
-6. Continue replacing brittle source-text tests with behavior-focused tests where practical.
+## Highest-Value Next Work
+
+Prioritize the following before adding unrelated new features:
+
+1. Run `pwsh -File scripts/run-full-validation.ps1` on a Windows/.NET-capable checkout and capture the actual restore, audit, build, test, publish, banned-word, and artifact-manifest results.
+2. Review the dedicated vulnerable-package audit output plus any NU190x warnings from repository-level NuGet auditing, then update affected packages or document intentional risk decisions.
+3. Smoke test the WPF app visually on Windows, especially dark-theme top navigation dropdowns, context menus, combo boxes, print preview, report preview, Activity Logs, Users, Reports, Maintenance, Calibration, and theme-customized popup surfaces.
+4. Continue replacing brittle source-text tests with behavior-focused tests where practical, especially when touching the same workflow for a real fix.
+5. Consider true streaming or exporter-specific flows for very large exports if future evidence shows the current paged-then-handoff export collectors still create unacceptable memory pressure.
+6. Keep tightening import/export, save-path, configuration, and document-output data-quality behavior only where current evidence shows another concrete user-entered, file-imported, or legacy stored value can bypass validation, duplicate detection, search/report consistency, permission consistency, delivery reliability, or professional output expectations.
 
 ## App Completion Status
-
-The application is feature-rich and builds locally, but it is not in a clean release state until the full test suite is rerun and confirmed green after the latest source-contract cleanup.
 
 Completed or substantially implemented:
 
@@ -80,10 +115,12 @@ Completed or substantially implemented:
 - SQLite persistence through the existing service layer.
 - Permission-aware navigation and guarded service operations.
 - Broad XAML/source-contract coverage across pages and workflows.
+- Validation scripts and CI diagnostics for release-readiness evidence.
 
 Still needing attention:
 
-- Full test suite green after the contract-test cleanup.
+- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, settings normalization, rental readback normalization, item readback normalization, reservation readback normalization, customer readback normalization, operational-record readback normalization, Activity Logs responsive layout, Users responsive layout, Reports responsive layout, Maintenance responsive layout, and Calibration responsive layout changes.
 - Runtime WPF walkthrough of core workflows on Windows.
-- Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, and theme-customized popup surfaces.
-- Production dependency/security review.
+- Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, dialogs, and theme-customized popup surfaces.
+- Print and report preview QA for capped, empty, and large-data documents.
+- Production dependency/security review based on current audit output.

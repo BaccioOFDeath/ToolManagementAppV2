@@ -141,6 +141,42 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ItemExportsCollectRowsWithBoundedPagesBeforeWriterWork()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
+            var csvExportMethod = ExtractMethod(
+                source,
+                "private async Task ExportItemsToCsvInternalAsync",
+                "private async Task<List<ItemModel>> CollectItemsForExportAsync");
+            var collectorMethod = ExtractMethod(
+                source,
+                "private async Task<List<ItemModel>> CollectItemsForExportAsync",
+                "public async Task UpdateItemQuantitiesAsync");
+            var genericExportMethod = ExtractMethod(
+                source,
+                "public async Task ExportItemsAsync",
+                "static void NotifyChanged");
+
+            Assert.Contains("private const int ItemExportPageSize = 500;", source, StringComparison.Ordinal);
+            Assert.Contains("var pageNumber = 1;", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("while (true)", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("var pageItemCount = 0;", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("new ItemPage(pageNumber, ItemExportPageSize)", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("pageItemCount++;", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("if (pageItemCount < ItemExportPageSize)", collectorMethod, StringComparison.Ordinal);
+            Assert.Contains("pageNumber++;", collectorMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("new ItemPage(1, int.MaxValue)", csvExportMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("new ItemPage(1, int.MaxValue)", genericExportMethod, StringComparison.Ordinal);
+
+            Assert.True(
+                csvExportMethod.IndexOf("var items = await CollectItemsForExportAsync(cancellationToken)", StringComparison.Ordinal) < csvExportMethod.IndexOf("CsvHelperUtil.ExportItemsToCsvAsync", StringComparison.Ordinal),
+                "CSV item exports should finish bounded collection before handing rows to the CSV writer.");
+            Assert.True(
+                genericExportMethod.IndexOf("var items = await CollectItemsForExportAsync(cancellationToken)", StringComparison.Ordinal) < genericExportMethod.IndexOf("exporter.ExportAsync", StringComparison.Ordinal),
+                "Generic item exports should finish bounded collection before handing rows to the exporter.");
+        }
+
+        [Fact]
         public void GenericImportExportEntrypointsValidateInputsBeforeAuthorizationAndWork()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Items", "ItemService.cs");
@@ -173,8 +209,8 @@ namespace InventoryManagementApp.Tests
                 exportMethod.IndexOf("if (exporter is null)", StringComparison.Ordinal) < exportMethod.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
                 "Generic item exports should reject a missing exporter before authorization or item collection work.");
             Assert.True(
-                exportMethod.IndexOf("cancellationToken.ThrowIfCancellationRequested();", StringComparison.Ordinal) < exportMethod.IndexOf("var items = new List<ItemModel>();", StringComparison.Ordinal),
-                "Generic item exports should honor cancellation before collecting rows.");
+                exportMethod.IndexOf("var items = await CollectItemsForExportAsync(cancellationToken)", StringComparison.Ordinal) < exportMethod.IndexOf("exporter.ExportAsync", StringComparison.Ordinal),
+                "Generic item exports should collect rows before exporter handoff.");
         }
 
         [Fact]

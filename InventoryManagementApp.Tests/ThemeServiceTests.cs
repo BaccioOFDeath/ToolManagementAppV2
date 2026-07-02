@@ -116,6 +116,10 @@ namespace InventoryManagementApp.Tests
                 var service = new ThemeService();
                 var settings = AppThemeSettings.CreateDefault("Dark");
                 settings.BordersVisible = false;
+                settings.SearchBarBorderColor = "#FFFFCC00";
+                settings.SearchBarInnerBorderColor = "#FF334455";
+                settings.SearchBarBorderThickness = 4;
+                settings.SearchBarInnerBorderThickness = 2;
                 settings.SurfaceOpacity = 0.25;
                 settings.SurfaceAltOpacity = 0.2;
                 settings.InputOpacity = 0.3;
@@ -129,12 +133,16 @@ namespace InventoryManagementApp.Tests
 
                 Assert.Equal(new Thickness(0), (Thickness)app.Resources["ThemeBorderThickness"]);
                 Assert.Equal(new Thickness(0), (Thickness)app.Resources["ThemeControlBorderThickness"]);
+                Assert.Equal(new Thickness(0), (Thickness)app.Resources["SearchBarBorderThickness"]);
+                Assert.Equal(new Thickness(0), (Thickness)app.Resources["SearchBarInnerBorderThickness"]);
                 Assert.Equal("Aptos", ((FontFamily)app.Resources["ThemeFontFamily"]).Source);
                 Assert.Equal(15.6, (double)app.Resources["ThemeBodyFontSize"]);
                 Assert.Equal(23.8, (double)app.Resources["ThemeTitleFontSize"]);
                 Assert.Equal(0x40, ((SolidColorBrush)app.Resources["SurfaceBrush"]).Color.A);
                 Assert.Equal(0x59, ((SolidColorBrush)app.Resources["BtnBg"]).Color.A);
                 Assert.Same(Brushes.Transparent, app.Resources["BtnBorder"]);
+                Assert.Same(Brushes.Transparent, app.Resources["SearchBarBorderBrush"]);
+                Assert.Same(Brushes.Transparent, app.Resources["SearchBarInnerBorderBrush"]);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });

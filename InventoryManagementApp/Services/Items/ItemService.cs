@@ -34,6 +34,7 @@ namespace InventoryManagementApp.Services.Items
         private readonly IItemRepository _repository;
         private const int MaxQuantityOnHand = 10000;
         private const int ImageImportCatalogPageSize = 500;
+        private const int ItemExportPageSize = 500;
     
         private readonly ILogger<ItemService> _logger;
         private readonly IAuthorizationService _auth;
@@ -81,7 +82,8 @@ namespace InventoryManagementApp.Services.Items
         {
             if (item is null)
                 throw new ArgumentNullException(nameof(item));
-            
+
+            NormalizeItemForSave(item);
             _auth.EnsurePermission(User.PermissionManageItems);
             await AddItemInternalAsync(item, cancellationToken).ConfigureAwait(false);
             if (_activityLog != null)
@@ -103,7 +105,8 @@ namespace InventoryManagementApp.Services.Items
         {
             if (item is null)
                 throw new ArgumentNullException(nameof(item));
-            
+
+            NormalizeItemForSave(item);
             _auth.EnsurePermission(User.PermissionManageItems);
             await UpdateItemInternalAsync(item, cancellationToken).ConfigureAwait(false);
             if (_activityLog != null)
@@ -467,7 +470,7 @@ namespace InventoryManagementApp.Services.Items
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
                     "SELECT ItemNumber FROM Items",
-                    r => r.GetString(0),
+                    r => r.GetString(0).Trim(),
                     null, cancellationToken),
                 StringComparer.OrdinalIgnoreCase);
             using var transaction = conn.BeginTransaction();
@@ -486,18 +489,18 @@ namespace InventoryManagementApp.Services.Items
                         invalidRows.Add(row);
                         continue;
                     }
-                    var itemNumber = CsvHelperUtil.GetMapped(cols, headers, map, "ItemNumber");
-                    var name = CsvHelperUtil.GetMapped(cols, headers, map, nameof(ItemImportDto.Name));
-                    var location = CsvHelperUtil.GetMapped(cols, headers, map, "Location");
-                    var brand = CsvHelperUtil.GetMapped(cols, headers, map, "Brand");
-                    var partNumber = CsvHelperUtil.GetMapped(cols, headers, map, "PartNumber");
-                    var supplier = CsvHelperUtil.GetMapped(cols, headers, map, "Supplier");
-                    var purchased = CsvHelperUtil.GetMapped(cols, headers, map, "PurchasedDate");
-                    var notes = CsvHelperUtil.GetMapped(cols, headers, map, "Notes");
-                    var keywords = CsvHelperUtil.GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords));
-                    var quantity = CsvHelperUtil.GetMapped(cols, headers, map, "AvailableQuantity");
-                    var powered = CsvHelperUtil.GetMapped(cols, headers, map, "IsPowered");
-                    var rental = CsvHelperUtil.GetMapped(cols, headers, map, "IsRentalItem");
+                    var itemNumber = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "ItemNumber"));
+                    var name = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, nameof(ItemImportDto.Name)));
+                    var location = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "Location"));
+                    var brand = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "Brand"));
+                    var partNumber = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "PartNumber"));
+                    var supplier = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "Supplier"));
+                    var purchased = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "PurchasedDate"));
+                    var notes = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "Notes"));
+                    var keywords = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, nameof(ItemImportDto.Keywords)));
+                    var quantity = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "AvailableQuantity"));
+                    var powered = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "IsPowered"));
+                    var rental = NormalizeImportedText(CsvHelperUtil.GetMapped(cols, headers, map, "IsRentalItem"));
 
                     bool skip = false;
                     if (string.IsNullOrWhiteSpace(itemNumber))
@@ -637,17 +640,38 @@ namespace InventoryManagementApp.Services.Items
 
         private async Task ExportItemsToCsvInternalAsync(string filePath, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
-                .WithCancellation(cancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                items.Add(item);
-            }
+            var items = await CollectItemsForExportAsync(cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
             await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items).ConfigureAwait(false);
+        }
+
+        private async Task<List<ItemModel>> CollectItemsForExportAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var items = new List<ItemModel>();
+            var pageNumber = 1;
+
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var pageItemCount = 0;
+
+                await foreach (var item in GetItemsAsync(new ItemPage(pageNumber, ItemExportPageSize), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
+                    .WithCancellation(cancellationToken))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    pageItemCount++;
+                    items.Add(item);
+                }
+
+                if (pageItemCount < ItemExportPageSize)
+                    break;
+
+                pageNumber++;
+            }
+
+            return items;
         }
 
         public async Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, SqliteConnection? conn = null, SqliteTransaction? tx = null, CancellationToken cancellationToken = default)
@@ -689,6 +713,12 @@ namespace InventoryManagementApp.Services.Items
         {
             _auth.EnsurePermission(User.PermissionManageItems);
             var changedItems = changes?.ToList() ?? new List<ItemModel>();
+            foreach (var item in changedItems)
+            {
+                ArgumentNullException.ThrowIfNull(item);
+                NormalizeItemForSave(item);
+            }
+
             await _repository.SaveChangesAsync(changedItems, ct).ConfigureAwait(false);
             NotifyChanged(DomainDataScope.Items | DomainDataScope.Reports, changedItems.FirstOrDefault()?.ItemID);
         }
@@ -720,7 +750,7 @@ namespace InventoryManagementApp.Services.Items
             var existingNumbers = new HashSet<string>(
                 await SqliteHelper.ExecuteReaderAsync(conn,
                     "SELECT ItemNumber FROM Items",
-                    r => r.GetString(0),
+                    r => r.GetString(0).Trim(),
                     null, cancellationToken),
                 StringComparer.OrdinalIgnoreCase);
             using var transaction = conn.BeginTransaction();
@@ -730,6 +760,7 @@ namespace InventoryManagementApp.Services.Items
                 foreach (var item in items)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    NormalizeImportedItem(item);
 
                     if (string.IsNullOrWhiteSpace(item.ItemNumber))
                         item.ItemNumber = GenerateNextImportedItemNumber(existingNumbers);
@@ -753,6 +784,30 @@ namespace InventoryManagementApp.Services.Items
                 throw;
             }
         }
+
+        private static void NormalizeItemForSave(ItemModel item)
+        {
+            NormalizeImportedItem(item);
+        }
+
+        private static void NormalizeImportedItem(ItemModel item)
+        {
+            item.ItemNumber = NormalizeImportedText(item.ItemNumber) ?? string.Empty;
+            item.Name = NormalizeImportedText(item.Name) ?? string.Empty;
+            item.Location = NormalizeImportedText(item.Location) ?? string.Empty;
+            item.Brand = NormalizeImportedText(item.Brand) ?? string.Empty;
+            item.PartNumber = NormalizeImportedText(item.PartNumber) ?? string.Empty;
+            item.Supplier = NormalizeImportedText(item.Supplier) ?? string.Empty;
+            item.Notes = NormalizeImportedText(item.Notes) ?? string.Empty;
+            item.Keywords = NormalizeImportedText(item.Keywords) ?? string.Empty;
+            item.ImagePath = NormalizeImportedText(item.ImagePath) ?? string.Empty;
+            item.CheckedOutBy = NormalizeImportedText(item.CheckedOutBy) ?? string.Empty;
+            item.CheckedInBy = NormalizeImportedText(item.CheckedInBy) ?? string.Empty;
+            item.MissingComponentsNotes = NormalizeImportedText(item.MissingComponentsNotes) ?? string.Empty;
+            item.IssuesNotes = NormalizeImportedText(item.IssuesNotes) ?? string.Empty;
+        }
+
+        private static string? NormalizeImportedText(string? value) => value?.Trim();
 
         private static string GenerateNextImportedItemNumber(ISet<string> existingNumbers)
         {
@@ -782,18 +837,7 @@ namespace InventoryManagementApp.Services.Items
                 throw new ArgumentNullException(nameof(exporter));
 
             _auth.EnsurePermission(User.PermissionImportExport);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Note: Using int.MaxValue as page size loads all items into memory.
-            // For very large inventories (>10,000 items), consider implementing streaming export.
-            // Current implementation matches existing CSV export behavior.
-            var items = new List<ItemModel>();
-            await foreach (var item in GetItemsAsync(new ItemPage(1, int.MaxValue), SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
-                .WithCancellation(cancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                items.Add(item);
-            }
+            var items = await CollectItemsForExportAsync(cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
             await exporter.ExportAsync(filePath, items, cancellationToken).ConfigureAwait(false);

@@ -58,6 +58,20 @@ namespace InventoryManagementApp.Services.Calibration
             });
         }
 
+        public async Task<int> CountCalibrationRecordsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(c.CalibrationID)
+                    FROM CalibrationRecords c
+                    JOIN Items i ON c.ItemID = i.ItemID";
+                using var cmd = new SqliteCommand(sql, conn);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
         /// <summary>
         /// Retrieves all calibration records for a specific item.
         /// </summary>
@@ -117,6 +131,22 @@ namespace InventoryManagementApp.Services.Calibration
             });
         }
 
+        public async Task<int> CountOverdueCalibrationAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(c.CalibrationID)
+                    FROM CalibrationRecords c
+                    JOIN Items i ON c.ItemID = i.ItemID
+                    WHERE c.NextCalibrationDue < @Now";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Now", DateTime.Now);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
         public async Task<List<CalibrationRecord>> GetUpcomingCalibrationAsync(int days = 30)
         {
             if (days < 0)
@@ -144,6 +174,28 @@ namespace InventoryManagementApp.Services.Calibration
                     records.Add(MapCalibrationRecord(reader));
                 }
                 return records;
+            });
+        }
+
+        public async Task<int> CountUpcomingCalibrationAsync(int days = 30)
+        {
+            if (days < 0)
+                throw new ArgumentOutOfRangeException(nameof(days), "Days must be greater than or equal to 0.");
+
+            return await Task.Run(() =>
+            {
+                var now = DateTime.Now;
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(c.CalibrationID)
+                    FROM CalibrationRecords c
+                    JOIN Items i ON c.ItemID = i.ItemID
+                    WHERE c.NextCalibrationDue >= @Now
+                    AND c.NextCalibrationDue <= @FutureDate";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Now", now);
+                cmd.Parameters.AddWithValue("@FutureDate", now.AddDays(days));
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
             });
         }
 
@@ -205,6 +257,8 @@ namespace InventoryManagementApp.Services.Calibration
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
+            NormalizeCalibrationRecordForSave(record);
+
             var id = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -251,6 +305,8 @@ namespace InventoryManagementApp.Services.Calibration
                 throw new ArgumentOutOfRangeException(nameof(record.CalibrationID), "Calibration ID must be greater than 0.");
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
+
+            NormalizeCalibrationRecordForSave(record);
 
             var updated = await Task.Run(() =>
             {
@@ -318,20 +374,37 @@ namespace InventoryManagementApp.Services.Calibration
             {
                 CalibrationID = reader.GetInt32(reader.GetOrdinal("CalibrationID")),
                 ItemID = reader.GetInt32(reader.GetOrdinal("ItemID")),
-                ItemNumber = reader.IsDBNull(reader.GetOrdinal("ItemNumber")) ? "" : reader.GetString(reader.GetOrdinal("ItemNumber")),
-                ItemName = reader.IsDBNull(reader.GetOrdinal("ItemName")) ? "" : reader.GetString(reader.GetOrdinal("ItemName")),
+                ItemNumber = NormalizeCalibrationReadText(reader, "ItemNumber"),
+                ItemName = NormalizeCalibrationReadText(reader, "ItemName"),
                 CalibrationDate = reader.GetDateTime(reader.GetOrdinal("CalibrationDate")),
                 NextCalibrationDue = reader.GetDateTime(reader.GetOrdinal("NextCalibrationDue")),
-                CalibratedBy = reader.IsDBNull(reader.GetOrdinal("CalibratedBy")) ? "" : reader.GetString(reader.GetOrdinal("CalibratedBy")),
-                CertificateNumber = reader.IsDBNull(reader.GetOrdinal("CertificateNumber")) ? "" : reader.GetString(reader.GetOrdinal("CertificateNumber")),
-                Standard = reader.IsDBNull(reader.GetOrdinal("Standard")) ? "" : reader.GetString(reader.GetOrdinal("Standard")),
-                Result = reader.IsDBNull(reader.GetOrdinal("Result")) ? "" : reader.GetString(reader.GetOrdinal("Result")),
+                CalibratedBy = NormalizeCalibrationReadText(reader, "CalibratedBy"),
+                CertificateNumber = NormalizeCalibrationReadText(reader, "CertificateNumber"),
+                Standard = NormalizeCalibrationReadText(reader, "Standard"),
+                Result = NormalizeCalibrationReadText(reader, "Result"),
                 Cost = reader.GetDecimal(reader.GetOrdinal("Cost")),
-                Notes = reader.IsDBNull(reader.GetOrdinal("Notes")) ? "" : reader.GetString(reader.GetOrdinal("Notes")),
+                Notes = NormalizeCalibrationReadText(reader, "Notes"),
                 UserID = reader.IsDBNull(reader.GetOrdinal("UserID")) ? 0 : reader.GetInt32(reader.GetOrdinal("UserID")),
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
             };
         }
+
+        private static string NormalizeCalibrationReadText(SqliteDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal).Trim();
+        }
+
+        private static void NormalizeCalibrationRecordForSave(CalibrationRecord record)
+        {
+            record.CalibratedBy = NormalizeOptionalText(record.CalibratedBy);
+            record.CertificateNumber = NormalizeOptionalText(record.CertificateNumber);
+            record.Standard = NormalizeOptionalText(record.Standard);
+            record.Result = NormalizeOptionalText(record.Result);
+            record.Notes = NormalizeOptionalText(record.Notes);
+        }
+
+        private static string NormalizeOptionalText(string? value) => value?.Trim() ?? string.Empty;
 
         private static void EnsureCalibrationCreateSucceeded(int affectedRows)
         {

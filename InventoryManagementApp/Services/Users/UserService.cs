@@ -289,7 +289,7 @@ namespace InventoryManagementApp.Services.Users
             if (user is null)
                 throw new ArgumentNullException(nameof(user));
 
-            user.UserName = (user.UserName ?? string.Empty).Trim();
+            NormalizeUserForSave(user);
             if (string.IsNullOrWhiteSpace(user.UserName))
                 throw new ArgumentException("Username cannot be empty.", nameof(user.UserName));
 
@@ -329,17 +329,17 @@ namespace InventoryManagementApp.Services.Users
                 new SqliteParameter("@UserName", user.UserName),
                 new SqliteParameter("@PasswordHash", hashed),
                 new SqliteParameter("@PasswordSalt",     salt),
-                new SqliteParameter("@Photo",    (object)user.UserPhotoPath ?? DBNull.Value),
+                new SqliteParameter("@Photo",    ToDbNullableText(user.UserPhotoPath)),
                 new SqliteParameter("@Admin",    user.IsAdmin ? 1 : 0),
-                new SqliteParameter("@Email",    (object)user.Email ?? DBNull.Value),
-                new SqliteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
-                new SqliteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
-                new SqliteParameter("@Address",  (object)user.Address ?? DBNull.Value),
-                new SqliteParameter("@Role",     (object)user.Role ?? DBNull.Value),
+                new SqliteParameter("@Email",    ToDbNullableText(user.Email)),
+                new SqliteParameter("@Phone",    ToDbNullableText(user.Phone)),
+                new SqliteParameter("@Mobile",   ToDbNullableText(user.Mobile)),
+                new SqliteParameter("@Address",  ToDbNullableText(user.Address)),
+                new SqliteParameter("@Role",     ToDbNullableText(user.Role)),
                 new SqliteParameter("@IsActive", user.IsActive ? 1 : 0),
                 new SqliteParameter("@CreatedAt", user.CreatedAt),
                 new SqliteParameter("@PasswordExpired", user.PasswordExpired ? 1 : 0),
-                new SqliteParameter("@Permissions", (object)user.Permissions ?? DBNull.Value)
+                new SqliteParameter("@Permissions", ToDbNullableText(user.Permissions))
             });
             try
             {
@@ -370,7 +370,7 @@ namespace InventoryManagementApp.Services.Users
             if (user.UserID < 1)
                 throw new ArgumentOutOfRangeException(nameof(user), "User ID must be greater than 0.");
 
-            user.UserName = (user.UserName ?? string.Empty).Trim();
+            NormalizeUserForSave(user);
             if (string.IsNullOrWhiteSpace(user.UserName))
                 throw new ArgumentException("Username cannot be empty.", nameof(user.UserName));
 
@@ -420,15 +420,15 @@ namespace InventoryManagementApp.Services.Users
                 new SqliteParameter("@UserName", user.UserName),
                 new SqliteParameter("@PasswordHash", hashed),
                 new SqliteParameter("@PasswordSalt",     salt),
-                new SqliteParameter("@Photo",    (object)user.UserPhotoPath ?? DBNull.Value),
+                new SqliteParameter("@Photo",    ToDbNullableText(user.UserPhotoPath)),
                 new SqliteParameter("@Admin",    user.IsAdmin ? 1 : 0),
-                new SqliteParameter("@Email",    (object)user.Email ?? DBNull.Value),
-                new SqliteParameter("@Phone",    (object)user.Phone ?? DBNull.Value),
-                new SqliteParameter("@Mobile",   (object)user.Mobile ?? DBNull.Value),
-                new SqliteParameter("@Address",  (object)user.Address ?? DBNull.Value),
-                new SqliteParameter("@Role",     (object)user.Role ?? DBNull.Value),
+                new SqliteParameter("@Email",    ToDbNullableText(user.Email)),
+                new SqliteParameter("@Phone",    ToDbNullableText(user.Phone)),
+                new SqliteParameter("@Mobile",   ToDbNullableText(user.Mobile)),
+                new SqliteParameter("@Address",  ToDbNullableText(user.Address)),
+                new SqliteParameter("@Role",     ToDbNullableText(user.Role)),
                 new SqliteParameter("@IsActive", user.IsActive ? 1 : 0),
-                new SqliteParameter("@Permissions", (object)user.Permissions ?? DBNull.Value)
+                new SqliteParameter("@Permissions", ToDbNullableText(user.Permissions))
             };
 
             try
@@ -522,6 +522,37 @@ namespace InventoryManagementApp.Services.Users
             }
             return await DeleteUserInternalAsync(userID);
         }
+
+        private static void NormalizeUserForSave(User user)
+        {
+            user.UserName = NormalizeRequiredText(user.UserName);
+            user.UserPhotoPath = NormalizeOptionalText(user.UserPhotoPath);
+            user.Email = NormalizeOptionalText(user.Email);
+            user.Phone = NormalizeOptionalText(user.Phone);
+            user.Mobile = NormalizeOptionalText(user.Mobile);
+            user.Address = NormalizeOptionalText(user.Address);
+            user.Role = NormalizeOptionalText(user.Role);
+            user.Permissions = NormalizePermissionsForSave(user.Permissions);
+        }
+
+        private static string NormalizePermissionsForSave(string? value)
+        {
+            var normalized = NormalizeOptionalText(value);
+            if (string.IsNullOrWhiteSpace(normalized))
+                return string.Empty;
+
+            return User.BuildPermissions(normalized.Split(new[] { ';', ',', '|', ' ' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        }
+
+        private static object ToDbNullableText(string? value)
+        {
+            var normalized = NormalizeOptionalText(value);
+            return string.IsNullOrEmpty(normalized) ? DBNull.Value : normalized;
+        }
+
+        private static string NormalizeRequiredText(string? value) => value?.Trim() ?? string.Empty;
+
+        private static string NormalizeOptionalText(string? value) => value?.Trim() ?? string.Empty;
 
         static void NotifyChanged(DomainDataScope scope, int? entityId = null)
         {

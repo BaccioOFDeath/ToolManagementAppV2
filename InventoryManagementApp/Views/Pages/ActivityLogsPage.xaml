@@ -7,7 +7,9 @@
         <Style x:Key="ActivityStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
             <Setter Property="Padding" Value="12,10"/>
             <Setter Property="MinHeight" Value="78"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="MinWidth" Value="150"/>
+            <Setter Property="MaxWidth" Value="230"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
         </Style>
         <Style x:Key="ActivityDetailCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
             <Setter Property="Padding" Value="12"/>
@@ -30,9 +32,9 @@
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="390"/>
-                    <ColumnDefinition Width="14"/>
-                    <ColumnDefinition Width="3*" MinWidth="540"/>
+                    <ColumnDefinition Width="1.2*" MinWidth="260"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="1.8*" MinWidth="320"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Activity Audit Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
@@ -41,7 +43,7 @@
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
                 </StackPanel>
-                <UniformGrid Grid.Column="2" Columns="4">
+                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
                     <Border Style="{StaticResource ActivityStatCard}">
                         <StackPanel>
                             <TextBlock Text="VISIBLE" Style="{StaticResource LabelTextBlock}"/>
@@ -72,7 +74,7 @@
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource DesktopSummaryCard}" Padding="12,10" MinHeight="78">
+                    <Border Style="{StaticResource ActivityStatCard}">
                         <StackPanel>
                             <TextBlock Text="DESTINATION" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="{Binding SelectedLogDestinationName}"
@@ -82,7 +84,7 @@
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
-                </UniformGrid>
+                </WrapPanel>
             </Grid>
         </Border>
 
@@ -95,8 +97,8 @@
                 <DockPanel LastChildFill="True">
                     <TextBlock Text="Audit filters" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <TextBox Width="250"
-                                 MinWidth="180"
+                        <TextBox MinWidth="180"
+                                 Width="250"
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                  ToolTip="Filter by user, action, type, destination, or timestamp"
                                  Margin="0,0,6,4"/>
@@ -131,13 +133,13 @@
 
         <Grid Grid.Row="2" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.5*" MinWidth="620"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="430" MinWidth="380"/>
+                <ColumnDefinition Width="1.55*" MinWidth="0"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="0.95*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
-                <Grid>
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+                <Grid MinWidth="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -169,6 +171,13 @@
                               IsReadOnly="True"
                               AutoGenerateColumns="False"
                               Style="{StaticResource VirtualizedDataGridStyle}"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
+                              SelectionMode="Single"
+                              SelectionUnit="FullRow"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               MouseDoubleClick="ActivityGrid_MouseDoubleClick">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
@@ -210,7 +219,7 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <Border Grid.Row="2" Width="360" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Grid.Row="2" MaxWidth="360" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -236,10 +245,10 @@
                 </Grid>
             </Border>
 
-            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
-            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
-                <Grid>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+                <Grid MinWidth="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -250,7 +259,7 @@
                             <TextBlock Text="Keep selected-row detail, destination, and follow-up instructions visible during audit review." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Border>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="8">
                             <Border Style="{StaticResource ActivityDetailCard}">
                                 <StackPanel>
@@ -283,7 +292,8 @@
                                              IsReadOnly="True"
                                              TextWrapping="Wrap"
                                              AcceptsReturn="True"
-                                             MinHeight="150"
+                                             MinHeight="130"
+                                             MaxHeight="260"
                                              VerticalScrollBarVisibility="Auto"
                                              Margin="0,5,0,0"/>
                                 </StackPanel>

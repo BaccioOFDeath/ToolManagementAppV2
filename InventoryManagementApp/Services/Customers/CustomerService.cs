@@ -25,6 +25,7 @@ namespace InventoryManagementApp.Services.Customers
     public class CustomerService : ICustomerService
     {
         private const int MaxCustomerSearchResults = 500;
+        private const int CustomerExportPageSize = 500;
 
         private readonly DatabaseService _dbService;
         private readonly ILogger<CustomerService> _logger;
@@ -348,7 +349,7 @@ namespace InventoryManagementApp.Services.Customers
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var c = customers[i];
-                    NormalizeCustomerForSave(c);
+                    NormalizeImportedCustomer(c);
                     var row = i + 2;
                     var reason = GetSkipReason(c);
                     if (reason != null)
@@ -395,13 +396,53 @@ namespace InventoryManagementApp.Services.Customers
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var all = await GetAllCustomersInternalAsync(cancellationToken);
+            var all = await CollectCustomersForExportAsync(cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 CsvHelperUtil.ExportCustomersToCsv(filePath, all);
             }, cancellationToken);
+        }
+
+        async Task<List<CustomerModel>> CollectCustomersForExportAsync(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            const string sql = @"
+                SELECT * FROM Customers
+                ORDER BY Company ASC, Contact ASC, CustomerID ASC
+                LIMIT @CustomerExportPageSize OFFSET @CustomerExportOffset";
+            var customers = new List<CustomerModel>();
+            var offset = 0;
+            using var conn = _dbService.CreateConnection();
+
+            try
+            {
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var p = new[]
+                    {
+                        new SqliteParameter("@CustomerExportPageSize", CustomerExportPageSize),
+                        new SqliteParameter("@CustomerExportOffset", offset)
+                    };
+                    var page = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapCustomer, p, cancellationToken).ConfigureAwait(false);
+                    customers.AddRange(page);
+
+                    if (page.Count < CustomerExportPageSize)
+                        break;
+
+                    offset += CustomerExportPageSize;
+                }
+
+                return customers;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to collect customers for export");
+                throw;
+            }
         }
 
         async Task InsertCustomerAsync(SqliteConnection conn, SqliteTransaction? tran, CustomerModel customer, CancellationToken cancellationToken)
@@ -499,13 +540,38 @@ namespace InventoryManagementApp.Services.Customers
 
         static void NormalizeCustomerForSave(CustomerModel customer)
         {
-            customer.Company = (customer.Company ?? string.Empty).Trim();
-            customer.Email = (customer.Email ?? string.Empty).Trim();
-            customer.Contact = (customer.Contact ?? string.Empty).Trim();
-            customer.Phone = (customer.Phone ?? string.Empty).Trim();
-            customer.Mobile = (customer.Mobile ?? string.Empty).Trim();
-            customer.Address = (customer.Address ?? string.Empty).Trim();
+            NormalizeImportedCustomer(customer);
         }
+
+        static CustomerModel CreateImportedCustomerModel(Customer customer)
+        {
+            var customerModel = new CustomerModel
+            {
+                Company = customer.Company,
+                Email = customer.Email,
+                Contact = customer.Contact,
+                Phone = customer.Phone,
+                Mobile = customer.Mobile,
+                Address = customer.Address
+            };
+
+            NormalizeImportedCustomer(customerModel);
+            return customerModel;
+        }
+
+        static void NormalizeImportedCustomer(CustomerModel customer)
+        {
+            customer.Company = NormalizeImportedText(customer.Company) ?? string.Empty;
+            customer.Email = NormalizeImportedText(customer.Email) ?? string.Empty;
+            customer.Contact = NormalizeImportedText(customer.Contact) ?? string.Empty;
+            customer.Phone = NormalizeImportedText(customer.Phone) ?? string.Empty;
+            customer.Mobile = NormalizeImportedText(customer.Mobile) ?? string.Empty;
+            customer.Address = NormalizeImportedText(customer.Address) ?? string.Empty;
+        }
+
+        static string? NormalizeImportedText(string? value) => value?.Trim();
+
+        static string NormalizeCustomerReadText(string? value) => value?.Trim() ?? string.Empty;
 
         static void ValidateCustomerRequiredFields(CustomerModel customer)
         {
@@ -553,16 +619,21 @@ namespace InventoryManagementApp.Services.Customers
         CustomerModel MapCustomer(IDataRecord r) => new()
         {
             CustomerID = Convert.ToInt32(r["CustomerID"]),
-            Company = r["Company"]?.ToString() ?? string.Empty,
-            Email = r["Email"]?.ToString() ?? string.Empty,
-            Contact = r["Contact"]?.ToString() ?? string.Empty,
-            Phone = r["Phone"]?.ToString() ?? string.Empty,
-            Mobile = r["Mobile"]?.ToString() ?? string.Empty,
-            Address = r["Address"]?.ToString() ?? string.Empty
+            Company = NormalizeCustomerReadText(r["Company"]?.ToString()),
+            Email = NormalizeCustomerReadText(r["Email"]?.ToString()),
+            Contact = NormalizeCustomerReadText(r["Contact"]?.ToString()),
+            Phone = NormalizeCustomerReadText(r["Phone"]?.ToString()),
+            Mobile = NormalizeCustomerReadText(r["Mobile"]?.ToString()),
+            Address = NormalizeCustomerReadText(r["Address"]?.ToString())
         };
 
         public async Task<int> ImportCustomersAsync(string filePath, IDataImporter<Customer> importer, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+            if (importer is null)
+                throw new ArgumentNullException(nameof(importer));
+
             _auth.EnsureAdmin();
             cancellationToken.ThrowIfCancellationRequested();
             
@@ -580,16 +651,7 @@ namespace InventoryManagementApp.Services.Customers
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var customerModel = new CustomerModel
-                    {
-                        Company = customer.Company ?? string.Empty,
-                        Email = customer.Email ?? string.Empty,
-                        Contact = customer.Contact ?? string.Empty,
-                        Phone = customer.Phone ?? string.Empty,
-                        Mobile = customer.Mobile ?? string.Empty,
-                        Address = customer.Address ?? string.Empty
-                    };
-                    NormalizeCustomerForSave(customerModel);
+                    var customerModel = CreateImportedCustomerModel(customer);
 
                     var skipReason = GetSkipReason(customerModel);
                     if (skipReason != null)
@@ -622,10 +684,15 @@ namespace InventoryManagementApp.Services.Customers
 
         public async Task ExportCustomersAsync(string filePath, IDataExporter<Customer> exporter, CancellationToken cancellationToken = default)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+            if (exporter is null)
+                throw new ArgumentNullException(nameof(exporter));
+
             _auth.EnsurePermission(User.PermissionImportExport);
             cancellationToken.ThrowIfCancellationRequested();
 
-            var all = await GetAllCustomersAsync(cancellationToken).ConfigureAwait(false);
+            var all = await CollectCustomersForExportAsync(cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             await exporter.ExportAsync(filePath, all, cancellationToken).ConfigureAwait(false);
         }

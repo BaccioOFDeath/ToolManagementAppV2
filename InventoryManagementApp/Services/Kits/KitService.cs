@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using InventoryManagementApp.Models.Domain;
@@ -83,6 +84,58 @@ namespace InventoryManagementApp.Services.Kits
             });
         }
 
+        public async Task<int> CountActiveKitsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(KitID)
+                    FROM Kits
+                    WHERE IsActive = 1";
+                using var cmd = new SqliteCommand(sql, conn);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
+        public async Task<Dictionary<int, int>> CountKitItemsByKitIdsAsync(IEnumerable<int> kitIds)
+        {
+            if (kitIds == null)
+                throw new ArgumentNullException(nameof(kitIds));
+
+            var distinctKitIds = kitIds.Distinct().ToList();
+            if (distinctKitIds.Any(id => id < 1))
+                throw new ArgumentOutOfRangeException(nameof(kitIds), "Kit IDs must be greater than 0.");
+            if (distinctKitIds.Count == 0)
+                return new Dictionary<int, int>();
+
+            return await Task.Run(() =>
+            {
+                var counts = distinctKitIds.ToDictionary(id => id, _ => 0);
+                using var conn = _databaseService.CreateConnection();
+                var parameterNames = distinctKitIds
+                    .Select((_, index) => $"@KitID{index}")
+                    .ToList();
+                var sql = $@"
+                    SELECT KitID, COUNT(KitItemID) AS ItemCount
+                    FROM KitItems
+                    WHERE KitID IN ({string.Join(", ", parameterNames)})
+                    GROUP BY KitID";
+                using var cmd = new SqliteCommand(sql, conn);
+                for (var index = 0; index < distinctKitIds.Count; index++)
+                    cmd.Parameters.AddWithValue(parameterNames[index], distinctKitIds[index]);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var kitId = reader.GetInt32(reader.GetOrdinal("KitID"));
+                    counts[kitId] = Convert.ToInt32(reader["ItemCount"] ?? 0);
+                }
+
+                return counts;
+            });
+        }
+
         /// <summary>
         /// Retrieves a specific kit by its ID.
         /// </summary>
@@ -147,6 +200,7 @@ namespace InventoryManagementApp.Services.Kits
         public async Task<int> CreateKitAsync(Kit kit)
         {
             ValidateKit(kit, requireExistingId: false);
+            NormalizeKitForSave(kit);
 
             var id = await Task.Run(() =>
             {
@@ -157,8 +211,8 @@ namespace InventoryManagementApp.Services.Kits
                     VALUES 
                     (@KitNumber, @Name, @Description, @Category, @IsActive, @CreatedByUserID, @CreatedAt, @UpdatedAt)";
                 using var cmd = new SqliteCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber.Trim());
-                cmd.Parameters.AddWithValue("@Name", kit.Name.Trim());
+                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber);
+                cmd.Parameters.AddWithValue("@Name", kit.Name);
                 cmd.Parameters.AddWithValue("@Description", ToDbNullableText(kit.Description));
                 cmd.Parameters.AddWithValue("@Category", ToDbNullableText(kit.Category));
                 cmd.Parameters.AddWithValue("@IsActive", kit.IsActive ? 1 : 0);
@@ -181,6 +235,7 @@ namespace InventoryManagementApp.Services.Kits
         public async Task<bool> UpdateKitAsync(Kit kit)
         {
             ValidateKit(kit, requireExistingId: true);
+            NormalizeKitForSave(kit);
 
             var updated = await Task.Run(() =>
             {
@@ -198,8 +253,8 @@ namespace InventoryManagementApp.Services.Kits
                     WHERE KitID = @KitID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitID", kit.KitID);
-                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber.Trim());
-                cmd.Parameters.AddWithValue("@Name", kit.Name.Trim());
+                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber);
+                cmd.Parameters.AddWithValue("@Name", kit.Name);
                 cmd.Parameters.AddWithValue("@Description", ToDbNullableText(kit.Description));
                 cmd.Parameters.AddWithValue("@Category", ToDbNullableText(kit.Category));
                 cmd.Parameters.AddWithValue("@IsActive", kit.IsActive ? 1 : 0);
@@ -349,7 +404,7 @@ namespace InventoryManagementApp.Services.Kits
                     AND (i.ItemID IS NULL OR i.AvailableQuantity < ki.Quantity)";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitID", kitID);
-                var missingItems = Convert.ToInt32(cmd.ExecuteScalar());
+                var missingItems = Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
                 return missingItems == 0;
             });
         }
@@ -394,6 +449,14 @@ namespace InventoryManagementApp.Services.Kits
                 throw new ArgumentException("Kit number is required.", nameof(kit.KitNumber));
             if (string.IsNullOrWhiteSpace(kit.Name))
                 throw new ArgumentException("Kit name is required.", nameof(kit.Name));
+        }
+
+        private static void NormalizeKitForSave(Kit kit)
+        {
+            kit.KitNumber = NormalizeRequiredText(kit.KitNumber);
+            kit.Name = NormalizeRequiredText(kit.Name);
+            kit.Description = NormalizeOptionalText(kit.Description);
+            kit.Category = NormalizeOptionalText(kit.Category);
         }
 
         private static void ValidateKitItem(KitItem kitItem, bool requireExistingId)
@@ -458,13 +521,18 @@ namespace InventoryManagementApp.Services.Kits
         {
             using var cmd = new SqliteCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ID", id);
-            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+            return Convert.ToInt32(cmd.ExecuteScalar() ?? 0) > 0;
         }
 
         private static object ToDbNullableText(string? value)
         {
-            return string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
+            var normalized = NormalizeOptionalText(value);
+            return string.IsNullOrEmpty(normalized) ? DBNull.Value : normalized;
         }
+
+        private static string NormalizeRequiredText(string? value) => value?.Trim() ?? string.Empty;
+
+        private static string NormalizeOptionalText(string? value) => value?.Trim() ?? string.Empty;
 
         static void NotifyChanged(DomainDataScope scope, int? entityId = null)
         {

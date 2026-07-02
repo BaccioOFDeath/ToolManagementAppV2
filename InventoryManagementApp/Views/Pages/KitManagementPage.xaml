@@ -6,7 +6,16 @@
         <Style x:Key="KitStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
             <Setter Property="Padding" Value="12,10"/>
             <Setter Property="MinHeight" Value="76"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="MinWidth" Value="150"/>
+            <Setter Property="MaxWidth" Value="235"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+        <Style x:Key="KitStatValueText" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
         </Style>
     </Page.Resources>
 
@@ -21,41 +30,41 @@
         <Border Style="{StaticResource ToolbarCard}" Padding="12,10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="380"/>
-                    <ColumnDefinition Width="14"/>
-                    <ColumnDefinition Width="3*" MinWidth="520"/>
+                    <ColumnDefinition Width="1.15*" MinWidth="0"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="1.35*" MinWidth="0"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center">
+                <StackPanel VerticalAlignment="Center" MinWidth="220" MaxWidth="520">
                     <TextBlock Text="Kit Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
                     <TextBlock Text="Build reusable item sets, maintain membership, confirm availability, and print kit handoffs from one operations surface."
                                Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                 </StackPanel>
-                <UniformGrid Grid.Column="2" Columns="4">
+                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
                     <Border Style="{StaticResource KitStatCard}">
                         <StackPanel>
                             <TextBlock Text="DIRECTORY" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding KitResultsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding KitResultsSummary}" Style="{StaticResource KitStatValueText}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource KitStatCard}">
                         <StackPanel>
                             <TextBlock Text="MEMBERSHIP" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding KitItemsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding KitItemsSummary}" Style="{StaticResource KitStatValueText}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource KitStatCard}">
                         <StackPanel>
                             <TextBlock Text="SELECTED" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding SelectedKit.KitNumber, TargetNullValue='No kit selected', FallbackValue='No kit selected'}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding SelectedKit.KitNumber, TargetNullValue='No kit selected', FallbackValue='No kit selected'}" Style="{StaticResource KitStatValueText}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource DesktopSummaryCard}" Padding="12,10" MinHeight="76">
+                    <Border Style="{StaticResource KitStatCard}">
                         <StackPanel>
                             <TextBlock Text="AVAILABILITY" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="Check before promise" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="Check before promise" Style="{StaticResource KitStatValueText}"/>
                         </StackPanel>
                     </Border>
-                </UniformGrid>
+                </WrapPanel>
             </Grid>
         </Border>
 
@@ -81,8 +90,8 @@
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
                     <TextBlock Text="Find and filter" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <TextBox Width="260" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search kit number, name, category, or description"/>
-                        <ComboBox Width="150" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,4"/>
+                        <TextBox Width="240" MinWidth="190" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search kit number, name, category, or description"/>
+                        <ComboBox Width="140" MinWidth="120" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
                     </WrapPanel>
@@ -92,17 +101,17 @@
 
         <Grid Grid.Row="2" Margin="0,0,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.05*" MinWidth="620"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="440" MinWidth="380"/>
+                <ColumnDefinition Width="1.65*" MinWidth="0"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="0.95*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="1.05*"/>
-                <RowDefinition Height="8"/>
+                <RowDefinition Height="6"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -111,17 +120,17 @@
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Left">
+                            <StackPanel DockPanel.Dock="Left" MinWidth="210" MaxWidth="420">
                                 <TextBlock Text="01 Kit Directory" Style="{StaticResource SectionHeader}" Margin="0"/>
-                                <TextBlock Text="Search the reusable kit catalog before editing membership or promising availability." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Search the reusable kit catalog before editing membership or promising availability." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding KitResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding KitResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap" Margin="12,0,0,0"/>
                         </DockPanel>
                     </Border>
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
                         <TextBlock Text="Select a kit to load required and optional item lines, then check availability or print a handoff sheet." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                     </Border>
-                    <DataGrid x:Name="KitsGrid" Grid.Row="2" ItemsSource="{Binding FilteredKits}" SelectedItem="{Binding SelectedKit}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Style="{StaticResource VirtualizedDataGridStyle}">
+                    <DataGrid x:Name="KitsGrid" Grid.Row="2" ItemsSource="{Binding FilteredKits}" SelectedItem="{Binding SelectedKit}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow" EnableRowVirtualization="True" EnableColumnVirtualization="True" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                 <EventSetter Event="MouseDoubleClick" Handler="KitRow_MouseDoubleClick"/>
@@ -129,7 +138,7 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Kit" Width="2*" MinWidth="210">
+                            <DataGridTemplateColumn Header="Kit" Width="2*" MinWidth="180">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -139,7 +148,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Category" Width="1.2*" MinWidth="150">
+                            <DataGridTemplateColumn Header="Category" Width="1.2*" MinWidth="125">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -149,8 +158,8 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*" MinWidth="210"/>
-                            <DataGridTextColumn Header="Updated" Binding="{Binding UpdatedAt, StringFormat={}{0:yyyy-MM-dd}}" Width="118" MinWidth="96"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*" MinWidth="160"/>
+                            <DataGridTextColumn Header="Updated" Binding="{Binding UpdatedAt, StringFormat={}{0:yyyy-MM-dd}}" Width="108" MinWidth="90"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -164,7 +173,7 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <Border Grid.Row="2" Width="320" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Grid.Row="2" MaxWidth="330" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -181,9 +190,9 @@
                 </Grid>
             </Border>
 
-            <GridSplitter Grid.Row="0" Grid.RowSpan="3" Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+            <GridSplitter Grid.Row="0" Grid.RowSpan="3" Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
-            <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+            <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -192,11 +201,11 @@
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Left">
+                            <StackPanel DockPanel.Dock="Left" MinWidth="210" MaxWidth="420">
                                 <TextBlock Text="02 Kit Item Membership" Style="{StaticResource SectionHeader}" Margin="0"/>
-                                <TextBlock Text="Maintain required quantities and optional lines for the selected kit." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Maintain required quantities and optional lines for the selected kit." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding KitItemsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding KitItemsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap" Margin="12,0,0,0"/>
                         </DockPanel>
                     </Border>
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
@@ -208,7 +217,7 @@
                         </WrapPanel>
                     </Border>
                     <Grid Grid.Row="2">
-                        <DataGrid x:Name="KitItemsGrid" ItemsSource="{Binding KitItems}" SelectedItem="{Binding SelectedKitItem}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Style="{StaticResource VirtualizedDataGridStyle}">
+                        <DataGrid x:Name="KitItemsGrid" ItemsSource="{Binding KitItems}" SelectedItem="{Binding SelectedKitItem}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow" EnableRowVirtualization="True" EnableColumnVirtualization="True" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" Style="{StaticResource VirtualizedDataGridStyle}">
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                                     <EventSetter Event="MouseDoubleClick" Handler="KitItemRow_MouseDoubleClick"/>
@@ -216,7 +225,7 @@
                                 </Style>
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
-                                <DataGridTemplateColumn Header="Item" Width="2*" MinWidth="230">
+                                <DataGridTemplateColumn Header="Item" Width="2*" MinWidth="190">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Margin="2,3">
@@ -226,7 +235,7 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="Quantity" Width="140" MinWidth="110">
+                                <DataGridTemplateColumn Header="Quantity" Width="120" MinWidth="96">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Margin="2,3">
@@ -246,7 +255,7 @@
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
                         </DataGrid>
-                        <Border Width="320" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border MaxWidth="330" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Border.Style>
                                 <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -264,7 +273,7 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Row="0" Grid.RowSpan="3" Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+            <Border Grid.Row="0" Grid.RowSpan="3" Grid.Column="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -277,7 +286,7 @@
                             <TextBlock Text="Availability, membership, and print actions for the selected kit." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Border>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" Padding="12">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="12">
                         <StackPanel>
                             <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10"><StackPanel><TextBlock Text="Selected kit" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/><TextBlock Text="{Binding SelectedKitSummary}" FontWeight="SemiBold" TextWrapping="Wrap"/></StackPanel></Border>
                             <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10"><StackPanel><TextBlock Text="Kit detail" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,3"/><TextBlock Text="{Binding SelectedKitDetail}" TextWrapping="Wrap"/></StackPanel></Border>
@@ -301,10 +310,10 @@
 
         <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
             <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add Item" Command="{Binding AddKitItemCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Directory" Command="{Binding PrintKitListCommand}"/>
-                </StackPanel>
+                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add Item" Command="{Binding AddKitItemCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print Directory" Command="{Binding PrintKitListCommand}" Margin="0,0,0,4"/>
+                </WrapPanel>
                 <TextBlock Text="{Binding SelectedKitSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0" TextWrapping="Wrap"/>
             </DockPanel>
         </Border>

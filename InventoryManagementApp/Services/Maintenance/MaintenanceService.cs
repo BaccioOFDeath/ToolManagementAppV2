@@ -58,6 +58,20 @@ namespace InventoryManagementApp.Services.Maintenance
             });
         }
 
+        public async Task<int> CountMaintenanceRecordsAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(m.MaintenanceID)
+                    FROM MaintenanceRecords m
+                    JOIN Items i ON m.ItemID = i.ItemID";
+                using var cmd = new SqliteCommand(sql, conn);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+            });
+        }
+
         /// <summary>
         /// Retrieves all maintenance records for a specific item.
         /// </summary>
@@ -106,7 +120,7 @@ namespace InventoryManagementApp.Services.Maintenance
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
                     JOIN Items i ON m.ItemID = i.ItemID
-                    WHERE m.Status = 'Scheduled' AND m.ScheduledDate < @Now
+                    WHERE TRIM(IFNULL(m.Status, '')) = 'Scheduled' AND m.ScheduledDate < @Now
                     ORDER BY m.ScheduledDate ASC
                     LIMIT @MaintenanceListLimit";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -118,6 +132,22 @@ namespace InventoryManagementApp.Services.Maintenance
                     records.Add(MapMaintenanceRecord(reader));
                 }
                 return records;
+            });
+        }
+
+        public async Task<int> CountOverdueMaintenanceAsync()
+        {
+            return await Task.Run(() =>
+            {
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(m.MaintenanceID)
+                    FROM MaintenanceRecords m
+                    JOIN Items i ON m.ItemID = i.ItemID
+                    WHERE TRIM(IFNULL(m.Status, '')) = 'Scheduled' AND m.ScheduledDate < @Now";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Now", DateTime.Now);
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
             });
         }
 
@@ -134,7 +164,7 @@ namespace InventoryManagementApp.Services.Maintenance
                     SELECT m.*, i.ItemNumber, i.NameDescription as ItemName
                     FROM MaintenanceRecords m
                     JOIN Items i ON m.ItemID = i.ItemID
-                    WHERE m.Status = 'Scheduled' 
+                    WHERE TRIM(IFNULL(m.Status, '')) = 'Scheduled'
                     AND m.ScheduledDate >= @Now 
                     AND m.ScheduledDate <= @FutureDate
                     ORDER BY m.ScheduledDate ASC
@@ -149,6 +179,29 @@ namespace InventoryManagementApp.Services.Maintenance
                     records.Add(MapMaintenanceRecord(reader));
                 }
                 return records;
+            });
+        }
+
+        public async Task<int> CountUpcomingMaintenanceAsync(int days = 30)
+        {
+            if (days < 0)
+                throw new ArgumentOutOfRangeException(nameof(days), "Days must be greater than or equal to 0.");
+
+            return await Task.Run(() =>
+            {
+                var now = DateTime.Now;
+                using var conn = _databaseService.CreateConnection();
+                var sql = @"
+                    SELECT COUNT(m.MaintenanceID)
+                    FROM MaintenanceRecords m
+                    JOIN Items i ON m.ItemID = i.ItemID
+                    WHERE TRIM(IFNULL(m.Status, '')) = 'Scheduled'
+                    AND m.ScheduledDate >= @Now
+                    AND m.ScheduledDate <= @FutureDate";
+                using var cmd = new SqliteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Now", now);
+                cmd.Parameters.AddWithValue("@FutureDate", now.AddDays(days));
+                return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
             });
         }
 
@@ -182,6 +235,8 @@ namespace InventoryManagementApp.Services.Maintenance
                 throw new ArgumentNullException(nameof(record));
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
+
+            NormalizeMaintenanceRecordForSave(record);
 
             var id = await Task.Run(() =>
             {
@@ -230,6 +285,8 @@ namespace InventoryManagementApp.Services.Maintenance
             if (record.ItemID < 1)
                 throw new ArgumentOutOfRangeException(nameof(record.ItemID), "Item ID must be greater than 0.");
 
+            NormalizeMaintenanceRecordForSave(record);
+
             var updated = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -273,6 +330,9 @@ namespace InventoryManagementApp.Services.Maintenance
             if (maintenanceID < 1)
                 throw new ArgumentOutOfRangeException(nameof(maintenanceID), "Maintenance ID must be greater than 0.");
 
+            var normalizedPerformedBy = NormalizeOptionalText(performedBy);
+            var normalizedNotes = NormalizeOptionalText(notes);
+
             var completed = await Task.Run(() =>
             {
                 using var conn = _databaseService.CreateConnection();
@@ -288,8 +348,8 @@ namespace InventoryManagementApp.Services.Maintenance
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@MaintenanceID", maintenanceID);
                 cmd.Parameters.AddWithValue("@CompletedDate", DateTime.Now);
-                cmd.Parameters.AddWithValue("@PerformedBy", performedBy);
-                cmd.Parameters.AddWithValue("@Notes", notes);
+                cmd.Parameters.AddWithValue("@PerformedBy", normalizedPerformedBy);
+                cmd.Parameters.AddWithValue("@Notes", normalizedNotes);
                 if (cmd.ExecuteNonQuery() == 0)
                     throw new InvalidOperationException("Maintenance record not found.");
 
@@ -327,20 +387,43 @@ namespace InventoryManagementApp.Services.Maintenance
             {
                 MaintenanceID = reader.GetInt32(reader.GetOrdinal("MaintenanceID")),
                 ItemID = reader.GetInt32(reader.GetOrdinal("ItemID")),
-                ItemNumber = reader.IsDBNull(reader.GetOrdinal("ItemNumber")) ? "" : reader.GetString(reader.GetOrdinal("ItemNumber")),
-                ItemName = reader.IsDBNull(reader.GetOrdinal("ItemName")) ? "" : reader.GetString(reader.GetOrdinal("ItemName")),
+                ItemNumber = NormalizeMaintenanceReadText(reader, "ItemNumber"),
+                ItemName = NormalizeMaintenanceReadText(reader, "ItemName"),
                 ScheduledDate = reader.GetDateTime(reader.GetOrdinal("ScheduledDate")),
                 CompletedDate = reader.IsDBNull(reader.GetOrdinal("CompletedDate")) ? null : reader.GetDateTime(reader.GetOrdinal("CompletedDate")),
-                MaintenanceType = reader.GetString(reader.GetOrdinal("MaintenanceType")),
-                Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? "" : reader.GetString(reader.GetOrdinal("Description")),
-                PerformedBy = reader.IsDBNull(reader.GetOrdinal("PerformedBy")) ? "" : reader.GetString(reader.GetOrdinal("PerformedBy")),
+                MaintenanceType = NormalizeMaintenanceReadText(reader, "MaintenanceType"),
+                Description = NormalizeMaintenanceReadText(reader, "Description"),
+                PerformedBy = NormalizeMaintenanceReadText(reader, "PerformedBy"),
                 Cost = reader.GetDecimal(reader.GetOrdinal("Cost")),
-                Status = reader.GetString(reader.GetOrdinal("Status")),
-                Notes = reader.IsDBNull(reader.GetOrdinal("Notes")) ? "" : reader.GetString(reader.GetOrdinal("Notes")),
+                Status = NormalizeMaintenanceReadText(reader, "Status"),
+                Notes = NormalizeMaintenanceReadText(reader, "Notes"),
                 UserID = reader.IsDBNull(reader.GetOrdinal("UserID")) ? 0 : reader.GetInt32(reader.GetOrdinal("UserID")),
                 CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt"))
             };
         }
+
+        private static string NormalizeMaintenanceReadText(SqliteDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal).Trim();
+        }
+
+        private static void NormalizeMaintenanceRecordForSave(MaintenanceRecord record)
+        {
+            record.MaintenanceType = NormalizeOptionalText(record.MaintenanceType);
+            record.Description = NormalizeOptionalText(record.Description);
+            record.PerformedBy = NormalizeOptionalText(record.PerformedBy);
+            record.Status = NormalizeMaintenanceStatus(record.Status);
+            record.Notes = NormalizeOptionalText(record.Notes);
+        }
+
+        private static string NormalizeMaintenanceStatus(string? status)
+        {
+            var normalizedStatus = NormalizeOptionalText(status);
+            return string.IsNullOrEmpty(normalizedStatus) ? "Scheduled" : normalizedStatus;
+        }
+
+        private static string NormalizeOptionalText(string? value) => value?.Trim() ?? string.Empty;
 
         private static void EnsureMaintenanceCreateSucceeded(int affectedRows)
         {

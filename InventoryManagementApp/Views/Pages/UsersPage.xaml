@@ -9,7 +9,9 @@
         <Style x:Key="UserStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
             <Setter Property="Padding" Value="12,10"/>
             <Setter Property="MinHeight" Value="76"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="MinWidth" Value="160"/>
+            <Setter Property="MaxWidth" Value="250"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
         </Style>
         <Style x:Key="UserDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
             <Setter Property="TextWrapping" Value="Wrap"/>
@@ -32,8 +34,8 @@
 
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="14,12">
             <DockPanel LastChildFill="False">
-                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,18,0">
-                    <TextBlock Text="Users Workbench" Style="{StaticResource PageTitleTextBlock}"/>
+                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,18,0" MinWidth="220" MaxWidth="460">
+                    <TextBlock Text="Users Workbench" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Manage account access, password recovery, profile photos, and audit-ready user directory output from one admin desk."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
@@ -50,52 +52,46 @@
             </DockPanel>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,0,0,6">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="1.2*"/>
-                <ColumnDefinition Width="1.2*"/>
-                <ColumnDefinition Width="1.35*"/>
-            </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Style="{StaticResource UserStatCard}">
+        <WrapPanel Grid.Row="1" Margin="0,0,0,6">
+            <Border Style="{StaticResource UserStatCard}">
                 <StackPanel>
                     <TextBlock Text="Visible Users" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding Users.Count}" Style="{StaticResource UserStatValueText}"/>
                     <TextBlock Text="Rows matching the current account search" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="1" Style="{StaticResource UserStatCard}">
+            <Border Style="{StaticResource UserStatCard}">
                 <StackPanel>
                     <TextBlock Text="Directory Filter" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding UserSearchText, TargetNullValue=All accounts}" Style="{StaticResource UserStatValueText}"/>
                     <TextBlock Text="Search by user, role, contact, or access summary before printing" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="2" Style="{StaticResource UserStatCard}">
+            <Border Style="{StaticResource UserStatCard}">
                 <StackPanel>
                     <TextBlock Text="Selected Access" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding SelectedUser.AccessSummary, TargetNullValue=No account selected}" Style="{StaticResource UserStatValueText}"/>
                     <TextBlock Text="Review allowed app areas before editing permissions" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="3" Style="{StaticResource UserStatCard}" Margin="0">
+            <Border Style="{StaticResource UserStatCard}" Margin="0,0,0,8">
                 <StackPanel>
                     <TextBlock Text="Security State" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding SelectedUser.LockoutStatus, TargetNullValue=Select a user}" Style="{StaticResource UserStatValueText}"/>
                     <TextBlock Text="Password reset, lockout, and active-status context" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
-        </Grid>
+        </WrapPanel>
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.15*" MinWidth="620"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="1.05*" MinWidth="360"/>
+                <ColumnDefinition Width="1.65*" MinWidth="0"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="0.95*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
-                <Grid>
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+                <Grid MinWidth="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -103,7 +99,7 @@
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
-                        <DockPanel LastChildFill="False">
+                        <DockPanel>
                             <StackPanel DockPanel.Dock="Left">
                                 <TextBlock Text="Account Directory" Style="{StaticResource SectionHeader}" Margin="0"/>
                                 <TextBlock Text="Select the exact account before editing access, resetting a password, uploading a photo, or printing directory evidence."
@@ -114,15 +110,17 @@
                                        Text="{Binding Users.Count, StringFormat='Visible: {0}'}"
                                        Style="{StaticResource CaptionTextBlock}"
                                        VerticalAlignment="Center"
+                                       TextWrapping="Wrap"
                                        Margin="12,0,0,0"/>
                         </DockPanel>
                     </Border>
 
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
-                        <DockPanel LastChildFill="False">
+                        <DockPanel LastChildFill="True">
                             <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
                                 <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,6"/>
-                                <pages:SearchBar Width="340"
+                                <pages:SearchBar Width="300"
+                                                 MinWidth="220"
                                                  SearchLabel="Search"
                                                  Text="{Binding UserSearchText, UpdateSourceTrigger=PropertyChanged}"
                                                  SearchCommand="{Binding SearchUsersCommand}"
@@ -144,7 +142,13 @@
                               IsReadOnly="True"
                               AutoGenerateColumns="False"
                               SelectionMode="Single"
+                              SelectionUnit="FullRow"
                               CanUserAddRows="False"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               RowHeight="48"
                               Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowStyle>
@@ -220,7 +224,7 @@
                         </DataGrid.ContextMenu>
                     </DataGrid>
 
-                    <Border Grid.Row="2" Width="330" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Grid.Row="2" MaxWidth="330" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -239,10 +243,10 @@
                 </Grid>
             </Border>
 
-            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
-            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
-                <Grid>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+                <Grid MinWidth="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -265,8 +269,8 @@
                         </DockPanel>
                     </Border>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
-                        <StackPanel Margin="14">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="12">
                             <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8">
                                 <StackPanel>
                                     <TextBlock Text="Selected Account" Style="{StaticResource SectionHeader}"/>

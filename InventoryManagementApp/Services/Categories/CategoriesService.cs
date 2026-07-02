@@ -119,9 +119,11 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
             await using var conn = _db.CreateConnection();
             await EnsureInventoryExistsAsync(conn, inventoryId);
             await EnsureCategoryExistsAsync(conn, categoryId);
-            await conn.ExecuteAsync(
+            var linkedRows = await conn.ExecuteAsync(
                 "INSERT OR IGNORE INTO InventoryCategories(InventoryID,CategoryID) VALUES(@i,@c);",
                 new { i = inventoryId, c = categoryId });
+            if (linkedRows > 0)
+                NotifyChanged(DomainDataScope.Categories | DomainDataScope.Items | DomainDataScope.Reports, categoryId);
         }
 
         public async Task EnsureInventoryAsync(int inventoryId, string location, CancellationToken ct = default)
@@ -133,10 +135,14 @@ CREATE TABLE IF NOT EXISTS InventoryCategories (
             ct.ThrowIfCancellationRequested();
 
             await using var conn = _db.CreateConnection();
-            await conn.ExecuteAsync(
-                @"INSERT OR IGNORE INTO Inventories(InventoryID, Location)
-                  VALUES(@i, @location);",
+            var changedRows = await conn.ExecuteAsync(
+                @"INSERT INTO Inventories(InventoryID, Location)
+                  VALUES(@i, @location)
+                  ON CONFLICT(InventoryID) DO UPDATE SET Location = excluded.Location
+                  WHERE Inventories.Location <> excluded.Location;",
                 new { i = inventoryId, location });
+            if (changedRows > 0)
+                NotifyChanged(DomainDataScope.Categories | DomainDataScope.Items | DomainDataScope.Reports, inventoryId);
         }
 
         /// <summary>
