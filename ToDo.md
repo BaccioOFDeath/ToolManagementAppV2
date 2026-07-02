@@ -16,6 +16,7 @@ Current repository evidence:
 - Normal item add/update/bulk-save paths now normalize user-entered item text before duplicate checks and repository persistence, sharing the import trimming rules for item identity/detail fields.
 - Maintenance and calibration create/update workflows now normalize operational record text before persistence, and maintenance completion trims performer and notes before marking a record completed.
 - Reservation create/update and kit create/update workflows now normalize persisted workflow text before reference checks and database writes.
+- User create/update workflows now normalize profile and access text before first-user/existing-user checks and database writes, including canonicalized permission keys and nullable optional profile fields.
 - This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
@@ -65,6 +66,7 @@ Recent completed slices that should not be repeated unless fresh evidence shows 
 - Calibration create/update paths now normalize persisted operational record text before reference checks and database writes.
 - Reservation create/update paths now normalize status and notes before reference checks, filter-facing status persistence, and database writes.
 - Kit create/update paths now normalize kit number, name, description, and category before insert/update persistence.
+- User create/update paths now normalize username, photo path, contact fields, role, and permissions before workflow checks and persistence, with blank optional profile/access fields stored as database null values.
 
 ## Highest-Value Next Work
 
@@ -75,7 +77,7 @@ Prioritize the following before adding unrelated new features:
 3. Smoke test the WPF app visually on Windows, especially dark-theme top navigation dropdowns, context menus, combo boxes, print preview, report preview, and theme-customized popup surfaces.
 4. Continue replacing brittle source-text tests with behavior-focused tests where practical, especially when touching the same workflow for a real fix.
 5. Consider true streaming or exporter-specific flows for very large exports if future evidence shows the current paged-then-handoff export collectors still create unacceptable memory pressure.
-6. Keep tightening import/export, save-path, and operational-record data-quality behavior only where current evidence shows another concrete user-entered or file-imported text path can bypass validation, duplicate detection, search/report consistency, or professional output expectations.
+6. Keep tightening import/export, save-path, and operational-record data-quality behavior only where current evidence shows another concrete user-entered or file-imported text path can bypass validation, duplicate detection, search/report consistency, permission consistency, or professional output expectations.
 
 ## App Completion Status
 
