@@ -61,10 +61,7 @@ namespace InventoryManagementApp.Services.Settings
         public async Task SaveSettingAsync(string key, string value, CancellationToken cancellationToken = default)
         {
             _auth.EnsurePermission(User.PermissionSettings);
-            if (string.IsNullOrWhiteSpace(key))
-                throw new ArgumentException("Key cannot be null or empty.", nameof(key));
-
-            var normalizedKey = key.Trim();
+            var normalizedKey = NormalizeRequiredSettingKey(key, nameof(key));
 
             try
             {
@@ -106,31 +103,32 @@ namespace InventoryManagementApp.Services.Settings
         /// <returns>The setting value if found; otherwise, null.</returns>
         public async Task<string?> GetSettingAsync(string? key, CancellationToken cancellationToken = default)
         {
-            if (key is null)
+            var normalizedKey = NormalizeOptionalSettingKey(key);
+            if (normalizedKey is null)
                 return null;
 
             try
             {
                 const string sql = "SELECT Value FROM Settings WHERE Key = @Key";
                 using var conn = _dbService.CreateConnection();
-                var p = new[] { new SqliteParameter("@Key", key) };
+                var p = new[] { new SqliteParameter("@Key", normalizedKey) };
                 var result = await SqliteHelper.ExecuteScalarAsync(conn, sql, p, cancellationToken).ConfigureAwait(false);
                 return result?.ToString();
             }
             catch (OperationCanceledException ex)
             {
-                _logger.LogWarning(ex, "Retrieving setting {Key} canceled or timed out", key);
+                _logger.LogWarning(ex, "Retrieving setting {Key} canceled or timed out", normalizedKey);
                 throw;
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == SQLitePCL.raw.SQLITE_BUSY)
             {
-                _logger.LogWarning(ex, "Retrieving setting {Key} timed out", key);
+                _logger.LogWarning(ex, "Retrieving setting {Key} timed out", normalizedKey);
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to retrieve setting {Key}", key);
-                throw new InvalidOperationException($"Failed to retrieve setting '{key}'.", ex);
+                _logger.LogError(ex, "Failed to retrieve setting {Key}", normalizedKey);
+                throw new InvalidOperationException($"Failed to retrieve setting '{normalizedKey}'.", ex);
             }
         }
 
@@ -145,7 +143,7 @@ namespace InventoryManagementApp.Services.Settings
                 using var rdr = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await rdr.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    var key = rdr["Key"]?.ToString();
+                    var key = NormalizeOptionalSettingKey(rdr["Key"]?.ToString());
                     var value = rdr["Value"]?.ToString();
                     if (key != null && value != null)
                         dict[key] = value;
@@ -189,10 +187,7 @@ namespace InventoryManagementApp.Services.Settings
             var normalizedKeys = new HashSet<string>(StringComparer.Ordinal);
             foreach (var kv in settings)
             {
-                if (string.IsNullOrWhiteSpace(kv.Key))
-                    throw new ArgumentException("Key cannot be null or empty.", nameof(settings));
-
-                var normalizedKey = kv.Key.Trim();
+                var normalizedKey = NormalizeRequiredSettingKey(kv.Key, nameof(settings));
                 if (!normalizedKeys.Add(normalizedKey))
                     throw new ArgumentException("Duplicate setting keys are not allowed.", nameof(settings));
 
@@ -238,10 +233,7 @@ namespace InventoryManagementApp.Services.Settings
         public async Task DeleteSettingAsync(string key, CancellationToken cancellationToken = default)
         {
             _auth.EnsurePermission(User.PermissionSettings);
-            if (string.IsNullOrWhiteSpace(key))
-                throw new ArgumentException("Key cannot be null or empty.", nameof(key));
-
-            var normalizedKey = key.Trim();
+            var normalizedKey = NormalizeRequiredSettingKey(key, nameof(key));
 
             try
             {
@@ -267,6 +259,18 @@ namespace InventoryManagementApp.Services.Settings
                 _logger.LogError(ex, "Failed to delete setting {Key}", normalizedKey);
                 throw new InvalidOperationException($"Failed to delete setting '{normalizedKey}'.", ex);
             }
+        }
+
+        static string? NormalizeOptionalSettingKey(string? key) =>
+            string.IsNullOrWhiteSpace(key) ? null : key.Trim();
+
+        static string NormalizeRequiredSettingKey(string key, string parameterName)
+        {
+            var normalizedKey = NormalizeOptionalSettingKey(key);
+            if (normalizedKey is null)
+                throw new ArgumentException("Key cannot be null or empty.", parameterName);
+
+            return normalizedKey;
         }
 
         static void EnsureSettingsWriteSucceeded(int affectedRows, string key)
@@ -322,25 +326,27 @@ namespace InventoryManagementApp.Services.Settings
         public async Task<string> GetItemLabelSingularAsync(CancellationToken cancellationToken = default)
         {
             var value = await GetSettingAsync(ItemLabelSingularKey, cancellationToken).ConfigureAwait(false);
-            return string.IsNullOrWhiteSpace(value) ? "Item" : value;
+            return NormalizeDisplayLabel(value, "Item");
         }
 
         public async Task SaveItemLabelSingularAsync(string label, CancellationToken cancellationToken = default)
         {
             _auth.EnsurePermission(User.PermissionSettings);
-            await SaveSettingAsync(ItemLabelSingularKey, label, cancellationToken).ConfigureAwait(false);
+            var normalizedLabel = NormalizeDisplayLabel(label, "Item");
+            await SaveSettingAsync(ItemLabelSingularKey, normalizedLabel, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<string> GetItemLabelPluralAsync(CancellationToken cancellationToken = default)
         {
             var value = await GetSettingAsync(ItemLabelPluralKey, cancellationToken).ConfigureAwait(false);
-            return string.IsNullOrWhiteSpace(value) ? "Items" : value;
+            return NormalizeDisplayLabel(value, "Items");
         }
 
         public async Task SaveItemLabelPluralAsync(string label, CancellationToken cancellationToken = default)
         {
             _auth.EnsurePermission(User.PermissionSettings);
-            await SaveSettingAsync(ItemLabelPluralKey, label, cancellationToken).ConfigureAwait(false);
+            var normalizedLabel = NormalizeDisplayLabel(label, "Items");
+            await SaveSettingAsync(ItemLabelPluralKey, normalizedLabel, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IDictionary<ItemDetailField, bool>> GetItemDetailVisibilityAsync(CancellationToken cancellationToken = default)
@@ -374,10 +380,15 @@ namespace InventoryManagementApp.Services.Settings
         public async Task SaveItemDetailVisibilityAsync(IDictionary<ItemDetailField, bool> visibility, CancellationToken cancellationToken = default)
         {
             _auth.EnsurePermission(User.PermissionSettings);
-            var dict = visibility.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value);
+            if (visibility is null)
+                throw new ArgumentNullException(nameof(visibility));
+
+            var normalizedVisibility = Enum.GetValues<ItemDetailField>()
+                .ToDictionary(f => f, f => visibility.TryGetValue(f, out var visible) ? visible : true);
+            var dict = normalizedVisibility.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value);
             var json = JsonSerializer.Serialize(dict);
             await SaveSettingAsync(ItemDetailVisibilityKey, json, cancellationToken).ConfigureAwait(false);
-            ItemDetailVisibilityChanged?.Invoke(this, new Dictionary<ItemDetailField, bool>(visibility));
+            ItemDetailVisibilityChanged?.Invoke(this, normalizedVisibility);
         }
 
         public async Task<double> GetItemCardSizeAsync(CancellationToken cancellationToken = default)
@@ -401,5 +412,8 @@ namespace InventoryManagementApp.Services.Settings
             await SaveSettingAsync(ItemCardSizeKey, value, cancellationToken).ConfigureAwait(false);
             ItemCardSizeChanged?.Invoke(this, size);
         }
+
+        static string NormalizeDisplayLabel(string? label, string defaultLabel) =>
+            string.IsNullOrWhiteSpace(label) ? defaultLabel : label.Trim();
     }
 }
