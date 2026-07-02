@@ -8,11 +8,18 @@
         <Style x:Key="CustomerStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
             <Setter Property="Padding" Value="12,10"/>
             <Setter Property="MinHeight" Value="74"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="MinWidth" Value="160"/>
+            <Setter Property="MaxWidth" Value="250"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
         </Style>
         <Style x:Key="CustomerDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+        <Style x:Key="CustomerStatValueText" TargetType="TextBlock" BasedOn="{StaticResource HeadingTextBlock}">
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="MinHeight" Value="24"/>
         </Style>
     </Page.Resources>
 
@@ -24,13 +31,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
+        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="14,12">
             <DockPanel LastChildFill="False">
-                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <TextBlock Text="Customers" Style="{StaticResource PageTitleTextBlock}"/>
-                    <TextBlock Text="Find customer records, verify contact details, and prepare advisor handoffs before rentals or service follow-up." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,18,0" MinWidth="220" MaxWidth="460">
+                    <TextBlock Text="Customers" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Find customer records, verify contact details, and prepare advisor handoffs before rentals or service follow-up." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                 </StackPanel>
-                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="16,0,0,0">
+                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right">
                     <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddCustomerCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCustomerDetailsCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCustomerCommand}" Margin="0,0,6,6"/>
@@ -42,52 +49,46 @@
             </DockPanel>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,0,0,6">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="1.2*"/>
-                <ColumnDefinition Width="1.2*"/>
-                <ColumnDefinition Width="1.35*"/>
-            </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Style="{StaticResource CustomerStatCard}">
+        <WrapPanel Grid.Row="1" Margin="0,0,0,6">
+            <Border Style="{StaticResource CustomerStatCard}">
                 <StackPanel>
                     <TextBlock Text="Visible Customers" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding Customers.Count}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="{Binding Customers.Count}" Style="{StaticResource CustomerStatValueText}"/>
                     <TextBlock Text="Directory rows matching the current search" Style="{StaticResource CustomerDetailText}"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="1" Style="{StaticResource CustomerStatCard}">
+            <Border Style="{StaticResource CustomerStatCard}">
                 <StackPanel>
                     <TextBlock Text="Search State" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding CustomerResultsSummary}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding CustomerResultsSummary}" Style="{StaticResource CustomerStatValueText}"/>
                     <TextBlock Text="Use the directory filters before printing or copying handoffs" Style="{StaticResource CustomerDetailText}"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="2" Style="{StaticResource CustomerStatCard}">
+            <Border Style="{StaticResource CustomerStatCard}">
                 <StackPanel>
                     <TextBlock Text="Contact Path" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding CustomerContactSummary}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding CustomerContactSummary}" Style="{StaticResource CustomerStatValueText}"/>
                     <TextBlock Text="Phone, mobile, and email context for the selected customer" Style="{StaticResource CustomerDetailText}"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="3" Style="{StaticResource CustomerStatCard}" Margin="0">
+            <Border Style="{StaticResource CustomerStatCard}" Margin="0,0,0,8">
                 <StackPanel>
                     <TextBlock Text="Selected Customer" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding SelectedCustomer.Company, TargetNullValue=No customer selected}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding SelectedCustomer.Company, TargetNullValue=No customer selected}" Style="{StaticResource CustomerStatValueText}"/>
                     <TextBlock Text="{Binding CustomerOperationsSummary}" Style="{StaticResource CustomerDetailText}"/>
                 </StackPanel>
             </Border>
-        </Grid>
+        </WrapPanel>
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.1*" MinWidth="560"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="1.05*" MinWidth="360"/>
+                <ColumnDefinition Width="1.65*" MinWidth="0"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="0.95*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
-                <Grid>
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+                <Grid MinWidth="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -99,14 +100,15 @@
                                 <TextBlock Text="Customer Directory" Style="{StaticResource SectionHeader}" Margin="0"/>
                                 <TextBlock Text="Select the exact company or contact before copying, printing, editing, or opening details." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding CustomerResultsSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding CustomerResultsSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="12,0,0,0"/>
                         </DockPanel>
                     </Border>
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
-                        <DockPanel LastChildFill="False">
+                        <DockPanel LastChildFill="True">
                             <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
                                 <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,6"/>
-                                <pages:SearchBar Width="340"
+                                <pages:SearchBar Width="300"
+                                                 MinWidth="220"
                                                  Text="{Binding CustomerSearchTerm, UpdateSourceTrigger=PropertyChanged}"
                                                  SearchCommand="{Binding SearchCustomersCommand}"
                                                  ClearCommand="{Binding ClearCustomerSearchCommand}"
@@ -120,12 +122,20 @@
                             </WrapPanel>
                         </DockPanel>
                     </Border>
-                    <DataGrid Grid.Row="2"
+                    <DataGrid x:Name="CustomerDataGrid"
+                              Grid.Row="2"
                               ItemsSource="{Binding Customers}"
                               SelectedItem="{Binding SelectedCustomer}"
                               IsReadOnly="True"
                               AutoGenerateColumns="False"
                               SelectionMode="Single"
+                              SelectionUnit="FullRow"
+                              CanUserAddRows="False"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
@@ -134,7 +144,7 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Company" Width="2.2*" MinWidth="190">
+                            <DataGridTemplateColumn Header="Company" Width="2.2*" MinWidth="170">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="0,3">
@@ -144,7 +154,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Contact" Width="1.7*" MinWidth="165">
+                            <DataGridTemplateColumn Header="Contact" Width="1.7*" MinWidth="150">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="0,3">
@@ -164,7 +174,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="1.8*" MinWidth="155"/>
+                            <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="1.8*" MinWidth="150"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -178,7 +188,7 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <Border Grid.Row="2" Width="310" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Grid.Row="2" MaxWidth="330" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -197,10 +207,10 @@
                 </Grid>
             </Border>
 
-            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
-            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
-                <Grid>
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+                <Grid MinWidth="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -214,7 +224,7 @@
                             </StackPanel>
                         </DockPanel>
                     </Border>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="14">
                             <TextBlock Text="{Binding SelectedCustomer.Company, TargetNullValue='No customer selected', FallbackValue='No customer selected'}"
                                        FontSize="18"
@@ -261,8 +271,8 @@
                     </ScrollViewer>
                     <Border Grid.Row="2" Style="{StaticResource DesktopSectionActionStrip}">
                         <WrapPanel HorizontalAlignment="Right">
-                            <Button Style="{StaticResource PrimaryButton}" Content="Copy Contact" Command="{Binding CopySelectedCustomerCommand}" Margin="0,0,6,0"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Command="{Binding PrintSelectedCustomerCommand}"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Copy Contact" Command="{Binding CopySelectedCustomerCommand}" Margin="0,0,6,6"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Command="{Binding PrintSelectedCustomerCommand}" Margin="0,0,0,6"/>
                         </WrapPanel>
                     </Border>
                 </Grid>
@@ -271,9 +281,9 @@
 
         <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0">
             <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Style="{StaticResource GhostButton}" Content="Clear Search" Command="{Binding ClearCustomerSearchCommand}"/>
-                </StackPanel>
+                <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource GhostButton}" Content="Clear Search" Command="{Binding ClearCustomerSearchCommand}" Margin="0,0,0,6"/>
+                </WrapPanel>
                 <TextBlock Text="{Binding SelectedCustomerSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0" TextWrapping="Wrap"/>
             </DockPanel>
         </Border>
