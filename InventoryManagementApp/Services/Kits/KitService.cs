@@ -200,6 +200,7 @@ namespace InventoryManagementApp.Services.Kits
         public async Task<int> CreateKitAsync(Kit kit)
         {
             ValidateKit(kit, requireExistingId: false);
+            NormalizeKitForSave(kit);
 
             var id = await Task.Run(() =>
             {
@@ -210,8 +211,8 @@ namespace InventoryManagementApp.Services.Kits
                     VALUES 
                     (@KitNumber, @Name, @Description, @Category, @IsActive, @CreatedByUserID, @CreatedAt, @UpdatedAt)";
                 using var cmd = new SqliteCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber.Trim());
-                cmd.Parameters.AddWithValue("@Name", kit.Name.Trim());
+                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber);
+                cmd.Parameters.AddWithValue("@Name", kit.Name);
                 cmd.Parameters.AddWithValue("@Description", ToDbNullableText(kit.Description));
                 cmd.Parameters.AddWithValue("@Category", ToDbNullableText(kit.Category));
                 cmd.Parameters.AddWithValue("@IsActive", kit.IsActive ? 1 : 0);
@@ -234,6 +235,7 @@ namespace InventoryManagementApp.Services.Kits
         public async Task<bool> UpdateKitAsync(Kit kit)
         {
             ValidateKit(kit, requireExistingId: true);
+            NormalizeKitForSave(kit);
 
             var updated = await Task.Run(() =>
             {
@@ -251,8 +253,8 @@ namespace InventoryManagementApp.Services.Kits
                     WHERE KitID = @KitID";
                 using var cmd = new SqliteCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@KitID", kit.KitID);
-                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber.Trim());
-                cmd.Parameters.AddWithValue("@Name", kit.Name.Trim());
+                cmd.Parameters.AddWithValue("@KitNumber", kit.KitNumber);
+                cmd.Parameters.AddWithValue("@Name", kit.Name);
                 cmd.Parameters.AddWithValue("@Description", ToDbNullableText(kit.Description));
                 cmd.Parameters.AddWithValue("@Category", ToDbNullableText(kit.Category));
                 cmd.Parameters.AddWithValue("@IsActive", kit.IsActive ? 1 : 0);
@@ -449,6 +451,14 @@ namespace InventoryManagementApp.Services.Kits
                 throw new ArgumentException("Kit name is required.", nameof(kit.Name));
         }
 
+        private static void NormalizeKitForSave(Kit kit)
+        {
+            kit.KitNumber = NormalizeRequiredText(kit.KitNumber);
+            kit.Name = NormalizeRequiredText(kit.Name);
+            kit.Description = NormalizeOptionalText(kit.Description);
+            kit.Category = NormalizeOptionalText(kit.Category);
+        }
+
         private static void ValidateKitItem(KitItem kitItem, bool requireExistingId)
         {
             if (kitItem == null)
@@ -516,8 +526,13 @@ namespace InventoryManagementApp.Services.Kits
 
         private static object ToDbNullableText(string? value)
         {
-            return string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
+            var normalized = NormalizeOptionalText(value);
+            return string.IsNullOrEmpty(normalized) ? DBNull.Value : normalized;
         }
+
+        private static string NormalizeRequiredText(string? value) => value?.Trim() ?? string.Empty;
+
+        private static string NormalizeOptionalText(string? value) => value?.Trim() ?? string.Empty;
 
         static void NotifyChanged(DomainDataScope scope, int? entityId = null)
         {
