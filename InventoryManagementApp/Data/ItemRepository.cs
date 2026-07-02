@@ -12,7 +12,7 @@ namespace InventoryManagementApp.Data;
 public sealed class ItemRepository : IItemRepository
 {
     private readonly SqliteConnectionFactory _factory;
-    private const string ItemProjection = "ItemID, ItemNumber, NameDescription AS Name, Location, Brand, PartNumber, Supplier, PurchasedDate, Notes, Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, ImagePath, IsCheckedOut, CheckedOutBy, CheckedOutTime, CheckedInBy, CheckedInTime, IsPowered, NULLIF(TRIM(UpdatedAt), '') AS UpdatedAt, IsIncomplete, MissingComponentsNotes, IssuesNotes, CheckoutCount";
+    private const string ItemProjection = "ItemID, TRIM(IFNULL(ItemNumber, '')) AS ItemNumber, TRIM(IFNULL(NameDescription, '')) AS Name, TRIM(IFNULL(Location, '')) AS Location, TRIM(IFNULL(Brand, '')) AS Brand, TRIM(IFNULL(PartNumber, '')) AS PartNumber, TRIM(IFNULL(Supplier, '')) AS Supplier, PurchasedDate, TRIM(IFNULL(Notes, '')) AS Notes, TRIM(IFNULL(Keywords, '')) AS Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, TRIM(IFNULL(ImagePath, '')) AS ImagePath, IsCheckedOut, TRIM(IFNULL(CheckedOutBy, '')) AS CheckedOutBy, CheckedOutTime, TRIM(IFNULL(CheckedInBy, '')) AS CheckedInBy, CheckedInTime, IsPowered, NULLIF(TRIM(UpdatedAt), '') AS UpdatedAt, IsIncomplete, TRIM(IFNULL(MissingComponentsNotes, '')) AS MissingComponentsNotes, TRIM(IFNULL(IssuesNotes, '')) AS IssuesNotes, CheckoutCount";
 
     public ItemRepository(SqliteConnectionFactory factory)
         => _factory = factory;
