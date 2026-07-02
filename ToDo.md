@@ -21,6 +21,7 @@ Current repository evidence:
 - Category/inventory linking now sends domain refresh messages when a new association is created, and inventory ensure/update now refreshes dependent item/report/category views when a normalized location label changes.
 - Settings readback now normalizes setting keys consistently with save/delete paths, item label settings trim/default display text, and item-detail visibility saves persist and broadcast a complete field map.
 - Rental list, history, and frequency readback now trims legacy item/customer/display text before screens, reports, reminders, and printable rental documents consume it.
+- Item repository readback now trims legacy item identity, detail, checkout attribution, image path, and incomplete/problem-note text through the shared item projection before grids, exports, dashboards, image import matching, reports, and item detail views consume it.
 - This scheduled Linux environment cannot currently clone the repository directly because GitHub HTTP access returns `CONNECT tunnel failed, response 403`, and it does not provide `dotnet`, `pwsh`, `gh`, or a WPF runtime.
 
 ## Build And Validation
@@ -75,6 +76,7 @@ Recent completed slices that should not be repeated unless fresh evidence shows 
 - Category/inventory association changes now refresh dependent category, item, and report views when new links are created; inventory location ensures now update stale labels and refresh only when a row actually changes.
 - Settings key readback now matches normalized write/delete behavior, all-settings readback normalizes keys, item label settings trim/default display text, and item-detail visibility saves canonical full field maps.
 - Rental row mapping and rental frequency summaries now trim legacy joined item/customer/display text before returning models to rental grids, dashboard/report summaries, reminders, and printable documents.
+- Item repository projection now trims item number, name, location, brand, part number, supplier, notes, keywords, image path, checkout user names, missing-components notes, and issue notes before item read models reach search grids, details, dashboards, exports, image import matching, checked-out lists, incomplete lists, and reports.
 
 ## Highest-Value Next Work
 
@@ -99,7 +101,7 @@ Completed or substantially implemented:
 
 Still needing attention:
 
-- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, settings normalization, and rental readback normalization changes.
+- Full test suite green after the latest source-contract, dependency, reporting, export, import, validation-runner, operational-record, configuration, user/profile normalization, category/inventory refresh, settings normalization, rental readback normalization, and item readback normalization changes.
 - Runtime WPF walkthrough of core workflows on Windows.
 - Visual QA in light/dark themes, including dropdowns, context menus, combo boxes, dialogs, and theme-customized popup surfaces.
 - Print and report preview QA for capped, empty, and large-data documents.
