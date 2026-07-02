@@ -2,6 +2,16 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource MainContentBackgroundBrush}">
+    <Page.Resources>
+        <Style x:Key="CalibrationMetricCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="MinHeight" Value="76"/>
+            <Setter Property="MinWidth" Value="150"/>
+            <Setter Property="MaxWidth" Value="235"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+    </Page.Resources>
+
     <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -13,9 +23,9 @@
         <Border Style="{StaticResource ToolbarCard}" Padding="12,10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="380"/>
-                    <ColumnDefinition Width="14"/>
-                    <ColumnDefinition Width="3*" MinWidth="520"/>
+                    <ColumnDefinition Width="1.15*" MinWidth="0"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="2.85*" MinWidth="0"/>
                 </Grid.ColumnDefinitions>
 
                 <StackPanel VerticalAlignment="Center">
@@ -26,32 +36,32 @@
                                Margin="0,3,0,0"/>
                 </StackPanel>
 
-                <UniformGrid Grid.Column="2" Columns="4">
-                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
+                    <Border Style="{StaticResource CalibrationMetricCard}">
                         <StackPanel>
                             <TextBlock Text="REGISTER" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="{Binding CalibrationResultsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource CalibrationMetricCard}">
                         <StackPanel>
                             <TextBlock Text="DUE STATE" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="{Binding CalibrationBacklogSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+                    <Border Style="{StaticResource CalibrationMetricCard}">
                         <StackPanel>
                             <TextBlock Text="SELECTED" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="{Binding SelectedRecord.StatusDisplay, TargetNullValue='No certificate selected', FallbackValue='No certificate selected'}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource DesktopSummaryCard}">
+                    <Border Style="{StaticResource CalibrationMetricCard}">
                         <StackPanel>
                             <TextBlock Text="RELEASE" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="Verify before issue" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
-                </UniformGrid>
+                </WrapPanel>
             </Grid>
         </Border>
 
@@ -75,8 +85,8 @@
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
                     <TextBlock Text="Find and filter" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <TextBox Width="250" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search item number, name, certificate, calibrated by, standard, result, or notes"/>
-                        <ComboBox Width="175" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,4"/>
+                        <TextBox Width="250" MinWidth="190" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search item number, name, certificate, calibrated by, standard, result, or notes"/>
+                        <ComboBox Width="175" MinWidth="145" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Overdue" Command="{Binding ShowOverdueCommand}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Due Soon" Command="{Binding ShowDueSoonCommand}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Current" Command="{Binding ShowCurrentCommand}" Margin="0,0,4,4"/>
@@ -90,12 +100,12 @@
 
         <Grid Grid.Row="2" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" MinWidth="630"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="440" MinWidth="390"/>
+                <ColumnDefinition Width="1.55*" MinWidth="0"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="0.95*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -116,12 +126,19 @@
                             <TextBlock Text="{Binding CalibrationBacklogSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
                         </DockPanel>
                     </Border>
-                    <DataGrid Grid.Row="2"
+                    <DataGrid x:Name="CalibrationGrid"
+                              Grid.Row="2"
                               ItemsSource="{Binding FilteredCalibrationRecords}"
                               SelectedItem="{Binding SelectedRecord}"
                               SelectionMode="Single"
+                              SelectionUnit="FullRow"
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
@@ -130,7 +147,7 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Certificate item" Width="2.1*" MinWidth="220">
+                            <DataGridTemplateColumn Header="Certificate item" Width="2.1*" MinWidth="190">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -140,7 +157,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Due window" Width="170">
+                            <DataGridTemplateColumn Header="Due window" Width="155" MinWidth="145">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -150,7 +167,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Certificate" Width="2*" MinWidth="210">
+                            <DataGridTemplateColumn Header="Certificate" Width="2*" MinWidth="185">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -160,7 +177,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Last calibration" Width="170">
+                            <DataGridTemplateColumn Header="Last calibration" Width="160" MinWidth="150">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -170,7 +187,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="90"/>
+                            <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="90" MinWidth="84"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
@@ -185,7 +202,7 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <Border Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="380" Padding="16">
+                    <Border Grid.Row="2" MaxWidth="360" MinHeight="130" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="16">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -208,7 +225,13 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+            <GridSplitter Grid.Column="1"
+                          Width="6"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="{DynamicResource BorderBrushBase}"/>
+
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -224,7 +247,7 @@
                             <TextBlock Text="Issue-ready check" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                         </DockPanel>
                     </Border>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="14">
                             <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10">
                                 <StackPanel>
@@ -287,10 +310,10 @@
 
         <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
             <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Copy Handoff" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Due" Command="{Binding PrintCalibrationListCommand}"/>
-                </StackPanel>
+                <WrapPanel DockPanel.Dock="Right">
+                    <Button Style="{StaticResource PrimaryButton}" Content="Copy Handoff" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print Due" Command="{Binding PrintCalibrationListCommand}" Margin="0,0,0,4"/>
+                </WrapPanel>
                 <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0" TextWrapping="Wrap"/>
             </DockPanel>
         </Border>
