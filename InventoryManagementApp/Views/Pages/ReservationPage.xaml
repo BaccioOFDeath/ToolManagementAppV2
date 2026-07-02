@@ -6,8 +6,18 @@
     <Page.Resources>
         <Style x:Key="ReservationStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
             <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="MinWidth" Value="150"/>
+            <Setter Property="MaxWidth" Value="235"/>
             <Setter Property="MinHeight" Value="76"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+        <Style x:Key="ReservationStatValueText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="MaxHeight" Value="36"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
         </Style>
         <Style x:Key="ReservationDetailCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
             <Setter Property="Padding" Value="12"/>
@@ -30,43 +40,43 @@
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="380"/>
-                    <ColumnDefinition Width="14"/>
-                    <ColumnDefinition Width="3*" MinWidth="540"/>
+                    <ColumnDefinition Width="1.15*" MinWidth="0"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="1.85*" MinWidth="0"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center">
+                <StackPanel VerticalAlignment="Center" MinWidth="0">
                     <TextBlock Text="Reservations Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
                     <TextBlock Text="Stage customer holds, confirm availability, prepare shelf pickup, and move ready reservations into rentals from one operations surface."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
                 </StackPanel>
-                <UniformGrid Grid.Column="2" Columns="4">
+                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
                     <Border Style="{StaticResource ReservationStatCard}">
                         <StackPanel>
                             <TextBlock Text="DIRECTORY" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding ReservationResultsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding ReservationResultsSummary}" Style="{StaticResource ReservationStatValueText}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource ReservationStatCard}">
                         <StackPanel>
                             <TextBlock Text="FILTER" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding SelectedFilter}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding SelectedFilter}" Style="{StaticResource ReservationStatValueText}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource ReservationStatCard}">
                         <StackPanel>
                             <TextBlock Text="SELECTED" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding SelectedReservation.ReservationID, StringFormat=Hold #{0}, TargetNullValue='No hold selected', FallbackValue='No hold selected'}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding SelectedReservation.ReservationID, StringFormat=Hold #{0}, TargetNullValue='No hold selected', FallbackValue='No hold selected'}" Style="{StaticResource ReservationStatValueText}"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource DesktopSummaryCard}" Padding="12,10" MinHeight="76">
+                    <Border Style="{StaticResource ReservationStatCard}">
                         <StackPanel>
                             <TextBlock Text="HANDOFF" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="Copy / print ready" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="Copy / print ready" Style="{StaticResource ReservationStatValueText}"/>
                         </StackPanel>
                     </Border>
-                </UniformGrid>
+                </WrapPanel>
             </Grid>
         </Border>
 
@@ -93,12 +103,12 @@
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
                     <TextBlock Text="Find and filter" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <TextBox Width="250"
+                        <TextBox Width="230"
                                  MinWidth="150"
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                  ToolTip="Search reservation number, item, customer, status, or notes"
                                  Margin="0,0,6,4"/>
-                        <ComboBox Width="175"
+                        <ComboBox Width="160"
                                   MinWidth="130"
                                   ItemsSource="{Binding FilterOptions}"
                                   SelectedItem="{Binding SelectedFilter}"
@@ -117,12 +127,12 @@
 
         <Grid Grid.Row="2" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.45*" MinWidth="620"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="430" MinWidth="390"/>
+                <ColumnDefinition Width="1.55*" MinWidth="0"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="0.95*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -132,9 +142,9 @@
 
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Left">
+                            <StackPanel DockPanel.Dock="Left" MinWidth="0">
                                 <TextBlock Text="01 Hold Directory" Style="{StaticResource SectionHeader}" Margin="0"/>
-                                <TextBlock Text="Sorts staged holds by start date, then customer for pickup planning" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Sorts staged holds by start date, then customer for pickup planning" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
                             <TextBlock Text="{Binding ReservationResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
@@ -153,6 +163,12 @@
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               SelectionMode="Single"
+                              SelectionUnit="FullRow"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
@@ -161,7 +177,7 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Hold" Width="1.25*" MinWidth="155">
+                            <DataGridTemplateColumn Header="Hold" Width="1.25*" MinWidth="145">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -171,7 +187,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Customer" Width="1.7*" MinWidth="170">
+                            <DataGridTemplateColumn Header="Customer" Width="1.7*" MinWidth="155">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -181,7 +197,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Item" Width="2*" MinWidth="200">
+                            <DataGridTemplateColumn Header="Item" Width="2*" MinWidth="175">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -191,7 +207,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Window" Width="170" MinWidth="150">
+                            <DataGridTemplateColumn Header="Window" Width="160" MinWidth="140">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -201,8 +217,8 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Rental ID" Binding="{Binding RentalID}" Width="92" MinWidth="76"/>
-                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="1.35*" MinWidth="160"/>
+                            <DataGridTextColumn Header="Rental ID" Binding="{Binding RentalID}" Width="86" MinWidth="72"/>
+                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="1.35*" MinWidth="140"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
@@ -223,7 +239,7 @@
                         </DataGrid.ContextMenu>
                     </DataGrid>
 
-                    <Border Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="370" Padding="16">
+                    <Border Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="330" MinHeight="120" Margin="12" Padding="16">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -247,12 +263,12 @@
             </Border>
 
             <GridSplitter Grid.Column="1"
-                          Width="8"
+                          Width="6"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
                           Background="{DynamicResource BorderBrushBase}"/>
 
-            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -261,16 +277,16 @@
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Left">
+                            <StackPanel DockPanel.Dock="Left" MinWidth="0">
                                 <TextBlock Text="02 Pickup Handoff" Style="{StaticResource SectionHeader}" Margin="0"/>
-                                <TextBlock Text="Selected hold, dates, next action, and shelf checklist" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                                <TextBlock Text="Selected hold, dates, next action, and shelf checklist" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
-                            <TextBlock Text="Ready to copy" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock Text="Ready to copy" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
-                        <StackPanel Margin="12,12,12,4">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="12,12,12,4" MinWidth="0">
                             <Border Style="{StaticResource ReservationDetailCard}">
                                 <StackPanel>
                                     <TextBlock Text="Selected Hold" Style="{StaticResource LabelTextBlock}"/>
