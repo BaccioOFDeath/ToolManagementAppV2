@@ -7,7 +7,9 @@
         <Style x:Key="ReportsStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
             <Setter Property="Padding" Value="12,10"/>
             <Setter Property="MinHeight" Value="78"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="MinWidth" Value="150"/>
+            <Setter Property="MaxWidth" Value="240"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
         </Style>
         <Style x:Key="ReportsDetailCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
             <Setter Property="Padding" Value="12"/>
@@ -30,18 +32,18 @@
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="390"/>
-                    <ColumnDefinition Width="14"/>
-                    <ColumnDefinition Width="3*" MinWidth="540"/>
+                    <ColumnDefinition Width="1.15*" MinWidth="0"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center">
+                <StackPanel VerticalAlignment="Center" MinWidth="0">
                     <TextBlock Text="Reports Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
                     <TextBlock Text="Run operational reports, inspect the highest-priority rows, then jump to the exact source page for follow-up."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
                 </StackPanel>
-                <UniformGrid Grid.Column="2" Columns="4">
+                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
                     <Border Style="{StaticResource ReportsStatCard}">
                         <StackPanel>
                             <TextBlock Text="REPORT" Style="{StaticResource LabelTextBlock}"/>
@@ -72,7 +74,7 @@
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
-                    <Border Style="{StaticResource DesktopSummaryCard}" Padding="12,10" MinHeight="78">
+                    <Border Style="{StaticResource ReportsStatCard}">
                         <StackPanel>
                             <TextBlock Text="LAST RUN" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="{Binding LastRunText}"
@@ -82,7 +84,7 @@
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
-                </UniformGrid>
+                </WrapPanel>
             </Grid>
         </Border>
 
@@ -95,8 +97,8 @@
                 <DockPanel LastChildFill="True">
                     <TextBlock Text="Report selector" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <ComboBox Width="270"
-                                  MinWidth="210"
+                        <ComboBox Width="250"
+                                  MinWidth="200"
                                   ItemsSource="{Binding ReportTypes}"
                                   SelectedItem="{Binding SelectedReport}"
                                   ItemContainerStyle="{StaticResource DropdownItemStyle}"
@@ -120,12 +122,12 @@
 
         <Grid Grid.Row="2" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2.55*" MinWidth="620"/>
-                <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="430" MinWidth="380"/>
+                <ColumnDefinition Width="1.55*" MinWidth="0"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="0.95*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -136,7 +138,7 @@
 
                     <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Left">
+                            <StackPanel DockPanel.Dock="Left" MinWidth="0">
                                 <TextBlock Text="01 Report Results" Style="{StaticResource SectionHeader}" Margin="0"/>
                                 <TextBlock Text="Review generated report lines, priority wording, destination, and next action before opening the source workflow." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
@@ -159,6 +161,12 @@
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
                               SelectionMode="Single"
+                              SelectionUnit="FullRow"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               MouseDoubleClick="ReportGrid_MouseDoubleClick"
                               PreviewMouseRightButtonDown="ReportGrid_PreviewMouseRightButtonDown"
                               Style="{StaticResource VirtualizedDataGridStyle}">
@@ -171,7 +179,7 @@
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="#" Binding="{Binding Number}" Width="48" MinWidth="44"/>
-                            <DataGridTemplateColumn Header="Type / Destination" Width="1.05*" MinWidth="170">
+                            <DataGridTemplateColumn Header="Type / Destination" Width="1.05*" MinWidth="150">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -181,7 +189,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Report Detail" Width="2.15*" MinWidth="300">
+                            <DataGridTemplateColumn Header="Report Detail" Width="2.15*" MinWidth="240">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Margin="2,3">
@@ -191,11 +199,11 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Destination" Binding="{Binding DestinationName}" Width="135" MinWidth="120"/>
+                            <DataGridTextColumn Header="Destination" Binding="{Binding DestinationName}" Width="120" MinWidth="110"/>
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <Border Grid.Row="2" Width="360" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Grid.Row="2" MaxWidth="360" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -221,9 +229,9 @@
                 </Grid>
             </Border>
 
-            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
-            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -235,7 +243,7 @@
                             <TextBlock Text="Keep the report context, source page, and next action visible while triaging generated rows." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
                     </Border>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="8">
                             <Border Style="{StaticResource ReportsDetailCard}">
                                 <StackPanel>
@@ -266,8 +274,10 @@
                                              IsReadOnly="True"
                                              TextWrapping="Wrap"
                                              AcceptsReturn="True"
-                                             MinHeight="150"
+                                             MinHeight="130"
+                                             MaxHeight="260"
                                              VerticalScrollBarVisibility="Auto"
+                                             HorizontalScrollBarVisibility="Disabled"
                                              Margin="0,5,0,0"/>
                                 </StackPanel>
                             </Border>
@@ -290,7 +300,7 @@
                 Margin="0,6,0,0"
                 Padding="8,5">
             <DockPanel LastChildFill="True">
-                <ProgressBar Width="150"
+                <ProgressBar Width="140"
                              Height="14"
                              DockPanel.Dock="Right"
                              IsIndeterminate="True"
