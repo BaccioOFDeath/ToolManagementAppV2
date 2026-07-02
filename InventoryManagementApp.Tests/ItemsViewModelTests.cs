@@ -1008,6 +1008,7 @@ namespace InventoryManagementApp.Tests
             public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.CompletedTask;
             public Task DeleteRentalAsync(int rentalID) => Task.CompletedTask;
             public Task<List<Rental>> GetActiveRentalsAsync() => Task.FromResult(new List<Rental>());
+            public Task<int> CountRentalsAsync() => Task.FromResult(0);
             public Task<int> CountActiveRentalsAsync() => Task.FromResult(0);
             public Task<List<Rental>> GetOverdueRentalsAsync() => Task.FromResult(new List<Rental>());
             public Task<List<Rental>> GetAllRentalsAsync() => Task.FromResult(new List<Rental>());
@@ -1155,6 +1156,7 @@ namespace InventoryManagementApp.Tests
             public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.CompletedTask;
             public Task DeleteRentalAsync(int rentalID) => Task.CompletedTask;
             public Task<List<Rental>> GetActiveRentalsAsync() => Task.FromResult(new List<Rental>());
+            public Task<int> CountRentalsAsync() => Task.FromResult(0);
             public Task<int> CountActiveRentalsAsync() => Task.FromResult(0);
             public Task<List<Rental>> GetOverdueRentalsAsync() => Task.FromResult(new List<Rental>());
             public Task<List<Rental>> GetAllRentalsAsync() => Task.FromResult(new List<Rental>());

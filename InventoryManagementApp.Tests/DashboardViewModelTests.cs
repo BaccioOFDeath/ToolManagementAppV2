@@ -63,6 +63,12 @@ public class DashboardViewModelTests
             return Task.FromResult(3);
         }
 
+        public Task<int> CountRentalsAsync()
+        {
+            CountCalls++;
+            return Task.FromResult(3);
+        }
+
         public Task<List<Rental>> GetActiveRentalsAsync()
         {
             GetCalls++;

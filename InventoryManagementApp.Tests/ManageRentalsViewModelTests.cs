@@ -139,6 +139,7 @@ namespace InventoryManagementApp.Tests
             public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.CompletedTask;
             public Task DeleteRentalAsync(int rentalID) => Task.CompletedTask;
             public Task<List<RentalModel>> GetActiveRentalsAsync() => Task.FromResult(new List<RentalModel>());
+            public Task<int> CountRentalsAsync() => Task.FromResult(_rentals.Count);
             public Task<int> CountActiveRentalsAsync() => Task.FromResult(0);
             public Task<List<RentalModel>> GetOverdueRentalsAsync() => Task.FromResult(new List<RentalModel>());
             public Task<List<RentalModel>> GetAllRentalsAsync() => Task.FromResult(_rentals);
