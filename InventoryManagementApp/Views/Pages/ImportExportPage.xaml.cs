@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Windows;
 using WpfMessageBox = System.Windows.MessageBox;
@@ -82,8 +83,14 @@ namespace InventoryManagementApp.Views.Pages
                 var selectedLog = GetSelectedLogForAction();
                 if (!string.IsNullOrWhiteSpace(selectedLog))
                 {
-                    var selectedDocument = BuildPrintDocument(new[] { selectedLog }, "Selected import/export operation result.", "Import / Export Selected Result");
-                    new PrintPreviewWindow().ShowPreview(selectedDocument, "Import / Export Selected Result", null);
+                    var selectedDocument = BuildPrintDocument(
+                        new[] { selectedLog },
+                        "Selected import/export operation result.",
+                        "Import / Export Selected Result");
+                    new PrintPreviewWindow().ShowPreview(
+                        selectedDocument,
+                        "Import / Export Selected Result",
+                        "Review one selected data-operation result before copying, printing, or filing the handoff.");
                     return;
                 }
 
@@ -94,7 +101,10 @@ namespace InventoryManagementApp.Views.Pages
                 }
 
                 var document = BuildPrintDocument(vm.ImportExportLogs.ToList(), vm.LogSummary);
-                new PrintPreviewWindow().ShowPreview(document, "Import / Export Log", null);
+                new PrintPreviewWindow().ShowPreview(
+                    document,
+                    "Import / Export Log",
+                    "Review the current session's import, export, image, backup, and restore results before staff handoff.");
             });
         }
 
@@ -103,10 +113,14 @@ namespace InventoryManagementApp.Views.Pages
             string summary,
             string title = "Import / Export Operation Log")
         {
+            var safeLogs = logs?.Where(log => !string.IsNullOrWhiteSpace(log)).ToList() ?? new List<string>();
             var document = new FlowDocument
             {
-                FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-                FontSize = 11
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 11,
+                PagePadding = new Thickness(36),
+                ColumnGap = 0,
+                TextAlignment = TextAlignment.Left
             };
 
             document.Blocks.Add(new Paragraph(new Run(title))
@@ -115,49 +129,113 @@ namespace InventoryManagementApp.Views.Pages
                 FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(0, 0, 0, 4)
             });
-            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {summary}"))
+            document.Blocks.Add(new Paragraph(new Run($"Prepared {DateTime.Now:g}"))
             {
                 FontSize = 10,
-                Margin = new Thickness(0, 0, 0, 10)
+                Margin = new Thickness(0, 0, 0, 2)
             });
 
-            var table = new Table { CellSpacing = 0 };
-            table.Columns.Add(new TableColumn { Width = new GridLength(55) });
-            table.Columns.Add(new TableColumn { Width = new GridLength(680) });
+            document.Blocks.Add(BuildSummarySection(title, summary, safeLogs.Count));
+
+            if (safeLogs.Count == 0)
+            {
+                document.Blocks.Add(new Paragraph(new Run("No import/export operation results were available when this packet was prepared."))
+                {
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 8, 0, 0)
+                });
+                return document;
+            }
+
+            var table = new Table
+            {
+                CellSpacing = 0,
+                Margin = new Thickness(0, 8, 0, 0)
+            };
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.14, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.86, GridUnitType.Star) });
 
             var rowGroup = new TableRowGroup();
             table.RowGroups.Add(rowGroup);
 
             var header = new TableRow { FontWeight = FontWeights.SemiBold };
             rowGroup.Rows.Add(header);
-            AddCell(header, "#");
-            AddCell(header, "Result");
+            AddCell(header, "Entry", true);
+            AddCell(header, "Operation Result", true);
 
             var number = 1;
-            foreach (var log in logs)
+            foreach (var log in safeLogs)
             {
                 var row = new TableRow();
                 rowGroup.Rows.Add(row);
                 AddCell(row, number.ToString());
-                AddCell(row, log);
+                AddCell(row, log.Trim());
                 number++;
             }
 
             document.Blocks.Add(table);
+            document.Blocks.Add(new Paragraph(new Run("Review skipped rows, failures, backup paths, and restore notices before clearing the in-app run log."))
+            {
+                FontSize = 10,
+                FontStyle = FontStyles.Italic,
+                Margin = new Thickness(0, 10, 0, 0)
+            });
             return document;
         }
 
-        private static void AddCell(TableRow row, string text)
+        private static Section BuildSummarySection(string title, string summary, int logCount)
+        {
+            var section = new Section
+            {
+                BorderBrush = Brushes.LightGray,
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                Padding = new Thickness(0, 0, 0, 8),
+                Margin = new Thickness(0, 6, 0, 8)
+            };
+
+            var table = new Table
+            {
+                Tag = "KeyValue",
+                CellSpacing = 0,
+                Margin = new Thickness(0)
+            };
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.26, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.74, GridUnitType.Star) });
+
+            var group = new TableRowGroup();
+            table.RowGroups.Add(group);
+            AddKeyValueRow(group, "Packet", title);
+            AddKeyValueRow(group, "Result Count", logCount.ToString());
+            AddKeyValueRow(group, "Session Summary", ValueOrNotRecorded(summary));
+
+            section.Blocks.Add(table);
+            return section;
+        }
+
+        private static void AddKeyValueRow(TableRowGroup group, string label, string value)
+        {
+            var row = new TableRow();
+            group.Rows.Add(row);
+            AddCell(row, label, true);
+            AddCell(row, value);
+        }
+
+        private static void AddCell(TableRow row, string text, bool isHeader = false)
         {
             row.Cells.Add(new TableCell(new Paragraph(new Run(text ?? string.Empty))
             {
-                Margin = new Thickness(2)
+                Margin = new Thickness(2),
+                TextAlignment = TextAlignment.Left
             })
             {
-                BorderBrush = System.Windows.Media.Brushes.Gray,
+                BorderBrush = Brushes.Gray,
                 BorderThickness = new Thickness(0, 0, 0, 0.5),
-                Padding = new Thickness(3, 2, 3, 2)
+                Padding = new Thickness(4, 3, 4, 3),
+                FontWeight = isHeader ? FontWeights.SemiBold : FontWeights.Normal
             });
         }
+
+        private static string ValueOrNotRecorded(string? value) =>
+            string.IsNullOrWhiteSpace(value) ? "Not recorded" : value.Trim();
     }
 }
