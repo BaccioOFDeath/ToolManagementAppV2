@@ -197,7 +197,7 @@ namespace InventoryManagementApp.Views.Pages
             var header = new TableRow
             {
                 FontWeight = FontWeights.SemiBold,
-                Background = Brushes.LightGray
+                Background = System.Windows.Media.Brushes.LightGray
             };
             rowGroup.Rows.Add(header);
             AddCell(header, "Entry", true);
