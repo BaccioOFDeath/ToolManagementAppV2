@@ -15,6 +15,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Setter Property=\"MinWidth\" Value=\"160\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"250\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("CustomerStatValueText", xaml, StringComparison.Ordinal);
+            Assert.Contains("CustomerFilterStatus", xaml, StringComparison.Ordinal);
+            Assert.Contains("CustomerPrintSummary", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Grid Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"1.35*\"/>", xaml, StringComparison.Ordinal);
         }
@@ -56,9 +58,22 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<pages:SearchBar Width=\"300\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"220\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"330\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("CustomerEmptyStateMessage", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer Grid.Row=\"1\" VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"310\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("VerticalScrollBarVisibility=\"Hidden\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomersPage_ShowsBoundedDirectoryLoadingOverlay()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml");
+
+            Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"360\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<DataTrigger Binding=\"{Binding IsCustomerDirectoryBusy}\" Value=\"True\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ProgressBar IsIndeterminate=\"True\" Height=\"6\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Updating customer directory", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding CustomerFilterStatus}\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
