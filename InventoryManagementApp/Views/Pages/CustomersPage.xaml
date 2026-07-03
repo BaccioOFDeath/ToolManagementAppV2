@@ -60,8 +60,8 @@
             <Border Style="{StaticResource CustomerStatCard}">
                 <StackPanel>
                     <TextBlock Text="Search State" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding CustomerResultsSummary}" Style="{StaticResource CustomerStatValueText}"/>
-                    <TextBlock Text="Use the directory filters before printing or copying handoffs" Style="{StaticResource CustomerDetailText}"/>
+                    <TextBlock Text="{Binding CustomerFilterStatus}" Style="{StaticResource CustomerStatValueText}"/>
+                    <TextBlock Text="{Binding CustomerPrintSummary}" Style="{StaticResource CustomerDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource CustomerStatCard}">
@@ -116,6 +116,7 @@
                                                  Margin="0,0,8,6"/>
                             </WrapPanel>
                             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+                                <TextBlock Text="{Binding CustomerFilterStatus}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,6"/>
                                 <Button Style="{StaticResource PrimaryButton}" Content="Add Customer" Command="{Binding AddCustomerCommand}" Margin="0,0,4,6"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearCustomerSearchCommand}" Margin="0,0,4,6"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Print Directory" Command="{Binding PrintCustomerDirectoryCommand}" Margin="0,0,0,6"/>
@@ -201,7 +202,24 @@
                         </Border.Style>
                         <StackPanel>
                             <TextBlock Text="No customers found" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
-                            <TextBlock Text="Clear or adjust the search before adding a duplicate customer record." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding CustomerEmptyStateMessage}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Row="2" MaxWidth="360" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsCustomerDirectoryBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <ProgressBar IsIndeterminate="True" Height="6" Margin="0,0,0,10"/>
+                            <TextBlock Text="Updating customer directory" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding CustomerFilterStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                 </Grid>
