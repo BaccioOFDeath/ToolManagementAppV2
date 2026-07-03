@@ -11,7 +11,7 @@ namespace InventoryManagementApp.Views.Windows
         public ReservationEditWindow(Reservation reservation, bool isNew, IItemService? itemService = null)
         {
             InitializeComponent();
-            this.UseResponsiveDefaultSize(1000, 780);
+            this.UseResponsiveDefaultSize(820, 640);
             DataContext = new ReservationEditViewModel(reservation, isNew,
                 onSave: () => DialogResult = true,
                 onCancel: () => DialogResult = false,
