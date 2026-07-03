@@ -35,6 +35,26 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ImportExportRunLogPrintUsesProfessionalFlexibleLayout()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
+
+            Assert.Contains("BuildSummarySection(title, summary, safeLogs.Count)", source, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Packet\", title)", source, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Result Count\", logCount.ToString())", source, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Session Summary\", ValueOrNotRecorded(summary))", source, StringComparison.Ordinal);
+            Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.14, GridUnitType.Star) });", source, StringComparison.Ordinal);
+            Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.86, GridUnitType.Star) });", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Entry\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Operation Result\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("Review skipped rows, failures, backup paths, and restore notices", source, StringComparison.Ordinal);
+            Assert.Contains("Review one selected data-operation result before copying, printing, or filing the handoff.", source, StringComparison.Ordinal);
+            Assert.Contains("Review the current session's import, export, image, backup, and restore results before staff handoff.", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("new GridLength(680)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("table.Columns.Add(new TableColumn { Width = new GridLength(55) });", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void DashboardPrintActionsUseDialogPreviewService()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "DashboardViewModel.cs");
