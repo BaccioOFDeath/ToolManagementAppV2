@@ -69,6 +69,7 @@ namespace InventoryManagementApp.Views.Pages
             {
                 Cursor = previousCursor;
                 _isLoadingDashboard = false;
+                DashboardLoadRetryButton.IsEnabled = DashboardLoadRetryButton.Visibility == Visibility.Visible;
             }
         }
 
