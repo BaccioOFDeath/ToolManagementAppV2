@@ -28,7 +28,9 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
+        <Setter Property="MaxWidth" Value="360"/>
         <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Style.Triggers>
             <Trigger Property="IsHighlighted" Value="True">
@@ -45,6 +47,120 @@
         </Style.Triggers>
     </Style>
 
+    <Style x:Key="ThemeResponsiveComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource ThemedComboBoxStyle}">
+        <Setter Property="MaxDropDownHeight" Value="320"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+        <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
+        <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel/>
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <ToggleButton Name="ToggleButton"
+                                      Background="{TemplateBinding Background}"
+                                      Foreground="{TemplateBinding Foreground}"
+                                      BorderBrush="{TemplateBinding BorderBrush}"
+                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                      HorizontalAlignment="Stretch"
+                                      FocusVisualStyle="{TemplateBinding FocusVisualStyle}"
+                                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                      ClickMode="Press"
+                                      Padding="6,0">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border x:Name="ToggleChrome"
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="{DynamicResource ThemeInputCornerRadius}"
+                                            SnapsToDevicePixels="True">
+                                        <ContentPresenter Content="{TemplateBinding Content}"
+                                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                          ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}"
+                                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                          Margin="{TemplateBinding Padding}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="ToggleChrome" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="ToggleChrome" Property="Background" Value="{DynamicResource ComboBoxPopupBackgroundBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="ToggleChrome" Property="Background" Value="{DynamicResource ComboBoxPopupBackgroundBrush}"/>
+                                            <Setter TargetName="ToggleChrome" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                            <Grid>
+                                <ContentPresenter Name="ContentSite"
+                                                  Content="{TemplateBinding SelectionBoxItem}"
+                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                                  Margin="4,0,26,0"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Left"/>
+                                <Path HorizontalAlignment="Right"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,6,0"
+                                      Data="M 0 0 L 4 4 L 8 0 Z"
+                                      Fill="{TemplateBinding Foreground}"/>
+                            </Grid>
+                        </ToggleButton>
+                        <Popup Name="Popup"
+                               Placement="Bottom"
+                               PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                               IsOpen="{TemplateBinding IsDropDownOpen}"
+                               AllowsTransparency="True"
+                               Focusable="False"
+                               PopupAnimation="None">
+                            <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                    MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                    Background="{DynamicResource ComboBoxPopupBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrushAlt}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource RadiusSmall}"
+                                    SnapsToDevicePixels="True">
+                                <ScrollViewer MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                              VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled"
+                                              CanContentScroll="True"
+                                              KeyboardNavigation.DirectionalNavigation="Contained">
+                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"
+                                                    VirtualizingPanel.IsVirtualizing="True"
+                                                    VirtualizingPanel.VirtualizationMode="Recycling"
+                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="ToggleButton" Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}"/>
+                            <Setter TargetName="ToggleButton" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}"/>
+                            <Setter TargetName="ToggleButton" Property="BorderBrush" Value="#333"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="ToggleButton" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style TargetType="ContextMenu">
         <Setter Property="Background" Value="{DynamicResource ThemePopupSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
@@ -52,6 +168,10 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="MaxHeight" Value="420"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
         <Setter Property="HasDropShadow" Value="False"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="UseLayoutRounding" Value="True"/>
@@ -65,9 +185,12 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
+    <Style TargetType="ComboBox" BasedOn="{StaticResource ThemeResponsiveComboBoxStyle}"/>
     <Style TargetType="MenuItem" BasedOn="{StaticResource ThemePopupMenuItemStyle}"/>
 
     <Style TargetType="ToolTip">
@@ -77,7 +200,9 @@
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeCaptionFontSize}"/>
+        <Setter Property="MaxWidth" Value="420"/>
         <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
         <Setter Property="HasDropShadow" Value="False"/>
         <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
