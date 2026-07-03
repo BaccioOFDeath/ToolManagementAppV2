@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -36,11 +35,10 @@ namespace InventoryManagementApp.Services.ImportExport
                 throw new ArgumentNullException(nameof(data));
 
             cancellationToken.ThrowIfCancellationRequested();
-            var items = data.ToList();
+            await using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 64 * 1024, useAsync: true);
             cancellationToken.ThrowIfCancellationRequested();
 
-            var json = JsonSerializer.Serialize(items, JsonOptions);
-            await File.WriteAllTextAsync(filePath, json, cancellationToken).ConfigureAwait(false);
+            await JsonSerializer.SerializeAsync(stream, data, JsonOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }
