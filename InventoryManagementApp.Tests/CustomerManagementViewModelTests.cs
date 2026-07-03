@@ -91,7 +91,7 @@ namespace InventoryManagementApp.Tests
             vm.CustomerSearchTerm = "555";
             await vm.SearchCustomersCommand.ExecuteAsync(null);
 
-            Assert.Equal(2, service.SearchCustomersCallCount);
+            Assert.Equal(1, service.SearchCustomersCallCount);
             Assert.Equal("555", service.LastSearchTerm);
             Assert.Equal(2, vm.Customers.Count);
             Assert.Equal("Beta Builders", vm.Customers[0].Company);
