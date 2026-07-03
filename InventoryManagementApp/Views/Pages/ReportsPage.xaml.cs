@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Windows;
 using WpfMessageBox = System.Windows.MessageBox;
@@ -135,43 +136,60 @@ namespace InventoryManagementApp.Views.Pages
 
         private static FlowDocument BuildReportDocument(string title, string summary, string lastRunText, IReadOnlyCollection<ReportLine> lines)
         {
+            var safeLines = lines?.Where(line => line != null).ToList() ?? new List<ReportLine>();
+            var safeTitle = ValueOrNotRecorded(title);
             var document = new FlowDocument
             {
-                FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
+                FontFamily = new FontFamily("Segoe UI"),
                 FontSize = 11,
-                PagePadding = new Thickness(40)
+                PagePadding = new Thickness(36),
+                ColumnGap = 0,
+                TextAlignment = TextAlignment.Left
             };
 
-            document.Blocks.Add(new Paragraph(new Bold(new Run(title)))
+            document.Blocks.Add(new Paragraph(new Run(safeTitle))
             {
-                FontSize = 20,
+                FontSize = 18,
+                FontWeight = FontWeights.SemiBold,
                 TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 0, 0, 6)
+                Margin = new Thickness(0, 0, 0, 4)
             });
             document.Blocks.Add(new Paragraph(new Bold(new Run("REPORT HANDOFF")))
             {
-                FontSize = 16,
+                FontSize = 14,
                 TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 0, 0, 16)
+                Margin = new Thickness(0, 0, 0, 12)
             });
-            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - Last run {lastRunText} - {lines.Count} row(s)"))
+            document.Blocks.Add(new Paragraph(new Run($"Prepared {DateTime.Now:g}"))
             {
                 FontSize = 10,
-                Margin = new Thickness(0, 0, 0, 4)
+                Margin = new Thickness(0, 0, 0, 2)
             });
-            document.Blocks.Add(new Paragraph(new Run(summary))
+
+            document.Blocks.Add(BuildSummarySection(safeTitle, summary, lastRunText, safeLines.Count));
+
+            if (safeLines.Count == 0)
             {
-                Margin = new Thickness(0, 0, 0, 10)
-            });
+                document.Blocks.Add(new Paragraph(new Run("No report rows were available when this packet was prepared."))
+                {
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 8, 0, 0)
+                });
+                return document;
+            }
 
             var table = new Table
             {
                 CellSpacing = 0,
-                BorderBrush = System.Windows.Media.Brushes.Black,
+                Margin = new Thickness(0, 8, 0, 0),
+                BorderBrush = Brushes.Gray,
                 BorderThickness = new Thickness(1)
             };
-            foreach (var width in new[] { 45.0, 85.0, 105.0, 300.0, 205.0 })
-                table.Columns.Add(new TableColumn { Width = new GridLength(width) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.08, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.16, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.18, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.36, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.22, GridUnitType.Star) });
 
             var rowGroup = new TableRowGroup();
             table.RowGroups.Add(rowGroup);
@@ -182,40 +200,89 @@ namespace InventoryManagementApp.Views.Pages
                 Background = System.Windows.Media.Brushes.LightGray
             };
             rowGroup.Rows.Add(header);
-            AddCell(header, "#");
-            AddCell(header, "Type");
-            AddCell(header, "Destination");
-            AddCell(header, "Report Detail");
-            AddCell(header, "Next Action");
+            AddCell(header, "Entry", true);
+            AddCell(header, "Type", true);
+            AddCell(header, "Destination", true);
+            AddCell(header, "Report Detail", true);
+            AddCell(header, "Next Action", true);
 
-            foreach (var line in lines)
+            foreach (var line in safeLines)
             {
                 var row = new TableRow();
                 if (line.Number % 2 == 0)
-                    row.Background = System.Windows.Media.Brushes.WhiteSmoke;
+                    row.Background = Brushes.WhiteSmoke;
                 rowGroup.Rows.Add(row);
                 AddCell(row, line.Number.ToString());
-                AddCell(row, line.Category);
-                AddCell(row, line.DestinationName);
-                AddCell(row, line.Text);
-                AddCell(row, line.ActionHint);
+                AddCell(row, ValueOrNotRecorded(line.Category));
+                AddCell(row, ValueOrNotRecorded(line.DestinationName));
+                AddCell(row, ValueOrNotRecorded(line.Text));
+                AddCell(row, ValueOrNotRecorded(line.ActionHint));
             }
 
             document.Blocks.Add(table);
+            document.Blocks.Add(new Paragraph(new Run("Review each destination, source-page route, and next action before closing the report packet or assigning follow-up work."))
+            {
+                FontSize = 10,
+                FontStyle = FontStyles.Italic,
+                Margin = new Thickness(0, 10, 0, 0)
+            });
             return document;
         }
 
-        private static void AddCell(TableRow row, string text)
+        private static Section BuildSummarySection(string title, string summary, string lastRunText, int lineCount)
+        {
+            var section = new Section
+            {
+                BorderBrush = Brushes.LightGray,
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                Padding = new Thickness(0, 0, 0, 8),
+                Margin = new Thickness(0, 6, 0, 8)
+            };
+
+            var table = new Table
+            {
+                Tag = "KeyValue",
+                CellSpacing = 0,
+                Margin = new Thickness(0)
+            };
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.24, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.76, GridUnitType.Star) });
+
+            var group = new TableRowGroup();
+            table.RowGroups.Add(group);
+            AddKeyValueRow(group, "Report", title);
+            AddKeyValueRow(group, "Action Rows", lineCount.ToString());
+            AddKeyValueRow(group, "Last Run", ValueOrNotRecorded(lastRunText));
+            AddKeyValueRow(group, "Summary", ValueOrNotRecorded(summary));
+
+            section.Blocks.Add(table);
+            return section;
+        }
+
+        private static void AddKeyValueRow(TableRowGroup group, string label, string value)
+        {
+            var row = new TableRow();
+            group.Rows.Add(row);
+            AddCell(row, label, true);
+            AddCell(row, value);
+        }
+
+        private static void AddCell(TableRow row, string text, bool isHeader = false)
         {
             row.Cells.Add(new TableCell(new Paragraph(new Run(text ?? string.Empty))
             {
-                Margin = new Thickness(2)
+                Margin = new Thickness(2),
+                TextAlignment = TextAlignment.Left
             })
             {
-                BorderBrush = System.Windows.Media.Brushes.Black,
-                BorderThickness = new Thickness(0.5),
-                Padding = new Thickness(5, 3, 5, 3)
+                BorderBrush = Brushes.Gray,
+                BorderThickness = new Thickness(0, 0, 0, 0.5),
+                Padding = new Thickness(5, 3, 5, 3),
+                FontWeight = isHeader ? FontWeights.SemiBold : FontWeights.Normal
             });
         }
+
+        private static string ValueOrNotRecorded(string? value) =>
+            string.IsNullOrWhiteSpace(value) ? "Not recorded" : value.Trim();
     }
 }
