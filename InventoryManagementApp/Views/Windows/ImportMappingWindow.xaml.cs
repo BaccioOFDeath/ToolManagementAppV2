@@ -13,6 +13,7 @@ namespace InventoryManagementApp.Views.Windows
         public ImportMappingWindow(IEnumerable<string> headers, IEnumerable<string> propertyNames, IEnumerable<string>? requiredPropertyNames = null)
         {
             InitializeComponent();
+            this.UseResponsiveDefaultSize(980, 700);
             DataContext = new ImportMappingViewModel(
                 headers,
                 propertyNames,
