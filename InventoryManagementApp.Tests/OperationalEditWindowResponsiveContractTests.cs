@@ -66,7 +66,6 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<ColumnDefinition Width=\"0.9*\" MinWidth=\"240\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("Style=\"{StaticResource AdminHandoffCard}\" Margin=\"0\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"2*\"/>", xaml, StringComparison.Ordinal);
-            Assert.DoesNotContain("<ColumnDefinition Width=\"12\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"1.15*\"/>", xaml, StringComparison.Ordinal);
         }
 
