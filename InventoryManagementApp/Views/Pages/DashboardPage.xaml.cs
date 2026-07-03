@@ -1,7 +1,10 @@
+using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
@@ -11,6 +14,7 @@ namespace InventoryManagementApp.Views.Pages
     public partial class DashboardPage : Page
     {
         private CancellationTokenSource? _loadCts;
+        private bool _isLoadingDashboard;
 
         public DashboardPage()
         {
@@ -23,18 +27,59 @@ namespace InventoryManagementApp.Views.Pages
         private async void DashboardPage_Loaded(object sender, RoutedEventArgs e)
         {
             Focus();
+            await LoadDashboardAsync("Loading dashboard data...");
+        }
 
-            if (DataContext is DashboardViewModel vm)
+        private async void DashboardLoadRetryButton_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadDashboardAsync("Refreshing dashboard data...");
+        }
+
+        private async Task LoadDashboardAsync(string loadingMessage)
+        {
+            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm)
+                return;
+
+            _isLoadingDashboard = true;
+            _loadCts?.Cancel();
+            _loadCts?.Dispose();
+            _loadCts = new CancellationTokenSource();
+            var token = _loadCts.Token;
+            var previousCursor = Cursor;
+
+            SetDashboardLoadStatus(loadingMessage, showRetry: false);
+            Cursor = Cursors.Wait;
+
+            try
             {
-                _loadCts = new CancellationTokenSource();
-                try
-                {
-                    await vm.LoadAsync(_loadCts.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                }
+                await Dispatcher.Yield(DispatcherPriority.Background);
+                await vm.LoadAsync(token);
+                SetDashboardLoadStatus(null, showRetry: false);
             }
+            catch (OperationCanceledException)
+            {
+                if (IsLoaded)
+                    SetDashboardLoadStatus("Dashboard refresh was cancelled before it finished.", showRetry: true);
+            }
+            catch (Exception)
+            {
+                SetDashboardLoadStatus("Dashboard data could not be loaded. Check the database connection, then retry.", showRetry: true);
+            }
+            finally
+            {
+                Cursor = previousCursor;
+                _isLoadingDashboard = false;
+                DashboardLoadRetryButton.IsEnabled = DashboardLoadRetryButton.Visibility == Visibility.Visible;
+            }
+        }
+
+        private void SetDashboardLoadStatus(string? message, bool showRetry)
+        {
+            var hasMessage = !string.IsNullOrWhiteSpace(message);
+            DashboardLoadStatusBanner.Visibility = hasMessage ? Visibility.Visible : Visibility.Collapsed;
+            DashboardLoadRetryButton.Visibility = showRetry ? Visibility.Visible : Visibility.Collapsed;
+            DashboardLoadRetryButton.IsEnabled = showRetry && !_isLoadingDashboard;
+            DashboardLoadStatusText.Text = message ?? string.Empty;
         }
 
         private void DashboardPage_Unloaded(object sender, RoutedEventArgs e)
@@ -42,6 +87,8 @@ namespace InventoryManagementApp.Views.Pages
             _loadCts?.Cancel();
             _loadCts?.Dispose();
             _loadCts = null;
+            _isLoadingDashboard = false;
+            Cursor = null;
         }
 
         private void DashboardPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)

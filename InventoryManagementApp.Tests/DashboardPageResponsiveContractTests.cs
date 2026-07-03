@@ -11,7 +11,7 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");
 
-            Assert.Contains("<WrapPanel Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Grid.Row=\"2\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
             Assert.Contains("DashboardMetricCard", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"230\"/>", xaml, StringComparison.Ordinal);
@@ -67,6 +67,34 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Border Style=\"{StaticResource DesktopSummaryCard}\" MinWidth=\"92\" MaxWidth=\"160\"", xaml, StringComparison.Ordinal);
             Assert.True(CountOccurrences(xaml, "<WrapPanel DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\">") >= 3);
             Assert.DoesNotContain("<StackPanel Orientation=\"Horizontal\" DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void DashboardPage_ExposesBoundedLoadingFeedbackAndRetrySurface()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
+
+            Assert.Contains("x:Name=\"DashboardRoot\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"DashboardLoadStatusBanner\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Grid.Row=\"1\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Visibility=\"Collapsed\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"0\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"DashboardLoadStatusText\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextWrapping=\"Wrap\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Name=\"DashboardLoadRetryButton\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Click=\"DashboardLoadRetryButton_Click\"", xaml, StringComparison.Ordinal);
+
+            Assert.Contains("private bool _isLoadingDashboard;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("LoadDashboardAsync(\"Loading dashboard data...\")", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("LoadDashboardAsync(\"Refreshing dashboard data...\")", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (_isLoadingDashboard || DataContext is not DashboardViewModel vm)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadCts?.Cancel();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("SetDashboardLoadStatus(null, showRetry: false);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DashboardLoadRetryButton.IsEnabled = DashboardLoadRetryButton.Visibility == Visibility.Visible;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Cursor = Cursors.Wait;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Cursor = previousCursor;", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
