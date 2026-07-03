@@ -8,11 +8,11 @@
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         mc:Ignorable="d"
         Title="Print Labels"
-        Width="860" Height="560"
-        MinWidth="780" MinHeight="500"
+        Width="820" Height="540"
+        MinWidth="700" MinHeight="480"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="16">
+    <Grid Margin="14">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -21,68 +21,64 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}" Padding="16,14">
+        <Border Style="{StaticResource ToolbarCard}" Padding="14,12">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*" MinWidth="0"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="Label Output Workbench" Style="{StaticResource HeadingTextBlock}"/>
+                <StackPanel MinWidth="0">
+                    <TextBlock Text="Label Output Workbench" Style="{StaticResource HeadingTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Select the label format, review the queued items, then preview or print."
                                Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
                                Margin="0,4,0,0"/>
                 </StackPanel>
-                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="12,8" VerticalAlignment="Center">
+                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="10,7" Margin="12,0,0,0" VerticalAlignment="Center" MaxWidth="170">
                     <StackPanel>
                         <TextBlock Text="Queue" Style="{StaticResource LabelTextBlock}"/>
-                        <TextBlock Text="Ready to review" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
+                        <TextBlock Text="Ready to review" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Margin="0,12,0,10" Padding="12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="260"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="Label Template" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="1"
-                          ItemsSource="{Binding Templates}"
+        <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Margin="0,10,0,8" Padding="10">
+            <WrapPanel>
+                <TextBlock Text="Label Template" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,6"/>
+                <ComboBox ItemsSource="{Binding Templates}"
                           SelectedItem="{Binding SelectedTemplate}"
-                          Margin="10,0,18,0"
+                          MinWidth="180"
+                          MaxWidth="300"
+                          Margin="0,0,14,6"
                           ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
-                <CheckBox Grid.Column="2"
-                          Content="Include QR"
+                <CheckBox Content="Include QR"
                           IsChecked="{Binding IncludeQr}"
-                          VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="3"
-                           Text="Preview first when labels include item photos, QR codes, or updated location text."
+                          VerticalAlignment="Center"
+                          Margin="0,0,14,6"/>
+                <TextBlock Text="Preview first when labels include item photos, QR codes, or updated location text."
                            Style="{StaticResource CaptionTextBlock}"
                            TextWrapping="Wrap"
-                           Margin="18,0,0,0"
+                           MaxWidth="420"
+                           Margin="0,1,0,6"
                            VerticalAlignment="Center"/>
-            </Grid>
+            </WrapPanel>
         </Border>
 
-        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
-            <Grid>
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+            <Grid MinWidth="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Style="{StaticResource ToolbarCard}" Padding="12,10" Margin="0">
+                <Border Style="{StaticResource ToolbarCard}" Padding="10,8" Margin="0">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*" MinWidth="0"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Queued Label Items" Style="{StaticResource SectionHeader}"/>
-                        <TextBlock Grid.Column="1" Text="Item number, name, and location" Style="{StaticResource CaptionTextBlock}"/>
+                        <TextBlock Text="Queued Label Items" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Column="1" Text="Item number, name, and location" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" MaxWidth="260" Margin="12,0,0,0"/>
                     </Grid>
                 </Border>
                 <DataGrid Grid.Row="1"
@@ -90,26 +86,33 @@
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
                           Style="{StaticResource VirtualizedDataGridStyle}"
-                          ColumnHeaderStyle="{StaticResource {x:Type DataGridColumnHeader}}">
+                          ColumnHeaderStyle="{StaticResource {x:Type DataGridColumnHeader}}"
+                          EnableRowVirtualization="True"
+                          EnableColumnVirtualization="True"
+                          SelectionMode="Single"
+                          SelectionUnit="FullRow"
+                          ScrollViewer.CanContentScroll="True"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} #'}" Binding="{Binding ItemNumber}" Width="140"/>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
-                        <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="220"/>
+                        <DataGridTextColumn Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} #'}" Binding="{Binding ItemNumber}" Width="120" MinWidth="96"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" MinWidth="180"/>
+                        <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="1.2*" MinWidth="140"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>
         </Border>
 
-        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,12,0,0" Padding="12">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Style="{StaticResource GhostButton}" Content="Preview" Command="{Binding PreviewCommand}" MinWidth="112"/>
-                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintCommand}" MinWidth="112" Margin="8,0,0,0"/>
-                <Button Style="{StaticResource GhostButton}" Content="Close" Command="{Binding CloseCommand}" MinWidth="112" Margin="8,0,0,0"/>
-            </StackPanel>
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,10,0,0" Padding="10">
+            <WrapPanel HorizontalAlignment="Right">
+                <Button Style="{StaticResource GhostButton}" Content="Preview" Command="{Binding PreviewCommand}" MinWidth="104" Margin="0,0,8,6"/>
+                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintCommand}" MinWidth="104" Margin="0,0,8,6"/>
+                <Button Style="{StaticResource GhostButton}" Content="Close" Command="{Binding CloseCommand}" MinWidth="104" Margin="0,0,0,6"/>
+            </WrapPanel>
         </Border>
 
-        <Border Grid.Row="4" Style="{StaticResource ToolbarCard}" Margin="0,12,0,0" Padding="10,7">
-            <TextBlock Text="Label output ready; preview verifies the final sheet before printing." Style="{StaticResource CaptionTextBlock}"/>
+        <Border Grid.Row="4" Style="{StaticResource ToolbarCard}" Margin="0,8,0,0" Padding="10,7">
+            <TextBlock Text="Label output ready; preview verifies the final sheet before printing." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
         </Border>
     </Grid>
 </Window>
