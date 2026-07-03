@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -73,6 +74,31 @@ namespace InventoryManagementApp.Tests
 
             Assert.Equal(2, vm.Customers.Count);
             Assert.Equal(string.Empty, vm.CustomerSearchTerm);
+            Assert.Equal("Showing all customers", vm.CustomerFilterStatus);
+        }
+
+        [Fact]
+        public async Task SearchCustomersCommand_UsesServiceSearchForFilteredDirectoryAndStatus()
+        {
+            var service = new StubCustomerService();
+            service.Customers.Add(new CustomerModel { CustomerID = 2, Company = "Beta Builders", Contact = "Blair", Phone = "555-2000" });
+            service.Customers.Add(new CustomerModel { CustomerID = 1, Company = "Alpha Supply", Contact = "Alex", Email = "alpha@example.test" });
+            service.Customers.Add(new CustomerModel { CustomerID = 3, Company = "Gamma Tools", Contact = "Gale", Mobile = "555-3000" });
+            var dialog = new StubDialogService();
+            var vm = new CustomerManagementViewModel(service, dialog);
+            await vm.LoadCustomersAsync();
+
+            vm.CustomerSearchTerm = "555";
+            await vm.SearchCustomersCommand.ExecuteAsync(null);
+
+            Assert.Equal(2, service.SearchCustomersCallCount);
+            Assert.Equal("555", service.LastSearchTerm);
+            Assert.Equal(2, vm.Customers.Count);
+            Assert.Equal("Beta Builders", vm.Customers[0].Company);
+            Assert.Equal("Gamma Tools", vm.Customers[1].Company);
+            Assert.Equal("Filtered by \"555\"", vm.CustomerFilterStatus);
+            Assert.Contains("2 visible customers ready", vm.CustomerPrintSummary);
+            Assert.True(vm.PrintCustomerDirectoryCommand.CanExecute(null));
         }
 
         [Fact]
@@ -92,9 +118,12 @@ namespace InventoryManagementApp.Tests
             Assert.Empty(vm.Customers);
             Assert.Null(vm.SelectedCustomer);
             Assert.Equal("0 customers shown", vm.CustomerResultsSummary);
+            Assert.Equal("Showing all customers", vm.CustomerFilterStatus);
+            Assert.Equal("No printable customer rows yet", vm.CustomerPrintSummary);
             Assert.Equal(string.Empty, vm.NewCustomerName);
             Assert.False(vm.UpdateCustomerCommand.CanExecute(null));
             Assert.False(vm.PrintSelectedCustomerCommand.CanExecute(null));
+            Assert.False(vm.PrintCustomerDirectoryCommand.CanExecute(null));
             Assert.Equal("Customer Load Failed", dialog.LastInfoTitle);
             Assert.Contains("Customer rows were cleared until reload succeeds.", dialog.LastInfoMessage);
         }
@@ -110,16 +139,55 @@ namespace InventoryManagementApp.Tests
             await vm.LoadCustomersAsync();
             vm.CustomerSearchTerm = "Alpha";
 
-            service.ThrowOnGetAllCustomers = true;
+            service.ThrowOnSearchCustomers = true;
             await vm.SearchCustomersCommand.ExecuteAsync(null);
 
             Assert.Empty(vm.Customers);
             Assert.Null(vm.SelectedCustomer);
             Assert.Equal("0 customers shown for \"Alpha\"", vm.CustomerResultsSummary);
+            Assert.Equal("Filtered by \"Alpha\"", vm.CustomerFilterStatus);
             Assert.False(vm.OpenCustomerDetailsCommand.CanExecute(null));
             Assert.False(vm.CopySelectedCustomerCommand.CanExecute(null));
+            Assert.False(vm.PrintCustomerDirectoryCommand.CanExecute(null));
             Assert.Equal("Customer Search Failed", dialog.LastInfoTitle);
             Assert.Contains("Customer rows were cleared until reload succeeds.", dialog.LastInfoMessage);
+        }
+
+        [Fact]
+        public async Task PrintCustomerDirectory_BoundsLargeDirectoryAndAddsHandoffContext()
+        {
+            var service = new StubCustomerService();
+            for (var i = 1; i <= 260; i++)
+            {
+                service.Customers.Add(new CustomerModel
+                {
+                    CustomerID = i,
+                    Company = $"Customer {i:000}",
+                    Contact = $"Contact {i:000}",
+                    Phone = $"555-{i:0000}",
+                    Mobile = $"555-9{i:000}",
+                    Email = $"customer{i:000}@example.test",
+                    Address = $"{i} Warehouse Road"
+                });
+            }
+
+            var dialog = new StubDialogService();
+            var vm = new CustomerManagementViewModel(service, dialog);
+            await vm.LoadCustomersAsync();
+
+            vm.PrintCustomerDirectoryCommand.Execute(null);
+
+            Assert.Equal("Customer Directory", dialog.LastPrintPreviewTitle);
+            Assert.Contains("large-directory limits", dialog.LastPrintPreviewDescription);
+            Assert.NotNull(dialog.LastPrintPreviewDocument);
+            var text = new TextRange(dialog.LastPrintPreviewDocument!.ContentStart, dialog.LastPrintPreviewDocument.ContentEnd).Text;
+            Assert.Contains("Visible: 260", text);
+            Assert.Contains("Printed: 250", text);
+            Assert.Contains("Omitted: 10", text);
+            Assert.Contains("Large directory limit", text);
+            Assert.Contains("Review note", text);
+            Assert.DoesNotContain("Customer 260", text);
+            Assert.Contains("Print preview includes the first 250 of 260 visible customers", vm.CustomerPrintSummary);
         }
 
         [Fact]
@@ -165,15 +233,18 @@ namespace InventoryManagementApp.Tests
         {
             public List<CustomerModel> Customers { get; } = new();
             public bool ThrowOnGetAllCustomers { get; set; }
+            public bool ThrowOnSearchCustomers { get; set; }
             public bool ThrowAfterAddCustomer { get; set; }
             public bool ThrowAfterUpdateCustomer { get; set; }
             public bool ThrowAfterDeleteCustomer { get; set; }
+            public int SearchCustomersCallCount { get; private set; }
+            public string? LastSearchTerm { get; private set; }
 
             public Task AddCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default)
             {
                 Customers.Add(customer);
                 return ThrowAfterAddCustomer
-                    ? Task.FromException(new System.InvalidOperationException("add handoff failed"))
+                    ? Task.FromException(new InvalidOperationException("add handoff failed"))
                     : Task.CompletedTask;
             }
             public Task UpdateCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default)
@@ -182,14 +253,14 @@ namespace InventoryManagementApp.Tests
                 if (idx >= 0) Customers[idx] = customer;
 
                 return ThrowAfterUpdateCustomer
-                    ? Task.FromException(new System.InvalidOperationException("update handoff failed"))
+                    ? Task.FromException(new InvalidOperationException("update handoff failed"))
                     : Task.CompletedTask;
             }
             public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default)
             {
                 Customers.RemoveAll(c => c.CustomerID == customerID);
                 return ThrowAfterDeleteCustomer
-                    ? Task.FromException(new System.InvalidOperationException("delete handoff failed"))
+                    ? Task.FromException(new InvalidOperationException("delete handoff failed"))
                     : Task.CompletedTask;
             }
             public Task<CustomerModel?> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default)
@@ -197,14 +268,28 @@ namespace InventoryManagementApp.Tests
             public Task<List<CustomerModel>> GetAllCustomersAsync(CancellationToken cancellationToken = default)
             {
                 if (ThrowOnGetAllCustomers)
-                    return Task.FromException<List<CustomerModel>>(new System.InvalidOperationException("database offline"));
+                    return Task.FromException<List<CustomerModel>>(new InvalidOperationException("database offline"));
 
                 return Task.FromResult(Customers.ToList());
             }
             public Task<int> CountCustomersAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(Customers.Count);
             public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default)
-                => Task.FromResult(Customers.Where(c => c.Company?.Contains(searchTerm) == true).ToList());
+            {
+                SearchCustomersCallCount++;
+                LastSearchTerm = searchTerm;
+
+                if (ThrowOnSearchCustomers)
+                    return Task.FromException<List<CustomerModel>>(new InvalidOperationException("search offline"));
+
+                return Task.FromResult(Customers.Where(c =>
+                    Contains(c.Company, searchTerm) ||
+                    Contains(c.Email, searchTerm) ||
+                    Contains(c.Contact, searchTerm) ||
+                    Contains(c.Phone, searchTerm) ||
+                    Contains(c.Mobile, searchTerm) ||
+                    Contains(c.Address, searchTerm)).ToList());
+            }
             public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
                 => Task.FromResult(new CustomerImportResult());
             public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default)
@@ -213,6 +298,9 @@ namespace InventoryManagementApp.Tests
                 => Task.FromResult(0);
             public Task ExportCustomersAsync(string filePath, IDataExporter<CustomerModel> exporter, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
+
+            private static bool Contains(string? value, string searchTerm)
+                => value?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true;
         }
 
         private sealed class StubDialogService : IDialogService
@@ -221,6 +309,9 @@ namespace InventoryManagementApp.Tests
             public CustomerModel? EditCustomerResult { get; set; }
             public string? LastInfoMessage { get; private set; }
             public string? LastInfoTitle { get; private set; }
+            public FlowDocument? LastPrintPreviewDocument { get; private set; }
+            public string? LastPrintPreviewTitle { get; private set; }
+            public string? LastPrintPreviewDescription { get; private set; }
             public void ShowInfo(string message, string title)
             {
                 LastInfoMessage = message;
@@ -237,14 +328,19 @@ namespace InventoryManagementApp.Tests
             public ItemModel? ShowEditItemDialog(ItemModel item) => null;
             public Task<ItemModel?> ShowEditItemDialogAsync(ItemModel item) => Task.FromResult<ItemModel?>(null);
             public void ShowItemDetails(ItemModel item) { }
-            public (CustomerModel customer, System.DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
+            public (CustomerModel customer, DateTime dueDate)? ShowRentItemDialog(ItemModel item, IEnumerable<CustomerModel> customers) => null;
             public CustomerModel? ShowAddCustomerDialog() => AddCustomerResult;
             public CustomerModel? ShowEditCustomerDialog(CustomerModel customer) => EditCustomerResult;
             public void ShowRentalsFilter(ManageRentalsViewModel viewModel) { }
             public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
-            public System.Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
-            public void ShowPrintPreview(FlowDocument document, string title, string description) { }
+            public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+            public void ShowPrintPreview(FlowDocument document, string title, string description)
+            {
+                LastPrintPreviewDocument = document;
+                LastPrintPreviewTitle = title;
+                LastPrintPreviewDescription = description;
+            }
             public void ShowPrintLabelDialog() { }
         }
     }
