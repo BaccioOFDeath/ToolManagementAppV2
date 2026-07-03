@@ -94,6 +94,50 @@ namespace InventoryManagementApp.Tests
                 Assert.Contains(contract, xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void SettingsPage_CodeBehindQueuesSensitiveFieldSyncWithoutBlockingCallers()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml.cs");
+
+            Assert.Contains("private bool _sensitiveFieldSyncQueued;", source, StringComparison.Ordinal);
+            Assert.Contains("private void QueueSensitiveFieldSync()", source, StringComparison.Ordinal);
+            Assert.Contains("if (_settingsViewModel == null || _sensitiveFieldSyncQueued)", source, StringComparison.Ordinal);
+            Assert.Contains("_sensitiveFieldSyncQueued = true;", source, StringComparison.Ordinal);
+            Assert.Contains("Dispatcher.BeginInvoke(SyncSensitiveFieldsFromViewModel, DispatcherPriority.Background);", source, StringComparison.Ordinal);
+            Assert.Contains("_sensitiveFieldSyncQueued = false;", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("Dispatcher.Invoke(SyncSensitiveFieldsFromViewModel)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void SettingsPage_CodeBehindInitializesSettingsAfterFirstPaintWithDuplicateGuard()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml.cs");
+
+            Assert.Contains("private Task? _initializeSettingsTask;", source, StringComparison.Ordinal);
+            Assert.Contains("StartSettingsInitialization();", source, StringComparison.Ordinal);
+            Assert.Contains("private void StartSettingsInitialization()", source, StringComparison.Ordinal);
+            Assert.Contains("if (_settingsViewModel == null || _initializeSettingsTask != null)", source, StringComparison.Ordinal);
+            Assert.Contains("_initializeSettingsTask = InitializeSettingsAsync(_settingsViewModel);", source, StringComparison.Ordinal);
+            Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", source, StringComparison.Ordinal);
+            Assert.Contains("await viewModel.InitializeAsync().ConfigureAwait(true);", source, StringComparison.Ordinal);
+            Assert.Contains("QueueSensitiveFieldSync();", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void SettingsPage_CodeBehindDetachesAndAvoidsStaleInitializationErrors()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml.cs");
+
+            Assert.Contains("_initializeSettingsTask = null;", source, StringComparison.Ordinal);
+            Assert.Contains("if (!ReferenceEquals(_settingsViewModel, viewModel))", source, StringComparison.Ordinal);
+            Assert.Contains("MessageBox.Show(", source, StringComparison.Ordinal);
+            Assert.Contains("$\"Failed to load settings: {ex.Message}\"", source, StringComparison.Ordinal);
+            Assert.Contains("MessageBoxImage.Error", source, StringComparison.Ordinal);
+            Assert.Contains("QueueSensitiveFieldSync();", source, StringComparison.Ordinal);
+            Assert.Contains("_settingsViewModel.PropertyChanged -= SettingsViewModel_PropertyChanged;", source, StringComparison.Ordinal);
+            Assert.Contains("_settingsViewModel.PropertyChanged += SettingsViewModel_PropertyChanged;", source, StringComparison.Ordinal);
+        }
+
         private static int CountOccurrences(string text, string value)
         {
             var count = 0;

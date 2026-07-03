@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -13,6 +15,8 @@ namespace InventoryManagementApp.Views.Pages
         private SettingsViewModel? _settingsViewModel;
         private bool _themeDesignerTabAdded;
         private bool _themeDesignerTabRetryQueued;
+        private bool _sensitiveFieldSyncQueued;
+        private Task? _initializeSettingsTask;
 
         public SettingsPage()
         {
@@ -26,7 +30,8 @@ namespace InventoryManagementApp.Views.Pages
         {
             AddThemeDesignerTab();
             AttachViewModel(DataContext as SettingsViewModel);
-            SyncSensitiveFieldsFromViewModel();
+            QueueSensitiveFieldSync();
+            StartSettingsInitialization();
         }
 
         private void SettingsPage_Unloaded(object sender, RoutedEventArgs e)
@@ -37,7 +42,8 @@ namespace InventoryManagementApp.Views.Pages
         private void SettingsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             AttachViewModel(e.NewValue as SettingsViewModel);
-            SyncSensitiveFieldsFromViewModel();
+            QueueSensitiveFieldSync();
+            StartSettingsInitialization();
         }
 
         private void AddThemeDesignerTab()
@@ -118,6 +124,7 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             _settingsViewModel = viewModel;
+            _initializeSettingsTask = null;
             if (_settingsViewModel != null)
             {
                 _settingsViewModel.PropertyChanged += SettingsViewModel_PropertyChanged;
@@ -128,12 +135,25 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (e.PropertyName is nameof(SettingsViewModel.SmtpPassword) or nameof(SettingsViewModel.SmsApiKey))
             {
-                Dispatcher.Invoke(SyncSensitiveFieldsFromViewModel);
+                QueueSensitiveFieldSync();
             }
+        }
+
+        private void QueueSensitiveFieldSync()
+        {
+            if (_settingsViewModel == null || _sensitiveFieldSyncQueued)
+            {
+                return;
+            }
+
+            _sensitiveFieldSyncQueued = true;
+            Dispatcher.BeginInvoke(SyncSensitiveFieldsFromViewModel, DispatcherPriority.Background);
         }
 
         private void SyncSensitiveFieldsFromViewModel()
         {
+            _sensitiveFieldSyncQueued = false;
+
             if (_settingsViewModel == null)
             {
                 return;
@@ -147,6 +167,41 @@ namespace InventoryManagementApp.Views.Pages
             if (SmsApiKeyBox.Password != _settingsViewModel.SmsApiKey)
             {
                 SmsApiKeyBox.Password = _settingsViewModel.SmsApiKey;
+            }
+        }
+
+        private void StartSettingsInitialization()
+        {
+            if (_settingsViewModel == null || _initializeSettingsTask != null)
+            {
+                return;
+            }
+
+            _initializeSettingsTask = InitializeSettingsAsync(_settingsViewModel);
+        }
+
+        private async Task InitializeSettingsAsync(SettingsViewModel viewModel)
+        {
+            try
+            {
+                await Dispatcher.Yield(DispatcherPriority.Background);
+                await viewModel.InitializeAsync().ConfigureAwait(true);
+                QueueSensitiveFieldSync();
+            }
+            catch (Exception ex)
+            {
+                _initializeSettingsTask = null;
+
+                if (!ReferenceEquals(_settingsViewModel, viewModel))
+                {
+                    return;
+                }
+
+                MessageBox.Show(
+                    $"Failed to load settings: {ex.Message}",
+                    "Settings",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
