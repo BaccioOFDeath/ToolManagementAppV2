@@ -28,12 +28,14 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("TargetType=\"ContextMenu\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"Menu\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"MenuItem\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TargetType=\"ComboBox\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"ToolTip\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"StatusBar\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"StatusBarItem\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"Separator\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ThemePopupMenuItemStyle", xaml, StringComparison.Ordinal);
             Assert.Contains("ThemePopupSeparatorStyle", xaml, StringComparison.Ordinal);
+            Assert.Contains("ThemeResponsiveComboBoxStyle", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -44,6 +46,51 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.DoesNotContain("Property=\"ItemContainerStyle\" Value=\"{StaticResource ThemePopupMenuItemStyle}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Style TargetType=\"MenuItem\" BasedOn=\"{StaticResource ThemePopupMenuItemStyle}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Style TargetType=\"Separator\" BasedOn=\"{StaticResource ThemePopupSeparatorStyle}\"/>", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void PopupChromeOverrides_BoundLongDropdownsAndMenusForResponsiveOpening()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.PopupChromeOverrides.xaml");
+
+            Assert.Contains("MaxDropDownHeight\" Value=\"320\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MaxHeight=\"{TemplateBinding MaxDropDownHeight}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VerticalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("HorizontalScrollBarVisibility=\"Disabled\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("KeyboardNavigation.DirectionalNavigation=\"Contained\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"MaxHeight\" Value=\"420\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"360\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"420\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextBlock.TextWrapping\" Value=\"Wrap\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void PopupChromeOverrides_RecycleDropdownItemsForLargeLists()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.PopupChromeOverrides.xaml");
+
+            Assert.Contains("<VirtualizingStackPanel/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("VirtualizingPanel.IsVirtualizing\" Value=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VirtualizingPanel.VirtualizationMode\" Value=\"Recycling\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VirtualizingPanel.IsVirtualizing=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VirtualizingPanel.VirtualizationMode=\"Recycling\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void PopupChromeOverrides_PreserveSharedComboBoxTemplateContracts()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.PopupChromeOverrides.xaml");
+
+            Assert.Contains("BasedOn=\"{StaticResource ThemedComboBoxStyle}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Name=\"ToggleButton\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Name=\"ContentSite\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Name=\"Popup\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectionBoxItem", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsDropDownOpen", xaml, StringComparison.Ordinal);
+            Assert.Contains("ItemTemplateSelector", xaml, StringComparison.Ordinal);
+            Assert.Contains("DisabledForegroundBrush", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
