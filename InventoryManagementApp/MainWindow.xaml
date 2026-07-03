@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
-        Title="{Binding WindowTitle}" Width="1180" Height="760" MinWidth="920" MinHeight="520" WindowStartupLocation="CenterScreen"
+        Title="{Binding WindowTitle}" Width="1180" Height="760" MinWidth="880" MinHeight="520" WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
         Background="{DynamicResource BackgroundBrush}"
         FontFamily="{DynamicResource ThemeFontFamily}">
@@ -119,35 +119,42 @@
                 BorderBrush="{DynamicResource BorderBrushBase}"
                 BorderThickness="0,0,0,1"
                 Effect="{DynamicResource ThemeRaisedShadow}"
-                Padding="4,3">
-            <Menu Style="{StaticResource SectionMenu}">
-                <MenuItem Header="Overview" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown">
-                    <MenuItem Header="Dashboard" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenDashboardCommand}"/>
-                    <MenuItem Header="Search Tools" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenSearchItemsCommand}" Visibility="{Binding CanUseSearchTools, Converter={StaticResource BoolToVis}}"/>
-                </MenuItem>
-                <MenuItem Header="Operations" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsOperationsSectionVisible, Converter={StaticResource BoolToVis}}">
-                    <MenuItem Header="Tools" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenManageItemsCommand}" Visibility="{Binding CanManageItems, Converter={StaticResource BoolToVis}}"/>
-                    <MenuItem Header="Rentals" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenRentalsCommand}" Visibility="{Binding CanUseRentals, Converter={StaticResource BoolToVis}}"/>
-                    <MenuItem Header="Customers" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCustomersCommand}" Visibility="{Binding CanUseCustomers, Converter={StaticResource BoolToVis}}"/>
-                    <MenuItem Header="Maintenance" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenMaintenanceCommand}" Visibility="{Binding CanUseMaintenance, Converter={StaticResource BoolToVis}}"/>
-                    <MenuItem Header="Calibration" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCalibrationCommand}" Visibility="{Binding CanUseCalibration, Converter={StaticResource BoolToVis}}"/>
-                    <MenuItem Header="Reservations" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenReservationsCommand}" Visibility="{Binding CanUseReservations, Converter={StaticResource BoolToVis}}"/>
-                    <MenuItem Header="Kits" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenKitManagementCommand}" Visibility="{Binding CanUseKits, Converter={StaticResource BoolToVis}}"/>
-                    <MenuItem Header="Categories" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCategoriesCommand}" Visibility="{Binding CanUseCategories, Converter={StaticResource BoolToVis}}"/>
-                    <MenuItem Header="Print Labels" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenPrintLabelWindowCommand}" Visibility="{Binding CanPrintLabels, Converter={StaticResource BoolToVis}}"/>
-                </MenuItem>
-                <MenuItem Header="Insights" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsInsightsSectionVisible, Converter={StaticResource BoolToVis}}">
-                    <MenuItem Header="Reports" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenReportsCommand}" Visibility="{Binding CanUseReports, Converter={StaticResource BoolToVis}}"/>
-                    <MenuItem Header="Activity Logs" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenActivityLogsCommand}" Visibility="{Binding CanUseActivityLogs, Converter={StaticResource BoolToVis}}"/>
-                </MenuItem>
-                <MenuItem Header="Data" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsDataSectionVisible, Converter={StaticResource BoolToVis}}">
-                    <MenuItem Header="Import / Export" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenImportExportCommand}" Visibility="{Binding CanUseImportExport, Converter={StaticResource BoolToVis}}"/>
-                </MenuItem>
-                <MenuItem Header="Admin" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsAdminSectionVisible, Converter={StaticResource BoolToVis}}">
-                    <MenuItem Header="Users" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenUsersCommand}" Visibility="{Binding CanManageUsers, Converter={StaticResource BoolToVis}}"/>
-                    <MenuItem Header="Settings" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenSettingsCommand}" Visibility="{Binding CanUseSettings, Converter={StaticResource BoolToVis}}"/>
-                </MenuItem>
-            </Menu>
+                Padding="4,2">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Disabled"
+                          CanContentScroll="True"
+                          Focusable="False">
+                <Menu x:Name="ShellSectionMenu"
+                      Style="{StaticResource SectionMenu}"
+                      MinWidth="0">
+                    <MenuItem Header="Overview" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown">
+                        <MenuItem Header="Dashboard" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenDashboardCommand}"/>
+                        <MenuItem Header="Search Tools" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenSearchItemsCommand}" Visibility="{Binding CanUseSearchTools, Converter={StaticResource BoolToVis}}"/>
+                    </MenuItem>
+                    <MenuItem Header="Operations" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsOperationsSectionVisible, Converter={StaticResource BoolToVis}}">
+                        <MenuItem Header="Tools" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenManageItemsCommand}" Visibility="{Binding CanManageItems, Converter={StaticResource BoolToVis}}"/>
+                        <MenuItem Header="Rentals" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenRentalsCommand}" Visibility="{Binding CanUseRentals, Converter={StaticResource BoolToVis}}"/>
+                        <MenuItem Header="Customers" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCustomersCommand}" Visibility="{Binding CanUseCustomers, Converter={StaticResource BoolToVis}}"/>
+                        <MenuItem Header="Maintenance" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenMaintenanceCommand}" Visibility="{Binding CanUseMaintenance, Converter={StaticResource BoolToVis}}"/>
+                        <MenuItem Header="Calibration" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCalibrationCommand}" Visibility="{Binding CanUseCalibration, Converter={StaticResource BoolToVis}}"/>
+                        <MenuItem Header="Reservations" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenReservationsCommand}" Visibility="{Binding CanUseReservations, Converter={StaticResource BoolToVis}}"/>
+                        <MenuItem Header="Kits" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenKitManagementCommand}" Visibility="{Binding CanUseKits, Converter={StaticResource BoolToVis}}"/>
+                        <MenuItem Header="Categories" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenCategoriesCommand}" Visibility="{Binding CanUseCategories, Converter={StaticResource BoolToVis}}"/>
+                        <MenuItem Header="Print Labels" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenPrintLabelWindowCommand}" Visibility="{Binding CanPrintLabels, Converter={StaticResource BoolToVis}}"/>
+                    </MenuItem>
+                    <MenuItem Header="Insights" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsInsightsSectionVisible, Converter={StaticResource BoolToVis}}">
+                        <MenuItem Header="Reports" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenReportsCommand}" Visibility="{Binding CanUseReports, Converter={StaticResource BoolToVis}}"/>
+                        <MenuItem Header="Activity Logs" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenActivityLogsCommand}" Visibility="{Binding CanUseActivityLogs, Converter={StaticResource BoolToVis}}"/>
+                    </MenuItem>
+                    <MenuItem Header="Data" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsDataSectionVisible, Converter={StaticResource BoolToVis}}">
+                        <MenuItem Header="Import / Export" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenImportExportCommand}" Visibility="{Binding CanUseImportExport, Converter={StaticResource BoolToVis}}"/>
+                    </MenuItem>
+                    <MenuItem Header="Admin" Style="{StaticResource SectionMenuItem}" PreviewMouseLeftButtonDown="SectionMenuItem_PreviewMouseLeftButtonDown" Visibility="{Binding IsAdminSectionVisible, Converter={StaticResource BoolToVis}}">
+                        <MenuItem Header="Users" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenUsersCommand}" Visibility="{Binding CanManageUsers, Converter={StaticResource BoolToVis}}"/>
+                        <MenuItem Header="Settings" Style="{StaticResource SectionDropDownItem}" Command="{Binding OpenSettingsCommand}" Visibility="{Binding CanUseSettings, Converter={StaticResource BoolToVis}}"/>
+                    </MenuItem>
+                </Menu>
+            </ScrollViewer>
         </Border>
 
         <Border x:Name="PageHeaderBand"
@@ -155,6 +162,7 @@
                 BorderBrush="{DynamicResource BorderBrushBase}"
                 BorderThickness="0,0,0,1"
                 Effect="{DynamicResource ThemeSurfaceShadow}"
+                MinHeight="44"
                 Padding="8,6">
             <Border.Style>
                 <Style TargetType="Border">
@@ -211,22 +219,26 @@
             <Grid ClipToBounds="True">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MinWidth="0"/>
-                    <ColumnDefinition Width="Auto" MinWidth="0" MaxWidth="380"/>
+                    <ColumnDefinition Width="Auto" MinWidth="0" MaxWidth="420"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Center" MinWidth="0" Margin="0,0,12,0">
                     <TextBlock Text="{Binding CurrentPageTitle}" Style="{StaticResource PageTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
                     <TextBlock x:Name="WorkflowGuideText" Text="{Binding CurrentWorkflowGuide}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
-                <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" MaxWidth="380">
+                <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" MaxWidth="420">
                     <Button Style="{StaticResource GhostButton}"
                             Content="{Binding CurrentWorkflowPrimaryActionText}"
                             Command="{Binding CurrentWorkflowPrimaryCommand}"
                             Visibility="{Binding HasCurrentWorkflowPrimaryAction, Converter={StaticResource BoolToVis}}"
+                            MinWidth="96"
+                            MaxWidth="180"
                             Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}"
                             Content="{Binding CurrentWorkflowSecondaryActionText}"
                             Command="{Binding CurrentWorkflowSecondaryCommand}"
                             Visibility="{Binding HasCurrentWorkflowSecondaryAction, Converter={StaticResource BoolToVis}}"
+                            MinWidth="96"
+                            MaxWidth="180"
                             Margin="0,0,0,4"/>
                 </WrapPanel>
             </Grid>
@@ -239,7 +251,9 @@
                Background="{DynamicResource MainContentBackgroundBrush}"
                Content="{Binding CurrentPage}"
                Margin="{StaticResource PagePadding}"
-               Focusable="False"/>
+               Focusable="False"
+               ClipToBounds="True"
+               KeyboardNavigation.TabNavigation="Cycle"/>
 
         <Border x:Name="ShellStatusFooter"
                 Grid.Row="4"
@@ -273,7 +287,7 @@
                         Padding="8,3"
                         Margin="0,0,12,0"
                         VerticalAlignment="Center">
-                    <TextBlock Text="Workflow status" Style="{StaticResource LabelTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Workflow status" Style="{StaticResource LabelTextBlock}" TextTrimming="CharacterEllipsis" MaxWidth="120"/>
                 </Border>
 
                 <Grid Grid.Column="2" ClipToBounds="True" MinWidth="0" VerticalAlignment="Center">
