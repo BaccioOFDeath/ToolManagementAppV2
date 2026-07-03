@@ -87,10 +87,7 @@ namespace InventoryManagementApp.Views.Pages
                         new[] { selectedLog },
                         "Selected import/export operation result.",
                         "Import / Export Selected Result");
-                    new PrintPreviewWindow().ShowPreview(
-                        selectedDocument,
-                        "Import / Export Selected Result",
-                        "Review one selected data-operation result before copying, printing, or filing the handoff.");
+                    new PrintPreviewWindow().ShowPreview(selectedDocument, "Import / Export Selected Result", "Review one selected data-operation result before copying, printing, or filing the handoff.");
                     return;
                 }
 
@@ -101,10 +98,7 @@ namespace InventoryManagementApp.Views.Pages
                 }
 
                 var document = BuildPrintDocument(vm.ImportExportLogs.ToList(), vm.LogSummary);
-                new PrintPreviewWindow().ShowPreview(
-                    document,
-                    "Import / Export Log",
-                    "Review the current session's import, export, image, backup, and restore results before staff handoff.");
+                new PrintPreviewWindow().ShowPreview(document, "Import / Export Log", "Review the current session's import, export, image, backup, and restore results before staff handoff.");
             });
         }
 
