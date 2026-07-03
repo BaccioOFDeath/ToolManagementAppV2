@@ -50,7 +50,7 @@
                 <StackPanel>
                     <TextBlock Text="01 Current View" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding ResultsSummary}" Style="{StaticResource RentalHistoryMetricValue}"/>
-                    <TextBlock Text="Search and exported CSV use the same filtered record set." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding SearchStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource RentalHistoryMetricCard}">
@@ -64,7 +64,7 @@
                 <StackPanel>
                     <TextBlock Text="03 Output" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="Details and CSV" Style="{StaticResource RentalHistoryMetricValue}"/>
-                    <TextBlock Text="Export preserves the current search result for audit review." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding ExportSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
         </WrapPanel>
@@ -84,7 +84,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Rental Records" Style="{StaticResource SectionHeader}" Margin="0" TextWrapping="Wrap"/>
-                        <TextBlock Grid.Column="1" Text="Double-click, press Details, or use the context menu to inspect a selected rental."
+                        <TextBlock Grid.Column="1" Text="Search runs off the UI path and matches rental #, item, customer, location, status, and rental dates."
                                    Style="{StaticResource CaptionTextBlock}"
                                    HorizontalAlignment="Right"
                                    TextWrapping="Wrap"
@@ -100,10 +100,10 @@
                                          MinWidth="220"
                                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                          SearchCommand="{Binding SearchCommand}"
+                                         ClearCommand="{Binding ClearSearchCommand}"
                                          SearchLabel=""
                                          Margin="0,0,10,6"/>
-                        <TextBlock Text="{Binding ResultsSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="360" Margin="0,0,10,6"/>
-                        <Button Style="{StaticResource GhostButton}" MinWidth="82" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,6,6"/>
+                        <TextBlock Text="{Binding SearchStatus}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="360" Margin="0,0,10,6"/>
                         <Button Style="{StaticResource PrimaryButton}" MinWidth="104" Content="Export CSV" Command="{Binding ExportCsvCommand}" Margin="0,0,0,6"/>
                     </WrapPanel>
                 </Border>
@@ -152,20 +152,33 @@
                             <Style TargetType="Border" BasedOn="{StaticResource AdminHandoffCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding History.Count}" Value="0">
+                                    <DataTrigger Binding="{Binding HasNoResults}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
                         <StackPanel>
-                            <TextBlock Text="No rental history records" Style="{StaticResource SectionHeader}" TextAlignment="Center" TextWrapping="Wrap"/>
-                            <TextBlock Text="Adjust the search or clear the filter to review previous rental activity for this item."
+                            <TextBlock Text="{Binding EmptyStateTitle}" Style="{StaticResource SectionHeader}" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding EmptyStateMessage}"
                                        Style="{StaticResource CaptionTextBlock}"
                                        TextWrapping="Wrap"
                                        TextAlignment="Center"
                                        Margin="0,4,0,0"/>
                         </StackPanel>
+                    </Border>
+                    <Border MaxWidth="300" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Top">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource AdminHandoffCard}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFiltering}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="{Binding SearchStatus}" Style="{StaticResource CaptionTextBlock}" TextAlignment="Center" TextWrapping="Wrap"/>
                     </Border>
                 </Grid>
             </Grid>
