@@ -16,9 +16,11 @@ namespace InventoryManagementApp
     public partial class MainWindow : Window, IMainWindow
     {
         const double CompactShellHeightThreshold = 820;
+        const double CompactShellWidthThreshold = 1120;
         readonly IDatabaseService? _ownedDb;
         MainViewModel? _mainViewModel;
         bool? _isCompactShellLayout;
+        double? _lastAdaptiveResourceScale;
         readonly Dictionary<string, double> _baseAdaptiveDoubleResources = new(StringComparer.Ordinal);
         readonly Dictionary<string, Thickness> _baseAdaptiveThicknessResources = new(StringComparer.Ordinal);
 
@@ -67,8 +69,11 @@ namespace InventoryManagementApp
         void UpdateShellLayout()
         {
             var availableHeight = ActualHeight > 0 ? ActualHeight : SystemParameters.WorkArea.Height;
+            var availableWidth = ActualWidth > 0 ? ActualWidth : SystemParameters.WorkArea.Width;
             var compact = availableHeight < CompactShellHeightThreshold ||
-                          SystemParameters.WorkArea.Height < CompactShellHeightThreshold;
+                          availableWidth < CompactShellWidthThreshold ||
+                          SystemParameters.WorkArea.Height < CompactShellHeightThreshold ||
+                          SystemParameters.WorkArea.Width < CompactShellWidthThreshold;
 
             if (_isCompactShellLayout != compact)
             {
@@ -85,10 +90,11 @@ namespace InventoryManagementApp
             ShellMenu.Padding = compact ? new Thickness(4, 1, 4, 1) : new Thickness(4, 3, 4, 3);
             PageHeaderBand.Padding = compact ? new Thickness(8, 3, 8, 3) : new Thickness(8, 6, 8, 6);
 
-            ShellTitleButton.Width = compact ? 190 : 250;
-            ShellTitleButton.MinWidth = compact ? 160 : 210;
-            ShellSearchBar.MinWidth = compact ? 220 : 320;
-            ShellSearchBar.MaxWidth = compact ? 620 : 760;
+            ShellTitleButton.MaxWidth = compact ? 190 : 250;
+            ShellTitleButton.MinWidth = 0;
+            ShellSearchBar.MinWidth = compact ? 160 : 180;
+            ShellSearchBar.MaxWidth = compact ? 560 : 720;
+            ShellUserButton.MaxWidth = compact ? 176 : 196;
 
             ShellSubtitle.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
             WorkflowGuideText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
@@ -108,6 +114,10 @@ namespace InventoryManagementApp
         void ApplyAdaptiveResourceScale()
         {
             var scale = GetAdaptiveResourceScale(ActualWidth > 0 ? ActualWidth : Width);
+            if (_lastAdaptiveResourceScale.HasValue && Math.Abs(_lastAdaptiveResourceScale.Value - scale) < 0.001)
+                return;
+
+            _lastAdaptiveResourceScale = scale;
 
             SetScaledDoubleResource("ThemeCaptionFontSize", scale);
             SetScaledDoubleResource("ThemeBodyFontSize", scale);

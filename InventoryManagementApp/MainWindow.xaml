@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
-        Title="{Binding WindowTitle}" Width="1280" Height="800" MinWidth="1040" MinHeight="540" WindowStartupLocation="CenterScreen"
+        Title="{Binding WindowTitle}" Width="1180" Height="760" MinWidth="920" MinHeight="520" WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
         Background="{DynamicResource BackgroundBrush}"
         FontFamily="{DynamicResource ThemeFontFamily}">
@@ -50,11 +50,11 @@
                 BorderThickness="0,0,0,1"
                 Effect="{DynamicResource ThemeSurfaceShadow}"
                 Padding="8,5">
-            <Grid VerticalAlignment="Center">
+            <Grid VerticalAlignment="Center" ClipToBounds="True">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto" MinWidth="0" MaxWidth="260"/>
+                    <ColumnDefinition Width="*" MinWidth="0"/>
+                    <ColumnDefinition Width="Auto" MinWidth="0" MaxWidth="210"/>
                 </Grid.ColumnDefinitions>
 
                 <Button x:Name="ShellTitleButton"
@@ -62,11 +62,12 @@
                         Style="{StaticResource ShellTitleButton}"
                         Command="{Binding OpenDashboardCommand}"
                         ToolTip="Open dashboard"
-                        Width="250"
-                        MinWidth="210"
+                        MaxWidth="250"
+                        MinWidth="0"
+                        HorizontalAlignment="Stretch"
                         VerticalAlignment="Center"
-                        Margin="0,0,14,0">
-                    <StackPanel>
+                        Margin="0,0,12,0">
+                    <StackPanel MinWidth="0">
                         <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
                         <TextBlock x:Name="ShellSubtitle" Text="Workshop inventory and rental control" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
@@ -74,30 +75,33 @@
 
                 <pages:SearchBar x:Name="ShellSearchBar"
                                  Grid.Column="1"
-                                 MinWidth="320"
-                                 MaxWidth="760"
+                                 MinWidth="180"
+                                 MaxWidth="720"
                                  HorizontalAlignment="Stretch"
                                  VerticalAlignment="Center"
-                                 Margin="0,0,14,0"
+                                 Margin="0,0,12,0"
                                  Text="{Binding GlobalSearchText}"
                                  SearchCommand="{Binding GlobalSearchCommand}"
                                  SearchLabel=""
                                  Visibility="{Binding CanUseSearchTools, Converter={StaticResource BoolToVis}}"/>
 
-                <Button Grid.Column="2"
+                <Button x:Name="ShellUserButton"
+                        Grid.Column="2"
                         Style="{StaticResource GhostButton}"
                         Command="{Binding SwitchUserCommand}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
+                        MaxWidth="196"
+                        MinWidth="0"
                         ToolTip="Log out">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MinWidth="0">
                         <Border Width="26" Height="26" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,0,6,0">
                             <controls:UserAvatar UserName="{Binding CurrentUserName}"
                                                   UserPhotoPath="{Binding CurrentUserPhotoPath}"
                                                   Foreground="{Binding CurrentUserInitialsBrush}"
                                                   FontSize="13"/>
                         </Border>
-                        <StackPanel Width="132" VerticalAlignment="Center">
+                        <StackPanel MaxWidth="126" MinWidth="0" VerticalAlignment="Center">
                             <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
@@ -204,25 +208,26 @@
                     </Style.Triggers>
                 </Style>
             </Border.Style>
-            <Grid>
+            <Grid ClipToBounds="True">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*" MinWidth="0"/>
+                    <ColumnDefinition Width="Auto" MinWidth="0" MaxWidth="380"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                <StackPanel VerticalAlignment="Center" MinWidth="0" Margin="0,0,12,0">
                     <TextBlock Text="{Binding CurrentPageTitle}" Style="{StaticResource PageTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
                     <TextBlock x:Name="WorkflowGuideText" Text="{Binding CurrentWorkflowGuide}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
-                <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" MaxWidth="380">
                     <Button Style="{StaticResource GhostButton}"
                             Content="{Binding CurrentWorkflowPrimaryActionText}"
                             Command="{Binding CurrentWorkflowPrimaryCommand}"
                             Visibility="{Binding HasCurrentWorkflowPrimaryAction, Converter={StaticResource BoolToVis}}"
-                            Margin="0,0,4,0"/>
+                            Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}"
                             Content="{Binding CurrentWorkflowSecondaryActionText}"
                             Command="{Binding CurrentWorkflowSecondaryCommand}"
-                            Visibility="{Binding HasCurrentWorkflowSecondaryAction, Converter={StaticResource BoolToVis}}"/>
+                            Visibility="{Binding HasCurrentWorkflowSecondaryAction, Converter={StaticResource BoolToVis}}"
+                            Margin="0,0,0,4"/>
                 </WrapPanel>
             </Grid>
         </Border>
@@ -233,7 +238,8 @@
                JournalOwnership="OwnsJournal"
                Background="{DynamicResource MainContentBackgroundBrush}"
                Content="{Binding CurrentPage}"
-               Margin="{StaticResource PagePadding}"/>
+               Margin="{StaticResource PagePadding}"
+               Focusable="False"/>
 
         <Border x:Name="ShellStatusFooter"
                 Grid.Row="4"
@@ -243,18 +249,22 @@
                 ToolTip="{Binding CurrentWorkflowGuide}">
             <Grid ClipToBounds="True">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1.1*" MinWidth="0"/>
+                    <ColumnDefinition Width="Auto" MinWidth="0" MaxWidth="145"/>
+                    <ColumnDefinition Width="1.7*" MinWidth="0"/>
+                    <ColumnDefinition Width="Auto" MinWidth="0" MaxWidth="380"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                <Grid Grid.Column="0" ClipToBounds="True" MinWidth="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*" MinWidth="0"/>
+                    </Grid.ColumnDefinitions>
                     <TextBlock Text="Section" Style="{StaticResource LabelTextBlock}" Margin="0,0,5,0"/>
-                    <TextBlock Text="{Binding CurrentNavSectionTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text=" | " Style="{StaticResource CaptionTextBlock}" Margin="8,0"/>
-                    <TextBlock Text="{Binding CurrentPageTitle}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
-                </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding CurrentNavSectionTitle}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
+                    <TextBlock Grid.Column="2" Text="{Binding CurrentPageTitle}" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                </Grid>
 
                 <Border Grid.Column="1"
                         Background="{DynamicResource TextBoxBackgroundBrush}"
@@ -263,26 +273,26 @@
                         Padding="8,3"
                         Margin="0,0,12,0"
                         VerticalAlignment="Center">
-                    <TextBlock Text="Workflow status" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="Workflow status" Style="{StaticResource LabelTextBlock}" TextTrimming="CharacterEllipsis"/>
                 </Border>
 
-                <Grid Grid.Column="2" ClipToBounds="True" VerticalAlignment="Center">
+                <Grid Grid.Column="2" ClipToBounds="True" MinWidth="0" VerticalAlignment="Center">
                     <TextBlock x:Name="ShellWorkflowTicker"
                                Text="{Binding CurrentWorkflowGuide}"
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="NoWrap"
                                TextTrimming="CharacterEllipsis"
-                               HorizontalAlignment="Center"/>
+                               HorizontalAlignment="Stretch"/>
                 </Grid>
 
-                <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+                <WrapPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" MaxWidth="380" Margin="12,0,0,0">
                     <TextBlock Text="Primary: " Style="{StaticResource LabelTextBlock}" Visibility="{Binding HasCurrentWorkflowPrimaryAction, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding CurrentWorkflowPrimaryActionText}" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold" Visibility="{Binding HasCurrentWorkflowPrimaryAction, Converter={StaticResource BoolToVis}}" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding CurrentWorkflowPrimaryActionText}" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold" Visibility="{Binding HasCurrentWorkflowPrimaryAction, Converter={StaticResource BoolToVis}}" Margin="0,0,10,0" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="Next: " Style="{StaticResource LabelTextBlock}" Visibility="{Binding HasCurrentWorkflowSecondaryAction, Converter={StaticResource BoolToVis}}"/>
-                    <TextBlock Text="{Binding CurrentWorkflowSecondaryActionText}" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold" Visibility="{Binding HasCurrentWorkflowSecondaryAction, Converter={StaticResource BoolToVis}}" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding CurrentWorkflowSecondaryActionText}" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold" Visibility="{Binding HasCurrentWorkflowSecondaryAction, Converter={StaticResource BoolToVis}}" Margin="0,0,10,0" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="Signed in: " Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold"/>
-                </StackPanel>
+                    <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                </WrapPanel>
             </Grid>
         </Border>
     </Grid>
