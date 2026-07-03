@@ -55,6 +55,29 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ActivityLogsPrintPreviewUsesBoundedProfessionalHandoffPacket()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+
+            Assert.Contains("private const int MaxActivityPrintRows = 250;", source, StringComparison.Ordinal);
+            Assert.Contains("var totalFilteredCount = vm.FilteredLogs.Count;", source, StringComparison.Ordinal);
+            Assert.Contains("var printRows = vm.FilteredLogs.Take(MaxActivityPrintRows).ToList();", source, StringComparison.Ordinal);
+            Assert.Contains("BuildPrintDocument(printRows, totalFilteredCount, vm.StatusMessage, vm.ActivitySummary)", source, StringComparison.Ordinal);
+            Assert.Contains("Large result sets print the first 250 rows so preview stays responsive.", source, StringComparison.Ordinal);
+            Assert.Contains("BuildSummarySection(summary, activitySummary, totalFilteredCount, printedRowCount, omittedRowCount)", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Print Packet\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Omitted Rows\"", source, StringComparison.Ordinal);
+            Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.16, GridUnitType.Star) });", source, StringComparison.Ordinal);
+            Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.34, GridUnitType.Star) });", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"When / User\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Next Action\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Activity Detail\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("Review destination, next action, and any omitted rows before filing the audit handoff.", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("BuildPrintDocument(vm.FilteredLogs.ToList()", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("foreach (var width in new[] { 115.0, 105.0, 100.0, 105.0, 275.0 })", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void DashboardPrintActionsUseDialogPreviewService()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "DashboardViewModel.cs");

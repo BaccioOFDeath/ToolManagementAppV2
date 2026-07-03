@@ -14,6 +14,9 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class ActivityLogsPage : Page
     {
+        private const int MaxActivityPrintRows = 250;
+        private bool _hasLoadedLogs;
+
         public ActivityLogsPage()
         {
             InitializeComponent();
@@ -22,9 +25,9 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void ActivityLogsPage_Loaded(object sender, RoutedEventArgs e)
         {
-            if (DataContext is ActivityLogsViewModel vm)
+            if (!_hasLoadedLogs && DataContext is ActivityLogsViewModel vm)
             {
-                await vm.LoadLogsAsync();
+                _hasLoadedLogs = await vm.LoadLogsAsync();
             }
         }
 
@@ -146,11 +149,13 @@ namespace InventoryManagementApp.Views.Pages
                     return;
                 }
 
-                var document = BuildPrintDocument(vm.FilteredLogs.ToList(), vm.StatusMessage, vm.ActivitySummary);
+                var totalFilteredCount = vm.FilteredLogs.Count;
+                var printRows = vm.FilteredLogs.Take(MaxActivityPrintRows).ToList();
+                var document = BuildPrintDocument(printRows, totalFilteredCount, vm.StatusMessage, vm.ActivitySummary);
                 new PrintPreviewWindow().ShowPreview(
                     document,
                     "Activity Logs",
-                    "Review the filtered audit trail, destination routing, and operator handoff before printing.");
+                    "Review the filtered audit trail, destination routing, and operator handoff before printing. Large result sets print the first 250 rows so preview stays responsive.");
             });
         }
 
@@ -175,12 +180,15 @@ namespace InventoryManagementApp.Views.Pages
                    $"Action: {SafeText(log.Action, "No activity detail was recorded.")}";
         }
 
-        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<ActivityLog> logs, string summary, string activitySummary)
+        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<ActivityLog> logs, int totalFilteredCount, string summary, string activitySummary)
         {
+            var printedRowCount = logs.Count;
+            var omittedRowCount = Math.Max(0, totalFilteredCount - printedRowCount);
             var document = new FlowDocument
             {
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-                FontSize = 10
+                FontSize = 10,
+                PagePadding = new Thickness(36)
             };
 
             document.Blocks.Add(new Paragraph(new Run("Activity Logs"))
@@ -189,48 +197,88 @@ namespace InventoryManagementApp.Views.Pages
                 FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(0, 0, 0, 4)
             });
-            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {summary}"))
+            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g}"))
             {
                 FontSize = 10,
                 Margin = new Thickness(0, 0, 0, 4)
             });
-            document.Blocks.Add(new Paragraph(new Run(activitySummary))
-            {
-                FontSize = 10,
-                Margin = new Thickness(0, 0, 0, 10)
-            });
+            document.Blocks.Add(BuildSummarySection(summary, activitySummary, totalFilteredCount, printedRowCount, omittedRowCount));
 
             var table = new Table { CellSpacing = 0 };
-            foreach (var width in new[] { 115.0, 105.0, 100.0, 105.0, 275.0 })
-                table.Columns.Add(new TableColumn { Width = new GridLength(width) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.16, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.16, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.16, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.18, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.34, GridUnitType.Star) });
 
             var rowGroup = new TableRowGroup();
             table.RowGroups.Add(rowGroup);
 
             var header = new TableRow { FontWeight = FontWeights.SemiBold };
             rowGroup.Rows.Add(header);
-            AddCell(header, "Timestamp");
-            AddCell(header, "User");
-            AddCell(header, "Type");
-            AddCell(header, "Destination");
-            AddCell(header, "Action");
+            AddCell(header, "When / User", true);
+            AddCell(header, "Type", true);
+            AddCell(header, "Destination", true);
+            AddCell(header, "Next Action", true);
+            AddCell(header, "Activity Detail", true);
 
-            foreach (var log in logs)
+            if (printedRowCount == 0)
             {
-                var row = new TableRow();
-                rowGroup.Rows.Add(row);
-                AddCell(row, log.Timestamp.ToString("g"));
-                AddCell(row, SafeText(log.UserName, "Unknown user"));
-                AddCell(row, ActivityLogsViewModel.ClassifyAction(log.Action));
-                AddCell(row, ActivityLogsViewModel.BuildDestinationName(ActivityLogsViewModel.BuildDestinationKey(log.Action)));
-                AddCell(row, SafeText(log.Action, "No activity detail was recorded."));
+                var emptyRow = new TableRow();
+                rowGroup.Rows.Add(emptyRow);
+                AddCell(emptyRow, "No activity rows matched the current print packet.", false, 5);
+            }
+            else
+            {
+                foreach (var log in logs)
+                {
+                    var destinationKey = ActivityLogsViewModel.BuildDestinationKey(log.Action);
+                    var row = new TableRow();
+                    rowGroup.Rows.Add(row);
+                    AddCell(row, $"{log.Timestamp:g}\n{SafeText(log.UserName, "Unknown user")} (ID {log.UserID})");
+                    AddCell(row, ActivityLogsViewModel.ClassifyAction(log.Action));
+                    AddCell(row, ActivityLogsViewModel.BuildDestinationName(destinationKey));
+                    AddCell(row, ActivityLogsViewModel.BuildNextAction(log.Action));
+                    AddCell(row, SafeText(log.Action, "No activity detail was recorded."));
+                }
             }
 
             document.Blocks.Add(table);
+            document.Blocks.Add(new Paragraph(new Run("Review destination, next action, and any omitted rows before filing the audit handoff."))
+            {
+                FontSize = 9,
+                FontStyle = FontStyles.Italic,
+                Margin = new Thickness(0, 8, 0, 0)
+            });
             return document;
         }
 
-        private static void AddCell(TableRow row, string text)
+        private static Block BuildSummarySection(string summary, string activitySummary, int totalFilteredCount, int printedRowCount, int omittedRowCount)
+        {
+            var group = new Section
+            {
+                BorderBrush = System.Windows.Media.Brushes.Gray,
+                BorderThickness = new Thickness(0, 0, 0, 0.5),
+                Padding = new Thickness(0, 0, 0, 8),
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+
+            AddSummaryLine(group, "Print Packet", $"{printedRowCount} of {totalFilteredCount} filtered activity row(s)");
+            AddSummaryLine(group, "Omitted Rows", omittedRowCount == 0 ? "None" : $"{omittedRowCount} row(s) not printed; narrow filters or print again after refining the audit search.");
+            AddSummaryLine(group, "Filter Status", ValueOrNotRecorded(summary));
+            AddSummaryLine(group, "Activity Mix", ValueOrNotRecorded(activitySummary));
+            return group;
+        }
+
+        private static void AddSummaryLine(Section group, string label, string value)
+        {
+            var paragraph = new Paragraph { Margin = new Thickness(0, 0, 0, 2) };
+            paragraph.Inlines.Add(new Run($"{label}: ") { FontWeight = FontWeights.SemiBold });
+            paragraph.Inlines.Add(new Run(value));
+            group.Blocks.Add(paragraph);
+        }
+
+        private static void AddCell(TableRow row, string text, bool isHeader = false, int columnSpan = 1)
         {
             row.Cells.Add(new TableCell(new Paragraph(new Run(text ?? string.Empty))
             {
@@ -239,13 +287,20 @@ namespace InventoryManagementApp.Views.Pages
             {
                 BorderBrush = System.Windows.Media.Brushes.Gray,
                 BorderThickness = new Thickness(0, 0, 0, 0.5),
+                ColumnSpan = columnSpan,
+                FontWeight = isHeader ? FontWeights.SemiBold : FontWeights.Normal,
                 Padding = new Thickness(3, 2, 3, 2)
             });
         }
 
+        private static string ValueOrNotRecorded(string? text)
+        {
+            return SafeText(text, "Not recorded");
+        }
+
         private static string SafeText(string? text, string fallback)
         {
-            return string.IsNullOrWhiteSpace(text) ? fallback : text;
+            return string.IsNullOrWhiteSpace(text) ? fallback : text.Trim();
         }
     }
 }
