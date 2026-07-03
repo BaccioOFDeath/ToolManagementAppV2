@@ -4,9 +4,22 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
         Title="Rental History"
-        Width="1160" Height="700" MinWidth="940" MinHeight="560"
+        Width="1040" Height="660" MinWidth="760" MinHeight="520"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
+    <Window.Resources>
+        <Style x:Key="RentalHistoryMetricCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
+            <Setter Property="MinWidth" Value="190"/>
+            <Setter Property="MaxWidth" Value="300"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+        <Style x:Key="RentalHistoryMetricValue" TargetType="TextBlock" BasedOn="{StaticResource SectionHeader}">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="MaxHeight" Value="48"/>
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -16,44 +29,48 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,8">
-            <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
-                    <Button Style="{StaticResource PrimaryButton}" Width="92" Content="Details" Command="{Binding OpenDetailsCommand}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}" Width="92" Content="Close" Command="{Binding CloseCommand}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MinWidth="0"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" MinWidth="0">
+                    <TextBlock Text="Rental History Workbench" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding ItemDisplayName}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,12,0"/>
                 </StackPanel>
-                <StackPanel>
-                    <TextBlock Text="Rental History Workbench" Style="{StaticResource PageTitleTextBlock}"/>
-                    <TextBlock Text="{Binding ItemDisplayName}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                </StackPanel>
-            </DockPanel>
+                <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="14,0,0,0">
+                    <Button Style="{StaticResource PrimaryButton}" MinWidth="86" Content="Details" Command="{Binding OpenDetailsCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" MinWidth="86" Content="Close" Command="{Binding CloseCommand}" Margin="0,0,0,6"/>
+                </WrapPanel>
+            </Grid>
         </Border>
 
-        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,8">
-            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+        <WrapPanel Grid.Row="1" Margin="0,0,0,6">
+            <Border Style="{StaticResource RentalHistoryMetricCard}">
                 <StackPanel>
                     <TextBlock Text="01 Current View" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding ResultsSummary}" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding ResultsSummary}" Style="{StaticResource RentalHistoryMetricValue}"/>
                     <TextBlock Text="Search and exported CSV use the same filtered record set." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource DesktopSummaryCard}" Margin="3,0">
+            <Border Style="{StaticResource RentalHistoryMetricCard}">
                 <StackPanel>
                     <TextBlock Text="02 Selected Rental" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding SelectedEntrySummary}" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding SelectedEntrySummary}" Style="{StaticResource RentalHistoryMetricValue}"/>
                     <TextBlock Text="Double-click or open details for row-level handoff context." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource DesktopSummaryCard}" Margin="6,0,0,0">
+            <Border Style="{StaticResource RentalHistoryMetricCard}">
                 <StackPanel>
                     <TextBlock Text="03 Output" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="Details and CSV" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Details and CSV" Style="{StaticResource RentalHistoryMetricValue}"/>
                     <TextBlock Text="Export preserves the current search result for audit review." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-        </UniformGrid>
+        </WrapPanel>
 
-        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
-            <Grid>
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+            <Grid MinWidth="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -61,38 +78,49 @@
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
-                    <DockPanel LastChildFill="True">
-                        <TextBlock Text="Rental Records" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0"/>
-                        <TextBlock Text="Double-click, press Details, or use the context menu to inspect a selected rental." Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right"/>
-                    </DockPanel>
-                </Border>
-
-                <Border Grid.Row="1" Style="{StaticResource DesktopSectionActionStrip}" Padding="8">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="340"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*" MinWidth="0"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <pages:SearchBar Grid.Column="1"
-                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                         SearchCommand="{Binding SearchCommand}"
-                                         SearchLabel=""/>
-                        <TextBlock Grid.Column="2" Text="{Binding ResultsSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
-                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                            <Button Style="{StaticResource GhostButton}" Width="82" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,6,0"/>
-                            <Button Style="{StaticResource PrimaryButton}" Width="104" Content="Export CSV" Command="{Binding ExportCsvCommand}"/>
-                        </StackPanel>
+                        <TextBlock Grid.Column="0" Text="Rental Records" Style="{StaticResource SectionHeader}" Margin="0" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Column="1" Text="Double-click, press Details, or use the context menu to inspect a selected rental."
+                                   Style="{StaticResource CaptionTextBlock}"
+                                   HorizontalAlignment="Right"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="520"
+                                   Margin="12,0,0,0"/>
                     </Grid>
                 </Border>
 
-                <Grid Grid.Row="2">
-                    <DataGrid ItemsSource="{Binding History}"
+                <Border Grid.Row="1" Style="{StaticResource DesktopSectionActionStrip}" Padding="8">
+                    <WrapPanel VerticalAlignment="Center">
+                        <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,6"/>
+                        <pages:SearchBar Width="300"
+                                         MinWidth="220"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         SearchCommand="{Binding SearchCommand}"
+                                         SearchLabel=""
+                                         Margin="0,0,10,6"/>
+                        <TextBlock Text="{Binding ResultsSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="360" Margin="0,0,10,6"/>
+                        <Button Style="{StaticResource GhostButton}" MinWidth="82" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,6,6"/>
+                        <Button Style="{StaticResource PrimaryButton}" MinWidth="104" Content="Export CSV" Command="{Binding ExportCsvCommand}" Margin="0,0,0,6"/>
+                    </WrapPanel>
+                </Border>
+
+                <Grid Grid.Row="2" MinWidth="0">
+                    <DataGrid x:Name="RentalHistoryDataGrid"
+                              ItemsSource="{Binding History}"
                               SelectedItem="{Binding SelectedEntry}"
                               IsReadOnly="True"
                               AutoGenerateColumns="False"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
+                              SelectionMode="Single"
+                              SelectionUnit="FullRow"
+                              ScrollViewer.CanContentScroll="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
@@ -103,7 +131,7 @@
                         <DataGrid.Columns>
                             <StaticResource ResourceKey="RentalIdColumn"/>
                             <StaticResource ResourceKey="RentalItemNumberColumn"/>
-                            <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="160"/>
+                            <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="140" MinWidth="90"/>
                             <StaticResource ResourceKey="RentalCustomerColumn"/>
                             <StaticResource ResourceKey="RentalOutColumn"/>
                             <StaticResource ResourceKey="RentalDueColumn"/>
@@ -119,7 +147,7 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <Border Width="360" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border MaxWidth="340" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource AdminHandoffCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -131,7 +159,7 @@
                             </Style>
                         </Border.Style>
                         <StackPanel>
-                            <TextBlock Text="No rental history records" Style="{StaticResource SectionHeader}" TextAlignment="Center"/>
+                            <TextBlock Text="No rental history records" Style="{StaticResource SectionHeader}" TextAlignment="Center" TextWrapping="Wrap"/>
                             <TextBlock Text="Adjust the search or clear the filter to review previous rental activity for this item."
                                        Style="{StaticResource CaptionTextBlock}"
                                        TextWrapping="Wrap"
@@ -144,14 +172,18 @@
         </Border>
 
         <Border Grid.Row="3" Style="{StaticResource DesktopStatusFooter}" Margin="0,8,0,0">
-            <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Style="{StaticResource PrimaryButton}" Width="92" Content="Details" Command="{Binding OpenDetailsCommand}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}" Width="104" Content="Export CSV" Command="{Binding ExportCsvCommand}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}" Width="92" Content="Close" Command="{Binding CloseCommand}"/>
-                </StackPanel>
-                <TextBlock Text="{Binding SelectedEntrySummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,12,0"/>
-            </DockPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MinWidth="0"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding SelectedEntrySummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,12,4"/>
+                <WrapPanel Grid.Column="1" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource PrimaryButton}" MinWidth="86" Content="Details" Command="{Binding OpenDetailsCommand}" Margin="0,0,6,4"/>
+                    <Button Style="{StaticResource GhostButton}" MinWidth="104" Content="Export CSV" Command="{Binding ExportCsvCommand}" Margin="0,0,6,4"/>
+                    <Button Style="{StaticResource GhostButton}" MinWidth="86" Content="Close" Command="{Binding CloseCommand}" Margin="0,0,0,4"/>
+                </WrapPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>
