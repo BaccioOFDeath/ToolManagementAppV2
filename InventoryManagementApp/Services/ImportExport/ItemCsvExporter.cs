@@ -27,7 +27,7 @@ namespace InventoryManagementApp.Services.ImportExport
                 throw new ArgumentNullException(nameof(data));
 
             cancellationToken.ThrowIfCancellationRequested();
-            var items = data.ToList();
+            var items = data as IList<ItemModel> ?? data.ToList();
             cancellationToken.ThrowIfCancellationRequested();
 
             await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items).ConfigureAwait(false);
