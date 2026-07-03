@@ -33,6 +33,50 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
+        public void PrintPreviewWindow_UsesResponsiveMinimumsAndWrappingHeaderActions()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml");
+
+            Assert.Contains("Width=\"1120\" Height=\"760\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"760\" MinHeight=\"560\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<DockPanel Grid.Column=\"0\" LastChildFill=\"True\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Grid.Column=\"1\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" MaxWidth=\"330\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextTrimming=\"CharacterEllipsis\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Width=\"1220\" Height=\"820\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("MinWidth=\"980\" MinHeight=\"680\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<StackPanel Orientation=\"Horizontal\" DockPanel.Dock=\"Right\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void PrintPreviewWindow_KeepsPreviewCanvasShrinkableAndScrollable()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml");
+
+            Assert.Contains("<ColumnDefinition Width=\"*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"6\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"0.36*\" MinWidth=\"240\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Column=\"0\" Style=\"{StaticResource ThemedWindowPane}\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<GridSplitter Grid.Column=\"1\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<ColumnDefinition Width=\"280\"/>", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void PrintPreviewWindow_KeepsChecklistPaneAndFooterReachableOnScaledScreens()
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml");
+
+            Assert.Contains("<ScrollViewer Grid.Column=\"2\" VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<StackPanel Margin=\"8,0,0,0\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Style=\"{StaticResource DesktopSummaryCard}\" Margin=\"0,0,0,10\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Available actions\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("TextWrapping=\"Wrap\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("LastChildFill=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<StackPanel Grid.Column=\"1\" Margin=\"10,0,0,0\">", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void PrintPreviewWindow_AppliesSharedDocumentPolishToEveryPreview()
         {
             var codeBehind = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml.cs");
