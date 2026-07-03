@@ -15,6 +15,7 @@ namespace InventoryManagementApp.Views.Pages
     public partial class ActivityLogsPage : Page
     {
         private const int MaxActivityPrintRows = 250;
+        private bool _hasLoadedLogs;
 
         public ActivityLogsPage()
         {
@@ -24,9 +25,9 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void ActivityLogsPage_Loaded(object sender, RoutedEventArgs e)
         {
-            if (DataContext is ActivityLogsViewModel vm)
+            if (!_hasLoadedLogs && DataContext is ActivityLogsViewModel vm)
             {
-                await vm.LoadLogsAsync();
+                _hasLoadedLogs = await vm.LoadLogsAsync();
             }
         }
 
