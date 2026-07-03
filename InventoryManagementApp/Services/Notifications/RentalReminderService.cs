@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Interfaces;
@@ -22,6 +20,7 @@ namespace InventoryManagementApp.Services.Notifications
         private readonly ISettingsService? _settingsService;
         private readonly ILogger<RentalReminderService> _logger;
         private readonly string _contactInfo;
+        private readonly SemaphoreSlim _checkLock = new(1, 1);
         private System.Threading.Timer? _timer;
         private bool _disposed;
 
@@ -51,6 +50,8 @@ namespace InventoryManagementApp.Services.Notifications
                 _logger.LogWarning("Email service not configured. Rental reminders will not be sent.");
                 return;
             }
+
+            Stop();
 
             var now = DateTime.Now;
             var scheduledTime = new DateTime(now.Year, now.Month, now.Day, 14, 30, 0);
@@ -92,23 +93,44 @@ namespace InventoryManagementApp.Services.Notifications
                 return;
             }
 
+            if (!await _checkLock.WaitAsync(0).ConfigureAwait(false))
+            {
+                _logger.LogWarning("Rental reminder check is already running. Skipping overlapping run.");
+                return;
+            }
+
             try
             {
                 _logger.LogInformation("Checking for rentals due tomorrow...");
 
-                var activeRentals = await _rentalService.GetActiveRentalsAsync().ConfigureAwait(false);
                 var tomorrow = DateTime.Today.AddDays(1);
-                var emailSignature = _rentalConfigService == null ? RentalConfigurationService.DefaultEmailSignature : await _rentalConfigService.GetEmailSignatureAsync().ConfigureAwait(false);
-                var reminderSubjectTemplate = _rentalConfigService == null ? RentalConfigurationService.DefaultReminderSubjectTemplate : await _rentalConfigService.GetReminderSubjectTemplateAsync().ConfigureAwait(false);
-                var reminderBodyTemplate = _rentalConfigService == null ? RentalConfigurationService.DefaultReminderBodyTemplate : await _rentalConfigService.GetReminderBodyTemplateAsync().ConfigureAwait(false);
-                var companyName = _rentalConfigService == null ? "Equipment Rentals" : await _rentalConfigService.GetCompanyNameAsync().ConfigureAwait(false);
-                var logoPath = _settingsService == null ? null : await _settingsService.GetSettingAsync("CompanyLogoPath").ConfigureAwait(false);
-                
-                var rentalsDueTomorrow = activeRentals
-                    .Where(r => r.DueDate.Date == tomorrow)
-                    .ToList();
+                var rentalsDueTomorrowTask = _rentalService.GetActiveRentalsDueOnAsync(tomorrow);
+                var emailSignatureTask = GetEmailSignatureAsync();
+                var reminderSubjectTemplateTask = GetReminderSubjectTemplateAsync();
+                var reminderBodyTemplateTask = GetReminderBodyTemplateAsync();
+                var companyNameTask = GetCompanyNameAsync();
+                var logoPathTask = GetCompanyLogoPathAsync();
+
+                await Task.WhenAll(
+                    rentalsDueTomorrowTask,
+                    emailSignatureTask,
+                    reminderSubjectTemplateTask,
+                    reminderBodyTemplateTask,
+                    companyNameTask,
+                    logoPathTask).ConfigureAwait(false);
+
+                var rentalsDueTomorrow = await rentalsDueTomorrowTask.ConfigureAwait(false);
+                var emailSignature = await emailSignatureTask.ConfigureAwait(false);
+                var reminderSubjectTemplate = await reminderSubjectTemplateTask.ConfigureAwait(false);
+                var reminderBodyTemplate = await reminderBodyTemplateTask.ConfigureAwait(false);
+                var companyName = await companyNameTask.ConfigureAwait(false);
+                var logoPath = await logoPathTask.ConfigureAwait(false);
 
                 _logger.LogInformation("Found {Count} rentals due tomorrow", rentalsDueTomorrow.Count);
+
+                var sentCount = 0;
+                var skippedCount = 0;
+                var failedCount = 0;
 
                 foreach (var rental in rentalsDueTomorrow)
                 {
@@ -116,6 +138,7 @@ namespace InventoryManagementApp.Services.Notifications
                     {
                         if (string.IsNullOrWhiteSpace(rental.CustomerEmail))
                         {
+                            skippedCount++;
                             _logger.LogWarning("Rental {RentalID} has no customer email, skipping reminder",
                                 rental.RentalID);
                             continue;
@@ -134,28 +157,75 @@ namespace InventoryManagementApp.Services.Notifications
                             reminderSubjectTemplate,
                             reminderBodyTemplate).ConfigureAwait(false);
 
+                        sentCount++;
                         _logger.LogInformation("Sent reminder for rental {RentalID} to {Email}",
                             rental.RentalID, rental.CustomerEmail);
                     }
                     catch (Exception ex)
                     {
+                        failedCount++;
                         _logger.LogError(ex, "Failed to send reminder for rental {RentalID}",
                             rental.RentalID);
                     }
                 }
 
-                _logger.LogInformation("Completed sending {Count} rental reminders", rentalsDueTomorrow.Count);
+                _logger.LogInformation(
+                    "Completed rental reminder run. Due: {DueCount}, Sent: {SentCount}, Skipped: {SkippedCount}, Failed: {FailedCount}",
+                    rentalsDueTomorrow.Count,
+                    sentCount,
+                    skippedCount,
+                    failedCount);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while checking and sending rental reminders");
             }
+            finally
+            {
+                _checkLock.Release();
+            }
+        }
+
+        private Task<string> GetEmailSignatureAsync()
+        {
+            return _rentalConfigService == null
+                ? Task.FromResult(RentalConfigurationService.DefaultEmailSignature)
+                : _rentalConfigService.GetEmailSignatureAsync();
+        }
+
+        private Task<string> GetReminderSubjectTemplateAsync()
+        {
+            return _rentalConfigService == null
+                ? Task.FromResult(RentalConfigurationService.DefaultReminderSubjectTemplate)
+                : _rentalConfigService.GetReminderSubjectTemplateAsync();
+        }
+
+        private Task<string> GetReminderBodyTemplateAsync()
+        {
+            return _rentalConfigService == null
+                ? Task.FromResult(RentalConfigurationService.DefaultReminderBodyTemplate)
+                : _rentalConfigService.GetReminderBodyTemplateAsync();
+        }
+
+        private Task<string> GetCompanyNameAsync()
+        {
+            return _rentalConfigService == null
+                ? Task.FromResult("Equipment Rentals")
+                : _rentalConfigService.GetCompanyNameAsync();
+        }
+
+        private Task<string?> GetCompanyLogoPathAsync()
+        {
+            return _settingsService == null
+                ? Task.FromResult<string?>(null)
+                : _settingsService.GetSettingAsync("CompanyLogoPath");
         }
 
         public void Dispose()
         {
             if (_disposed) return;
             Stop();
+            _checkLock.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
