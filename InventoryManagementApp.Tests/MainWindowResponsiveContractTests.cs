@@ -11,8 +11,9 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
 
-            Assert.Contains("Width=\"1180\" Height=\"760\" MinWidth=\"920\" MinHeight=\"520\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Width=\"1180\" Height=\"760\" MinWidth=\"880\" MinHeight=\"520\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Width=\"1280\" Height=\"800\" MinWidth=\"1040\" MinHeight=\"540\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("MinWidth=\"920\" MinHeight=\"520\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -44,15 +45,48 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void MainWindow_MenuScrollsInsteadOfClippingNavigationAtScaledWidths()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
+
+            Assert.Contains("<ScrollViewer HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VerticalScrollBarVisibility=\"Disabled\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Focusable=\"False\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Menu x:Name=\"ShellSectionMenu\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"0\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Overview\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Operations\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Insights\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Data\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Admin\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void MainWindow_PageHeaderWrapsWorkflowActionsInBoundedArea()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
 
-            Assert.Contains("<ColumnDefinition Width=\"Auto\" MinWidth=\"0\" MaxWidth=\"380\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinHeight=\"44\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"Auto\" MinWidth=\"0\" MaxWidth=\"420\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<StackPanel VerticalAlignment=\"Center\" MinWidth=\"0\" Margin=\"0,0,12,0\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel Grid.Column=\"1\" Orientation=\"Horizontal\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" MaxWidth=\"380\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Grid.Column=\"1\" Orientation=\"Horizontal\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" MaxWidth=\"420\">", xaml, StringComparison.Ordinal);
+            Assert.Equal(2, CountOccurrences(xaml, "MinWidth=\"96\"\n                            MaxWidth=\"180\""));
             Assert.Contains("Margin=\"0,0,4,4\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Margin=\"0,0,0,4\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void MainWindow_FrameKeepsNavigationChromeOutOfPageKeyboardFlow()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
+
+            Assert.Contains("Name=\"MainFrame\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("NavigationUIVisibility=\"Hidden\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("JournalOwnership=\"OwnsJournal\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Focusable=\"False\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ClipToBounds=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("KeyboardNavigation.TabNavigation=\"Cycle\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -65,6 +99,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<ColumnDefinition Width=\"1.7*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"Auto\" MinWidth=\"0\" MaxWidth=\"380\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Grid Grid.Column=\"0\" ClipToBounds=\"True\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"Workflow status\" Style=\"{StaticResource LabelTextBlock}\" TextTrimming=\"CharacterEllipsis\" MaxWidth=\"120\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel Grid.Column=\"3\" Orientation=\"Horizontal\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" MaxWidth=\"380\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<StackPanel Grid.Column=\"3\" Orientation=\"Horizontal\"", xaml, StringComparison.Ordinal);
         }
@@ -90,6 +125,10 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
 
             Assert.Contains("OpenDashboardCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("OpenManageItemsCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("OpenRentalsCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("OpenCustomersCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("OpenReportsCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("GlobalSearchText", xaml, StringComparison.Ordinal);
             Assert.Contains("GlobalSearchCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("SwitchUserCommand", xaml, StringComparison.Ordinal);
@@ -98,6 +137,20 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("CurrentWorkflowSecondaryCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("CurrentWorkflowGuide", xaml, StringComparison.Ordinal);
             Assert.Contains("CurrentUserRole", xaml, StringComparison.Ordinal);
+        }
+
+        private static int CountOccurrences(string source, string value)
+        {
+            var count = 0;
+            var index = 0;
+
+            while ((index = source.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                index += value.Length;
+            }
+
+            return count;
         }
 
         private static string ReadRepoFile(params string[] parts)
