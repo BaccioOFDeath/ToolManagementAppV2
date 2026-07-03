@@ -17,6 +17,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Setter Property=\"MinWidth\" Value=\"190\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"300\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Key=\"RentalHistoryMetricValue\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding SearchStatus}\" Style=\"{StaticResource CaptionTextBlock}\" TextWrapping=\"Wrap\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding ExportSummary}\" Style=\"{StaticResource CaptionTextBlock}\" TextWrapping=\"Wrap\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Grid.Row=\"1\" Columns=\"3\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Width=\"1160\" Height=\"700\" MinWidth=\"940\"", xaml, StringComparison.Ordinal);
         }
@@ -30,7 +32,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<WrapPanel Grid.Column=\"1\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<pages:SearchBar Width=\"300\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"220\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MaxWidth=\"360\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("SearchCommand=\"{Binding SearchCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ClearCommand=\"{Binding ClearSearchCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding SearchStatus}\" Style=\"{StaticResource CaptionTextBlock}\" VerticalAlignment=\"Center\" TextWrapping=\"Wrap\" MaxWidth=\"360\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel Grid.Column=\"1\" HorizontalAlignment=\"Right\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<StackPanel DockPanel.Dock=\"Right\" Orientation=\"Horizontal\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"340\"/>", xaml, StringComparison.Ordinal);
@@ -53,7 +57,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void RentalHistoryWindow_BoundsEmptyStateAndPaneText()
+        public void RentalHistoryWindow_BoundsEmptyStateFilteringStateAndPaneText()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalHistoryWindow.xaml");
 
@@ -61,7 +65,11 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Grid MinWidth=\"0\">", xaml, StringComparison.Ordinal);
             Assert.Contains("MaxWidth=\"520\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border MaxWidth=\"340\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Text=\"No rental history records\" Style=\"{StaticResource SectionHeader}\" TextAlignment=\"Center\" TextWrapping=\"Wrap\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Binding=\"{Binding HasNoResults}\" Value=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding EmptyStateTitle}\" Style=\"{StaticResource SectionHeader}\" TextAlignment=\"Center\" TextWrapping=\"Wrap\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding EmptyStateMessage}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border MaxWidth=\"300\" Margin=\"12\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Top\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Binding=\"{Binding IsFiltering}\" Value=\"True\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Width=\"360\" HorizontalAlignment=\"Center\"", xaml, StringComparison.Ordinal);
         }
 
