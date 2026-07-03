@@ -86,6 +86,28 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ItemSearchPage_BoundsSearchIntelligenceRefreshWork()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml.cs");
+
+            Assert.Contains("private const int SearchHistoryLimit = 10;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private const int UnavailableDemandLimit = 12;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private const int SearchSignatureItemLimit = 250;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var snapshot = CreateSearchSnapshot(_attachedViewModel.SearchResults);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (resultIds.Count < SearchSignatureItemLimit)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (unavailableItems.Count < UnavailableDemandLimit", codeBehind, StringComparison.Ordinal);
+            Assert.Contains(".Take(UnavailableDemandLimit)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("while (_searchHistory.Count > SearchHistoryLimit)", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("var results = _attachedViewModel.SearchResults.ToList();", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("var unavailable = results.Where(IsUnavailable).ToList();", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("results.Select(item => item.ItemID).OrderBy", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("unavailable.Select(item => item.ItemID).OrderBy", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("unavailableItems.GroupBy", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain(".Take(12)", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("_searchHistory.Count > 10", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ItemSearchPage_PreservesSearchActionsAndRowHandlers()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml");

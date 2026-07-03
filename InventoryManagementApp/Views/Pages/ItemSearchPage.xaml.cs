@@ -17,6 +17,10 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class ItemSearchPage : Page
     {
+        private const int SearchHistoryLimit = 10;
+        private const int UnavailableDemandLimit = 12;
+        private const int SearchSignatureItemLimit = 250;
+
         private readonly ObservableCollection<SearchHistoryEntry> _searchHistory = new();
         private readonly ObservableCollection<UnavailableDemandEntry> _unavailableDemand = new();
         private readonly Dictionary<int, UnavailableDemandEntry> _demandByItemId = new();
@@ -172,23 +176,51 @@ namespace InventoryManagementApp.Views.Pages
             var category = string.IsNullOrWhiteSpace(_attachedViewModel.SelectedCategory)
                 ? "All"
                 : _attachedViewModel.SelectedCategory;
-            var results = _attachedViewModel.SearchResults.ToList();
-            var unavailable = results.Where(IsUnavailable).ToList();
-            var signature = BuildSearchSignature(term, category, results, unavailable);
+            var snapshot = CreateSearchSnapshot(_attachedViewModel.SearchResults);
+            var signature = BuildSearchSignature(term, category, snapshot);
             if (string.Equals(signature, _lastSearchSignature, StringComparison.Ordinal))
                 return;
 
             _lastSearchSignature = signature;
-            UpsertSearchHistory(term, category, results.Count, unavailable.Count);
-            CaptureUnavailableDemand(term, unavailable);
+            UpsertSearchHistory(term, category, snapshot.ResultCount, snapshot.UnavailableCount);
+            CaptureUnavailableDemand(term, snapshot.UnavailableItems);
             UpdateSearchIntelligenceSummary();
         }
 
-        private static string BuildSearchSignature(string term, string category, IEnumerable<ItemModel> results, IEnumerable<ItemModel> unavailable)
+        private static SearchSnapshot CreateSearchSnapshot(IEnumerable<ItemModel> results)
         {
-            var resultIds = string.Join(",", results.Select(item => item.ItemID).OrderBy(id => id));
-            var unavailableIds = string.Join(",", unavailable.Select(item => item.ItemID).OrderBy(id => id));
-            return $"{term}|{category}|{resultIds}|{unavailableIds}";
+            var resultIds = new List<int>(SearchSignatureItemLimit);
+            var unavailableIds = new List<int>(SearchSignatureItemLimit);
+            var unavailableItems = new List<ItemModel>(UnavailableDemandLimit);
+            var capturedUnavailableItemIds = new HashSet<int>();
+            var resultCount = 0;
+            var unavailableCount = 0;
+
+            foreach (var item in results)
+            {
+                resultCount++;
+
+                if (resultIds.Count < SearchSignatureItemLimit)
+                    resultIds.Add(item.ItemID);
+
+                if (!IsUnavailable(item))
+                    continue;
+
+                unavailableCount++;
+
+                if (unavailableIds.Count < SearchSignatureItemLimit)
+                    unavailableIds.Add(item.ItemID);
+
+                if (unavailableItems.Count < UnavailableDemandLimit && capturedUnavailableItemIds.Add(item.ItemID))
+                    unavailableItems.Add(item);
+            }
+
+            return new SearchSnapshot(resultCount, unavailableCount, resultIds, unavailableIds, unavailableItems);
+        }
+
+        private static string BuildSearchSignature(string term, string category, SearchSnapshot snapshot)
+        {
+            return $"{term}|{category}|{snapshot.ResultCount}|{snapshot.UnavailableCount}|{string.Join(",", snapshot.ResultIds)}|{string.Join(",", snapshot.UnavailableIds)}";
         }
 
         private void UpsertSearchHistory(string term, string category, int resultCount, int unavailableCount)
@@ -209,13 +241,13 @@ namespace InventoryManagementApp.Views.Pages
             existing.LastSearched = DateTime.Now;
             _searchHistory.Insert(0, existing);
 
-            while (_searchHistory.Count > 10)
+            while (_searchHistory.Count > SearchHistoryLimit)
                 _searchHistory.RemoveAt(_searchHistory.Count - 1);
         }
 
         private void CaptureUnavailableDemand(string term, IEnumerable<ItemModel> unavailableItems)
         {
-            foreach (var item in unavailableItems.GroupBy(item => item.ItemID).Select(group => group.First()))
+            foreach (var item in unavailableItems)
             {
                 if (!_demandByItemId.TryGetValue(item.ItemID, out var entry))
                 {
@@ -231,7 +263,7 @@ namespace InventoryManagementApp.Views.Pages
                          .OrderByDescending(entry => entry.HitCount)
                          .ThenByDescending(entry => entry.LastSearched)
                          .ThenBy(entry => entry.Name)
-                         .Take(12))
+                         .Take(UnavailableDemandLimit))
             {
                 _unavailableDemand.Add(entry);
             }
@@ -627,6 +659,13 @@ namespace InventoryManagementApp.Views.Pages
             var summary = string.Join(" | ", values.Where(value => !string.IsNullOrWhiteSpace(value)));
             return string.IsNullOrWhiteSpace(summary) ? "No notes recorded" : summary;
         }
+
+        private sealed record SearchSnapshot(
+            int ResultCount,
+            int UnavailableCount,
+            IReadOnlyList<int> ResultIds,
+            IReadOnlyList<int> UnavailableIds,
+            IReadOnlyList<ItemModel> UnavailableItems);
 
         public sealed class SearchHistoryEntry
         {
