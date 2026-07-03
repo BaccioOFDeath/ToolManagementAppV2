@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} Details'}"
-        Width="920" Height="820" MinWidth="780" MinHeight="620"
+        Width="880" Height="760" MinWidth="700" MinHeight="560"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
     <Window.InputBindings>
@@ -39,6 +39,22 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="ItemDetailSummaryCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
+            <Setter Property="MinWidth" Value="155"/>
+            <Setter Property="MaxWidth" Value="230"/>
+            <Setter Property="MinHeight" Value="74"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+        <Style x:Key="ItemDetailSummaryValueText" TargetType="TextBlock" BasedOn="{StaticResource HeadingTextBlock}">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+        <Style x:Key="ItemDetailInlineFieldCard" TargetType="Border" BasedOn="{StaticResource DesktopInsetCard}">
+            <Setter Property="MinWidth" Value="160"/>
+            <Setter Property="MaxWidth" Value="260"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
     </Window.Resources>
 
     <Grid Margin="10">
@@ -51,17 +67,18 @@
 
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="14,12">
             <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="220" MaxWidth="460">
                     <TextBlock Text="Item Detail" Style="{StaticResource PageTitleTextBlock}"/>
                     <TextBlock Text="{Binding ItemModel.Name, TargetNullValue='Review inventory identity, stock state, notes, and next actions for this item.'}"
                                Style="{StaticResource HeadingTextBlock}"
-                               TextWrapping="Wrap"/>
+                               TextWrapping="Wrap"
+                               TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="Use this sheet to decide whether to edit the record, rent it out, place a hold, print details, or inspect rental history."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
                 </StackPanel>
-                <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="14,0,0,0">
+                <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0">
                     <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Rent Out" Command="{Binding RentOutCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="{Binding CheckOutButtonText}" Command="{Binding ToggleCheckOutCommand}" Margin="0,0,6,6"/>
@@ -73,223 +90,236 @@
             </DockPanel>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,0,0,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
+        <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+            <Border Style="{StaticResource ItemDetailSummaryCard}">
                 <StackPanel>
                     <TextBlock Text="Item Number" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding ItemModel.ItemNumber, TargetNullValue=-}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="Primary lookup key" Style="{StaticResource CaptionTextBlock}"/>
+                    <TextBlock Text="{Binding ItemModel.ItemNumber, TargetNullValue=-}" Style="{StaticResource ItemDetailSummaryValueText}"/>
+                    <TextBlock Text="Primary lookup key" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="1" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
+            <Border Style="{StaticResource ItemDetailSummaryCard}">
                 <StackPanel>
                     <TextBlock Text="Availability" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding StatusText, TargetNullValue=-}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="Current checkout state" Style="{StaticResource CaptionTextBlock}"/>
+                    <TextBlock Text="{Binding StatusText, TargetNullValue=-}" Style="{StaticResource ItemDetailSummaryValueText}"/>
+                    <TextBlock Text="Current checkout state" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="2" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
+            <Border Style="{StaticResource ItemDetailSummaryCard}">
                 <StackPanel>
                     <TextBlock Text="Shelf" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding ItemModel.Location, TargetNullValue=-}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="Where staff should look first" Style="{StaticResource CaptionTextBlock}"/>
+                    <TextBlock Text="{Binding ItemModel.Location, TargetNullValue=-}" Style="{StaticResource ItemDetailSummaryValueText}"/>
+                    <TextBlock Text="Where staff should look first" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-            <Border Grid.Column="3" Style="{StaticResource DesktopSummaryCard}" Margin="0">
+            <Border Style="{StaticResource ItemDetailSummaryCard}">
                 <StackPanel>
                     <TextBlock Text="Stock" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding StockSummary, TargetNullValue=-}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="On-hand and rented context" Style="{StaticResource CaptionTextBlock}"/>
+                    <TextBlock Text="{Binding StockSummary, TargetNullValue=-}" Style="{StaticResource ItemDetailSummaryValueText}"/>
+                    <TextBlock Text="On-hand and rented context" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-        </Grid>
+        </WrapPanel>
 
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <Grid MinHeight="500">
+            <Grid MinHeight="420">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="255"/>
-                    <ColumnDefinition Width="8"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="0.75*" MinWidth="240"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="1.85*" MinWidth="0"/>
                 </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
-                <DockPanel LastChildFill="True">
-                    <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
-                        <StackPanel>
-                            <TextBlock Text="01 Item Identity" Style="{StaticResource SectionHeader}" Margin="0"/>
-                            <TextBlock Text="Photo, source, shelf, and cost context." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="12">
-                            <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource ControlBackgroundBrush}" Height="184" Margin="0,0,0,10">
-                                <Image Stretch="Uniform" Margin="6" Source="{Binding ItemModel, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+                    <DockPanel LastChildFill="True">
+                        <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
+                            <StackPanel>
+                                <TextBlock Text="01 Item Identity" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <TextBlock Text="Photo, source, shelf, and cost context." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Margin="12">
+                                <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource ControlBackgroundBrush}" Height="160" MaxHeight="184" Margin="0,0,0,10">
+                                    <Image Stretch="Uniform" Margin="6" Source="{Binding ItemModel, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                                </Border>
+                                <Grid MinWidth="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="76"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Status" Style="{StaticResource DetailLabel}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StatusText}" Style="{StaticResource StatusValue}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Brand" Style="{StaticResource DetailLabel}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ItemModel.Brand}" Style="{StaticResource DetailValue}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Part #" Style="{StaticResource DetailLabel}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ItemModel.PartNumber}" Style="{StaticResource DetailValue}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Location" Style="{StaticResource DetailLabel}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ItemModel.Location}" Style="{StaticResource DetailValue}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Supplier" Style="{StaticResource DetailLabel}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ItemModel.Supplier}" Style="{StaticResource DetailValue}"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Price" Style="{StaticResource DetailLabel}"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding PriceText}" Style="{StaticResource DetailValue}"/>
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Purchased" Style="{StaticResource DetailLabel}"/>
+                                    <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding PurchasedText}" Style="{StaticResource DetailValue}"/>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+
+                <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+
+                <Grid Grid.Column="2" MinWidth="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource Card}" Padding="0" Margin="0,0,0,8" MinWidth="0">
+                        <DockPanel LastChildFill="True">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
+                                <StackPanel>
+                                    <TextBlock Text="02 Availability And Usage" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                    <TextBlock Text="Current holder, stock, and checkout timing at a glance." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                </StackPanel>
                             </Border>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="82"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                            <WrapPanel Margin="12">
+                                <Border Style="{StaticResource ItemDetailInlineFieldCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="Availability" Style="{StaticResource DetailLabel}"/>
+                                        <TextBlock Text="{Binding AvailabilitySummary}" Style="{StaticResource StatusValue}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource ItemDetailInlineFieldCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="Current holder" Style="{StaticResource DetailLabel}"/>
+                                        <TextBlock Text="{Binding HolderSummary}" Style="{StaticResource DetailValue}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource ItemDetailInlineFieldCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="Stock" Style="{StaticResource DetailLabel}"/>
+                                        <TextBlock Text="{Binding StockSummary}" Style="{StaticResource DetailValue}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource ItemDetailInlineFieldCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="Out since" Style="{StaticResource DetailLabel}"/>
+                                        <TextBlock Text="{Binding CheckedOutSinceText}" Style="{StaticResource DetailValue}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource ItemDetailInlineFieldCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="Time out" Style="{StaticResource DetailLabel}"/>
+                                        <TextBlock Text="{Binding TimeOutText}" Style="{StaticResource DetailValue}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource ItemDetailInlineFieldCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="Last check-in" Style="{StaticResource DetailLabel}"/>
+                                        <TextBlock Text="{Binding LastCheckInText}" Style="{StaticResource DetailValue}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource ItemDetailInlineFieldCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="Usage" Style="{StaticResource DetailLabel}"/>
+                                        <TextBlock Text="{Binding UsageSummary}" Style="{StaticResource DetailValue}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </WrapPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource AdminHandoffCard}" Margin="0,0,0,8" MinWidth="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" MinWidth="0"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" MinWidth="0" MaxWidth="520">
+                                <TextBlock Text="03 Next Action Handoff" Style="{StaticResource SectionHeader}"/>
+                                <TextBlock Text="{Binding NextActionText}" TextWrapping="Wrap" Margin="0,2,12,4"/>
+                                <TextBlock Text="{Binding RequestStatusText}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <WrapPanel Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right">
+                                <Button Style="{StaticResource GhostButton}" Content="Request / Hold" Command="{Binding PlaceReservationCommand}" ToolTip="Create a request or hold for this item" Margin="0,0,6,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print Details" Command="{Binding PrintDetailsCommand}" ToolTip="Print this detail sheet" Margin="0,0,0,6"/>
+                            </WrapPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+                        <DockPanel LastChildFill="True">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
+                                <StackPanel>
+                                    <TextBlock Text="04 Notes And Condition" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                    <TextBlock Text="Condition summary, keywords, and staff notes." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                            <Grid Margin="12" MinWidth="0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Status" Style="{StaticResource DetailLabel}"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StatusText}" Style="{StaticResource StatusValue}"/>
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Brand" Style="{StaticResource DetailLabel}"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ItemModel.Brand}" Style="{StaticResource DetailValue}"/>
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Part #" Style="{StaticResource DetailLabel}"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ItemModel.PartNumber}" Style="{StaticResource DetailValue}"/>
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Location" Style="{StaticResource DetailLabel}"/>
-                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ItemModel.Location}" Style="{StaticResource DetailValue}"/>
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Supplier" Style="{StaticResource DetailLabel}"/>
-                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ItemModel.Supplier}" Style="{StaticResource DetailValue}"/>
-                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Price" Style="{StaticResource DetailLabel}"/>
-                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding PriceText}" Style="{StaticResource DetailValue}"/>
-                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Purchased" Style="{StaticResource DetailLabel}"/>
-                                <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding PurchasedText}" Style="{StaticResource DetailValue}"/>
+                                <TextBlock Grid.Row="0" Text="{Binding ConditionSummary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource ControlBackgroundBrush}" Padding="8" MinHeight="120">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                        <TextBlock Text="{Binding ItemModel.Notes}" TextWrapping="Wrap"/>
+                                    </ScrollViewer>
+                                </Border>
+                                <WrapPanel Grid.Row="2" Margin="0,8,0,0">
+                                    <Border Style="{StaticResource ItemDetailInlineFieldCard}">
+                                        <StackPanel>
+                                            <TextBlock Text="Keywords" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock Text="{Binding ItemModel.Keywords}" Style="{StaticResource DetailValue}" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource ItemDetailInlineFieldCard}">
+                                        <StackPanel>
+                                            <TextBlock Text="Updated" Style="{StaticResource DetailLabel}"/>
+                                            <TextBlock Text="{Binding UpdatedText}" Style="{StaticResource DetailValue}" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </WrapPanel>
                             </Grid>
-                        </StackPanel>
-                    </ScrollViewer>
-                </DockPanel>
-            </Border>
+                        </DockPanel>
+                    </Border>
 
-            <GridSplitter Grid.Column="1" Width="8" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
-
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Border Grid.Row="0" Style="{StaticResource Card}" Padding="0" Margin="0,0,0,8">
-                    <DockPanel LastChildFill="True">
-                        <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
-                            <StackPanel>
-                                <TextBlock Text="02 Availability And Usage" Style="{StaticResource SectionHeader}" Margin="0"/>
-                                <TextBlock Text="Current holder, stock, and checkout timing at a glance." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
-                        <Grid Margin="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="132"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="132"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Availability" Style="{StaticResource DetailLabel}"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding AvailabilitySummary}" Style="{StaticResource DetailValue}" FontWeight="SemiBold"/>
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Current holder" Style="{StaticResource DetailLabel}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding HolderSummary}" Style="{StaticResource DetailValue}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="2" Text="Stock" Style="{StaticResource DetailLabel}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding StockSummary}" Style="{StaticResource DetailValue}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Out since" Style="{StaticResource DetailLabel}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CheckedOutSinceText}" Style="{StaticResource DetailValue}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="2" Text="Time out" Style="{StaticResource DetailLabel}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding TimeOutText}" Style="{StaticResource DetailValue}"/>
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Last check-in" Style="{StaticResource DetailLabel}"/>
-                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding LastCheckInText}" Style="{StaticResource DetailValue}"/>
-                            <TextBlock Grid.Row="3" Grid.Column="2" Text="Usage" Style="{StaticResource DetailLabel}"/>
-                            <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding UsageSummary}" Style="{StaticResource DetailValue}"/>
-                        </Grid>
-                    </DockPanel>
-                </Border>
-
-                <Border Grid.Row="1" Style="{StaticResource AdminHandoffCard}" Margin="0,0,0,8">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="03 Next Action Handoff" Style="{StaticResource SectionHeader}"/>
-                            <TextBlock Text="{Binding NextActionText}" TextWrapping="Wrap" Margin="0,2,12,4"/>
-                            <TextBlock Text="{Binding RequestStatusText}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
-                            <Button Style="{StaticResource GhostButton}" Content="Request / Hold" Command="{Binding PlaceReservationCommand}" ToolTip="Create a request or hold for this item" Margin="0,0,6,0"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print Details" Command="{Binding PrintDetailsCommand}" ToolTip="Print this detail sheet"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
-                    <DockPanel LastChildFill="True">
-                        <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
-                            <StackPanel>
-                                <TextBlock Text="04 Notes And Condition" Style="{StaticResource SectionHeader}" Margin="0"/>
-                                <TextBlock Text="Condition summary, keywords, and staff notes." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
-                        <Grid Margin="12">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="{Binding ConditionSummary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                            <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource ControlBackgroundBrush}" Padding="8">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <TextBlock Text="{Binding ItemModel.Notes}" TextWrapping="Wrap"/>
-                                </ScrollViewer>
-                            </Border>
-                            <Grid Grid.Row="2" Margin="0,8,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="88"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="82"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Keywords" Style="{StaticResource DetailLabel}"/>
-                                <TextBlock Grid.Column="1" Text="{Binding ItemModel.Keywords}" Style="{StaticResource DetailValue}"/>
-                                <TextBlock Grid.Column="2" Text="Updated" Style="{StaticResource DetailLabel}"/>
-                                <TextBlock Grid.Column="3" Text="{Binding UpdatedText}" Style="{StaticResource DetailValue}"/>
-                            </Grid>
-                        </Grid>
-                    </DockPanel>
-                </Border>
-
-                <Border Grid.Row="3" Style="{StaticResource DesktopSectionActionStrip}">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Style="{StaticResource GhostButton}" Content="Request / Hold" Command="{Binding PlaceReservationCommand}" ToolTip="Create a pending request for this item" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Print Details" Command="{Binding PrintDetailsCommand}" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Checkout History" Command="{Binding OpenCheckoutHistoryCommand}" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Rental History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,6,0"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Close" Command="{Binding CloseCommand}"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
+                    <Border Grid.Row="3" Style="{StaticResource DesktopSectionActionStrip}">
+                        <WrapPanel HorizontalAlignment="Right">
+                            <Button Style="{StaticResource GhostButton}" Content="Request / Hold" Command="{Binding PlaceReservationCommand}" ToolTip="Create a pending request for this item" Margin="0,0,6,6"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Details" Command="{Binding PrintDetailsCommand}" Margin="0,0,6,6"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Checkout History" Command="{Binding OpenCheckoutHistoryCommand}" Margin="0,0,6,6"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Rental History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,6,6"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Close" Command="{Binding CloseCommand}" Margin="0,0,0,6"/>
+                        </WrapPanel>
+                    </Border>
+                </Grid>
             </Grid>
         </ScrollViewer>
 
         <Border Grid.Row="3" Style="{StaticResource DesktopStatusFooter}" Margin="0,8,0,0">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="Item detail ready" FontSize="11" VerticalAlignment="Center"/>
-                <TextBlock DockPanel.Dock="Right"
-                           Text="Ctrl+R creates a request or hold; Ctrl+P prints this item detail sheet."
+            <WrapPanel>
+                <TextBlock Text="Item detail ready" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,4"/>
+                <TextBlock Text="Ctrl+R creates a request or hold; Ctrl+P prints this item detail sheet."
                            Style="{StaticResource CaptionTextBlock}"
                            VerticalAlignment="Center"
-                           TextWrapping="Wrap"/>
-            </DockPanel>
+                           TextWrapping="Wrap"
+                           MaxWidth="620"
+                           Margin="0,0,0,4"/>
+            </WrapPanel>
         </Border>
     </Grid>
 </Window>
