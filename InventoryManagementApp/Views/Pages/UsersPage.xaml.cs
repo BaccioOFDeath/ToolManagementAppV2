@@ -18,6 +18,8 @@ namespace InventoryManagementApp.Views.Pages
     /// </summary>
     public partial class UsersPage : Page
     {
+        private const int MaxUsersPrintRows = 250;
+
         public UsersPage(UserManagementViewModel? viewModel)
         {
             DataContext = viewModel;
@@ -96,8 +98,11 @@ namespace InventoryManagementApp.Views.Pages
                     return;
                 }
 
-                var document = BuildPrintDocument(ViewModel.Users.ToList(), $"Visible users: {ViewModel.Users.Count}");
-                ShowPrintPreview(document, "User Directory");
+                var totalVisibleCount = ViewModel.Users.Count;
+                var printRows = ViewModel.Users.Take(MaxUsersPrintRows).ToList();
+                var summary = $"Visible users: {totalVisibleCount}; printed rows: {printRows.Count}; omitted rows: {Math.Max(0, totalVisibleCount - printRows.Count)}";
+                var document = BuildPrintDocument(printRows, totalVisibleCount, summary);
+                ShowPrintPreview(document, "User Directory", "Review the current account directory, access coverage, lockout state, and any omitted rows before filing an admin handoff.");
             });
         }
 
@@ -119,12 +124,13 @@ namespace InventoryManagementApp.Views.Pages
                    "Next steps: edit profile details, tick the app sections this user can access, upload a current photo, reset the password if the user is blocked, or review activity logs for recent account actions.";
         }
 
-        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<UserModel> users, string summary)
+        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<UserModel> users, int totalVisibleCount, string summary)
         {
             var document = new FlowDocument
             {
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-                FontSize = 10
+                FontSize = 10,
+                PagePadding = new Thickness(32)
             };
 
             document.Blocks.Add(new Paragraph(new Run("User Directory"))
@@ -133,56 +139,108 @@ namespace InventoryManagementApp.Views.Pages
                 FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(0, 0, 0, 4)
             });
-            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {summary}"))
+            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g}"))
             {
                 FontSize = 10,
-                Margin = new Thickness(0, 0, 0, 10)
+                Margin = new Thickness(0, 0, 0, 8)
             });
 
+            document.Blocks.Add(BuildSummarySection(summary, totalVisibleCount, users.Count, Math.Max(0, totalVisibleCount - users.Count)));
+
+            if (users.Count == 0)
+            {
+                document.Blocks.Add(new Paragraph(new Run("No user rows were available for this print packet."))
+                {
+                    Margin = new Thickness(0, 0, 0, 10),
+                    FontStyle = FontStyles.Italic
+                });
+                return document;
+            }
+
             var table = new Table { CellSpacing = 0 };
-            foreach (var width in new[] { 55.0, 130.0, 95.0, 250.0, 190.0, 90.0, 80.0 })
-                table.Columns.Add(new TableColumn { Width = new GridLength(width) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.12, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.18, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.14, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.26, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.20, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.10, GridUnitType.Star) });
 
             var rowGroup = new TableRowGroup();
             table.RowGroups.Add(rowGroup);
 
-            var header = new TableRow { FontWeight = FontWeights.SemiBold };
+            var header = new TableRow { FontWeight = FontWeights.SemiBold, Background = System.Windows.Media.Brushes.LightGray };
             rowGroup.Rows.Add(header);
-            AddCell(header, "ID");
-            AddCell(header, "User");
-            AddCell(header, "Role");
-            AddCell(header, "Access");
-            AddCell(header, "Email");
-            AddCell(header, "Lockout");
-            AddCell(header, "Active");
+            AddCell(header, "User ID", true);
+            AddCell(header, "User / Role", true);
+            AddCell(header, "Security", true);
+            AddCell(header, "Access", true);
+            AddCell(header, "Contact", true);
+            AddCell(header, "Active", true);
 
+            var index = 0;
             foreach (var user in users)
             {
                 var row = new TableRow();
+                if (index % 2 == 1)
+                    row.Background = System.Windows.Media.Brushes.WhiteSmoke;
+
                 rowGroup.Rows.Add(row);
                 AddCell(row, user.UserID.ToString());
-                AddCell(row, user.UserName);
-                AddCell(row, ResolveRole(user));
-                AddCell(row, user.AccessSummary);
-                AddCell(row, user.Email);
-                AddCell(row, user.LockoutStatus);
+                AddCell(row, $"{ValueOrNotRecorded(user.UserName)}\n{ResolveRole(user)}");
+                AddCell(row, $"{ValueOrNotRecorded(user.LockoutStatus)}\nPassword expired: {FormatBool(user.PasswordExpired)}");
+                AddCell(row, ValueOrNotRecorded(user.AccessSummary));
+                AddCell(row, $"{ValueOrNotRecorded(user.Email)}\n{ValueOrNotRecorded(user.Phone)}");
                 AddCell(row, FormatBool(user.IsActive));
+                index++;
             }
 
             document.Blocks.Add(table);
+            document.Blocks.Add(new Paragraph(new Run("Review access coverage, lockout state, disabled accounts, and any omitted rows before changing permissions or filing this directory packet."))
+            {
+                FontSize = 10,
+                FontStyle = FontStyles.Italic,
+                Margin = new Thickness(0, 10, 0, 0)
+            });
+
             return document;
         }
 
-        private static void ShowPrintPreview(FlowDocument document, string title)
+        private static Table BuildSummarySection(string summary, int totalVisibleCount, int printedRowCount, int omittedRowCount)
         {
-            new PrintPreviewWindow().ShowPreview(document, title, null);
+            var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 0, 0, 10) };
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.25, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.75, GridUnitType.Star) });
+
+            var group = new TableRowGroup();
+            table.RowGroups.Add(group);
+            AddSummaryLine(group, "Print Packet", summary);
+            AddSummaryLine(group, "Total Visible Rows", totalVisibleCount.ToString());
+            AddSummaryLine(group, "Printed Rows", printedRowCount.ToString());
+            AddSummaryLine(group, "Omitted Rows", omittedRowCount == 0 ? "None" : $"{omittedRowCount} rows omitted to keep preview responsive");
+            AddSummaryLine(group, "Large Directory Limit", $"First {MaxUsersPrintRows} visible rows");
+
+            return table;
         }
 
-        private static void AddCell(TableRow row, string text)
+        private static void AddSummaryLine(TableRowGroup group, string label, string value)
+        {
+            var row = new TableRow();
+            group.Rows.Add(row);
+            AddCell(row, label, true);
+            AddCell(row, ValueOrNotRecorded(value));
+        }
+
+        private static void ShowPrintPreview(FlowDocument document, string title, string description)
+        {
+            new PrintPreviewWindow().ShowPreview(document, title, description);
+        }
+
+        private static void AddCell(TableRow row, string text, bool isHeader = false)
         {
             row.Cells.Add(new TableCell(new Paragraph(new Run(text ?? string.Empty))
             {
-                Margin = new Thickness(2)
+                Margin = new Thickness(2),
+                FontWeight = isHeader ? FontWeights.SemiBold : FontWeights.Normal
             })
             {
                 BorderBrush = System.Windows.Media.Brushes.Gray,
@@ -204,5 +262,7 @@ namespace InventoryManagementApp.Views.Pages
         private static string FormatDate(DateTime? value) => value.HasValue ? value.Value.ToString("yyyy-MM-dd") : "-";
 
         private static string ValueOrDash(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+
+        private static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value.Trim();
     }
 }

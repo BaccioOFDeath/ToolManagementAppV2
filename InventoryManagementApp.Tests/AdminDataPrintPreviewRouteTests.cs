@@ -78,6 +78,30 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void UsersDirectoryPrintPreviewUsesBoundedProfessionalHandoffPacket()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs");
+
+            Assert.Contains("private const int MaxUsersPrintRows = 250;", source, StringComparison.Ordinal);
+            Assert.Contains("var totalVisibleCount = ViewModel.Users.Count;", source, StringComparison.Ordinal);
+            Assert.Contains("var printRows = ViewModel.Users.Take(MaxUsersPrintRows).ToList();", source, StringComparison.Ordinal);
+            Assert.Contains("BuildPrintDocument(printRows, totalVisibleCount, summary)", source, StringComparison.Ordinal);
+            Assert.Contains("Review the current account directory, access coverage, lockout state, and any omitted rows before filing an admin handoff.", source, StringComparison.Ordinal);
+            Assert.Contains("BuildSummarySection(summary, totalVisibleCount, users.Count, Math.Max(0, totalVisibleCount - users.Count))", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Total Visible Rows\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Omitted Rows\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Large Directory Limit\"", source, StringComparison.Ordinal);
+            Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.26, GridUnitType.Star) });", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"User / Role\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Security\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Access\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("AddCell(header, \"Contact\", true)", source, StringComparison.Ordinal);
+            Assert.Contains("Review access coverage, lockout state, disabled accounts, and any omitted rows", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("BuildPrintDocument(ViewModel.Users.ToList()", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("foreach (var width in new[] { 55.0, 130.0, 95.0, 250.0, 190.0, 90.0, 80.0 })", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void DashboardPrintActionsUseDialogPreviewService()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "DashboardViewModel.cs");
