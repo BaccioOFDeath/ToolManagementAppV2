@@ -96,6 +96,17 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            private set
+            {
+                if (SetProperty(ref _isLoading, value))
+                    RefreshCommand.NotifyCanExecuteChanged();
+            }
+        }
+
         public string LastLoadedText => LastLoadedAt.HasValue ? LastLoadedAt.Value.ToString("g") : "Not loaded";
         public int TotalLogCount => Logs.Count;
         public int FilteredLogCount => FilteredLogs.Count;
@@ -164,17 +175,20 @@ namespace InventoryManagementApp.ViewModels
         {
             _service = service;
             _logger = logger ?? NullLogger<ActivityLogsViewModel>.Instance;
-            RefreshCommand = new AsyncRelayCommand(LoadLogsAsync);
+            RefreshCommand = new AsyncRelayCommand(LoadLogsAsync, () => !IsLoading);
             ClearFiltersCommand = new RelayCommand(ClearFilters, HasActiveFilter);
             UserFilters.Add(AllUsersFilter);
             ActionFilters.Add(AllActionsFilter);
-            _ = RefreshCommand.ExecuteAsync(null);
         }
 
         public async Task<bool> LoadLogsAsync()
         {
+            if (IsLoading)
+                return false;
+
             try
             {
+                IsLoading = true;
                 StatusMessage = "Loading recent activity...";
                 Logs.Clear();
                 var result = await _service.GetRecentLogsAsync();
@@ -199,6 +213,10 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Failed to load activity logs");
                 ClearActivityLogRowsAfterLoadFailure("Activity logs could not be loaded. Activity rows were cleared until refresh succeeds.");
                 return false;
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
