@@ -20,8 +20,9 @@
         </Style>
     </Page.Resources>
 
-    <Grid Margin="0">
+    <Grid x:Name="DashboardRoot" Margin="0">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -75,7 +76,29 @@
             </DockPanel>
         </Border>
 
-        <WrapPanel Grid.Row="1" Margin="0,0,0,6">
+        <Border x:Name="DashboardLoadStatusBanner"
+                Grid.Row="1"
+                Style="{StaticResource ToolbarCard}"
+                Padding="8,6"
+                Margin="0,0,0,6"
+                Visibility="Collapsed"
+                MinWidth="0">
+            <DockPanel LastChildFill="True">
+                <Button x:Name="DashboardLoadRetryButton"
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource GhostButton}"
+                        Content="Retry"
+                        Click="DashboardLoadRetryButton_Click"
+                        Visibility="Collapsed"
+                        Margin="8,0,0,0"/>
+                <TextBlock x:Name="DashboardLoadStatusText"
+                           Style="{StaticResource CaptionTextBlock}"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <WrapPanel Grid.Row="2" Margin="0,0,0,6">
             <Border Style="{StaticResource DashboardMetricCard}">
                 <StackPanel>
                     <TextBlock Text="Checked out" Style="{StaticResource LabelTextBlock}"/>
@@ -106,7 +129,7 @@
             </Border>
         </WrapPanel>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.65*" MinWidth="0"/>
                 <ColumnDefinition Width="6"/>
@@ -410,7 +433,7 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Padding="6,3" Margin="0,6,0,0">
+        <Border Grid.Row="4" Style="{StaticResource ToolbarCard}" Padding="6,3" Margin="0,6,0,0">
             <DockPanel LastChildFill="True">
                 <TextBlock Text="{Binding OperationsSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,12,0" TextWrapping="Wrap"/>
                 <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
