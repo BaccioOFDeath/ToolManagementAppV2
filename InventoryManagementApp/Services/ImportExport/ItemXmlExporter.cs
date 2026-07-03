@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Models.Domain;
@@ -32,12 +31,23 @@ namespace InventoryManagementApp.Services.ImportExport
             await Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var items = data.ToList();
-                cancellationToken.ThrowIfCancellationRequested();
+                var serializer = new XmlSerializer(typeof(ItemModel));
+                var namespaces = new XmlSerializerNamespaces();
+                namespaces.Add(string.Empty, string.Empty);
 
-                var serializer = new XmlSerializer(typeof(List<ItemModel>), new XmlRootAttribute("Items"));
-                using var writer = new StreamWriter(filePath);
-                serializer.Serialize(writer, items);
+                using var writer = XmlWriter.Create(filePath, new XmlWriterSettings { Indent = true });
+                writer.WriteStartDocument();
+                writer.WriteStartElement("Items");
+
+                foreach (var item in data)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    serializer.Serialize(writer, item, namespaces);
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+                writer.WriteEndElement();
+                writer.WriteEndDocument();
             }, cancellationToken).ConfigureAwait(false);
         }
     }
