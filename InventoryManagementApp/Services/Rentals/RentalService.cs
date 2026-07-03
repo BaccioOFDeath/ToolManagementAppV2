@@ -427,6 +427,23 @@ namespace InventoryManagementApp.Services.Rentals
             return list.Where(r => r != null).Select(r => r!).ToList();
         }
 
+        public async Task<List<Rental>> GetActiveRentalsDueOnAsync(DateTime dueDate)
+        {
+            const string sql = BaseSelect + @"
+                WHERE r.Status='Rented'
+                  AND date(r.DueDate) = date(@DueDate)
+                ORDER BY r.DueDate ASC, r.RentalID ASC
+                LIMIT @RentalListLimit";
+            var p = new[]
+            {
+                new SqliteParameter("@DueDate", dueDate.Date),
+                new SqliteParameter("@RentalListLimit", MaxRentalListCount)
+            };
+            using var conn = _dbService.CreateConnection();
+            var list = await SqliteHelper.ExecuteReaderAsync(conn, sql, MapRental, p);
+            return list.Where(r => r != null).Select(r => r!).ToList();
+        }
+
         public async Task<List<Rental>> GetOverdueRentalsAsync()
         {
             const string sql = BaseSelect + @" WHERE r.Status = 'Rented' AND r.DueDate < @Today ORDER BY r.DueDate ASC LIMIT @RentalListLimit";
