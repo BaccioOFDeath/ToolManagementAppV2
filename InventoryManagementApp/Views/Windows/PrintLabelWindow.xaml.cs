@@ -27,6 +27,7 @@ namespace InventoryManagementApp.Views.Windows
         public PrintLabelWindow(IDialogService dialogService)
         {
             InitializeComponent();
+            this.UseResponsiveDefaultSize(820, 540);
             _dialogService = dialogService;
             DataContext = new PrintLabelViewModel(_dialogService, () => Close());
             this.DisposeDataContextOnUnload();
