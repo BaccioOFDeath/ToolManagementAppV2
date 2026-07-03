@@ -3,13 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:InventoryManagementApp.Views.Controls"
         Title="Kit"
-        Width="760"
-        Height="640"
-        MinWidth="680"
-        MinHeight="560"
+        Width="720"
+        Height="580"
+        MinWidth="600"
+        MinHeight="500"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="14">
+    <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -19,121 +19,127 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,8">
-            <DockPanel LastChildFill="True">
-                <Border DockPanel.Dock="Right" Style="{StaticResource DesktopNoteCard}" Padding="12,7" Margin="16,0,0,0" VerticalAlignment="Center">
-                    <StackPanel>
-                        <TextBlock Text="Kit Record" Style="{StaticResource LabelTextBlock}"/>
-                        <TextBlock Text="{Binding Kit.Name, TargetNullValue='Draft kit'}" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
-                    </StackPanel>
-                </Border>
-                <StackPanel>
-                    <TextBlock Text="Kit Setup" Style="{StaticResource PageTitleTextBlock}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MinWidth="0"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" MinWidth="0">
+                    <TextBlock Text="Kit Setup" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="Define the kit identity, category, description, and active state used by the kit operations workbench and printed kit sheets."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,2,0,0"/>
                 </StackPanel>
-            </DockPanel>
+                <Border Grid.Column="1" Style="{StaticResource DesktopNoteCard}" Padding="10,6" Margin="10,0,0,0" MaxWidth="190" VerticalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock Text="Kit Record" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBlock Text="{Binding Kit.Name, TargetNullValue='Draft kit'}" Style="{StaticResource SectionHeader}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Border>
 
-        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,8">
-            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,6,0">
+        <WrapPanel Grid.Row="1" Margin="0,0,0,8">
+            <Border Style="{StaticResource DesktopSummaryCard}" MinWidth="155" MaxWidth="225" Margin="0,0,8,8">
                 <StackPanel>
                     <TextBlock Text="01 Identity" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="Number and name" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Number and name" Style="{StaticResource SectionHeader}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="These values drive lookup, membership review, and printed kit documents."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource DesktopSummaryCard}" Margin="3,0">
+            <Border Style="{StaticResource DesktopSummaryCard}" MinWidth="155" MaxWidth="225" Margin="0,0,8,8">
                 <StackPanel>
                     <TextBlock Text="02 Category" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="Directory grouping" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Directory grouping" Style="{StaticResource SectionHeader}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="Use a consistent category so operators can find the kit quickly."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource DesktopSummaryCard}" Margin="6,0,0,0">
+            <Border Style="{StaticResource DesktopSummaryCard}" MinWidth="155" MaxWidth="225" Margin="0,0,8,8">
                 <StackPanel>
                     <TextBlock Text="03 Release" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="Active state" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Active state" Style="{StaticResource SectionHeader}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="Only active kits should appear in routine operations and pick sheets."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-        </UniformGrid>
+        </WrapPanel>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" MinWidth="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.28*"/>
-                <ColumnDefinition Width="12"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="1.28*" MinWidth="0"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="*" MinWidth="0"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0">
-                <Grid>
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+                <Grid MinWidth="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
                         <StackPanel>
-                            <TextBlock Text="Kit Identity" Style="{StaticResource SectionHeader}" Margin="0"/>
+                            <TextBlock Text="Kit Identity" Style="{StaticResource SectionHeader}" Margin="0" TextWrapping="Wrap"/>
                             <TextBlock Text="Keep the core directory fields aligned for quick review." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
-                    <Grid Grid.Row="1" Margin="14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="126"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <Grid Margin="12" MinWidth="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="*" MinWidth="0"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Kit Number" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,10" VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Kit.KitNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Kit Number" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,10" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Kit.KitNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,10" VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Kit.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Name" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,10" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Kit.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Category" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,10" VerticalAlignment="Center"/>
-                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Kit.Category, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Category" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,10" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Kit.Category, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-                        <Border Grid.Row="3" Grid.ColumnSpan="2" Style="{StaticResource DesktopSectionActionStrip}" Padding="12" VerticalAlignment="Top">
-                            <StackPanel>
-                                <TextBlock Text="Operations Handoff" Style="{StaticResource SectionHeader}"/>
-                                <TextBlock Text="A complete identity makes the kit easier to select, print, and audit from the kit operations workbench."
-                                           Style="{StaticResource CaptionTextBlock}"
-                                           TextWrapping="Wrap"
-                                           Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-                    </Grid>
+                            <Border Grid.Row="3" Grid.ColumnSpan="2" Style="{StaticResource DesktopSectionActionStrip}" Padding="10" VerticalAlignment="Top">
+                                <StackPanel>
+                                    <TextBlock Text="Operations Handoff" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="A complete identity makes the kit easier to select, print, and audit from the kit operations workbench."
+                                               Style="{StaticResource CaptionTextBlock}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </ScrollViewer>
                 </Grid>
             </Border>
 
-            <Grid Grid.Column="2">
+            <Grid Grid.Column="2" MinWidth="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Grid.Row="0" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10">
+                <Border Grid.Row="0" Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8" MinWidth="0">
                     <DockPanel LastChildFill="True">
                         <CheckBox DockPanel.Dock="Right"
                                   Content="Active"
                                   IsChecked="{Binding Kit.IsActive}"
                                   FontWeight="SemiBold"
                                   VerticalAlignment="Center"
-                                  Margin="12,0,0,0"/>
-                        <StackPanel>
-                            <TextBlock Text="Release State" Style="{StaticResource SectionHeader}"/>
+                                  Margin="10,0,0,0"/>
+                        <StackPanel MinWidth="0">
+                            <TextBlock Text="Release State" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
                             <TextBlock Text="Active kits remain available to the operations workbench and printed pick sheets."
                                        Style="{StaticResource CaptionTextBlock}"
                                        TextWrapping="Wrap"
@@ -142,14 +148,14 @@
                     </DockPanel>
                 </Border>
 
-                <Border Grid.Row="1" Style="{StaticResource AdminHandoffCard}">
-                    <Grid>
+                <Border Grid.Row="1" Style="{StaticResource AdminHandoffCard}" MinWidth="0">
+                    <Grid MinWidth="0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="Kit Description" Style="{StaticResource SectionHeader}"/>
+                        <TextBlock Grid.Row="0" Text="Kit Description" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
                         <TextBlock Grid.Row="1" Text="Summarize included use cases, shelf notes, inspection expectations, or pickup constraints for the selected kit."
                                    Style="{StaticResource CaptionTextBlock}"
                                    TextWrapping="Wrap"
@@ -158,23 +164,28 @@
                                  Text="{Binding Kit.Description, UpdateSourceTrigger=PropertyChanged}"
                                  AcceptsReturn="True"
                                  TextWrapping="Wrap"
-                                 MinHeight="190"
-                                 VerticalScrollBarVisibility="Auto"/>
+                                 MinHeight="150"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Disabled"/>
                     </Grid>
                 </Border>
             </Grid>
         </Grid>
 
-        <controls:SaveCancelBar Grid.Row="3" Margin="0,10,0,0"/>
+        <controls:SaveCancelBar Grid.Row="3" Margin="0,8,0,0"/>
 
         <Border Grid.Row="4" Style="{StaticResource DesktopStatusFooter}" Margin="0,8,0,0">
-            <DockPanel LastChildFill="True">
-                <TextBlock DockPanel.Dock="Left" Text="Kit setup ready" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <TextBlock Text="Save updates the kit directory and printed kit sheets; cancel returns without applying edits."
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*" MinWidth="0"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Kit setup ready" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Grid.Column="1" Text="Save updates the kit directory and printed kit sheets; cancel returns without applying edits."
                            Style="{StaticResource CaptionTextBlock}"
                            TextWrapping="Wrap"
                            VerticalAlignment="Center"/>
-            </DockPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>
