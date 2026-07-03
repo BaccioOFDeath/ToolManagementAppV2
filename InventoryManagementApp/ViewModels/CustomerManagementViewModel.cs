@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,8 @@ namespace InventoryManagementApp.ViewModels
 {
     public class CustomerManagementViewModel : ObservableObject
     {
+        private const int MaxCustomerDirectoryPrintRows = 250;
+
         private readonly ICustomerService? _customerService;
         private readonly IDialogService? _dialogService;
 
@@ -31,6 +34,64 @@ namespace InventoryManagementApp.ViewModels
                     : $"{baseSummary} for \"{CustomerSearchTerm.Trim()}\"";
             }
         }
+
+        public string CustomerFilterStatus
+        {
+            get
+            {
+                if (IsCustomerDirectoryBusy)
+                    return string.IsNullOrWhiteSpace(CustomerSearchTerm)
+                        ? "Loading customer directory..."
+                        : $"Searching \"{CustomerSearchTerm.Trim()}\"...";
+
+                return string.IsNullOrWhiteSpace(CustomerSearchTerm)
+                    ? "Showing all customers"
+                    : $"Filtered by \"{CustomerSearchTerm.Trim()}\"";
+            }
+        }
+
+        public string CustomerPrintSummary
+        {
+            get
+            {
+                if (Customers.Count == 0)
+                    return "No printable customer rows yet";
+
+                return Customers.Count > MaxCustomerDirectoryPrintRows
+                    ? $"Print preview includes the first {MaxCustomerDirectoryPrintRows} of {Customers.Count} visible customers"
+                    : $"{Customers.Count} visible customer{(Customers.Count == 1 ? string.Empty : "s")} ready for print preview";
+            }
+        }
+
+        public string CustomerEmptyStateMessage
+        {
+            get
+            {
+                if (IsCustomerDirectoryBusy)
+                    return "The directory is updating. Results will appear here shortly.";
+
+                return string.IsNullOrWhiteSpace(CustomerSearchTerm)
+                    ? "No customer records are available yet. Add a customer to start the directory."
+                    : $"No customers match \"{CustomerSearchTerm.Trim()}\". Clear or adjust the search before adding a duplicate record.";
+            }
+        }
+
+        public bool IsCustomerDirectoryBusy
+        {
+            get => _isCustomerDirectoryBusy;
+            private set
+            {
+                if (SetProperty(ref _isCustomerDirectoryBusy, value))
+                {
+                    OnPropertyChanged(nameof(CustomerFilterStatus));
+                    OnPropertyChanged(nameof(CustomerEmptyStateMessage));
+                    SearchCustomersCommand.NotifyCanExecuteChanged();
+                    ClearCustomerSearchCommand.NotifyCanExecuteChanged();
+                    PrintCustomerDirectoryCommand.NotifyCanExecuteChanged();
+                }
+            }
+        }
+        private bool _isCustomerDirectoryBusy;
 
         public string SelectedCustomerSummary => SelectedCustomer == null
             ? "Select or double-click a customer row to view contact details, copy a handoff, print a customer sheet, edit, or delete."
@@ -104,7 +165,11 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _customerSearchTerm, value))
+                {
                     OnPropertyChanged(nameof(CustomerResultsSummary));
+                    OnPropertyChanged(nameof(CustomerFilterStatus));
+                    OnPropertyChanged(nameof(CustomerEmptyStateMessage));
+                }
             }
         }
 
@@ -127,35 +192,40 @@ namespace InventoryManagementApp.ViewModels
             _dialogService = dialogService;
             AddCustomerCommand = new AsyncRelayCommand(AddCustomerAsync);
             UpdateCustomerCommand = new AsyncRelayCommand(UpdateCustomerAsync, () => SelectedCustomer != null);
-            SearchCustomersCommand = new AsyncRelayCommand(SearchCustomersAsync);
+            SearchCustomersCommand = new AsyncRelayCommand(SearchCustomersAsync, CanRefreshCustomerDirectory);
             DeleteCustomerCommand = new AsyncRelayCommand(() => DeleteCustomerAsync(), () => SelectedCustomer != null);
             EditCustomerCommand = new AsyncRelayCommand(() => EditCustomerAsync(SelectedCustomer), () => SelectedCustomer != null);
             EditCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(EditCustomerAsync);
             DeleteCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(c => DeleteCustomerAsync(c));
-            ClearCustomerSearchCommand = new AsyncRelayCommand(ClearCustomerSearchAsync);
+            ClearCustomerSearchCommand = new AsyncRelayCommand(ClearCustomerSearchAsync, CanRefreshCustomerDirectory);
             OpenCustomerDetailsCommand = new RelayCommand(OpenCustomerDetails, () => SelectedCustomer != null);
-            PrintCustomerDirectoryCommand = new RelayCommand(PrintCustomerDirectory);
+            PrintCustomerDirectoryCommand = new RelayCommand(PrintCustomerDirectory, CanPrintCustomerDirectory);
             PrintSelectedCustomerCommand = new RelayCommand(PrintSelectedCustomer, () => SelectedCustomer != null);
             CopySelectedCustomerCommand = new RelayCommand(CopySelectedCustomer, () => SelectedCustomer != null);
         }
 
         public async Task LoadCustomersAsync()
         {
-            if (_customerService == null) return;
+            if (_customerService == null || IsCustomerDirectoryBusy) return;
 
             try
             {
+                IsCustomerDirectoryBusy = true;
                 var preferredCustomerId = SelectedCustomer?.CustomerID;
                 var all = await _customerService.GetAllCustomersAsync();
-                Customers.ReplaceRange(all);
+                Customers.ReplaceRange(OrderCustomersForDirectory(all));
                 SelectBestCustomerAfterRefresh(preferredCustomerId);
-                OnPropertyChanged(nameof(CustomerResultsSummary));
+                NotifyCustomerDirectoryStateChanged();
             }
             catch (Exception ex)
             {
                 ClearCustomerDirectoryAfterLoadFailure();
                 if (_dialogService != null)
                     await _dialogService.ShowInfoAsync($"Failed to load customers: {ex.Message} Customer rows were cleared until reload succeeds.", "Customer Load Failed");
+            }
+            finally
+            {
+                IsCustomerDirectoryBusy = false;
             }
         }
 
@@ -223,21 +293,26 @@ namespace InventoryManagementApp.ViewModels
 
         async Task SearchCustomersAsync()
         {
-            if (_customerService == null) return;
+            if (_customerService == null || IsCustomerDirectoryBusy) return;
 
             try
             {
+                IsCustomerDirectoryBusy = true;
                 var preferredCustomerId = SelectedCustomer?.CustomerID;
                 var all = await GetCustomersForCurrentSearchAsync();
                 Customers.ReplaceRange(all);
                 SelectBestCustomerAfterRefresh(preferredCustomerId);
-                OnPropertyChanged(nameof(CustomerResultsSummary));
+                NotifyCustomerDirectoryStateChanged();
             }
             catch (Exception ex)
             {
                 ClearCustomerDirectoryAfterLoadFailure();
                 if (_dialogService != null)
                     await _dialogService.ShowInfoAsync($"Failed to search customers: {ex.Message} Customer rows were cleared until reload succeeds.", "Customer Search Failed");
+            }
+            finally
+            {
+                IsCustomerDirectoryBusy = false;
             }
         }
 
@@ -250,7 +325,7 @@ namespace InventoryManagementApp.ViewModels
                 var all = await GetCustomersForCurrentSearchAsync();
                 Customers.ReplaceRange(all);
                 SelectBestCustomerAfterRefresh(preferredCustomerId, clearSelectionWhenPreferredMissing);
-                OnPropertyChanged(nameof(CustomerResultsSummary));
+                NotifyCustomerDirectoryStateChanged();
                 await _dialogService.ShowInfoAsync(refreshedMessage, title);
             }
             catch
@@ -260,31 +335,42 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private async Task<System.Collections.Generic.List<CustomerModel>> GetCustomersForCurrentSearchAsync()
+        private async Task<List<CustomerModel>> GetCustomersForCurrentSearchAsync()
         {
-            var all = await _customerService!.GetAllCustomersAsync();
-            if (!string.IsNullOrWhiteSpace(CustomerSearchTerm))
-            {
-                var term = CustomerSearchTerm.Trim();
-                all = all.Where(c =>
-                    (c.Company?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.Email?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.Contact?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.Phone?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.Mobile?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.Address?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
-                    .ToList();
-            }
+            var searchTerm = CustomerSearchTerm.Trim();
+            var customers = string.IsNullOrWhiteSpace(searchTerm)
+                ? await _customerService!.GetAllCustomersAsync()
+                : await _customerService!.SearchCustomersAsync(searchTerm);
 
-            return all;
+            return OrderCustomersForDirectory(customers);
         }
+
+        private static List<CustomerModel> OrderCustomersForDirectory(IEnumerable<CustomerModel> customers)
+            => customers
+                .OrderBy(c => c.Company ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(c => c.Contact ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(c => c.CustomerID)
+                .ToList();
 
         private void ClearCustomerDirectoryAfterLoadFailure()
         {
             Customers.Clear();
             SelectedCustomer = null;
-            OnPropertyChanged(nameof(CustomerResultsSummary));
+            NotifyCustomerDirectoryStateChanged();
         }
+
+        private void NotifyCustomerDirectoryStateChanged()
+        {
+            OnPropertyChanged(nameof(CustomerResultsSummary));
+            OnPropertyChanged(nameof(CustomerFilterStatus));
+            OnPropertyChanged(nameof(CustomerPrintSummary));
+            OnPropertyChanged(nameof(CustomerEmptyStateMessage));
+            PrintCustomerDirectoryCommand.NotifyCanExecuteChanged();
+        }
+
+        private bool CanRefreshCustomerDirectory() => !IsCustomerDirectoryBusy;
+
+        private bool CanPrintCustomerDirectory() => Customers.Count > 0 && !IsCustomerDirectoryBusy;
 
         private void ClearNewCustomerFields()
         {
@@ -298,6 +384,8 @@ namespace InventoryManagementApp.ViewModels
 
         async Task ClearCustomerSearchAsync()
         {
+            if (IsCustomerDirectoryBusy) return;
+
             CustomerSearchTerm = string.Empty;
             await LoadCustomersAsync();
         }
@@ -391,6 +479,12 @@ namespace InventoryManagementApp.ViewModels
             if (_dialogService == null)
                 return;
 
+            if (IsCustomerDirectoryBusy)
+            {
+                _dialogService.ShowInfo("Customer rows are still updating. Try printing again after the directory finishes loading.", "Customer Directory");
+                return;
+            }
+
             if (Customers.Count == 0)
             {
                 _dialogService.ShowInfo("There are no customers to print.", "Customer Directory");
@@ -399,31 +493,67 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
+                var visibleCount = Customers.Count;
+                var printableCustomers = Customers.Take(MaxCustomerDirectoryPrintRows).ToList();
+                var omittedCount = Math.Max(0, visibleCount - printableCustomers.Count);
+                var searchStatus = string.IsNullOrWhiteSpace(CustomerSearchTerm)
+                    ? "Search: all visible customers"
+                    : $"Search: {CustomerSearchTerm.Trim()}";
+
                 var doc = CreateCustomerDocument("Customer Directory", fontSize: 11);
-                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | {Customers.Count} customer{(Customers.Count == 1 ? string.Empty : "s")}"))
+                doc.Blocks.Add(new Paragraph(new Run(
+                    $"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Visible: {visibleCount} | Printed: {printableCustomers.Count} | Omitted: {omittedCount} | {searchStatus}"))
                 {
                     FontSize = 10,
-                    Margin = new Thickness(0, 0, 0, 10)
+                    Margin = new Thickness(0, 0, 0, 8)
                 });
 
+                if (omittedCount > 0)
+                {
+                    doc.Blocks.Add(new Paragraph(new Run(
+                        $"Large directory limit: showing the first {MaxCustomerDirectoryPrintRows} visible customers. Refine search before filing or sending a complete directory packet."))
+                    {
+                        FontSize = 10,
+                        FontWeight = FontWeights.Bold,
+                        Margin = new Thickness(0, 0, 0, 8)
+                    });
+                }
+
                 var table = new Table { CellSpacing = 0 };
-                table.Columns.Add(new TableColumn { Width = new GridLength(175) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(130) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(105) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(105) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(190) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(2.1, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.4, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.25, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.55, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.8, GridUnitType.Star) });
 
                 var group = new TableRowGroup();
                 table.RowGroups.Add(group);
-                AddPrintRow(group, true, "Company", "Contact", "Phone", "Mobile", "Email");
+                AddPrintRow(group, true, "Company", "Primary Contact", "Phone / Mobile", "Email", "Address / Review");
 
-                foreach (var customer in Customers)
+                foreach (var customer in printableCustomers)
                 {
-                    AddPrintRow(group, false, customer.Company, customer.Contact, customer.Phone, customer.Mobile, customer.Email);
+                    AddPrintRow(
+                        group,
+                        false,
+                        customer.Company,
+                        customer.Contact,
+                        JoinPrintValues(customer.Phone, customer.Mobile),
+                        customer.Email,
+                        customer.Address);
                 }
 
                 doc.Blocks.Add(table);
-                _dialogService.ShowPrintPreview(doc, "Customer Directory", string.Empty);
+                doc.Blocks.Add(new Paragraph(new Run("Review note: verify the selected contact path, email, phone/mobile, address, and omitted-row count before using this directory for rental, reminder, or service follow-up."))
+                {
+                    FontSize = 10,
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 10, 0, 0)
+                });
+
+                _dialogService.ShowPrintPreview(
+                    doc,
+                    "Customer Directory",
+                    "Customer directory packet with contact paths, address review, visible-row counts, and large-directory limits.");
             }
             catch (Exception ex)
             {
@@ -452,7 +582,10 @@ namespace InventoryManagementApp.ViewModels
                 AddKeyValueRow(group, "Advisor note:", "Use rentals and requests to review open activity before promising availability or delivery dates.");
                 doc.Blocks.Add(table);
 
-                _dialogService.ShowPrintPreview(doc, $"Customer {customer.CustomerID}", string.Empty);
+                _dialogService.ShowPrintPreview(
+                    doc,
+                    $"Customer {customer.CustomerID}",
+                    "Customer sheet with contact, address, and advisor next-step handoff.");
             }
             catch (Exception ex)
             {
@@ -553,6 +686,16 @@ namespace InventoryManagementApp.ViewModels
             group.Rows.Add(row);
         }
 
-        static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
+        static string JoinPrintValues(params string?[] values)
+        {
+            var recordedValues = values
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Select(v => v!.Trim())
+                .ToList();
+
+            return recordedValues.Count == 0 ? "Not recorded" : string.Join(" / ", recordedValues);
+        }
+
+        static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value.Trim();
     }
 }
