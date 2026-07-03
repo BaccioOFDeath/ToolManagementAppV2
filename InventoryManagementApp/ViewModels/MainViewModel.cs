@@ -55,6 +55,7 @@ namespace InventoryManagementApp.ViewModels
         int _autoLogoutMinutes;
         CancellationTokenSource? _pageLoadCts;
         CancellationTokenSource? _globalSearchCts;
+        Task? _shellBrandingLoadTask;
         int _isRefreshingOpenSurface;
 
         EventHandler<User?>? _userContextChangedHandler;
@@ -379,6 +380,29 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        async Task LoadShellBrandingAsync()
+        {
+            try
+            {
+                var logoPathTask = _settingsService.GetSettingAsync("CompanyLogoPath");
+                var appNameTask = _settingsService.GetSettingAsync("ApplicationName");
+
+                await Task.WhenAll(logoPathTask, appNameTask).ConfigureAwait(true);
+
+                var logoPath = await logoPathTask.ConfigureAwait(true);
+                if (!string.IsNullOrWhiteSpace(logoPath))
+                    CompanyLogoPath = logoPath;
+
+                var appName = await appNameTask.ConfigureAwait(true);
+                if (!string.IsNullOrWhiteSpace(appName))
+                    ApplicationName = appName;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load shell branding settings");
+            }
+        }
+
         public IAsyncRelayCommand OpenDashboardCommand { get; }
         public IAsyncRelayCommand OpenSearchItemsCommand { get; }
         public IAsyncRelayCommand OpenManageItemsCommand { get; }
@@ -505,12 +529,7 @@ namespace InventoryManagementApp.ViewModels
             CalibrationManagement = new CalibrationManagementViewModel(calibrationService ?? throw new ArgumentNullException(nameof(calibrationService)), _dialogService);
             ReservationManagement = new ReservationManagementViewModel(reservationService ?? throw new ArgumentNullException(nameof(reservationService)), _dialogService);
             KitManagement = new KitManagementViewModel(kitService ?? throw new ArgumentNullException(nameof(kitService)), _dialogService);
-            var logoPath = _settingsService.GetSettingAsync("CompanyLogoPath").GetAwaiter().GetResult();
-            if (!string.IsNullOrWhiteSpace(logoPath))
-                CompanyLogoPath = logoPath;
-            var appName = _settingsService.GetSettingAsync("ApplicationName").GetAwaiter().GetResult();
-            if (!string.IsNullOrWhiteSpace(appName))
-                ApplicationName = appName;
+            _shellBrandingLoadTask = LoadShellBrandingAsync();
             _autoLogoutTimer = autoLogoutTimer ?? new DispatcherTimerWrapper();
             _autoLogoutTimer.Tick += OnAutoLogoutTimerTick;
             Settings.PropertyChanged += Settings_PropertyChanged;
