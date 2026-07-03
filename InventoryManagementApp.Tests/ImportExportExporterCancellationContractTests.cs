@@ -7,21 +7,21 @@ namespace InventoryManagementApp.Tests
     public class ImportExportExporterCancellationContractTests
     {
         [Theory]
-        [InlineData("InventoryManagementApp/Services/ImportExport/ItemCsvExporter.cs", "var items = data.ToList();", "CsvHelperUtil.ExportItemsToCsvAsync(filePath, items)")]
+        [InlineData("InventoryManagementApp/Services/ImportExport/ItemCsvExporter.cs", "var items = data as IList<ItemModel> ?? data.ToList();", "CsvHelperUtil.ExportItemsToCsvAsync(filePath, items)")]
         [InlineData("InventoryManagementApp/Services/ImportExport/CustomerCsvExporter.cs", "var customers = data.Select(c => new CustomerModel", "CsvHelperUtil.ExportCustomersToCsv(filePath, customers)")]
-        [InlineData("InventoryManagementApp/Services/ImportExport/ItemJsonExporter.cs", "var items = data.ToList();", "File.WriteAllTextAsync(filePath, json, cancellationToken)")]
-        [InlineData("InventoryManagementApp/Services/ImportExport/CustomerJsonExporter.cs", "var customers = data.ToList();", "File.WriteAllTextAsync(filePath, json, cancellationToken)")]
-        [InlineData("InventoryManagementApp/Services/ImportExport/ItemXmlExporter.cs", "var items = data.ToList();", "new StreamWriter(filePath)")]
-        [InlineData("InventoryManagementApp/Services/ImportExport/CustomerXmlExporter.cs", "var customers = data.ToList();", "new StreamWriter(filePath)")]
-        public void ExportersHonorCancellationBeforeMaterializingRowsAndWritingFiles(
+        [InlineData("InventoryManagementApp/Services/ImportExport/ItemJsonExporter.cs", "await using var stream = new FileStream", "JsonSerializer.SerializeAsync(stream, data, JsonOptions, cancellationToken)")]
+        [InlineData("InventoryManagementApp/Services/ImportExport/CustomerJsonExporter.cs", "await using var stream = new FileStream", "JsonSerializer.SerializeAsync(stream, data, JsonOptions, cancellationToken)")]
+        [InlineData("InventoryManagementApp/Services/ImportExport/ItemXmlExporter.cs", "foreach (var item in data)", "serializer.Serialize(writer, item, namespaces)")]
+        [InlineData("InventoryManagementApp/Services/ImportExport/CustomerXmlExporter.cs", "foreach (var customer in data)", "serializer.Serialize(writer, customer, namespaces)")]
+        public void ExportersHonorCancellationBeforePreparingRowsAndWritingFiles(
             string relativePath,
-            string materializeMarker,
+            string prepareMarker,
             string writeMarker)
         {
             var source = ReadRepoFile(relativePath);
 
-            AssertCancellationCheckBefore(source, materializeMarker);
-            AssertCancellationCheckBetween(source, materializeMarker, writeMarker);
+            AssertCancellationCheckBefore(source, prepareMarker);
+            AssertCancellationCheckBetween(source, prepareMarker, writeMarker);
         }
 
         [Theory]
@@ -36,6 +36,50 @@ namespace InventoryManagementApp.Tests
 
             var innerCancellation = source.IndexOf("cancellationToken.ThrowIfCancellationRequested();", taskStart, StringComparison.Ordinal);
             Assert.True(innerCancellation > taskStart, $"Expected {relativePath} to check cancellation inside the synchronous export task.");
+        }
+
+        [Theory]
+        [InlineData("InventoryManagementApp/Services/ImportExport/ItemJsonExporter.cs")]
+        [InlineData("InventoryManagementApp/Services/ImportExport/CustomerJsonExporter.cs")]
+        public void JsonExportersStreamDirectlyToFileWithoutIntermediateRowCopies(string relativePath)
+        {
+            var source = ReadRepoFile(relativePath);
+
+            Assert.Contains("await using var stream = new FileStream", source, StringComparison.Ordinal);
+            Assert.Contains("JsonSerializer.SerializeAsync(stream, data, JsonOptions, cancellationToken)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("data.ToList()", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("JsonSerializer.Serialize(", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("File.WriteAllTextAsync", source, StringComparison.Ordinal);
+        }
+
+        [Theory]
+        [InlineData("InventoryManagementApp/Services/ImportExport/ItemXmlExporter.cs", "WriteStartElement(\"Items\")", "foreach (var item in data)", "serializer.Serialize(writer, item, namespaces)")]
+        [InlineData("InventoryManagementApp/Services/ImportExport/CustomerXmlExporter.cs", "WriteStartElement(\"Customers\")", "foreach (var customer in data)", "serializer.Serialize(writer, customer, namespaces)")]
+        public void XmlExportersStreamRowsInsideTheExistingRootElement(
+            string relativePath,
+            string rootMarker,
+            string loopMarker,
+            string serializeMarker)
+        {
+            var source = ReadRepoFile(relativePath);
+
+            Assert.Contains("XmlWriter.Create(filePath", source, StringComparison.Ordinal);
+            Assert.Contains(rootMarker, source, StringComparison.Ordinal);
+            Assert.Contains(loopMarker, source, StringComparison.Ordinal);
+            Assert.Contains(serializeMarker, source, StringComparison.Ordinal);
+            Assert.Contains("writer.WriteEndElement();", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("data.ToList()", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("typeof(List<", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("new StreamWriter(filePath)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ItemCsvExporterReusesExistingListInputsBeforeFallingBackToMaterialization()
+        {
+            var source = ReadRepoFile("InventoryManagementApp/Services/ImportExport/ItemCsvExporter.cs");
+
+            Assert.Contains("var items = data as IList<ItemModel> ?? data.ToList();", source, StringComparison.Ordinal);
+            Assert.Contains("CsvHelperUtil.ExportItemsToCsvAsync(filePath, items)", source, StringComparison.Ordinal);
         }
 
         private static void AssertCancellationCheckBefore(string source, string marker)
