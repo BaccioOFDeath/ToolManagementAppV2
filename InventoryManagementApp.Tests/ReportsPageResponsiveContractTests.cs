@@ -103,6 +103,25 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Wait for the report to finish generating before opening print preview.", codeBehind, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ReportsPage_BoundsPrintPreviewRowsAndReportsOmittedRows()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
+
+            Assert.Contains("private const int MaxReportPrintRows = 250;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var totalLineCount = vm.ReportLines.Count;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var printRows = vm.ReportLines.Take(MaxReportPrintRows).ToList();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, printRows, totalLineCount)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Large reports print the first 250 rows so preview stays responsive.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("BuildSummarySection(safeTitle, summary, lastRunText, totalLineCount, printedLineCount, omittedLineCount)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Total Action Rows\", totalLineCount.ToString())", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Printed Action Rows\", printedLineCount.ToString())", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Omitted Action Rows\"", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Large Report Limit\"", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Review each destination, source-page route, next action, and omitted-row count", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, vm.ReportLines.ToList())", codeBehind, StringComparison.Ordinal);
+        }
+
         private static string ReadRepoFile(params string[] parts)
         {
             var directory = AppContext.BaseDirectory;
