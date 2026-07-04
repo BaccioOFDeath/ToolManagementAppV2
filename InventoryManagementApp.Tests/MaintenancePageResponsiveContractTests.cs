@@ -15,6 +15,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"235\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"1.15*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding MaintenancePrintStatus}\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Grid.Column=\"2\" Columns=\"4\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"2*\" MinWidth=\"380\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"3*\" MinWidth=\"520\"/>", xaml, StringComparison.Ordinal);
@@ -58,8 +59,22 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<ComboBox Width=\"175\" MinWidth=\"145\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"360\" MinHeight=\"130\" Margin=\"12\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer Grid.Row=\"1\" VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding MaintenanceEmptyTitle}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding MaintenanceEmptyMessage}\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\" MaxWidth=\"360\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("VerticalScrollBarVisibility=\"Hidden\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void MaintenancePage_ShowsBoundedLoadingOverlayWhileRowsLoad()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "MaintenancePage.xaml");
+
+            Assert.Contains("<Condition Binding=\"{Binding IsLoading}\" Value=\"False\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<DataTrigger Binding=\"{Binding IsLoading}\" Value=\"True\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Loading maintenance schedule", xaml, StringComparison.Ordinal);
+            Assert.Contains("Work-order actions and schedule printing are paused", xaml, StringComparison.Ordinal);
+            Assert.Contains("MaxWidth=\"380\" MinHeight=\"118\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -76,6 +91,65 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("PrintMaintenanceListCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("MaintenanceRow_MouseDoubleClick", xaml, StringComparison.Ordinal);
             Assert.Contains("MaintenanceRow_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void MaintenanceViewModel_GuardsLoadingStateAndCommandAvailability()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "MaintenanceManagementViewModel.cs");
+
+            Assert.Contains("private bool _isLoading;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsLoading", source, StringComparison.Ordinal);
+            Assert.Contains("if (IsLoading)", source, StringComparison.Ordinal);
+            Assert.Contains("CanRefreshMaintenance", source, StringComparison.Ordinal);
+            Assert.Contains("CanInteractWithMaintenanceList", source, StringComparison.Ordinal);
+            Assert.Contains("!IsLoading && SelectedRecord != null", source, StringComparison.Ordinal);
+            Assert.Contains("PrintMaintenanceListCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void MaintenanceViewModel_ExposesProfessionalEmptyAndPrintState()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "MaintenanceManagementViewModel.cs");
+
+            Assert.Contains("public bool IsFilterActive", source, StringComparison.Ordinal);
+            Assert.Contains("public string MaintenanceEmptyTitle", source, StringComparison.Ordinal);
+            Assert.Contains("public string MaintenanceEmptyMessage", source, StringComparison.Ordinal);
+            Assert.Contains("public bool CanPrintMaintenanceList", source, StringComparison.Ordinal);
+            Assert.Contains("public string MaintenancePrintStatus", source, StringComparison.Ordinal);
+            Assert.Contains("Print paused while maintenance rows load", source, StringComparison.Ordinal);
+            Assert.Contains("No filtered rows ready to print", source, StringComparison.Ordinal);
+            Assert.Contains("Ready to print first", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void MaintenancePrintPreview_IsBoundedAndUsesProportionalColumns()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "MaintenanceManagementViewModel.cs");
+
+            Assert.Contains("private const int MaxMaintenancePrintRows = 250;", source, StringComparison.Ordinal);
+            Assert.Contains("FilteredMaintenanceRecords.Take(MaxMaintenancePrintRows).ToList();", source, StringComparison.Ordinal);
+            Assert.Contains("Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows}", source, StringComparison.Ordinal);
+            Assert.Contains("Large schedule preview limited to the first", source, StringComparison.Ordinal);
+            Assert.Contains("new GridLength(1.05, GridUnitType.Star)", source, StringComparison.Ordinal);
+            Assert.Contains("new GridLength(1.65, GridUnitType.Star)", source, StringComparison.Ordinal);
+            Assert.Contains("Review overdue rows, technician assignment", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("new GridLength(150)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("foreach (var record in FilteredMaintenanceRecords)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void MaintenancePage_LoadsOnceAfterFirstPaintAndResetsForNewViewModels()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "MaintenancePage.xaml.cs");
+
+            Assert.Contains("private Task? _loadMaintenanceTask;", source, StringComparison.Ordinal);
+            Assert.Contains("private MaintenanceManagementViewModel? _loadedViewModel;", source, StringComparison.Ordinal);
+            Assert.Contains("DataContextChanged += MaintenancePage_DataContextChanged;", source, StringComparison.Ordinal);
+            Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", source, StringComparison.Ordinal);
+            Assert.Contains("LoadMaintenanceOnceAsync", source, StringComparison.Ordinal);
+            Assert.Contains("IsCompletedSuccessfully", source, StringComparison.Ordinal);
+            Assert.Contains("_loadMaintenanceTask = null;", source, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)
