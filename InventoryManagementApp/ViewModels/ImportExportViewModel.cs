@@ -29,6 +29,8 @@ namespace InventoryManagementApp.ViewModels
         private readonly ILogger<ImportExportViewModel> _logger;
         private readonly IUserContext _userContext;
         private readonly RentalConfigurationService? _rentalConfigService;
+        private int _activeDataOperationCount;
+        private string? _currentDataOperation;
 
         public IAsyncRelayCommand ImportItemsCommand { get; }
         public IRelayCommand CancelImportItemsCommand { get; }
@@ -41,6 +43,16 @@ namespace InventoryManagementApp.ViewModels
         public bool CanImportImages => _userContext.IsAdmin || _userContext.CurrentUser?.HasPermission(User.PermissionImportExport) == true;
         public bool IsCurrentUserAdmin => CanImportImages;
         public bool HasLogEntries => ImportExportLogs.Count > 0;
+        public bool IsDataOperationBusy => _activeDataOperationCount > 0;
+        public bool IsDataOperationReady => !IsDataOperationBusy;
+        public bool CanReviewSelectedLog => !IsDataOperationBusy && !string.IsNullOrWhiteSpace(SelectedImportExportLog);
+        public bool CanPrintImportExportLogs => !IsDataOperationBusy && HasLogEntries;
+        public string DataOperationStatus => IsDataOperationBusy
+            ? $"{ValueOrDefault(_currentDataOperation, "Data operation")} running"
+            : "Data desk ready";
+        public string DataOperationSummary => IsDataOperationBusy
+            ? "Finish or cancel the current data operation before starting another import, export, backup, restore, copy, or print handoff."
+            : "Ready for the next import, export, backup, restore, image mapping, copy, or print handoff.";
         public string LogSummary => HasLogEntries
             ? $"{ImportExportLogs.Count} operation log entr{(ImportExportLogs.Count == 1 ? "y" : "ies")} recorded this session."
             : "No import, export, image, or backup operations have been run in this session.";
@@ -68,6 +80,7 @@ namespace InventoryManagementApp.ViewModels
                 {
                     OnPropertyChanged(nameof(SelectedLogTitle));
                     OnPropertyChanged(nameof(SelectedLogDetail));
+                    OnPropertyChanged(nameof(CanReviewSelectedLog));
                 }
             }
         }
@@ -127,6 +140,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 OnPropertyChanged(nameof(HasLogEntries));
                 OnPropertyChanged(nameof(LogSummary));
+                OnPropertyChanged(nameof(CanPrintImportExportLogs));
             };
             
             // Initialize importers and exporters
@@ -153,14 +167,14 @@ namespace InventoryManagementApp.ViewModels
                 new CustomerXmlExporter()
             };
             
-            ImportItemsCommand = new AsyncRelayCommand(ct => ImportItemsAsync(ct));
-            CancelImportItemsCommand = new RelayCommand(() => ImportItemsCommand.Cancel());
-            ExportItemsCommand = new AsyncRelayCommand(ct => ExportItemsAsync(ct));
-            ImportCustomersCommand = new AsyncRelayCommand(ct => ImportCustomersAsync(ct));
-            ExportCustomersCommand = new AsyncRelayCommand(ct => ExportCustomersAsync(ct));
-            BackupDatabaseCommand = new AsyncRelayCommand(ct => BackupDatabaseAsync(ct));
-            RestoreBackupCommand = new AsyncRelayCommand(ct => RestoreBackupAsync(ct));
-            ClearImportExportLogsCommand = new RelayCommand(ClearImportExportLogs, () => HasLogEntries);
+            ImportItemsCommand = new AsyncRelayCommand(ct => ImportItemsAsync(ct), CanStartDataOperation);
+            CancelImportItemsCommand = new RelayCommand(() => ImportItemsCommand.Cancel(), () => ImportItemsCommand.IsRunning);
+            ExportItemsCommand = new AsyncRelayCommand(ct => ExportItemsAsync(ct), CanStartDataOperation);
+            ImportCustomersCommand = new AsyncRelayCommand(ct => ImportCustomersAsync(ct), CanStartDataOperation);
+            ExportCustomersCommand = new AsyncRelayCommand(ct => ExportCustomersAsync(ct), CanStartDataOperation);
+            BackupDatabaseCommand = new AsyncRelayCommand(ct => BackupDatabaseAsync(ct), CanStartDataOperation);
+            RestoreBackupCommand = new AsyncRelayCommand(ct => RestoreBackupAsync(ct), CanStartDataOperation);
+            ClearImportExportLogsCommand = new RelayCommand(ClearImportExportLogs, () => HasLogEntries && !IsDataOperationBusy);
         }
 
         private sealed class DummyUserContext : IUserContext
@@ -183,6 +197,48 @@ namespace InventoryManagementApp.ViewModels
             public string Role => string.Empty;
         }
 
+        bool CanStartDataOperation() => !IsDataOperationBusy;
+
+        bool TryBeginDataOperation(string operationName)
+        {
+            if (IsDataOperationBusy)
+                return false;
+
+            _activeDataOperationCount++;
+            _currentDataOperation = operationName;
+            NotifyDataOperationStateChanged();
+            return true;
+        }
+
+        void EndDataOperation()
+        {
+            if (_activeDataOperationCount > 0)
+                _activeDataOperationCount--;
+
+            if (_activeDataOperationCount == 0)
+                _currentDataOperation = null;
+
+            NotifyDataOperationStateChanged();
+        }
+
+        void NotifyDataOperationStateChanged()
+        {
+            OnPropertyChanged(nameof(IsDataOperationBusy));
+            OnPropertyChanged(nameof(IsDataOperationReady));
+            OnPropertyChanged(nameof(CanReviewSelectedLog));
+            OnPropertyChanged(nameof(CanPrintImportExportLogs));
+            OnPropertyChanged(nameof(DataOperationStatus));
+            OnPropertyChanged(nameof(DataOperationSummary));
+            ImportItemsCommand.NotifyCanExecuteChanged();
+            CancelImportItemsCommand.NotifyCanExecuteChanged();
+            ExportItemsCommand.NotifyCanExecuteChanged();
+            ImportCustomersCommand.NotifyCanExecuteChanged();
+            ExportCustomersCommand.NotifyCanExecuteChanged();
+            BackupDatabaseCommand.NotifyCanExecuteChanged();
+            RestoreBackupCommand.NotifyCanExecuteChanged();
+            ClearImportExportLogsCommand.NotifyCanExecuteChanged();
+        }
+
         void AddLog(string message)
         {
             ImportExportLogs.Add(message);
@@ -192,6 +248,9 @@ namespace InventoryManagementApp.ViewModels
 
         void ClearImportExportLogs()
         {
+            if (IsDataOperationBusy)
+                return;
+
             ImportExportLogs.Clear();
             SelectedImportExportLog = null;
             ClearImportExportLogsCommand.NotifyCanExecuteChanged();
@@ -205,270 +264,310 @@ namespace InventoryManagementApp.ViewModels
 
         async Task ImportItemsAsync(CancellationToken cancellationToken)
         {
-            // Build combined file filter for all supported formats
-            // Note: CSV is handled separately from _itemImporters because it requires
-            // an interactive mapping dialog, whereas JSON/XML use direct import
-            var filters = new List<string> { "CSV Files|*.csv" };
-            filters.AddRange(_itemImporters.Select(i => i.FileFilter));
-            var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
-            
-            var path = _fileDialogService.OpenFile(combinedFilter, AppContext.BaseDirectory);
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                var plural = LabelProvider.Instance.ItemLabelPlural;
-                await CancelFileSelectionAsync($"{plural} import file selection was cancelled.", $"Import {plural}");
+            if (!TryBeginDataOperation($"{LabelProvider.Instance.ItemLabelPlural} import"))
                 return;
-            }
-            
+
             try
             {
-                var extension = Path.GetExtension(path).ToLowerInvariant();
-                var plural = LabelProvider.Instance.ItemLabelPlural;
+                // Build combined file filter for all supported formats
+                // Note: CSV is handled separately from _itemImporters because it requires
+                // an interactive mapping dialog, whereas JSON/XML use direct import
+                var filters = new List<string> { "CSV Files|*.csv" };
+                filters.AddRange(_itemImporters.Select(i => i.FileFilter));
+                var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
                 
-                List<int> skippedRows;
-                
-                // Check if it's CSV (requires mapping) or other format (direct import)
-                if (extension == ".csv")
+                var path = _fileDialogService.OpenFile(combinedFilter, AppContext.BaseDirectory);
+                if (string.IsNullOrWhiteSpace(path))
                 {
-                    // Use existing CSV import with mapping
-                    var headers = await CsvHelperUtil.ReadHeadersAsync(path);
-                    var properties = typeof(ItemImportDto).GetProperties().Select(p => p.Name);
-                    var map = _dialogService.ShowImportMapping(
-                        headers,
-                        properties,
-                        new[] { nameof(ItemImportDto.ItemNumber), nameof(ItemImportDto.Name) });
-                    if (map == null)
+                    var plural = LabelProvider.Instance.ItemLabelPlural;
+                    await CancelFileSelectionAsync($"{plural} import file selection was cancelled.", $"Import {plural}");
+                    return;
+                }
+
+                try
+                {
+                    var extension = Path.GetExtension(path).ToLowerInvariant();
+                    var plural = LabelProvider.Instance.ItemLabelPlural;
+                    
+                    List<int> skippedRows;
+                    
+                    // Check if it's CSV (requires mapping) or other format (direct import)
+                    if (extension == ".csv")
                     {
-                        var message = $"{plural} import mapping was cancelled.";
-                        AddLog(message);
-                        await _dialogService.ShowInfoAsync(message, $"Import {plural}");
-                        return;
+                        // Use existing CSV import with mapping
+                        var headers = await CsvHelperUtil.ReadHeadersAsync(path);
+                        var properties = typeof(ItemImportDto).GetProperties().Select(p => p.Name);
+                        var map = _dialogService.ShowImportMapping(
+                            headers,
+                            properties,
+                            new[] { nameof(ItemImportDto.ItemNumber), nameof(ItemImportDto.Name) });
+                        if (map == null)
+                        {
+                            var message = $"{plural} import mapping was cancelled.";
+                            AddLog(message);
+                            await _dialogService.ShowInfoAsync(message, $"Import {plural}");
+                            return;
+                        }
+                        
+                        if (!map.TryGetValue(nameof(ItemImportDto.ItemNumber), out var itemNumberHeader) || string.IsNullOrWhiteSpace(itemNumberHeader))
+                        {
+                            var singular = LabelProvider.Instance.ItemLabelSingular;
+                            var errorMessage = $"Mapping for {singular} number is required.";
+                            AddLog(errorMessage);
+                            _logger.LogWarning("Import aborted: missing {ItemLabelSingular} number mapping", singular);
+                            await _dialogService.ShowInfoAsync(errorMessage, $"Import {plural}");
+                            return;
+                        }
+                        
+                        await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
+                        skippedRows = await _itemService.ImportItemsFromCsvAsync(path, map, cancellationToken);
+                    }
+                    else
+                    {
+                        // Find appropriate importer
+                        var importer = _itemImporters.FirstOrDefault(i => i.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
+                        if (importer == null)
+                        {
+                            var errorMessage = $"No importer found for file type: {extension}";
+                            AddLog(errorMessage);
+                            await _dialogService.ShowInfoAsync(errorMessage, $"Import {plural}");
+                            return;
+                        }
+                        
+                        await _dialogService.ShowInfoAsync($"Importing {plural} from {importer.FormatName}...", $"Import {plural}");
+                        skippedRows = await _itemService.ImportItemsAsync(path, importer, cancellationToken);
                     }
                     
-                    if (!map.TryGetValue(nameof(ItemImportDto.ItemNumber), out var itemNumberHeader) || string.IsNullOrWhiteSpace(itemNumberHeader))
+                    var successMessage = $"Successfully imported {plural} from {path}.";
+                    AddLog(successMessage);
+                    if (skippedRows.Any())
                     {
-                        var singular = LabelProvider.Instance.ItemLabelSingular;
-                        var errorMessage = $"Mapping for {singular} number is required.";
-                        AddLog(errorMessage);
-                        _logger.LogWarning("Import aborted: missing {ItemLabelSingular} number mapping", singular);
-                        await _dialogService.ShowInfoAsync(errorMessage, $"Import {plural}");
-                        return;
+                        var skippedMessage = $"Skipped rows: {string.Join(", ", skippedRows)}";
+                        AddLog(skippedMessage);
+                        successMessage += $" {skippedMessage}";
                     }
-                    
-                    await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
-                    skippedRows = await _itemService.ImportItemsFromCsvAsync(path, map, cancellationToken);
+                    await _dialogService.ShowInfoAsync(successMessage, $"Import {plural}");
                 }
-                else
+                catch (OperationCanceledException)
                 {
-                    // Find appropriate importer
-                    var importer = _itemImporters.FirstOrDefault(i => i.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
-                    if (importer == null)
-                    {
-                        var errorMessage = $"No importer found for file type: {extension}";
-                        AddLog(errorMessage);
-                        await _dialogService.ShowInfoAsync(errorMessage, $"Import {plural}");
-                        return;
-                    }
-                    
-                    await _dialogService.ShowInfoAsync($"Importing {plural} from {importer.FormatName}...", $"Import {plural}");
-                    skippedRows = await _itemService.ImportItemsAsync(path, importer, cancellationToken);
+                    var plural = LabelProvider.Instance.ItemLabelPlural;
+                    AddLog($"{plural} import was cancelled.");
+                    await _dialogService.ShowInfoAsync($"{plural} import was cancelled.", $"Import {plural}");
                 }
-                
-                var successMessage = $"Successfully imported {plural} from {path}.";
-                AddLog(successMessage);
-                if (skippedRows.Any())
+                catch (Exception ex)
                 {
-                    var skippedMessage = $"Skipped rows: {string.Join(", ", skippedRows)}";
-                    AddLog(skippedMessage);
-                    successMessage += $" {skippedMessage}";
+                    var plural = LabelProvider.Instance.ItemLabelPlural;
+                    _logger.LogError(ex, "Failed to import {ItemLabelPlural} from {Path}", plural, path);
+                    AddLog($"Failed to import {plural} from {path}: {ex.Message}");
+                    await _dialogService.ShowInfoAsync($"Failed to import {plural} from {path}: {ex.Message}", $"Import {plural}");
                 }
-                await _dialogService.ShowInfoAsync(successMessage, $"Import {plural}");
             }
-            catch (OperationCanceledException)
+            finally
             {
-                var plural = LabelProvider.Instance.ItemLabelPlural;
-                AddLog($"{plural} import was cancelled.");
-                await _dialogService.ShowInfoAsync($"{plural} import was cancelled.", $"Import {plural}");
-            }
-            catch (Exception ex)
-            {
-                var plural = LabelProvider.Instance.ItemLabelPlural;
-                _logger.LogError(ex, "Failed to import {ItemLabelPlural} from {Path}", plural, path);
-                AddLog($"Failed to import {plural} from {path}: {ex.Message}");
-                await _dialogService.ShowInfoAsync($"Failed to import {plural} from {path}: {ex.Message}", $"Import {plural}");
+                EndDataOperation();
             }
         }
 
         async Task ExportItemsAsync(CancellationToken cancellationToken)
         {
-            // Build combined file filter for all supported formats
-            var filters = _itemExporters.Select(e => e.FileFilter);
-            var combinedFilter = string.Join("|", filters);
-            
-            var path = _fileDialogService.SaveFile(combinedFilter);
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                var plural = LabelProvider.Instance.ItemLabelPlural;
-                await CancelFileSelectionAsync($"{plural} export destination selection was cancelled.", $"Export {plural}");
+            if (!TryBeginDataOperation($"{LabelProvider.Instance.ItemLabelPlural} export"))
                 return;
-            }
-            
+
             try
             {
-                var extension = Path.GetExtension(path).ToLowerInvariant();
-                var plural = LabelProvider.Instance.ItemLabelPlural;
+                // Build combined file filter for all supported formats
+                var filters = _itemExporters.Select(e => e.FileFilter);
+                var combinedFilter = string.Join("|", filters);
                 
-                // Find appropriate exporter
-                var exporter = _itemExporters.FirstOrDefault(e => e.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
-                if (exporter == null)
+                var path = _fileDialogService.SaveFile(combinedFilter);
+                if (string.IsNullOrWhiteSpace(path))
                 {
-                    var errorMessage = $"No exporter found for file type: {extension}";
-                    AddLog(errorMessage);
-                    await _dialogService.ShowInfoAsync(errorMessage, $"Export {plural}");
+                    var plural = LabelProvider.Instance.ItemLabelPlural;
+                    await CancelFileSelectionAsync($"{plural} export destination selection was cancelled.", $"Export {plural}");
                     return;
                 }
-                
-                await _itemService.ExportItemsAsync(path, exporter, cancellationToken);
-                var successMessage = $"Successfully exported {plural} to {path} ({exporter.FormatName} format).";
-                AddLog(successMessage);
-                await _dialogService.ShowInfoAsync(successMessage, $"Export {plural}");
+
+                try
+                {
+                    var extension = Path.GetExtension(path).ToLowerInvariant();
+                    var plural = LabelProvider.Instance.ItemLabelPlural;
+                    
+                    // Find appropriate exporter
+                    var exporter = _itemExporters.FirstOrDefault(e => e.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
+                    if (exporter == null)
+                    {
+                        var errorMessage = $"No exporter found for file type: {extension}";
+                        AddLog(errorMessage);
+                        await _dialogService.ShowInfoAsync(errorMessage, $"Export {plural}");
+                        return;
+                    }
+                    
+                    await _itemService.ExportItemsAsync(path, exporter, cancellationToken);
+                    var successMessage = $"Successfully exported {plural} to {path} ({exporter.FormatName} format).";
+                    AddLog(successMessage);
+                    await _dialogService.ShowInfoAsync(successMessage, $"Export {plural}");
+                }
+                catch (OperationCanceledException)
+                {
+                    var plural = LabelProvider.Instance.ItemLabelPlural;
+                    var message = $"{plural} export was cancelled.";
+                    AddLog(message);
+                    await _dialogService.ShowInfoAsync(message, $"Export {plural}");
+                }
+                catch (Exception ex)
+                {
+                    var plural = LabelProvider.Instance.ItemLabelPlural;
+                    _logger.LogError(ex, "Failed to export {ItemLabelPlural} to {Path}", plural, path);
+                    var failureMessage = $"Failed to export {plural} to {path}: {ex.Message}";
+                    AddLog(failureMessage);
+                    await _dialogService.ShowInfoAsync(failureMessage, $"Export {plural}");
+                }
             }
-            catch (OperationCanceledException)
+            finally
             {
-                var plural = LabelProvider.Instance.ItemLabelPlural;
-                var message = $"{plural} export was cancelled.";
-                AddLog(message);
-                await _dialogService.ShowInfoAsync(message, $"Export {plural}");
-            }
-            catch (Exception ex)
-            {
-                var plural = LabelProvider.Instance.ItemLabelPlural;
-                _logger.LogError(ex, "Failed to export {ItemLabelPlural} to {Path}", plural, path);
-                var failureMessage = $"Failed to export {plural} to {path}: {ex.Message}";
-                AddLog(failureMessage);
-                await _dialogService.ShowInfoAsync(failureMessage, $"Export {plural}");
+                EndDataOperation();
             }
         }
 
         async Task ImportCustomersAsync(CancellationToken cancellationToken)
         {
-            // Build combined file filter for all supported formats
-            // Note: CSV is handled separately from _customerImporters because it requires
-            // an interactive mapping dialog, whereas JSON/XML use direct import
-            var filters = new List<string> { "CSV Files|*.csv" };
-            filters.AddRange(_customerImporters.Select(i => i.FileFilter));
-            var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
-            
-            var path = _fileDialogService.OpenFile(combinedFilter, AppContext.BaseDirectory);
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                await CancelFileSelectionAsync("Customer import file selection was cancelled.", "Import Customers");
+            if (!TryBeginDataOperation("Customer import"))
                 return;
-            }
-            
+
             try
             {
-                var extension = Path.GetExtension(path).ToLowerInvariant();
+                // Build combined file filter for all supported formats
+                // Note: CSV is handled separately from _customerImporters because it requires
+                // an interactive mapping dialog, whereas JSON/XML use direct import
+                var filters = new List<string> { "CSV Files|*.csv" };
+                filters.AddRange(_customerImporters.Select(i => i.FileFilter));
+                var combinedFilter = string.Join("|", filters) + "|All Files|*.*";
                 
-                if (extension == ".csv")
+                var path = _fileDialogService.OpenFile(combinedFilter, AppContext.BaseDirectory);
+                if (string.IsNullOrWhiteSpace(path))
                 {
-                    // Use existing CSV import with mapping
-                    var headers = await CsvHelperUtil.ReadHeadersAsync(path);
-                    var properties = typeof(CustomerImportDto).GetProperties().Select(p => p.Name);
-                    var map = _dialogService.ShowImportMapping(headers, properties);
-                    if (map == null)
-                    {
-                        const string message = "Customer import mapping was cancelled.";
-                        AddLog(message);
-                        await _dialogService.ShowInfoAsync(message, "Import Customers");
-                        return;
-                    }
-                    var result = await _customerService.ImportCustomersFromCsvAsync(path, map, cancellationToken);
-                    var successMessage = $"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.";
-                    AddLog(successMessage);
-                    if (result.SkippedRows.Any())
-                        successMessage += $" {result.SkippedRows.Count} skipped row{(result.SkippedRows.Count == 1 ? "" : "s")} were recorded in the run log.";
-                    foreach (var msg in result.SkippedRows)
-                        AddLog($"Skipped {msg}");
-                    await _dialogService.ShowInfoAsync(successMessage, "Import Customers");
+                    await CancelFileSelectionAsync("Customer import file selection was cancelled.", "Import Customers");
+                    return;
                 }
-                else
+
+                try
                 {
-                    // Find appropriate importer
-                    var importer = _customerImporters.FirstOrDefault(i => i.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
-                    if (importer == null)
-                    {
-                        var errorMessage = $"No importer found for file type: {extension}";
-                        AddLog(errorMessage);
-                        await _dialogService.ShowInfoAsync(errorMessage, "Import Customers");
-                        return;
-                    }
+                    var extension = Path.GetExtension(path).ToLowerInvariant();
                     
-                    var importedCount = await _customerService.ImportCustomersAsync(path, importer, cancellationToken);
-                    var successMessage = $"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).";
-                    AddLog(successMessage);
-                    await _dialogService.ShowInfoAsync(successMessage, "Import Customers");
+                    if (extension == ".csv")
+                    {
+                        // Use existing CSV import with mapping
+                        var headers = await CsvHelperUtil.ReadHeadersAsync(path);
+                        var properties = typeof(CustomerImportDto).GetProperties().Select(p => p.Name);
+                        var map = _dialogService.ShowImportMapping(headers, properties);
+                        if (map == null)
+                        {
+                            const string message = "Customer import mapping was cancelled.";
+                            AddLog(message);
+                            await _dialogService.ShowInfoAsync(message, "Import Customers");
+                            return;
+                        }
+                        var result = await _customerService.ImportCustomersFromCsvAsync(path, map, cancellationToken);
+                        var successMessage = $"Successfully imported customers from {path}. Imported {result.ImportedCount} customers.";
+                        AddLog(successMessage);
+                        if (result.SkippedRows.Any())
+                            successMessage += $" {result.SkippedRows.Count} skipped row{(result.SkippedRows.Count == 1 ? "" : "s")} were recorded in the run log.";
+                        foreach (var msg in result.SkippedRows)
+                            AddLog($"Skipped {msg}");
+                        await _dialogService.ShowInfoAsync(successMessage, "Import Customers");
+                    }
+                    else
+                    {
+                        // Find appropriate importer
+                        var importer = _customerImporters.FirstOrDefault(i => i.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
+                        if (importer == null)
+                        {
+                            var errorMessage = $"No importer found for file type: {extension}";
+                            AddLog(errorMessage);
+                            await _dialogService.ShowInfoAsync(errorMessage, "Import Customers");
+                            return;
+                        }
+                        
+                        var importedCount = await _customerService.ImportCustomersAsync(path, importer, cancellationToken);
+                        var successMessage = $"Successfully imported {importedCount} customers from {path} ({importer.FormatName} format).";
+                        AddLog(successMessage);
+                        await _dialogService.ShowInfoAsync(successMessage, "Import Customers");
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    const string message = "Customer import was cancelled.";
+                    AddLog(message);
+                    await _dialogService.ShowInfoAsync(message, "Import Customers");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to import customers from {Path}", path);
+                    var failureMessage = $"Failed to import customers from {path}: {ex.Message}";
+                    AddLog(failureMessage);
+                    await _dialogService.ShowInfoAsync(failureMessage, "Import Customers");
                 }
             }
-            catch (OperationCanceledException)
+            finally
             {
-                const string message = "Customer import was cancelled.";
-                AddLog(message);
-                await _dialogService.ShowInfoAsync(message, "Import Customers");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to import customers from {Path}", path);
-                var failureMessage = $"Failed to import customers from {path}: {ex.Message}";
-                AddLog(failureMessage);
-                await _dialogService.ShowInfoAsync(failureMessage, "Import Customers");
+                EndDataOperation();
             }
         }
 
         async Task ExportCustomersAsync(CancellationToken cancellationToken)
         {
-            // Build combined file filter for all supported formats
-            var filters = _customerExporters.Select(e => e.FileFilter);
-            var combinedFilter = string.Join("|", filters);
-            
-            var path = _fileDialogService.SaveFile(combinedFilter);
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                await CancelFileSelectionAsync("Customer export destination selection was cancelled.", "Export Customers");
+            if (!TryBeginDataOperation("Customer export"))
                 return;
-            }
-            
+
             try
             {
-                var extension = Path.GetExtension(path).ToLowerInvariant();
+                // Build combined file filter for all supported formats
+                var filters = _customerExporters.Select(e => e.FileFilter);
+                var combinedFilter = string.Join("|", filters);
                 
-                // Find appropriate exporter
-                var exporter = _customerExporters.FirstOrDefault(e => e.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
-                if (exporter == null)
+                var path = _fileDialogService.SaveFile(combinedFilter);
+                if (string.IsNullOrWhiteSpace(path))
                 {
-                    var errorMessage = $"No exporter found for file type: {extension}";
-                    AddLog(errorMessage);
-                    await _dialogService.ShowInfoAsync(errorMessage, "Export Customers");
+                    await CancelFileSelectionAsync("Customer export destination selection was cancelled.", "Export Customers");
                     return;
                 }
-                
-                await _customerService.ExportCustomersAsync(path, exporter, cancellationToken);
-                var successMessage = $"Successfully exported customers to {path} ({exporter.FormatName} format).";
-                AddLog(successMessage);
-                await _dialogService.ShowInfoAsync(successMessage, "Export Customers");
+
+                try
+                {
+                    var extension = Path.GetExtension(path).ToLowerInvariant();
+                    
+                    // Find appropriate exporter
+                    var exporter = _customerExporters.FirstOrDefault(e => e.FileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase));
+                    if (exporter == null)
+                    {
+                        var errorMessage = $"No exporter found for file type: {extension}";
+                        AddLog(errorMessage);
+                        await _dialogService.ShowInfoAsync(errorMessage, "Export Customers");
+                        return;
+                    }
+                    
+                    await _customerService.ExportCustomersAsync(path, exporter, cancellationToken);
+                    var successMessage = $"Successfully exported customers to {path} ({exporter.FormatName} format).";
+                    AddLog(successMessage);
+                    await _dialogService.ShowInfoAsync(successMessage, "Export Customers");
+                }
+                catch (OperationCanceledException)
+                {
+                    const string message = "Customer export was cancelled.";
+                    AddLog(message);
+                    await _dialogService.ShowInfoAsync(message, "Export Customers");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to export customers to {Path}", path);
+                    var failureMessage = $"Failed to export customers to {path}: {ex.Message}";
+                    AddLog(failureMessage);
+                    await _dialogService.ShowInfoAsync(failureMessage, "Export Customers");
+                }
             }
-            catch (OperationCanceledException)
+            finally
             {
-                const string message = "Customer export was cancelled.";
-                AddLog(message);
-                await _dialogService.ShowInfoAsync(message, "Export Customers");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to export customers to {Path}", path);
-                var failureMessage = $"Failed to export customers to {path}: {ex.Message}";
-                AddLog(failureMessage);
-                await _dialogService.ShowInfoAsync(failureMessage, "Export Customers");
+                EndDataOperation();
             }
         }
 
@@ -482,90 +581,113 @@ namespace InventoryManagementApp.ViewModels
         /// <returns>A <see cref="Task"/> representing the asynchronous backup operation.</returns>
         async Task BackupDatabaseAsync(CancellationToken cancellationToken)
         {
-            string? path = null;
+            if (!TryBeginDataOperation("Full backup"))
+                return;
 
             try
             {
-                var initialDirectory = _rentalConfigService == null
-                    ? null
-                    : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
-                path = _fileDialogService.SaveFile("Inventory Backup Package|*.inventory-backup.zip|Zip Files|*.zip", initialDirectory);
-                if (string.IsNullOrWhiteSpace(path))
-                {
-                    await CancelFileSelectionAsync("Full backup destination selection was cancelled.", "Full Backup");
-                    return;
-                }
+                string? path = null;
 
-                await _databaseService.BackupApplicationAsync(path, cancellationToken);
-                var successMessage = $"Successfully created full backup package at {path}.";
-                AddLog(successMessage);
-                await _dialogService.ShowInfoAsync(successMessage, "Full Backup");
+                try
+                {
+                    var initialDirectory = _rentalConfigService == null
+                        ? null
+                        : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
+                    path = _fileDialogService.SaveFile("Inventory Backup Package|*.inventory-backup.zip|Zip Files|*.zip", initialDirectory);
+                    if (string.IsNullOrWhiteSpace(path))
+                    {
+                        await CancelFileSelectionAsync("Full backup destination selection was cancelled.", "Full Backup");
+                        return;
+                    }
+
+                    await _databaseService.BackupApplicationAsync(path, cancellationToken);
+                    var successMessage = $"Successfully created full backup package at {path}.";
+                    AddLog(successMessage);
+                    await _dialogService.ShowInfoAsync(successMessage, "Full Backup");
+                }
+                catch (OperationCanceledException)
+                {
+                    const string message = "Full backup was cancelled.";
+                    AddLog(message);
+                    await _dialogService.ShowInfoAsync(message, "Full Backup");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to create full backup package at {Path}", path);
+                    var failureMessage = string.IsNullOrWhiteSpace(path)
+                        ? $"Failed to start full backup: {ex.Message}"
+                        : $"Failed to create full backup package at {path}: {ex.Message}";
+                    AddLog(failureMessage);
+                    await _dialogService.ShowInfoAsync(failureMessage, "Full Backup");
+                }
             }
-            catch (OperationCanceledException)
+            finally
             {
-                const string message = "Full backup was cancelled.";
-                AddLog(message);
-                await _dialogService.ShowInfoAsync(message, "Full Backup");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to create full backup package at {Path}", path);
-                var failureMessage = string.IsNullOrWhiteSpace(path)
-                    ? $"Failed to start full backup: {ex.Message}"
-                    : $"Failed to create full backup package at {path}: {ex.Message}";
-                AddLog(failureMessage);
-                await _dialogService.ShowInfoAsync(failureMessage, "Full Backup");
+                EndDataOperation();
             }
         }
 
         async Task RestoreBackupAsync(CancellationToken cancellationToken)
         {
-            string? path = null;
+            if (!TryBeginDataOperation("Restore backup"))
+                return;
 
             try
             {
-                var initialDirectory = _rentalConfigService == null
-                    ? null
-                    : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
-                path = _fileDialogService.OpenFile("Inventory Backup Package|*.inventory-backup.zip;*.zip|All Files|*.*", initialDirectory);
-                if (string.IsNullOrWhiteSpace(path))
-                {
-                    await CancelFileSelectionAsync("Backup package selection was cancelled.", "Restore Backup");
-                    return;
-                }
+                string? path = null;
 
-                var confirmed = await _dialogService.ShowConfirmationAsync(
-                    "Restoring a backup will replace the current database and app assets. A safety backup of the current data will be created first. Continue?",
-                    "Restore Backup").ConfigureAwait(false);
-                if (!confirmed)
+                try
                 {
-                    const string cancelledMessage = "Restore backup was cancelled before changes were made.";
-                    AddLog(cancelledMessage);
-                    await _dialogService.ShowInfoAsync(cancelledMessage, "Restore Backup").ConfigureAwait(false);
-                    return;
-                }
+                    var initialDirectory = _rentalConfigService == null
+                        ? null
+                        : await _rentalConfigService.GetBackupDirectoryAsync(cancellationToken).ConfigureAwait(false);
+                    path = _fileDialogService.OpenFile("Inventory Backup Package|*.inventory-backup.zip;*.zip|All Files|*.*", initialDirectory);
+                    if (string.IsNullOrWhiteSpace(path))
+                    {
+                        await CancelFileSelectionAsync("Backup package selection was cancelled.", "Restore Backup");
+                        return;
+                    }
 
-                var safetyBackupDirectory = initialDirectory ?? Path.GetDirectoryName(path) ?? AppContext.BaseDirectory;
-                var safetyBackupPath = await _databaseService.RestoreApplicationBackupAsync(path, safetyBackupDirectory, cancellationToken).ConfigureAwait(false);
-                var successMessage = $"Successfully restored backup package from {path}. Safety backup created at {safetyBackupPath}. Restart the app before continuing work.";
-                AddLog(successMessage);
-                await _dialogService.ShowInfoAsync(successMessage, "Restore Backup").ConfigureAwait(false);
+                    var confirmed = await _dialogService.ShowConfirmationAsync(
+                        "Restoring a backup will replace the current database and app assets. A safety backup of the current data will be created first. Continue?",
+                        "Restore Backup").ConfigureAwait(false);
+                    if (!confirmed)
+                    {
+                        const string cancelledMessage = "Restore backup was cancelled before changes were made.";
+                        AddLog(cancelledMessage);
+                        await _dialogService.ShowInfoAsync(cancelledMessage, "Restore Backup").ConfigureAwait(false);
+                        return;
+                    }
+
+                    var safetyBackupDirectory = initialDirectory ?? Path.GetDirectoryName(path) ?? AppContext.BaseDirectory;
+                    var safetyBackupPath = await _databaseService.RestoreApplicationBackupAsync(path, safetyBackupDirectory, cancellationToken).ConfigureAwait(false);
+                    var successMessage = $"Successfully restored backup package from {path}. Safety backup created at {safetyBackupPath}. Restart the app before continuing work.";
+                    AddLog(successMessage);
+                    await _dialogService.ShowInfoAsync(successMessage, "Restore Backup").ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    const string message = "Restore backup was cancelled.";
+                    AddLog(message);
+                    await _dialogService.ShowInfoAsync(message, "Restore Backup").ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to restore backup package from {Path}", path);
+                    var failureMessage = string.IsNullOrWhiteSpace(path)
+                        ? $"Failed to start backup restore: {ex.Message}"
+                        : $"Failed to restore backup package from {path}: {ex.Message}";
+                    AddLog(failureMessage);
+                    await _dialogService.ShowInfoAsync(failureMessage, "Restore Backup").ConfigureAwait(false);
+                }
             }
-            catch (OperationCanceledException)
+            finally
             {
-                const string message = "Restore backup was cancelled.";
-                AddLog(message);
-                await _dialogService.ShowInfoAsync(message, "Restore Backup").ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to restore backup package from {Path}", path);
-                var failureMessage = string.IsNullOrWhiteSpace(path)
-                    ? $"Failed to start backup restore: {ex.Message}"
-                    : $"Failed to restore backup package from {path}: {ex.Message}";
-                AddLog(failureMessage);
-                await _dialogService.ShowInfoAsync(failureMessage, "Restore Backup").ConfigureAwait(false);
+                EndDataOperation();
             }
         }
+
+        private static string ValueOrDefault(string? value, string fallback) =>
+            string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
     }
 }
