@@ -241,7 +241,7 @@ namespace InventoryManagementApp.ViewModels
             _service = service;
             _logger = logger ?? NullLogger<ActivityLogsViewModel>.Instance;
             RefreshCommand = new AsyncRelayCommand(LoadLogsAsync, () => !IsLoading);
-            ClearFiltersCommand = new RelayCommand(ClearFilters, HasActiveFilter);
+            ClearFiltersCommand = new RelayCommand(ClearFilters, () => !IsLoading && HasActiveFilter());
             UserFilters.Add(AllUsersFilter);
             ActionFilters.Add(AllActionsFilter);
         }
@@ -320,10 +320,9 @@ namespace InventoryManagementApp.ViewModels
 
         private bool HasActiveFilter()
         {
-            return !IsLoading &&
-                (!string.IsNullOrWhiteSpace(SearchText)
+            return !string.IsNullOrWhiteSpace(SearchText)
                 || SelectedUserFilter != AllUsersFilter
-                || SelectedActionFilter != AllActionsFilter);
+                || SelectedActionFilter != AllActionsFilter;
         }
 
         private void RebuildFilterLists()
