@@ -98,6 +98,52 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void DashboardPage_GatesStartupLoadsForSameViewModelAndResetsOnContextChange()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
+
+            Assert.Contains("private DashboardViewModel? _loadedDashboardViewModel;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private bool _hasLoadedDashboardForViewModel;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DataContextChanged += DashboardPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ReferenceEquals(_loadedDashboardViewModel, vm) && _hasLoadedDashboardForViewModel", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadedDashboardViewModel = vm;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_hasLoadedDashboardForViewModel = true;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private void DashboardPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadedDashboardViewModel = e.NewValue as DashboardViewModel;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_hasLoadedDashboardForViewModel = false;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DashboardLoadRetryButton_Click", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void DashboardPage_BlocksKeyboardPrintAndNavigationActionsWhileLoading()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
+
+            Assert.Contains("if (!_isLoadingDashboard && vm.PrintDashboardSnapshotCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!_isLoadingDashboard && vm.PrintCheckedOutItemsCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (_isLoadingDashboard)\n                return;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (vm.OpenItemsCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (vm.OpenRentalsCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("UiActionGuard.Run(this, \"Dashboard\", () => OpenFocusedRow(vm));", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void DashboardPage_BlocksRowActionsAndSelectionRetargetingWhileLoading()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
+
+            Assert.Equal(5, CountOccurrences(codeBehind, "if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm."));
+            Assert.Contains("!vm.OpenSelectedCommonItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("!vm.OpenSelectedCheckedOutItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("!vm.OpenSelectedRentalCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("!vm.OpenActivityDestinationCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("!vm.OpenSelectedIncompleteItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private void DashboardGrid_PreviewMouseRightButtonDown", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (_isLoadingDashboard)\n                return;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e)", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void DashboardPage_PreservesPrimaryDashboardActionsAndRowHandoff()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");
