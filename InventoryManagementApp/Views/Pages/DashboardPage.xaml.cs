@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
@@ -63,6 +65,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
 
             _isLoadingDashboard = true;
+            SetDashboardInteractiveActionsEnabled(false);
             _loadCts?.Cancel();
             _loadCts?.Dispose();
             _loadCts = new CancellationTokenSource();
@@ -91,6 +94,7 @@ namespace InventoryManagementApp.Views.Pages
             {
                 Cursor = previousCursor;
                 _isLoadingDashboard = false;
+                SetDashboardInteractiveActionsEnabled(true);
                 DashboardLoadRetryButton.IsEnabled = DashboardLoadRetryButton.Visibility == Visibility.Visible;
             }
         }
@@ -104,12 +108,45 @@ namespace InventoryManagementApp.Views.Pages
             DashboardLoadStatusText.Text = message ?? string.Empty;
         }
 
+        private void SetDashboardInteractiveActionsEnabled(bool isEnabled)
+        {
+            foreach (var element in EnumerateVisualDescendants(DashboardRoot))
+            {
+                if (ReferenceEquals(element, DashboardLoadRetryButton))
+                    continue;
+
+                switch (element)
+                {
+                    case Button button:
+                        button.IsEnabled = isEnabled;
+                        break;
+                    case MenuItem menuItem:
+                        menuItem.IsEnabled = isEnabled;
+                        break;
+                }
+            }
+        }
+
+        private static IEnumerable<DependencyObject> EnumerateVisualDescendants(DependencyObject parent)
+        {
+            var childCount = VisualTreeHelper.GetChildrenCount(parent);
+            for (var index = 0; index < childCount; index++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, index);
+                yield return child;
+
+                foreach (var descendant in EnumerateVisualDescendants(child))
+                    yield return descendant;
+            }
+        }
+
         private void DashboardPage_Unloaded(object sender, RoutedEventArgs e)
         {
             _loadCts?.Cancel();
             _loadCts?.Dispose();
             _loadCts = null;
             _isLoadingDashboard = false;
+            SetDashboardInteractiveActionsEnabled(true);
             Cursor = null;
         }
 
@@ -130,6 +167,12 @@ namespace InventoryManagementApp.Views.Pages
             {
                 if (!_isLoadingDashboard && vm.PrintCheckedOutItemsCommand.CanExecute(null))
                     UiActionGuard.RunAsync(this, "Dashboard", async () => await vm.PrintCheckedOutItemsCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (_isLoadingDashboard && IsDashboardActionShortcut(e))
+            {
                 e.Handled = true;
                 return;
             }
@@ -160,9 +203,26 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
+        private static bool IsDashboardActionShortcut(KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+                return e.Key is Key.I or Key.R or Key.P;
+
+            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                return e.Key == Key.P;
+
+            return Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter;
+        }
+
         private void CommonItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm.OpenSelectedCommonItemCommand.CanExecute(null))
+            if (_isLoadingDashboard)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (DataContext is not DashboardViewModel vm || !vm.OpenSelectedCommonItemCommand.CanExecute(null))
                 return;
 
             UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedCommonItemCommand.Execute(null));
@@ -170,7 +230,13 @@ namespace InventoryManagementApp.Views.Pages
 
         private void CheckedOutItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm.OpenSelectedCheckedOutItemCommand.CanExecute(null))
+            if (_isLoadingDashboard)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (DataContext is not DashboardViewModel vm || !vm.OpenSelectedCheckedOutItemCommand.CanExecute(null))
                 return;
 
             UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedCheckedOutItemCommand.Execute(null));
@@ -178,7 +244,13 @@ namespace InventoryManagementApp.Views.Pages
 
         private void RentedItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm.OpenSelectedRentalCommand.CanExecute(null))
+            if (_isLoadingDashboard)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (DataContext is not DashboardViewModel vm || !vm.OpenSelectedRentalCommand.CanExecute(null))
                 return;
 
             UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedRentalCommand.Execute(null));
@@ -186,7 +258,13 @@ namespace InventoryManagementApp.Views.Pages
 
         private void RecentActivityGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm.OpenActivityDestinationCommand.CanExecute(null))
+            if (_isLoadingDashboard)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (DataContext is not DashboardViewModel vm || !vm.OpenActivityDestinationCommand.CanExecute(null))
                 return;
 
             UiActionGuard.Run(this, "Dashboard", () => vm.OpenActivityDestinationCommand.Execute(null));
@@ -194,7 +272,13 @@ namespace InventoryManagementApp.Views.Pages
 
         private void IncompleteItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm.OpenSelectedIncompleteItemCommand.CanExecute(null))
+            if (_isLoadingDashboard)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (DataContext is not DashboardViewModel vm || !vm.OpenSelectedIncompleteItemCommand.CanExecute(null))
                 return;
 
             UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedIncompleteItemCommand.Execute(null));
@@ -203,7 +287,10 @@ namespace InventoryManagementApp.Views.Pages
         private void DashboardGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (_isLoadingDashboard)
+            {
+                e.Handled = true;
                 return;
+            }
 
             var row = GridContextMenuSelection.SelectRow(sender, e);
             if (row == null || DataContext is not DashboardViewModel vm)

@@ -115,13 +115,38 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void DashboardPage_DisablesVisibleCommandButtonsWhileRowsRefresh()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
+
+            Assert.Contains("using System.Collections.Generic;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("using System.Windows.Media;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("SetDashboardInteractiveActionsEnabled(false);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("SetDashboardInteractiveActionsEnabled(true);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private void SetDashboardInteractiveActionsEnabled(bool isEnabled)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("EnumerateVisualDescendants(DashboardRoot)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ReferenceEquals(element, DashboardLoadRetryButton)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("case Button button:", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("button.IsEnabled = isEnabled;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("case MenuItem menuItem:", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("menuItem.IsEnabled = isEnabled;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("VisualTreeHelper.GetChildrenCount(parent)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("foreach (var descendant in EnumerateVisualDescendants(child))", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void DashboardPage_BlocksKeyboardPrintAndNavigationActionsWhileLoading()
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
 
             Assert.Contains("if (!_isLoadingDashboard && vm.PrintDashboardSnapshotCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (!_isLoadingDashboard && vm.PrintCheckedOutItemsCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("if (_isLoadingDashboard)\n                return;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (_isLoadingDashboard && IsDashboardActionShortcut(e))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsDashboardActionShortcut(KeyEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return e.Key is Key.I or Key.R or Key.P;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return e.Key == Key.P;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (vm.OpenItemsCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (vm.OpenRentalsCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
             Assert.Contains("UiActionGuard.Run(this, \"Dashboard\", () => OpenFocusedRow(vm));", codeBehind, StringComparison.Ordinal);
@@ -132,14 +157,14 @@ namespace InventoryManagementApp.Tests
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
 
-            Assert.Equal(5, CountOccurrences(codeBehind, "if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm."));
-            Assert.Contains("!vm.OpenSelectedCommonItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("!vm.OpenSelectedCheckedOutItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("!vm.OpenSelectedRentalCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("!vm.OpenActivityDestinationCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("!vm.OpenSelectedIncompleteItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.True(CountOccurrences(codeBehind, "if (_isLoadingDashboard)") >= 7);
+            Assert.True(CountOccurrences(codeBehind, "e.Handled = true;\n                return;") >= 7);
+            Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedCommonItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedCheckedOutItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedRentalCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenActivityDestinationCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedIncompleteItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("private void DashboardGrid_PreviewMouseRightButtonDown", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("if (_isLoadingDashboard)\n                return;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("GridContextMenuSelection.SelectRow(sender, e)", codeBehind, StringComparison.Ordinal);
         }
 
