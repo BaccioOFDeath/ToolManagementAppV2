@@ -1,6 +1,8 @@
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
 namespace InventoryManagementApp.Views.Pages
@@ -12,6 +14,7 @@ namespace InventoryManagementApp.Views.Pages
     {
         const double CompactHeightThreshold = 650;
         bool _isCompactHeight;
+        Task? _loadRentalsTask;
         ManageRentalsViewModel? _loadedViewModel;
 
         public ManageRentalsPage()
@@ -30,18 +33,44 @@ namespace InventoryManagementApp.Views.Pages
             SearchTextBox.SelectAll();
             UpdateCompactHeightMode();
 
-            if (DataContext is ManageRentalsViewModel vm && !ReferenceEquals(_loadedViewModel, vm))
+            if (DataContext is ManageRentalsViewModel vm)
             {
-                _loadedViewModel = vm;
-                await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
-                await vm.LoadRentalsAsync();
+                await LoadRentalsOnceAsync(vm);
             }
         }
 
         private void ManageRentalsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (!ReferenceEquals(e.NewValue, _loadedViewModel))
+            {
                 _loadedViewModel = null;
+                _loadRentalsTask = null;
+            }
+        }
+
+        private async Task LoadRentalsOnceAsync(ManageRentalsViewModel vm)
+        {
+            if (ReferenceEquals(_loadedViewModel, vm) && _loadRentalsTask is { IsCompleted: false })
+            {
+                await _loadRentalsTask;
+                return;
+            }
+
+            if (ReferenceEquals(_loadedViewModel, vm) && _loadRentalsTask is { IsCompletedSuccessfully: true })
+            {
+                return;
+            }
+
+            _loadedViewModel = vm;
+            await Dispatcher.Yield(DispatcherPriority.Background);
+
+            if (!ReferenceEquals(DataContext, vm) || vm.IsLoading)
+            {
+                return;
+            }
+
+            _loadRentalsTask = vm.LoadRentalsAsync();
+            await _loadRentalsTask;
         }
 
         private void ManageRentalsPage_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -71,9 +100,19 @@ namespace InventoryManagementApp.Views.Pages
 
         private void RentalRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is ManageRentalsViewModel vm && !vm.IsLoading && vm.OpenRentalDetailsCommand.CanExecute(null))
+            if (DataContext is ManageRentalsViewModel { IsLoading: true })
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (SelectRowForContextMenu(sender, e) == null)
+                return;
+
+            if (DataContext is ManageRentalsViewModel vm && vm.OpenRentalDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Rentals", () => vm.OpenRentalDetailsCommand.Execute(null));
+                e.Handled = true;
             }
         }
 
@@ -84,9 +123,19 @@ namespace InventoryManagementApp.Views.Pages
 
         private void RequestRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is ManageRentalsViewModel vm && !vm.IsLoading && vm.OpenRequestDetailsCommand.CanExecute(null))
+            if (DataContext is ManageRentalsViewModel { IsLoading: true })
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (SelectRowForContextMenu(sender, e) == null)
+                return;
+
+            if (DataContext is ManageRentalsViewModel vm && vm.OpenRequestDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Rentals", () => vm.OpenRequestDetailsCommand.Execute(null));
+                e.Handled = true;
             }
         }
 
@@ -108,8 +157,11 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (vm.IsLoading)
+            if (vm.IsLoading && IsRentalActionShortcut(e))
+            {
+                e.Handled = true;
                 return;
+            }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P && vm.PrintSearchResultsCommand.CanExecute(null))
             {
@@ -181,6 +233,21 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
+        private static bool IsRentalActionShortcut(KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return e.Key is Key.P or Key.D or Key.H or Key.I or Key.E or Key.R;
+            }
+
+            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                return e.Key is Key.P or Key.R;
+            }
+
+            return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete;
+        }
+
         private void OpenFocusedDetails(ManageRentalsViewModel vm)
         {
             if (vm.IsLoading)
@@ -204,16 +271,17 @@ namespace InventoryManagementApp.Views.Pages
             });
         }
 
-        private void SelectRowForContextMenu(object sender, MouseButtonEventArgs e)
+        private DataGridRow? SelectRowForContextMenu(object sender, MouseButtonEventArgs e)
         {
             if (DataContext is ManageRentalsViewModel { IsLoading: true })
             {
-                return;
+                e.Handled = true;
+                return null;
             }
 
             var row = GridContextMenuSelection.SelectRow(sender, e);
             if (row == null)
-                return;
+                return null;
 
             if (DataContext is ManageRentalsViewModel vm)
             {
@@ -222,6 +290,8 @@ namespace InventoryManagementApp.Views.Pages
                 else if (row.Item is Reservation request)
                     vm.SelectedRequest = request;
             }
+
+            return row;
         }
     }
 }

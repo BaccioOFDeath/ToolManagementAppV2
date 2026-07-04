@@ -105,16 +105,19 @@ namespace InventoryManagementApp.Tests
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
 
+            Assert.Contains("Task? _loadRentalsTask;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ManageRentalsViewModel? _loadedViewModel;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("DataContextChanged += ManageRentalsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("SearchTextBox.Focus();", codeBehind, StringComparison.Ordinal);
             Assert.Contains("UpdateCompactHeightMode();", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("if (DataContext is ManageRentalsViewModel vm && !ReferenceEquals(_loadedViewModel, vm))", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("_loadedViewModel = vm;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("await vm.LoadRentalsAsync();", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("if (!ReferenceEquals(e.NewValue, _loadedViewModel))", codeBehind, StringComparison.Ordinal);
-            Assert.DoesNotContain("if (DataContext is ManageRentalsViewModel vm)\n            {\n                await vm.LoadRentalsAsync();\n            }", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
+            Assert.Contains("await LoadRentalsOnceAsync(vm);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (ReferenceEquals(_loadedViewModel, vm) && _loadRentalsTask is { IsCompleted: false })", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (ReferenceEquals(_loadedViewModel, vm) && _loadRentalsTask is { IsCompletedSuccessfully: true })", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!ReferenceEquals(DataContext, vm) || vm.IsLoading)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadRentalsTask = vm.LoadRentalsAsync();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadRentalsTask = null;", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (DataContext is ManageRentalsViewModel vm && !ReferenceEquals(_loadedViewModel, vm))", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -134,14 +137,35 @@ namespace InventoryManagementApp.Tests
         public void ManageRentalsPage_LoadingStateBlocksCodeBehindActionBypasses()
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
+            var normalized = NormalizeNewlines(codeBehind);
 
-            Assert.Contains("!vm.IsLoading && vm.OpenRentalDetailsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("!vm.IsLoading && vm.OpenRequestDetailsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("if (vm.IsLoading)\n                return;", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
-            Assert.Contains("if (DataContext is ManageRentalsViewModel { IsLoading: true })", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("e.Handled = true;\n                return;", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
-            Assert.DoesNotContain("DataContext is ManageRentalsViewModel vm && vm.OpenRentalDetailsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.DoesNotContain("DataContext is ManageRentalsViewModel vm && vm.OpenRequestDetailsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is ManageRentalsViewModel { IsLoading: true })\n            {\n                e.Handled = true;\n                return;\n            }", normalized, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsLoading && IsRentalActionShortcut(e))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsRentalActionShortcut(KeyEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return e.Key is Key.P or Key.D or Key.H or Key.I or Key.E or Key.R;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return e.Key is Key.P or Key.R;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsLoading)\n                return;", normalized, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (vm.IsLoading)\n                return;\n\n            if (Keyboard.Modifiers == ModifierKeys.Control", normalized, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageRentalsPage_RowGesturesSelectInvokedRowsAndStopDuringLoading()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
+            var rentalDoubleClick = ExtractSourceBlock(codeBehind, "private void RentalRow_MouseDoubleClick", "private void RentalRow_PreviewMouseRightButtonDown");
+            var requestDoubleClick = ExtractSourceBlock(codeBehind, "private void RequestRow_MouseDoubleClick", "private void RequestRow_PreviewMouseRightButtonDown");
+            var selectionBlock = ExtractSourceBlock(codeBehind, "private DataGridRow? SelectRowForContextMenu", "    }\n}");
+
+            Assert.Contains("if (SelectRowForContextMenu(sender, e) == null)", rentalDoubleClick, StringComparison.Ordinal);
+            Assert.Contains("if (SelectRowForContextMenu(sender, e) == null)", requestDoubleClick, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", rentalDoubleClick, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", requestDoubleClick, StringComparison.Ordinal);
+            Assert.Contains("private DataGridRow? SelectRowForContextMenu", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is ManageRentalsViewModel { IsLoading: true })", selectionBlock, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", selectionBlock, StringComparison.Ordinal);
+            Assert.Contains("return row;", selectionBlock, StringComparison.Ordinal);
+            Assert.DoesNotContain("private void SelectRowForContextMenu", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -177,6 +201,17 @@ namespace InventoryManagementApp.Tests
         }
 
         private static string NormalizeNewlines(string value) => value.Replace("\r\n", "\n", StringComparison.Ordinal);
+
+        private static string ExtractSourceBlock(string source, string startMarker, string endMarker)
+        {
+            var start = source.IndexOf(startMarker, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Could not find source block start marker: {startMarker}");
+
+            var end = source.IndexOf(endMarker, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Could not find source block end marker: {endMarker}");
+
+            return source[start..end];
+        }
 
         private static string ReadRepoFile(params string[] parts)
         {
