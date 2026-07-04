@@ -73,7 +73,12 @@ namespace InventoryManagementApp.ViewModels
             var path = _fileDialog.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
             if (!string.IsNullOrEmpty(path))
             {
-                ItemModel.ImagePath = path;
+                ItemModel.ImagePath = AppAssetHelper.CopyResizedImageToAssetFolder(
+                    path,
+                    AppAssetHelper.ItemImagesFolder,
+                    1024,
+                    1024,
+                    ItemModel.ItemNumber);
             }
         }
 

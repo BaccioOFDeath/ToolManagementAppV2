@@ -1,5 +1,13 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Models.Domain;
+using InventoryManagementApp.Utilities.Helpers;
+using InventoryManagementApp.ViewModels;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -23,6 +31,46 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("OnPropertyChanged(nameof(ItemModel));", source, StringComparison.Ordinal);
             Assert.Contains("transparent-{DateTime.Now:yyyyMMddHHmmssfff}.png", source, StringComparison.Ordinal);
             Assert.Contains("PixelFormats.Bgra32", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void BrowseImageCommand_CopiesResizedImageToItemAssets()
+        {
+            RunSta(() =>
+            {
+                var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(tempDir);
+                var source = Path.Combine(tempDir, "external-source.png");
+
+                try
+                {
+                    CreateTestImage(source, 1800, 900);
+
+                    var item = new ItemModel { ItemNumber = "T-Manual Image" };
+                    var viewModel = new ItemEditViewModel(item, () => { }, () => { }, new FakeFileDialogService(source));
+
+                    viewModel.BrowseImageCommand.Execute(null);
+
+                    Assert.StartsWith(Path.Combine(AppAssetHelper.AssetsDirectoryName, AppAssetHelper.ItemImagesFolder), item.ImagePath);
+                    Assert.EndsWith(".jpg", item.ImagePath, StringComparison.OrdinalIgnoreCase);
+                    Assert.Contains("T-Manual Image", item.ImagePath, StringComparison.Ordinal);
+                    Assert.NotEqual(source, item.ImagePath);
+
+                    var copiedPath = AppAssetHelper.ResolveAssetPath(item.ImagePath);
+                    Assert.NotNull(copiedPath);
+                    Assert.True(File.Exists(copiedPath));
+
+                    var copied = LoadBitmap(copiedPath!);
+                    Assert.True(copied.PixelWidth <= 1024);
+                    Assert.True(copied.PixelHeight <= 1024);
+                    Assert.Equal(1024, copied.PixelWidth);
+                    Assert.Equal(512, copied.PixelHeight);
+                }
+                finally
+                {
+                    Directory.Delete(tempDir, recursive: true);
+                }
+            });
         }
 
         [Fact]
@@ -87,5 +135,68 @@ namespace InventoryManagementApp.Tests
 
         private static string ReadRepositoryFile(params string[] path)
             => File.ReadAllText(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", Path.Combine(path))));
+
+        private static void RunSta(Action action)
+        {
+            Exception? threadException = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    threadException = ex;
+                }
+                finally
+                {
+                    WpfTestHelper.ShutdownApplication();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (threadException != null)
+                throw threadException;
+        }
+
+        private static void CreateTestImage(string path, int width, int height)
+        {
+            var pixels = new byte[width * height * 4];
+            for (var i = 0; i < pixels.Length; i += 4)
+            {
+                pixels[i] = 255;
+                pixels[i + 1] = 128;
+                pixels[i + 2] = 0;
+                pixels[i + 3] = 255;
+            }
+
+            var bitmap = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(bitmap));
+
+            using var stream = File.Create(path);
+            encoder.Save(stream);
+        }
+
+        private static BitmapImage LoadBitmap(string path)
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(path, UriKind.Absolute);
+            bitmap.EndInit();
+            bitmap.Freeze();
+            return bitmap;
+        }
+
+        private sealed class FakeFileDialogService(string path) : IFileDialogService
+        {
+            public string? OpenFile(string filter, string? initialDirectory = null) => path;
+            public string? SaveFile(string filter, string? initialDirectory = null) => null;
+            public string? BrowseFolder(string? initialDirectory = null) => null;
+        }
     }
 }

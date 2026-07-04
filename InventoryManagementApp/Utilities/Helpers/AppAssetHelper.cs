@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using InventoryManagementApp.Utilities;
 
 namespace InventoryManagementApp.Utilities.Helpers
@@ -50,6 +52,43 @@ namespace InventoryManagementApp.Utilities.Helpers
             var hash = GetShortHash(sourceFullPathNormalized);
             var targetPath = Path.Combine(targetDirectoryFullPath, $"{safeName}-{hash}{extension.ToLowerInvariant()}");
             File.Copy(sourceFullPathNormalized, targetPath, overwrite: true);
+            return ToAppRelativePath(targetPath);
+        }
+
+        public static string CopyResizedImageToAssetFolder(
+            string sourcePath,
+            string folderName,
+            int maxWidth,
+            int maxHeight,
+            string? fileNameSeed = null)
+        {
+            if (string.IsNullOrWhiteSpace(sourcePath))
+                throw new ArgumentException("Source path is required.", nameof(sourcePath));
+            if (maxWidth <= 0)
+                throw new ArgumentOutOfRangeException(nameof(maxWidth), "Maximum width must be greater than zero.");
+            if (maxHeight <= 0)
+                throw new ArgumentOutOfRangeException(nameof(maxHeight), "Maximum height must be greater than zero.");
+
+            var sourceFullPath = ResolveAssetPath(sourcePath) ?? Path.GetFullPath(sourcePath);
+            if (!File.Exists(sourceFullPath))
+                throw new FileNotFoundException("Asset source file was not found.", sourcePath);
+
+            var extension = Path.GetExtension(sourceFullPath);
+            if (!IsAllowedImageExtension(extension))
+                throw new InvalidOperationException("Only image files can be stored in app assets.");
+
+            var targetDirectory = EnsureAssetFolder(folderName);
+            var targetDirectoryFullPath = Path.GetFullPath(targetDirectory);
+            var sourceFullPathNormalized = Path.GetFullPath(sourceFullPath);
+            if (sourceFullPathNormalized.StartsWith(targetDirectoryFullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                return ToAppRelativePath(sourceFullPathNormalized);
+
+            var safeName = SanitizeFileName(string.IsNullOrWhiteSpace(fileNameSeed)
+                ? Path.GetFileNameWithoutExtension(sourceFullPath)
+                : fileNameSeed);
+            var hash = GetShortHash(sourceFullPathNormalized);
+            var targetPath = Path.Combine(targetDirectoryFullPath, $"{safeName}-{hash}.jpg");
+            SaveResizedJpeg(sourceFullPathNormalized, targetPath, maxWidth, maxHeight);
             return ToAppRelativePath(targetPath);
         }
 
@@ -104,6 +143,39 @@ namespace InventoryManagementApp.Utilities.Helpers
         {
             using var stream = File.OpenRead(path);
             return Convert.ToHexString(SHA256.HashData(stream))[..8].ToLowerInvariant();
+        }
+
+        private static void SaveResizedJpeg(string sourcePath, string targetPath, int maxWidth, int maxHeight)
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(sourcePath, UriKind.Absolute);
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            if (bitmap.PixelWidth == 0 || bitmap.PixelHeight == 0)
+                throw new InvalidOperationException("Invalid image dimensions: image has zero width or height.");
+
+            var scale = Math.Min((double)maxWidth / bitmap.PixelWidth, (double)maxHeight / bitmap.PixelHeight);
+            if (scale > 1.0)
+                scale = 1.0;
+
+            BitmapSource source = bitmap;
+            if (scale < 1.0)
+            {
+                source = new TransformedBitmap(bitmap, new ScaleTransform(scale, scale));
+                source.Freeze();
+            }
+
+            var converted = new FormatConvertedBitmap(source, PixelFormats.Bgr24, null, 0);
+            converted.Freeze();
+
+            var encoder = new JpegBitmapEncoder { QualityLevel = 88 };
+            encoder.Frames.Add(BitmapFrame.Create(converted));
+
+            using var stream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            encoder.Save(stream);
         }
     }
 }
