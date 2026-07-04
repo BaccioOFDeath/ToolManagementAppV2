@@ -15,6 +15,8 @@ namespace InventoryManagementApp.ViewModels
 {
     public class ReservationManagementViewModel : ObservableObject
     {
+        private const int MaxReservationPrintRows = 250;
+
         private readonly ReservationService _reservationService;
         private readonly IDialogService _dialogService;
 
@@ -25,12 +27,55 @@ namespace InventoryManagementApp.ViewModels
         {
             get
             {
+                if (IsLoading)
+                {
+                    return "Loading reservations...";
+                }
+
                 var activeCount = Reservations.Count(r => r.IsActive);
                 var shown = $"{FilteredReservations.Count} of {Reservations.Count} reservation{(Reservations.Count == 1 ? string.Empty : "s")} shown";
                 var active = $"{activeCount} active";
                 return string.IsNullOrWhiteSpace(SearchText)
                     ? $"{shown} | {active} | filter: {SelectedFilter}"
                     : $"{shown} for \"{SearchText.Trim()}\" | {active} | filter: {SelectedFilter}";
+            }
+        }
+
+        public bool IsFilterActive => !string.IsNullOrWhiteSpace(SearchText) || !string.Equals(SelectedFilter, "Active", StringComparison.Ordinal);
+
+        public string ReservationEmptyTitle => Reservations.Count == 0
+            ? "No reservations found"
+            : "No reservations match this filter";
+
+        public string ReservationEmptyMessage => Reservations.Count == 0
+            ? "Add a hold or refresh when reservation records are available."
+            : "Clear search, switch the status filter, or add a new hold to restart the reservation queue.";
+
+        public bool CanPrintReservationDirectory => !IsLoading && FilteredReservations.Count > 0;
+
+        public string ReservationPrintStatus
+        {
+            get
+            {
+                if (IsLoading)
+                {
+                    return "Print paused while reservation rows load";
+                }
+
+                if (FilteredReservations.Count == 0)
+                {
+                    return IsFilterActive
+                        ? "No filtered hold rows ready to print"
+                        : "No hold rows ready to print";
+                }
+
+                var visible = FilteredReservations.Count;
+                var printed = Math.Min(visible, MaxReservationPrintRows);
+                var omitted = Math.Max(0, visible - printed);
+                var filterContext = IsFilterActive ? "filtered" : "active";
+                return omitted == 0
+                    ? $"Ready to print {printed} {filterContext} hold row{(printed == 1 ? string.Empty : "s")}."
+                    : $"Ready to print first {printed} of {visible} {filterContext} hold rows; {omitted} omitted from preview.";
             }
         }
 
@@ -77,6 +122,20 @@ namespace InventoryManagementApp.ViewModels
             ? "Select a reservation to confirm, cancel, fulfill, print, copy, edit, or delete."
             : $"Ready: #{SelectedReservation.ReservationID} | {ValueOrNotRecorded(SelectedReservation.CustomerName)} | {ValueOrNotRecorded(SelectedReservation.ItemName)} | {SelectedReservation.StartDate:yyyy-MM-dd} to {SelectedReservation.EndDate:yyyy-MM-dd} | {SelectedReservation.StatusDisplay}";
 
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            private set
+            {
+                if (SetProperty(ref _isLoading, value))
+                {
+                    NotifyCommandStatesAndSummaries();
+                    NotifyReservationListStateChanged();
+                }
+            }
+        }
+
         private Reservation? _selectedReservation;
         public Reservation? SelectedReservation
         {
@@ -85,7 +144,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _selectedReservation, value))
                 {
-                    NotifySelectionChanged();
+                    NotifyCommandStatesAndSummaries();
                 }
             }
         }
@@ -156,29 +215,35 @@ namespace InventoryManagementApp.ViewModels
                 "Upcoming (7 days)"
             };
 
-            LoadReservationsCommand = new AsyncRelayCommand(LoadReservationsAsync);
-            AddReservationCommand = new AsyncRelayCommand(AddReservationAsync);
+            LoadReservationsCommand = new AsyncRelayCommand(LoadReservationsAsync, CanRefreshReservations);
+            AddReservationCommand = new AsyncRelayCommand(AddReservationAsync, CanInteractWithReservations);
             EditReservationCommand = new AsyncRelayCommand(EditReservationAsync, CanEdit);
             DeleteReservationCommand = new AsyncRelayCommand(DeleteReservationAsync, CanDelete);
             ConfirmReservationCommand = new AsyncRelayCommand(ConfirmReservationAsync, CanConfirm);
             CancelReservationCommand = new AsyncRelayCommand(CancelReservationAsync, CanCancel);
             FulfillReservationCommand = new AsyncRelayCommand(FulfillReservationAsync, CanFulfill);
-            RefreshCommand = new AsyncRelayCommand(LoadReservationsAsync);
-            OpenReservationDetailsCommand = new RelayCommand(OpenReservationDetails, () => SelectedReservation != null);
-            CopyReservationHandoffCommand = new RelayCommand(CopyReservationHandoff, () => SelectedReservation != null);
-            PrintReservationHandoffCommand = new RelayCommand(PrintReservationHandoff, () => SelectedReservation != null);
-            PrintReservationDirectoryCommand = new RelayCommand(PrintReservationDirectory);
-            ClearReservationSearchCommand = new RelayCommand(ClearReservationSearch);
-            ShowActiveReservationsCommand = new RelayCommand(() => SelectedFilter = "Active");
-            ShowPendingReservationsCommand = new RelayCommand(() => SelectedFilter = "Pending");
-            ShowConfirmedReservationsCommand = new RelayCommand(() => SelectedFilter = "Confirmed");
-            ShowUpcomingReservationsCommand = new RelayCommand(() => SelectedFilter = "Upcoming (7 days)");
+            RefreshCommand = new AsyncRelayCommand(LoadReservationsAsync, CanRefreshReservations);
+            OpenReservationDetailsCommand = new RelayCommand(OpenReservationDetails, CanUseSelectedReservation);
+            CopyReservationHandoffCommand = new RelayCommand(CopyReservationHandoff, CanUseSelectedReservation);
+            PrintReservationHandoffCommand = new RelayCommand(PrintReservationHandoff, CanUseSelectedReservation);
+            PrintReservationDirectoryCommand = new RelayCommand(PrintReservationDirectory, () => CanPrintReservationDirectory);
+            ClearReservationSearchCommand = new RelayCommand(ClearReservationSearch, CanInteractWithReservations);
+            ShowActiveReservationsCommand = new RelayCommand(() => SelectedFilter = "Active", CanInteractWithReservations);
+            ShowPendingReservationsCommand = new RelayCommand(() => SelectedFilter = "Pending", CanInteractWithReservations);
+            ShowConfirmedReservationsCommand = new RelayCommand(() => SelectedFilter = "Confirmed", CanInteractWithReservations);
+            ShowUpcomingReservationsCommand = new RelayCommand(() => SelectedFilter = "Upcoming (7 days)", CanInteractWithReservations);
         }
 
         private async Task LoadReservationsAsync()
         {
+            if (IsLoading)
+            {
+                return;
+            }
+
             try
             {
+                IsLoading = true;
                 var preferredReservationId = SelectedReservation?.ReservationID;
                 var reservations = await _reservationService.GetAllReservationsAsync();
                 Reservations.Clear();
@@ -190,11 +255,13 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                Reservations.Clear();
-                FilteredReservations.Clear();
-                SelectedReservation = null;
-                OnPropertyChanged(nameof(ReservationResultsSummary));
+                ClearReservationStateAfterLoadFailure();
                 await _dialogService.ShowErrorAsync("Error loading reservations", $"{ex.Message} The reservation list has been cleared until reload succeeds.");
+            }
+            finally
+            {
+                IsLoading = false;
+                NotifyReservationListStateChanged();
             }
         }
 
@@ -209,14 +276,13 @@ namespace InventoryManagementApp.ViewModels
                     Reservations.Add(reservation);
                 }
                 ApplyFilter(preferredReservationId);
+                NotifyCommandStatesAndSummaries();
+                NotifyReservationListStateChanged();
                 return true;
             }
             catch
             {
-                Reservations.Clear();
-                FilteredReservations.Clear();
-                SelectedReservation = null;
-                OnPropertyChanged(nameof(ReservationResultsSummary));
+                ClearReservationStateAfterLoadFailure();
                 return false;
             }
         }
@@ -430,7 +496,7 @@ namespace InventoryManagementApp.ViewModels
             }
 
             SelectBestReservationAfterRefresh(preferredReservationId);
-            OnPropertyChanged(nameof(ReservationResultsSummary));
+            NotifyReservationListStateChanged();
         }
 
         private void ClearReservationSearch()
@@ -438,6 +504,15 @@ namespace InventoryManagementApp.ViewModels
             SearchText = string.Empty;
             SelectedFilter = "Active";
             ApplyFilter();
+        }
+
+        private void ClearReservationStateAfterLoadFailure()
+        {
+            Reservations.Clear();
+            FilteredReservations.Clear();
+            SelectedReservation = null;
+            NotifyCommandStatesAndSummaries();
+            NotifyReservationListStateChanged();
         }
 
         private void OpenReservationDetails()
@@ -496,35 +571,48 @@ namespace InventoryManagementApp.ViewModels
 
         private void PrintReservationDirectory()
         {
-            if (FilteredReservations.Count == 0)
+            if (!CanPrintReservationDirectory)
             {
-                _dialogService.ShowInfo("There are no reservations to print for the current filter.", "Reservation Directory");
+                _dialogService.ShowInfo("There are no reservations ready to print for the current filter.", "Reservation Directory");
                 return;
             }
 
             try
             {
+                var visibleRows = FilteredReservations.Count;
+                var printRows = FilteredReservations.Take(MaxReservationPrintRows).ToList();
+                var omittedRows = Math.Max(0, visibleRows - printRows.Count);
                 var doc = CreateReservationDocument("Reservation Directory", fontSize: 11);
-                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | {ReservationResultsSummary}"))
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows} | {ReservationResultsSummary}"))
                 {
                     FontSize = 10,
-                    Margin = new Thickness(0, 0, 0, 10)
+                    Margin = new Thickness(0, 0, 0, 8)
                 });
 
+                if (omittedRows > 0)
+                {
+                    doc.Blocks.Add(new Paragraph(new Run($"Large reservation preview limited to the first {MaxReservationPrintRows} visible rows to keep print preview responsive. Narrow the status filter or search before printing a full shelf-pick packet."))
+                    {
+                        FontSize = 10,
+                        FontStyle = FontStyles.Italic,
+                        Margin = new Thickness(0, 0, 0, 8)
+                    });
+                }
+
                 var table = new Table { CellSpacing = 0 };
-                table.Columns.Add(new TableColumn { Width = new GridLength(80) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(110) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(165) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(165) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(85) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(85) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(85) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(0.85, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.1, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.65, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.65, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.0, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.0, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.05, GridUnitType.Star) });
 
                 var group = new TableRowGroup();
                 table.RowGroups.Add(group);
                 AddPrintRow(group, true, "Hold #", "Item #", "Item", "Customer", "Start", "End", "Status");
 
-                foreach (var reservation in FilteredReservations)
+                foreach (var reservation in printRows)
                 {
                     AddPrintRow(
                         group,
@@ -539,7 +627,13 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 doc.Blocks.Add(table);
-                _dialogService.ShowPrintPreview(doc, "Reservation Directory", string.Empty);
+                doc.Blocks.Add(new Paragraph(new Run("Review pending, confirmed, upcoming, fulfilled, cancelled, linked Rental ID, and omitted-row counts before shelf pickup or customer handoff."))
+                {
+                    FontSize = 10,
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 10, 0, 0)
+                });
+                _dialogService.ShowPrintPreview(doc, "Reservation Directory", ReservationPrintStatus);
             }
             catch (Exception ex)
             {
@@ -560,16 +654,42 @@ namespace InventoryManagementApp.ViewModels
                 : FilteredReservations.FirstOrDefault();
         }
 
-        private void NotifySelectionChanged()
+        private void NotifyCommandStatesAndSummaries()
         {
+            LoadReservationsCommand.NotifyCanExecuteChanged();
+            AddReservationCommand.NotifyCanExecuteChanged();
             EditReservationCommand.NotifyCanExecuteChanged();
             DeleteReservationCommand.NotifyCanExecuteChanged();
             ConfirmReservationCommand.NotifyCanExecuteChanged();
             CancelReservationCommand.NotifyCanExecuteChanged();
             FulfillReservationCommand.NotifyCanExecuteChanged();
+            RefreshCommand.NotifyCanExecuteChanged();
             OpenReservationDetailsCommand.NotifyCanExecuteChanged();
             CopyReservationHandoffCommand.NotifyCanExecuteChanged();
             PrintReservationHandoffCommand.NotifyCanExecuteChanged();
+            PrintReservationDirectoryCommand.NotifyCanExecuteChanged();
+            ClearReservationSearchCommand.NotifyCanExecuteChanged();
+            ShowActiveReservationsCommand.NotifyCanExecuteChanged();
+            ShowPendingReservationsCommand.NotifyCanExecuteChanged();
+            ShowConfirmedReservationsCommand.NotifyCanExecuteChanged();
+            ShowUpcomingReservationsCommand.NotifyCanExecuteChanged();
+            NotifySelectionSummariesChanged();
+            OnPropertyChanged(nameof(ReservationResultsSummary));
+        }
+
+        private void NotifyReservationListStateChanged()
+        {
+            OnPropertyChanged(nameof(ReservationResultsSummary));
+            OnPropertyChanged(nameof(IsFilterActive));
+            OnPropertyChanged(nameof(ReservationEmptyTitle));
+            OnPropertyChanged(nameof(ReservationEmptyMessage));
+            OnPropertyChanged(nameof(CanPrintReservationDirectory));
+            OnPropertyChanged(nameof(ReservationPrintStatus));
+            PrintReservationDirectoryCommand.NotifyCanExecuteChanged();
+        }
+
+        private void NotifySelectionSummariesChanged()
+        {
             OnPropertyChanged(nameof(SelectedReservationTitle));
             OnPropertyChanged(nameof(SelectedReservationSubtitle));
             OnPropertyChanged(nameof(SelectedReservationTiming));
@@ -676,14 +796,20 @@ namespace InventoryManagementApp.ViewModels
         private static string ValueOrNotRecorded(string? value) =>
             string.IsNullOrWhiteSpace(value) ? "Not recorded" : value.Trim();
 
-        private bool CanEdit() => SelectedReservation != null && SelectedReservation.Status != "Fulfilled";
+        private bool CanInteractWithReservations() => !IsLoading;
 
-        private bool CanDelete() => SelectedReservation != null;
+        private bool CanRefreshReservations() => !IsLoading;
 
-        private bool CanConfirm() => SelectedReservation != null && SelectedReservation.Status == "Pending";
+        private bool CanUseSelectedReservation() => !IsLoading && SelectedReservation != null;
 
-        private bool CanCancel() => SelectedReservation != null && SelectedReservation.IsActive;
+        private bool CanEdit() => !IsLoading && SelectedReservation != null && SelectedReservation.Status != "Fulfilled";
 
-        private bool CanFulfill() => SelectedReservation != null && SelectedReservation.Status == "Confirmed";
+        private bool CanDelete() => !IsLoading && SelectedReservation != null;
+
+        private bool CanConfirm() => !IsLoading && SelectedReservation != null && SelectedReservation.Status == "Pending";
+
+        private bool CanCancel() => !IsLoading && SelectedReservation != null && SelectedReservation.IsActive;
+
+        private bool CanFulfill() => !IsLoading && SelectedReservation != null && SelectedReservation.Status == "Confirmed";
     }
 }

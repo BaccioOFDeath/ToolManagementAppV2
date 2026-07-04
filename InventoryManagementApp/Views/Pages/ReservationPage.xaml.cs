@@ -1,18 +1,24 @@
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp.Views.Pages
 {
     public partial class ReservationPage : Page
     {
+        private Task? _loadReservationsTask;
+        private ReservationManagementViewModel? _loadedViewModel;
+
         public ReservationPage()
         {
             InitializeComponent();
             Loaded += ReservationPage_Loaded;
+            DataContextChanged += ReservationPage_DataContextChanged;
             PreviewKeyDown += ReservationPage_PreviewKeyDown;
         }
 
@@ -21,10 +27,38 @@ namespace InventoryManagementApp.Views.Pages
             Focus();
             if (DataContext is ReservationManagementViewModel vm)
             {
-                await vm.LoadReservationsCommand.ExecuteAsync(null);
+                await LoadReservationsOnceAsync(vm);
             }
 
             FocusFirstSearchBox();
+        }
+
+        private void ReservationPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!ReferenceEquals(_loadedViewModel, e.NewValue))
+            {
+                _loadedViewModel = null;
+                _loadReservationsTask = null;
+            }
+        }
+
+        private async Task LoadReservationsOnceAsync(ReservationManagementViewModel vm)
+        {
+            if (ReferenceEquals(_loadedViewModel, vm) && _loadReservationsTask is { IsCompleted: false })
+            {
+                await _loadReservationsTask;
+                return;
+            }
+
+            if (ReferenceEquals(_loadedViewModel, vm) && _loadReservationsTask is { IsCompletedSuccessfully: true })
+            {
+                return;
+            }
+
+            _loadedViewModel = vm;
+            await Dispatcher.Yield(DispatcherPriority.Background);
+            _loadReservationsTask = vm.LoadReservationsCommand.ExecuteAsync(null);
+            await _loadReservationsTask;
         }
 
         private void ReservationRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -59,7 +93,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P && vm.PrintReservationDirectoryCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Reservations", () => vm.PrintReservationDirectoryCommand.Execute(null));
                 e.Handled = true;

@@ -72,8 +72,8 @@
                     </Border>
                     <Border Style="{StaticResource ReservationStatCard}">
                         <StackPanel>
-                            <TextBlock Text="HANDOFF" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="Copy / print ready" Style="{StaticResource ReservationStatValueText}"/>
+                            <TextBlock Text="PRINT" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding ReservationPrintStatus}" Style="{StaticResource ReservationStatValueText}"/>
                         </StackPanel>
                     </Border>
                 </WrapPanel>
@@ -153,6 +153,7 @@
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
                         <DockPanel LastChildFill="True">
                             <TextBlock Text="{Binding SelectedReservationSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding ReservationPrintStatus}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
 
@@ -244,15 +245,39 @@
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding FilteredReservations.Count}" Value="0">
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding FilteredReservations.Count}" Value="0"/>
+                                            <Condition Binding="{Binding IsLoading}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="{Binding ReservationEmptyTitle}" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ReservationEmptyMessage}"
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Row="2" MaxWidth="380" MinHeight="118" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="16">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
                         <StackPanel>
-                            <TextBlock Text="No reservations match this filter" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
-                            <TextBlock Text="Clear search, switch the status filter, or add a new hold to restart the reservation queue."
+                            <TextBlock Text="Loading reservation directory" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="Hold actions and directory printing are paused until the latest saved rows are ready."
                                        Style="{StaticResource CaptionTextBlock}"
                                        TextAlignment="Center"
                                        TextWrapping="Wrap"
@@ -348,7 +373,10 @@
                     <Button Style="{StaticResource PrimaryButton}" Content="Add Hold" Command="{Binding AddReservationCommand}" Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}" Content="Print List" Command="{Binding PrintReservationDirectoryCommand}" Margin="0,0,0,4"/>
                 </WrapPanel>
-                <TextBlock Text="{Binding SelectedReservationSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0" TextWrapping="Wrap"/>
+                <StackPanel Margin="2,0,10,0">
+                    <TextBlock Text="{Binding SelectedReservationSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding ReservationPrintStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                </StackPanel>
             </DockPanel>
         </Border>
     </Grid>
