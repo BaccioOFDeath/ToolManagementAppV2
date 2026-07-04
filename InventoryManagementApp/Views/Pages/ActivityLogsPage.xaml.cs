@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Threading;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Windows;
@@ -16,18 +17,37 @@ namespace InventoryManagementApp.Views.Pages
     {
         private const int MaxActivityPrintRows = 250;
         private bool _hasLoadedLogs;
+        private ActivityLogsViewModel? _loadedViewModel;
 
         public ActivityLogsPage()
         {
             InitializeComponent();
             Loaded += ActivityLogsPage_Loaded;
+            DataContextChanged += ActivityLogsPage_DataContextChanged;
         }
 
         private async void ActivityLogsPage_Loaded(object sender, RoutedEventArgs e)
         {
-            if (!_hasLoadedLogs && DataContext is ActivityLogsViewModel vm)
+            if (DataContext is not ActivityLogsViewModel vm)
+                return;
+
+            if (_hasLoadedLogs && ReferenceEquals(_loadedViewModel, vm))
+                return;
+
+            await Dispatcher.Yield(DispatcherPriority.Background);
+            if (!ReferenceEquals(DataContext, vm))
+                return;
+
+            _loadedViewModel = vm;
+            _hasLoadedLogs = await vm.LoadLogsAsync();
+        }
+
+        private void ActivityLogsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!ReferenceEquals(e.NewValue, _loadedViewModel))
             {
-                _hasLoadedLogs = await vm.LoadLogsAsync();
+                _hasLoadedLogs = false;
+                _loadedViewModel = e.NewValue as ActivityLogsViewModel;
             }
         }
 
@@ -46,6 +66,8 @@ namespace InventoryManagementApp.Views.Pages
             if (DataContext is ActivityLogsViewModel vm)
             {
                 await vm.LoadLogsAsync();
+                _hasLoadedLogs = true;
+                _loadedViewModel = vm;
             }
         }
 
@@ -53,6 +75,12 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Activity Logs", () =>
             {
+                if (DataContext is ActivityLogsViewModel { IsBusy: true })
+                {
+                    WpfMessageBox.Show("Wait for the activity directory to finish updating before opening details.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
                 var log = GetSelectedActivityLogForAction();
                 if (log == null)
                 {
@@ -75,6 +103,12 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Activity Logs", () =>
             {
+                if (DataContext is ActivityLogsViewModel { IsBusy: true })
+                {
+                    WpfMessageBox.Show("Wait for the activity directory to finish updating before opening the related page.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
                 var log = GetSelectedActivityLogForAction();
                 if (log == null)
                 {
@@ -128,6 +162,12 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Activity Logs", () =>
             {
+                if (DataContext is ActivityLogsViewModel { IsBusy: true })
+                {
+                    WpfMessageBox.Show("Wait for the activity directory to finish updating before copying a handoff.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
                 var log = GetSelectedActivityLogForAction();
                 if (log == null)
                 {
@@ -149,9 +189,15 @@ namespace InventoryManagementApp.Views.Pages
                     return;
                 }
 
+                if (vm.IsBusy)
+                {
+                    WpfMessageBox.Show("Wait for the activity directory to finish updating before opening print preview.", "Activity Logs", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
                 var totalFilteredCount = vm.FilteredLogs.Count;
                 var printRows = vm.FilteredLogs.Take(MaxActivityPrintRows).ToList();
-                var document = BuildPrintDocument(printRows, totalFilteredCount, vm.StatusMessage, vm.ActivitySummary);
+                var document = BuildPrintDocument(printRows, totalFilteredCount, vm.PrintStatusText, vm.ActivitySummary);
                 new PrintPreviewWindow().ShowPreview(
                     document,
                     "Activity Logs",
