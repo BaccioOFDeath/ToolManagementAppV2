@@ -101,7 +101,8 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <Border Style="{StaticResource DesktopEmptyStateCard}"
+                    <Border Style="{StaticResource Card}"
+                            Padding="16"
                             Visibility="{Binding EmptyQueueVisibility}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
