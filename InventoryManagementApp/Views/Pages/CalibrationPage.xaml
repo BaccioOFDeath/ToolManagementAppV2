@@ -57,8 +57,8 @@
                     </Border>
                     <Border Style="{StaticResource CalibrationMetricCard}">
                         <StackPanel>
-                            <TextBlock Text="RELEASE" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="Verify before issue" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="PRINT" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding CalibrationPrintStatus}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
                 </WrapPanel>
@@ -118,12 +118,13 @@
                                 <TextBlock Text="01 Calibration Register" Style="{StaticResource SectionHeader}" Margin="0"/>
                                 <TextBlock Text="Prioritizes overdue and due-soon certificates before current shelf-ready items" Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding CalibrationResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding CalibrationResultsSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
                         <DockPanel LastChildFill="True">
                             <TextBlock Text="{Binding CalibrationBacklogSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding CalibrationPrintStatus}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
                     <DataGrid x:Name="CalibrationGrid"
@@ -207,15 +208,39 @@
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding FilteredCalibrationRecords.Count}" Value="0">
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding FilteredCalibrationRecords.Count}" Value="0"/>
+                                            <Condition Binding="{Binding IsLoading}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="{Binding CalibrationEmptyTitle}" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding CalibrationEmptyMessage}"
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Row="2" MaxWidth="380" MinHeight="118" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="16">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
                         <StackPanel>
-                            <TextBlock Text="No calibration records match this filter" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
-                            <TextBlock Text="Clear search, switch the due-state filter, or add a certificate record to rebuild the calibration queue."
+                            <TextBlock Text="Loading calibration register" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="Certificate actions and due-report printing are paused until the latest saved rows are ready."
                                        Style="{StaticResource CaptionTextBlock}"
                                        TextAlignment="Center"
                                        TextWrapping="Wrap"
@@ -314,7 +339,10 @@
                     <Button Style="{StaticResource PrimaryButton}" Content="Copy Handoff" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}" Content="Print Due" Command="{Binding PrintCalibrationListCommand}" Margin="0,0,0,4"/>
                 </WrapPanel>
-                <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0" TextWrapping="Wrap"/>
+                <StackPanel Margin="2,0,10,0">
+                    <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding CalibrationPrintStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                </StackPanel>
             </DockPanel>
         </Border>
     </Grid>
