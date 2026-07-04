@@ -117,7 +117,7 @@ namespace InventoryManagementApp.Tests
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml.cs");
 
             Assert.Contains("DataContextChanged += ManageItemsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("await Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (IsItemDirectoryBusy())", codeBehind, StringComparison.Ordinal);
             Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("return DataContext is ItemsViewModel { Items.IsLoading: true };", codeBehind, StringComparison.Ordinal);
