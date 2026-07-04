@@ -127,6 +127,7 @@
                                               SelectedItem="{Binding SelectedColumn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                               Margin="0"
                                               MaxDropDownHeight="320"
+                                              PreviewMouseWheel="MappingComboBox_PreviewMouseWheel"
                                               ScrollViewer.CanContentScroll="True"
                                               ScrollViewer.VerticalScrollBarVisibility="Auto"
                                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"

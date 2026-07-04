@@ -115,8 +115,12 @@
                                 <Path HorizontalAlignment="Right"
                                       VerticalAlignment="Center"
                                       Margin="0,0,6,0"
+                                      Width="8"
+                                      Height="4"
+                                      Stretch="Uniform"
                                       Data="M 0 0 L 4 4 L 8 0 Z"
-                                      Fill="{TemplateBinding Foreground}"/>
+                                      Fill="{TemplateBinding Foreground}"
+                                      Opacity="0.72"/>
                             </Grid>
                         </ToggleButton>
                         <Popup Name="Popup"

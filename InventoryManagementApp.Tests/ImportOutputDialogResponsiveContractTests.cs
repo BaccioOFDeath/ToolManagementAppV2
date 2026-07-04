@@ -44,6 +44,12 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("SelectionUnit=\"FullRow\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.VerticalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MaxDropDownHeight=\"320\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("PreviewMouseWheel=\"MappingComboBox_PreviewMouseWheel\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("private void MappingComboBox_PreviewMouseWheel(object sender, MouseWheelEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("sender is not ComboBox { IsDropDownOpen: false }", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("FindAncestor<DataGrid>(comboBox)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("RoutedEvent = UIElement.MouseWheelEvent", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.HorizontalScrollBarVisibility=\"Disabled\"", xaml, StringComparison.Ordinal);
             Assert.Contains("DataContext.ColumnHeaders", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedColumn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged", xaml, StringComparison.Ordinal);

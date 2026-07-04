@@ -90,6 +90,10 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("SelectionBoxItem", xaml, StringComparison.Ordinal);
             Assert.Contains("IsDropDownOpen", xaml, StringComparison.Ordinal);
             Assert.Contains("ItemTemplateSelector", xaml, StringComparison.Ordinal);
+            Assert.Contains("Width=\"8\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Height=\"4\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Stretch=\"Uniform\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Opacity=\"0.72\"", xaml, StringComparison.Ordinal);
             Assert.Contains("DisabledForegroundBrush", xaml, StringComparison.Ordinal);
         }
 

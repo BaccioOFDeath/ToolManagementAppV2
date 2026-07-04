@@ -55,6 +55,9 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("<ToggleButton.Template>", styles, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"ToggleChrome\"", styles, StringComparison.Ordinal);
             Assert.Contains("Background=\"{TemplateBinding Background}\"", styles, StringComparison.Ordinal);
+            Assert.Contains("Width=\"8\"", styles, StringComparison.Ordinal);
+            Assert.Contains("Height=\"4\"", styles, StringComparison.Ordinal);
+            Assert.Contains("Stretch=\"Uniform\"", styles, StringComparison.Ordinal);
             Assert.Contains("Property=\"IsChecked\" Value=\"True\"", styles, StringComparison.Ordinal);
             Assert.Contains("Value=\"{DynamicResource ComboBoxPopupBackgroundBrush}\"", styles, StringComparison.Ordinal);
             Assert.Contains("<Style TargetType=\"ComboBox\" BasedOn=\"{StaticResource ThemedComboBoxStyle}\"", desktopShell, StringComparison.Ordinal);
