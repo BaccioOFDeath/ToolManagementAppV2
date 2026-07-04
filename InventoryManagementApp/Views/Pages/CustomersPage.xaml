@@ -38,13 +38,13 @@
                     <TextBlock Text="Find customer records, verify contact details, and prepare advisor handoffs before rentals or service follow-up." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                 </StackPanel>
                 <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddCustomerCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCustomerDetailsCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCustomerCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Copy Contact" Command="{Binding CopySelectedCustomerCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Command="{Binding PrintSelectedCustomerCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Directory" Command="{Binding PrintCustomerDirectoryCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCustomerCommand}" Margin="0,0,0,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddCustomerCommand}" IsEnabled="{Binding IsCustomerDirectoryActionAvailable}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCustomerDetailsCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Copy Contact" Command="{Binding CopySelectedCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Command="{Binding PrintSelectedCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Directory" Command="{Binding PrintCustomerDirectoryCommand}" IsEnabled="{Binding IsCustomerDirectoryPrintAvailable}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,0,6"/>
                 </WrapPanel>
             </DockPanel>
         </Border>
@@ -109,6 +109,7 @@
                                 <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,6"/>
                                 <pages:SearchBar Width="300"
                                                  MinWidth="220"
+                                                 IsEnabled="{Binding IsCustomerDirectoryActionAvailable}"
                                                  Text="{Binding CustomerSearchTerm, UpdateSourceTrigger=PropertyChanged}"
                                                  SearchCommand="{Binding SearchCustomersCommand}"
                                                  ClearCommand="{Binding ClearCustomerSearchCommand}"
@@ -117,9 +118,9 @@
                             </WrapPanel>
                             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
                                 <TextBlock Text="{Binding CustomerFilterStatus}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,6"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Add Customer" Command="{Binding AddCustomerCommand}" Margin="0,0,4,6"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearCustomerSearchCommand}" Margin="0,0,4,6"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Print Directory" Command="{Binding PrintCustomerDirectoryCommand}" Margin="0,0,0,6"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Add Customer" Command="{Binding AddCustomerCommand}" IsEnabled="{Binding IsCustomerDirectoryActionAvailable}" Margin="0,0,4,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearCustomerSearchCommand}" IsEnabled="{Binding IsCustomerDirectoryActionAvailable}" Margin="0,0,4,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print Directory" Command="{Binding PrintCustomerDirectoryCommand}" IsEnabled="{Binding IsCustomerDirectoryPrintAvailable}" Margin="0,0,0,6"/>
                             </WrapPanel>
                         </DockPanel>
                     </Border>
@@ -179,27 +180,17 @@
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                                <MenuItem Header="Open Customer Details" Command="{Binding OpenCustomerDetailsCommand}"/>
-                                <MenuItem Header="Edit Customer" Command="{Binding EditCustomerCommand}"/>
-                                <MenuItem Header="Copy Contact Handoff" Command="{Binding CopySelectedCustomerCommand}"/>
-                                <MenuItem Header="Print Customer Sheet" Command="{Binding PrintSelectedCustomerCommand}"/>
+                                <MenuItem Header="Open Customer Details" Command="{Binding OpenCustomerDetailsCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}"/>
+                                <MenuItem Header="Edit Customer" Command="{Binding EditCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}"/>
+                                <MenuItem Header="Copy Contact Handoff" Command="{Binding CopySelectedCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}"/>
+                                <MenuItem Header="Print Customer Sheet" Command="{Binding PrintSelectedCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}"/>
                                 <Separator/>
-                                <MenuItem Header="Print Customer Directory" Command="{Binding PrintCustomerDirectoryCommand}"/>
-                                <MenuItem Header="Delete Customer" Command="{Binding DeleteCustomerCommand}"/>
+                                <MenuItem Header="Print Customer Directory" Command="{Binding PrintCustomerDirectoryCommand}" IsEnabled="{Binding IsCustomerDirectoryPrintAvailable}"/>
+                                <MenuItem Header="Delete Customer" Command="{Binding DeleteCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
-                    <Border Grid.Row="2" MaxWidth="330" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Border.Style>
-                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Customers.Count}" Value="0">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
+                    <Border Grid.Row="2" MaxWidth="330" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsCustomerEmptyStateVisible, Converter={StaticResource BoolToVis}}" Style="{StaticResource DesktopNoteCard}">
                         <StackPanel>
                             <TextBlock Text="No customers found" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
                             <TextBlock Text="{Binding CustomerEmptyStateMessage}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
@@ -273,10 +264,10 @@
                             </Border>
 
                             <WrapPanel Margin="0,0,0,8">
-                                <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCustomerDetailsCommand}" Margin="0,0,6,6"/>
-                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCustomerCommand}" Margin="0,0,6,6"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopySelectedCustomerCommand}" Margin="0,0,6,6"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintSelectedCustomerCommand}" Margin="0,0,0,6"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCustomerDetailsCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,6,6"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,6,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Copy" Command="{Binding CopySelectedCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,6,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintSelectedCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,0,6"/>
                             </WrapPanel>
 
                             <Border Style="{StaticResource DesktopNoteCard}" Margin="0,4,0,0">
@@ -289,8 +280,8 @@
                     </ScrollViewer>
                     <Border Grid.Row="2" Style="{StaticResource DesktopSectionActionStrip}">
                         <WrapPanel HorizontalAlignment="Right">
-                            <Button Style="{StaticResource PrimaryButton}" Content="Copy Contact" Command="{Binding CopySelectedCustomerCommand}" Margin="0,0,6,6"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Command="{Binding PrintSelectedCustomerCommand}" Margin="0,0,0,6"/>
+                            <Button Style="{StaticResource PrimaryButton}" Content="Copy Contact" Command="{Binding CopySelectedCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,6,6"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Command="{Binding PrintSelectedCustomerCommand}" IsEnabled="{Binding IsSelectedCustomerActionAvailable}" Margin="0,0,0,6"/>
                         </WrapPanel>
                     </Border>
                 </Grid>
@@ -300,7 +291,7 @@
         <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0">
             <DockPanel LastChildFill="True">
                 <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource GhostButton}" Content="Clear Search" Command="{Binding ClearCustomerSearchCommand}" Margin="0,0,0,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Clear Search" Command="{Binding ClearCustomerSearchCommand}" IsEnabled="{Binding IsCustomerDirectoryActionAvailable}" Margin="0,0,0,6"/>
                 </WrapPanel>
                 <TextBlock Text="{Binding SelectedCustomerSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0" TextWrapping="Wrap"/>
             </DockPanel>

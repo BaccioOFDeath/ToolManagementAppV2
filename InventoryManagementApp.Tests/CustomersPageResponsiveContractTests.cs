@@ -57,10 +57,11 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("<pages:SearchBar Width=\"300\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"220\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"330\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"330\" MinHeight=\"120\" Margin=\"12\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\" Visibility=\"{Binding IsCustomerEmptyStateVisible, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("CustomerEmptyStateMessage", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer Grid.Row=\"1\" VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"310\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<DataTrigger Binding=\"{Binding Customers.Count}\" Value=\"0\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("VerticalScrollBarVisibility=\"Hidden\"", xaml, StringComparison.Ordinal);
         }
 
@@ -74,6 +75,37 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<ProgressBar IsIndeterminate=\"True\" Height=\"6\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Updating customer directory", xaml, StringComparison.Ordinal);
             Assert.Contains("Text=\"{Binding CustomerFilterStatus}\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomersPage_BindsVisibleActionsToReadyState()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml");
+
+            Assert.Contains("Content=\"Add\" Command=\"{Binding AddCustomerCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Details\" Command=\"{Binding OpenCustomerDetailsCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Edit\" Command=\"{Binding EditCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Copy Contact\" Command=\"{Binding CopySelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Print Sheet\" Command=\"{Binding PrintSelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Directory\" Command=\"{Binding PrintCustomerDirectoryCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryPrintAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Delete\" Command=\"{Binding DeleteCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding IsCustomerDirectoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding IsCustomerDirectoryPrintAvailable}\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomersPage_ContextMenuAndHandoffActionsRespectReadyState()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml");
+
+            Assert.Contains("Header=\"Open Customer Details\" Command=\"{Binding OpenCustomerDetailsCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Edit Customer\" Command=\"{Binding EditCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Copy Contact Handoff\" Command=\"{Binding CopySelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Print Customer Sheet\" Command=\"{Binding PrintSelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Print Customer Directory\" Command=\"{Binding PrintCustomerDirectoryCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryPrintAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Delete Customer\" Command=\"{Binding DeleteCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Copy Contact\" Command=\"{Binding CopySelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Clear Search\" Command=\"{Binding ClearCustomerSearchCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryActionAvailable}\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -112,7 +144,10 @@ namespace InventoryManagementApp.Tests
         public void CustomersPage_BlocksStaleRowAndShortcutActionsWhileRowsLoad()
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml.cs");
+            var doubleClick = ExtractSourceBlock(source, "private void CustomerRow_MouseDoubleClick", "private void CustomerRow_PreviewMouseRightButtonDown");
 
+            Assert.Contains("if (vm.IsCustomerDirectoryBusy)", doubleClick, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e) == null", doubleClick, StringComparison.Ordinal);
             Assert.Contains("CustomerManagementViewModel { IsCustomerDirectoryBusy: true }", source, StringComparison.Ordinal);
             Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", source, StringComparison.Ordinal);
             Assert.Contains("if (vm.IsCustomerDirectoryBusy && IsCustomerActionShortcut(e))", source, StringComparison.Ordinal);
@@ -136,7 +171,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("OpenCustomerDetailsCommand = new RelayCommand(OpenCustomerDetails, CanInteractWithSelectedCustomer);", source, StringComparison.Ordinal);
             Assert.Contains("PrintSelectedCustomerCommand = new RelayCommand(PrintSelectedCustomer, CanInteractWithSelectedCustomer);", source, StringComparison.Ordinal);
             Assert.Contains("CopySelectedCustomerCommand = new RelayCommand(CopySelectedCustomer, CanInteractWithSelectedCustomer);", source, StringComparison.Ordinal);
-            Assert.Contains("private bool CanInteractWithSelectedCustomer() => !IsCustomerDirectoryBusy && SelectedCustomer != null;", source, StringComparison.Ordinal);
+            Assert.Contains("private bool CanInteractWithSelectedCustomer() => IsSelectedCustomerActionAvailable;", source, StringComparison.Ordinal);
             Assert.Contains("private bool CanInteractWithCustomer(CustomerModel? customer) => !IsCustomerDirectoryBusy && customer != null;", source, StringComparison.Ordinal);
             Assert.Contains("NotifySelectedCustomerActionStateChanged();", source, StringComparison.Ordinal);
         }
@@ -146,6 +181,10 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CustomerManagementViewModel.cs");
 
+            Assert.Contains("public bool IsCustomerDirectoryActionAvailable => !IsCustomerDirectoryBusy;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsSelectedCustomerActionAvailable => !IsCustomerDirectoryBusy && SelectedCustomer != null;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsCustomerDirectoryPrintAvailable => !IsCustomerDirectoryBusy && Customers.Count > 0;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsCustomerEmptyStateVisible => !IsCustomerDirectoryBusy && Customers.Count == 0;", source, StringComparison.Ordinal);
             Assert.Contains("Print paused while customer rows load", source, StringComparison.Ordinal);
             Assert.Contains("Customer actions are paused while the directory refreshes", source, StringComparison.Ordinal);
             Assert.Contains("ShowCustomerDirectoryBusyMessage", source, StringComparison.Ordinal);
@@ -154,6 +193,22 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("if (IsCustomerDirectoryBusy || customer == null", source, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CustomerPrintSummary));", source, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CustomerOperationsSummary));", source, StringComparison.Ordinal);
+            Assert.Contains("NotifyCustomerAvailabilityStateChanged();", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomerViewModel_PreservesVisibleRowsWhenLoadOrSearchFails()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CustomerManagementViewModel.cs");
+            var loadBlock = ExtractSourceBlock(source, "public async Task LoadCustomersAsync", "async Task AddCustomerAsync");
+            var searchBlock = ExtractSourceBlock(source, "async Task SearchCustomersAsync", "private async Task RefreshCustomerDirectoryAfterMutationFailureAsync");
+
+            Assert.Contains("Existing customer rows were kept when available", loadBlock, StringComparison.Ordinal);
+            Assert.Contains("Existing customer rows were kept when available", searchBlock, StringComparison.Ordinal);
+            Assert.Contains("NotifyCustomerDirectoryStateChanged();", loadBlock, StringComparison.Ordinal);
+            Assert.Contains("NotifyCustomerDirectoryStateChanged();", searchBlock, StringComparison.Ordinal);
+            Assert.DoesNotContain("ClearCustomerDirectoryAfterLoadFailure();", loadBlock, StringComparison.Ordinal);
+            Assert.DoesNotContain("ClearCustomerDirectoryAfterLoadFailure();", searchBlock, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)
@@ -174,6 +229,17 @@ namespace InventoryManagementApp.Tests
             }
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
+        }
+
+        private static string ExtractSourceBlock(string source, string startMarker, string endMarker)
+        {
+            var start = source.IndexOf(startMarker, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Could not find source block start marker: {startMarker}");
+
+            var end = source.IndexOf(endMarker, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Could not find source block end marker: {endMarker}");
+
+            return source[start..end];
         }
     }
 }
