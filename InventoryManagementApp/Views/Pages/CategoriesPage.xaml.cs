@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Threading;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Views.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,24 +19,69 @@ namespace InventoryManagementApp.Views.Pages
     public partial class CategoriesPage : Page
     {
         private const int MaxDirectoryPrintRows = 250;
-        private bool _hasInitialized;
+        private readonly int _inventoryId;
+        private Task? _initializeCategoriesTask;
+        private CategoryManagementViewModel? _initializedViewModel;
 
         public CategoriesPage(int inventoryId)
         {
             InitializeComponent();
+            _inventoryId = inventoryId;
             var sp = ((App)System.Windows.Application.Current).Host.Services;
             var vm = sp.GetRequiredService<CategoryManagementViewModel>();
             DataContext = vm;
-            Loaded += async (_, __) =>
-            {
-                if (_hasInitialized) return;
-                _hasInitialized = true;
-                vm.SelectedInventoryId = inventoryId;
-                await vm.InitializeAsync().ConfigureAwait(false);
-            };
+            Loaded += CategoriesPage_Loaded;
+            DataContextChanged += CategoriesPage_DataContextChanged;
         }
 
         private CategoryManagementViewModel? ViewModel => DataContext as CategoryManagementViewModel;
+
+        private async void CategoriesPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            Focus();
+            FindBox.Focus();
+            FindBox.SelectAll();
+
+            if (DataContext is CategoryManagementViewModel vm)
+            {
+                await InitializeCategoriesOnceAsync(vm);
+            }
+        }
+
+        private void CategoriesPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!ReferenceEquals(_initializedViewModel, e.NewValue))
+            {
+                _initializedViewModel = null;
+                _initializeCategoriesTask = null;
+            }
+        }
+
+        private async Task InitializeCategoriesOnceAsync(CategoryManagementViewModel vm)
+        {
+            if (ReferenceEquals(_initializedViewModel, vm) && _initializeCategoriesTask is { IsCompleted: false })
+            {
+                await _initializeCategoriesTask;
+                return;
+            }
+
+            if (ReferenceEquals(_initializedViewModel, vm) && _initializeCategoriesTask is { IsCompletedSuccessfully: true })
+            {
+                return;
+            }
+
+            _initializedViewModel = vm;
+            vm.SelectedInventoryId = _inventoryId;
+            await Dispatcher.Yield(DispatcherPriority.Background);
+
+            if (!ReferenceEquals(DataContext, vm) || vm.IsCategoryInteractionBusy)
+            {
+                return;
+            }
+
+            _initializeCategoriesTask = vm.InitializeAsync();
+            await _initializeCategoriesTask;
+        }
 
         private void Page_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
@@ -56,6 +103,19 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
+            if (ViewModel.IsCategoryInteractionBusy && IsCategoryActionShortcut(e))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R && ViewModel.RefreshCommand.CanExecute(null))
+            {
+                ViewModel.RefreshCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S && ViewModel.SaveCommand.CanExecute(null))
             {
                 ViewModel.SaveCommand.Execute(null);
@@ -70,7 +130,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+            if (!IsTextInputFocused() && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
             {
                 CopyCategory_Click(sender, e);
                 e.Handled = true;
@@ -91,18 +151,44 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
+        private static bool IsCategoryActionShortcut(KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return e.Key is Key.R or Key.S or Key.P or Key.C;
+            }
+
+            return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete;
+        }
+
         private static bool IsTextInputFocused()
         {
-            return Keyboard.FocusedElement is System.Windows.Controls.Primitives.TextBoxBase or PasswordBox or System.Windows.Controls.ComboBox;
+            return Keyboard.FocusedElement is TextBoxBase or PasswordBox or ComboBox;
         }
 
         private void CategoryRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (ViewModel is { IsCategoryInteractionBusy: true })
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (GridContextMenuSelection.SelectRow(sender, e) == null)
+                return;
+
             OpenCategoryDetail_Click(sender, e);
+            e.Handled = true;
         }
 
         private void CategoryRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (ViewModel is { IsCategoryInteractionBusy: true })
+            {
+                e.Handled = true;
+                return;
+            }
+
             GridContextMenuSelection.SelectRow(sender, e);
         }
 
@@ -110,7 +196,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Category Detail", () =>
             {
-                if (!TryGetSelectedCategory(out var category))
+                if (!AreCategoryRowsReady("Category Detail") || !TryGetSelectedCategory(out var category))
                     return;
 
                 DetailDialogWindow.ShowDialogFor(
@@ -128,7 +214,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Category Detail", () =>
             {
-                if (!TryGetSelectedCategory(out var category))
+                if (!AreCategoryRowsReady("Category Detail") || !TryGetSelectedCategory(out var category))
                     return;
 
                 System.Windows.Clipboard.SetText(FormatCategoryDetail(category));
@@ -162,12 +248,21 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Category Sheet", () =>
             {
-                if (!TryGetSelectedCategory(out var category))
+                if (!AreCategoryRowsReady("Category Sheet") || !TryGetSelectedCategory(out var category))
                     return;
 
                 var document = BuildSelectedCategoryPrintDocument(category);
                 ShowPrintPreview(document, $"Category Sheet - {category.Name}");
             });
+        }
+
+        private bool AreCategoryRowsReady(string title)
+        {
+            if (ViewModel is not { IsCategoryInteractionBusy: true })
+                return true;
+
+            WpfMessageBox.Show("Category rows are still loading. Wait for the refresh to finish before using category actions.", title, MessageBoxButton.OK, MessageBoxImage.Information);
+            return false;
         }
 
         private bool TryGetSelectedCategory(out CategoryManagementViewModel.CategoryItem category)

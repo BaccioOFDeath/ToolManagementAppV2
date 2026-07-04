@@ -107,12 +107,18 @@ namespace InventoryManagementApp.ViewModels
                 _isBusy = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsCategoryInteractionBusy));
+                OnPropertyChanged(nameof(IsCategoryActionAvailable));
+                OnPropertyChanged(nameof(IsSelectedCategoryActionAvailable));
                 RaiseDirectoryProperties();
                 RaiseCommandStates();
             }
         }
 
         public bool IsCategoryInteractionBusy => IsBusy;
+
+        public bool IsCategoryActionAvailable => !IsCategoryInteractionBusy;
+
+        public bool IsSelectedCategoryActionAvailable => !IsCategoryInteractionBusy && SelectedCategory != null;
 
         public bool IsDirectoryPrintAvailable => !IsCategoryInteractionBusy && FilteredCategories.Count > 0;
 
@@ -311,8 +317,10 @@ namespace InventoryManagementApp.ViewModels
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load categories for inventory {InventoryId}", SelectedInventoryId);
-                ClearCategoryStateAfterLoadFailure();
-                StatusMessage = "Categories could not be loaded. Category rows were cleared until reload succeeds.";
+                StatusMessage = Categories.Count == 0
+                    ? "Categories could not be loaded. Retry refresh before creating or printing category rows."
+                    : "Category refresh failed. Existing category rows were kept so current work can continue.";
+                RaiseDirectoryProperties();
                 ShowCategoryLoadFailureDialogOnce();
             }
             finally { IsBusy = false; }
@@ -322,7 +330,7 @@ namespace InventoryManagementApp.ViewModels
         {
             if (_loadFailureDialogShown) return;
             _loadFailureDialogShown = true;
-            WpfMessageBox.Show("Categories could not be loaded. Category rows were cleared until reload succeeds. Please retry or check the application log.", "Category Management", MessageBoxButton.OK, MessageBoxImage.Error);
+            WpfMessageBox.Show("Categories could not be refreshed. Existing category rows were kept when available; retry refresh or check the application log.", "Category Management", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         private void ClearCategoryStateAfterLoadFailure()
@@ -520,6 +528,8 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CategoryPrintSummary));
             OnPropertyChanged(nameof(IsDirectoryPrintAvailable));
             OnPropertyChanged(nameof(IsCategoryEmptyStateVisible));
+            OnPropertyChanged(nameof(IsCategoryActionAvailable));
+            OnPropertyChanged(nameof(IsSelectedCategoryActionAvailable));
             OnPropertyChanged(nameof(CategoryEmptyStateTitle));
             OnPropertyChanged(nameof(CategoryEmptyStateMessage));
             OnPropertyChanged(nameof(CategoryNameStatus));
@@ -534,6 +544,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(SelectedCategorySummary));
             OnPropertyChanged(nameof(SelectedCategoryChecklist));
             OnPropertyChanged(nameof(SelectedCategoryHandoff));
+            OnPropertyChanged(nameof(IsSelectedCategoryActionAvailable));
         }
 
         private void RaiseCommandStates()
