@@ -180,7 +180,7 @@ namespace InventoryManagementApp.Views.Pages
                 return e.Key is Key.P or Key.Enter;
             }
 
-            return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete;
+            return Keyboard.Modifiers == ModifierKeys.None && (e.Key is Key.Enter or Key.Delete);
         }
 
         private void FocusFirstSearchBox()
