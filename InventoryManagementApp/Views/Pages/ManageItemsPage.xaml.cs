@@ -12,7 +12,7 @@ namespace InventoryManagementApp.Views.Pages
     public partial class ManageItemsPage : Page
     {
         private CancellationTokenSource _loadCts = new();
-        private bool _isLoadedForCurrentLifetime;
+        private ItemsViewModel? _loadedViewModel;
 
         public ManageItemsPage()
         {
@@ -21,12 +21,13 @@ namespace InventoryManagementApp.Views.Pages
             Loaded += ManageItemsPage_Loaded;
             Unloaded += ManageItemsPage_Unloaded;
             DataContextChanged += ManageItemsPage_DataContextChanged;
+            PreviewKeyDown += ManageItemsPage_PreviewKeyDown;
         }
 
         private void ManageItemsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (!ReferenceEquals(e.OldValue, e.NewValue))
-                _isLoadedForCurrentLifetime = false;
+            if (!ReferenceEquals(e.NewValue, _loadedViewModel))
+                _loadedViewModel = null;
         }
 
         private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -59,32 +60,39 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void ManageItemsPage_Loaded(object sender, RoutedEventArgs e)
         {
-            if (_isLoadedForCurrentLifetime)
-                return;
-
-            _isLoadedForCurrentLifetime = true;
-
             if (DataContext is not ItemsViewModel vm)
             {
                 vm = ((App)Application.Current).Host.Services.GetRequiredService<ItemsViewModel>();
                 DataContext = vm;
             }
 
+            if (ReferenceEquals(_loadedViewModel, vm))
+                return;
+
+            _loadedViewModel = vm;
+
+            if (vm.Items.IsLoading || vm.Items.Count > 0)
+                return;
+
             try
             {
-                await vm.InitializeAsync(_loadCts.Token);
                 await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
-                await vm.LoadMoreAsync(_loadCts.Token);
+                await vm.InitializeAsync(_loadCts.Token);
+
+                if (!vm.Items.IsLoading && vm.Items.Count == 0 && vm.Items.HasMoreItems)
+                    await vm.LoadMoreAsync(_loadCts.Token);
             }
             catch (OperationCanceledException)
             {
+                if (ReferenceEquals(_loadedViewModel, vm))
+                    _loadedViewModel = null;
             }
         }
 
         private void ManageItemsPage_Unloaded(object sender, RoutedEventArgs e)
         {
             _loadCts.Cancel();
-            _isLoadedForCurrentLifetime = false;
+            _loadedViewModel = null;
             if (DataContext is ItemsViewModel vm)
             {
                 vm.Dispose();
@@ -92,6 +100,84 @@ namespace InventoryManagementApp.Views.Pages
             }
             _loadCts.Dispose();
             _loadCts = new CancellationTokenSource();
+        }
+
+        private void ManageItemsPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (DataContext is not ItemsViewModel vm)
+                return;
+
+            if (IsItemDirectoryBusy())
+            {
+                if (IsManagedDirectoryShortcut(e))
+                    e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N && vm.NewItemCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Manage Items", async () => await vm.NewItemCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.M && vm.OpenMobileCaptureCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Manage Items", async () => await vm.OpenMobileCaptureCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.E && vm.EditItemCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Manage Items", async () => await vm.EditItemCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.D && vm.ViewDetailsCommand.CanExecute(null))
+            {
+                UiActionGuard.Run(this, "Manage Items", () => vm.ViewDetailsCommand.Execute(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.H && vm.OpenRentalHistoryCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Manage Items", async () => await vm.OpenRentalHistoryCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S && vm.CommitChangesCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Manage Items", async () => await vm.CommitChangesCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete && vm.DeleteItemsCommand.CanExecute(ItemDirectoryGrid.SelectedItems))
+            {
+                UiActionGuard.RunAsync(this, "Manage Items", async () => await vm.DeleteItemsCommand.ExecuteAsync(ItemDirectoryGrid.SelectedItems));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter && vm.ViewDetailsCommand.CanExecute(null))
+            {
+                UiActionGuard.Run(this, "Manage Items", () => vm.ViewDetailsCommand.Execute(null));
+                e.Handled = true;
+            }
+        }
+
+        private static bool IsManagedDirectoryShortcut(KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return e.Key is Key.N or Key.M or Key.E or Key.D or Key.H or Key.S;
+            }
+
+            return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Delete or Key.Enter;
         }
 
         private bool IsItemDirectoryBusy()
