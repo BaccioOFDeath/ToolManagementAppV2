@@ -76,8 +76,8 @@
                     </Border>
                     <Border Style="{StaticResource ActivityStatCard}">
                         <StackPanel>
-                            <TextBlock Text="DESTINATION" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding SelectedLogDestinationName}"
+                            <TextBlock Text="PRINT" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding PrintStatusText}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
@@ -100,16 +100,19 @@
                         <TextBox MinWidth="180"
                                  Width="250"
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                 ToolTip="Filter by user, action, type, destination, or timestamp"
+                                 IsEnabled="{Binding CanChangeActivityFilters}"
+                                 ToolTip="Filter by user, action, type, destination, user ID, or timestamp"
                                  Margin="0,0,6,4"/>
                         <ComboBox ItemsSource="{Binding UserFilters}"
                                   SelectedItem="{Binding SelectedUserFilter}"
+                                  IsEnabled="{Binding CanChangeActivityFilters}"
                                   MinWidth="150"
                                   Width="170"
                                   ToolTip="Filter by user"
                                   Margin="0,0,6,4"/>
                         <ComboBox ItemsSource="{Binding ActionFilters}"
                                   SelectedItem="{Binding SelectedActionFilter}"
+                                  IsEnabled="{Binding CanChangeActivityFilters}"
                                   MinWidth="165"
                                   Width="185"
                                   ToolTip="Filter by action group"
@@ -121,10 +124,10 @@
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
                     <TextBlock Text="Audit actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Open Related" Click="OpenRelatedPage_Click" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Open Detail" Click="OpenSelectedLog_Click" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedLog_Click" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Print Results" Click="PrintLogs_Click" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Open Related" Click="OpenRelatedPage_Click" IsEnabled="{Binding CanUseSelectedLogActions}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Open Detail" Click="OpenSelectedLog_Click" IsEnabled="{Binding CanUseSelectedLogActions}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedLog_Click" IsEnabled="{Binding CanUseSelectedLogActions}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Results" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintActivityRows}" Margin="0,0,4,4"/>
                         <TextBlock Text="{Binding ActivitySummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="6,1,0,4"/>
                     </WrapPanel>
                 </DockPanel>
@@ -185,13 +188,13 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Open Activity Detail" Click="OpenSelectedLog_Click"/>
-                                <MenuItem Header="Open Related Page" Click="OpenRelatedPage_Click"/>
-                                <MenuItem Header="Copy Handoff" Click="CopySelectedLog_Click"/>
+                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Open Activity Detail" Click="OpenSelectedLog_Click" IsEnabled="{Binding CanUseSelectedLogActions}"/>
+                                <MenuItem Header="Open Related Page" Click="OpenRelatedPage_Click" IsEnabled="{Binding CanUseSelectedLogActions}"/>
+                                <MenuItem Header="Copy Handoff" Click="CopySelectedLog_Click" IsEnabled="{Binding CanUseSelectedLogActions}"/>
                                 <Separator/>
-                                <MenuItem Header="Print Current Results" Click="PrintLogs_Click"/>
-                                <MenuItem Header="Refresh" Click="RefreshLogs_Click"/>
+                                <MenuItem Header="Print Current Results" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintActivityRows}"/>
+                                <MenuItem Header="Refresh" Click="RefreshLogs_Click" IsEnabled="{Binding CanChangeActivityFilters}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
@@ -224,21 +227,39 @@
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding FilteredLogCount}" Value="0">
+                                    <DataTrigger Binding="{Binding CanShowActivityEmptyState}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
                         <StackPanel>
-                            <TextBlock Text="No activity rows match" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
-                            <TextBlock Text="Clear the filters or refresh the audit trail to review recent operations, account changes, imports, rentals, and item events." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ActivityEmptyStateTitle}" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding ActivityEmptyStateMessage}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="2" MaxWidth="380" MinHeight="118" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <ProgressBar IsIndeterminate="True" Height="6" Margin="0,0,0,10"/>
+                            <TextBlock Text="Updating activity directory" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding ActivityBusyMessage}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
                     <Border Grid.Row="3" Style="{StaticResource DesktopPaneSubheader}" BorderThickness="0,1,0,0">
                         <DockPanel LastChildFill="True">
-                            <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left" TextWrapping="Wrap" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding PrintStatusText}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left" TextWrapping="Wrap" Margin="0,0,10,0"/>
                             <Button Style="{StaticResource GhostButton}" Content="Clear Filters" Command="{Binding ClearFiltersCommand}" HorizontalAlignment="Right"/>
                         </DockPanel>
                     </Border>
@@ -301,10 +322,10 @@
 
                             <Border Style="{StaticResource DesktopInsetCard}" Padding="10" Margin="0,0,0,8">
                                 <WrapPanel>
-                                    <Button Style="{StaticResource PrimaryButton}" Content="Open Related" Click="OpenRelatedPage_Click" Margin="0,0,4,4"/>
-                                    <Button Style="{StaticResource GhostButton}" Content="Open Detail" Click="OpenSelectedLog_Click" Margin="0,0,4,4"/>
-                                    <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedLog_Click" Margin="0,0,4,4"/>
-                                    <Button Style="{StaticResource GhostButton}" Content="Print" Click="PrintLogs_Click" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Open Related" Click="OpenRelatedPage_Click" IsEnabled="{Binding CanUseSelectedLogActions}" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Open Detail" Click="OpenSelectedLog_Click" IsEnabled="{Binding CanUseSelectedLogActions}" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedLog_Click" IsEnabled="{Binding CanUseSelectedLogActions}" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Print" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintActivityRows}" Margin="0,0,4,4"/>
                                 </WrapPanel>
                             </Border>
                         </StackPanel>

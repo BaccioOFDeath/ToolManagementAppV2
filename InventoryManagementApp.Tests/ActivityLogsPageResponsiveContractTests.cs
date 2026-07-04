@@ -69,6 +69,73 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("SelectedLogHandoff", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void ActivityLogsPage_DisablesRiskyActionsWhileRowsAreBusy()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml");
+
+            Assert.Contains("IsEnabled=\"{Binding CanUseSelectedLogActions}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding CanPrintActivityRows}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding CanChangeActivityFilters}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"{Binding PrintStatusText}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("DataContext=\"{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsPage_ShowsDynamicBusyAndEmptyStates()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml");
+
+            Assert.Contains("CanShowActivityEmptyState", xaml, StringComparison.Ordinal);
+            Assert.Contains("ActivityEmptyStateTitle", xaml, StringComparison.Ordinal);
+            Assert.Contains("ActivityEmptyStateMessage", xaml, StringComparison.Ordinal);
+            Assert.Contains("<DataTrigger Binding=\"{Binding IsBusy}\" Value=\"True\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ProgressBar IsIndeterminate=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ActivityBusyMessage", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsPage_CodeBehindKeepsFirstPaintAndBusyGuards()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+
+            Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DataContextChanged += ActivityLogsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ReferenceEquals(_loadedViewModel, vm)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DataContext is ActivityLogsViewModel { IsBusy: true }", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsBusy)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("vm.PrintStatusText", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsViewModel_CoalescesFilteringAndKeepsRowsDuringRefreshFailure()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
+
+            Assert.Contains("const int FilterDebounceMilliseconds = 160;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("CancellationTokenSource? _filterRefreshCts", viewModel, StringComparison.Ordinal);
+            Assert.Contains("Interlocked.Exchange(ref _filterRefreshCts, cts)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("await Task.Delay(FilterDebounceMilliseconds, cts.Token);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("await Task.Run(() => rows.Where", viewModel, StringComparison.Ordinal);
+            Assert.Contains("PreserveActivityLogRowsAfterLoadFailure", viewModel, StringComparison.Ordinal);
+            Assert.DoesNotContain("ClearActivityLogRowsAfterLoadFailure", viewModel, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsViewModel_ExposesProfessionalDisplayAndPrintState()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
+
+            Assert.Contains("public bool IsBusy => IsLoading || IsFiltering;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanPrintActivityRows => !IsBusy && FilteredLogs.Count > 0;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanUseSelectedLogActions => !IsBusy && SelectedLog != null;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public string ActivityEmptyStateTitle", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public string ActivityEmptyStateMessage", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public string PrintStatusText", viewModel, StringComparison.Ordinal);
+            Assert.Contains("log.UserID.ToString().Contains(search, StringComparison.OrdinalIgnoreCase)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OrderByDescending(log => log.Timestamp)", viewModel, StringComparison.Ordinal);
+        }
+
         private static string ReadRepoFile(params string[] parts)
         {
             var directory = AppContext.BaseDirectory;
