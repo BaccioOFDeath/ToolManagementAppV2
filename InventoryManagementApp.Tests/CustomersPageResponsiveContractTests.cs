@@ -92,6 +92,70 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("CustomerRow_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void CustomersPage_LoadsOnceAfterFirstPaintAndResetsForNewViewModels()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml.cs");
+
+            Assert.Contains("private Task? _loadCustomersTask;", source, StringComparison.Ordinal);
+            Assert.Contains("private CustomerManagementViewModel? _loadedViewModel;", source, StringComparison.Ordinal);
+            Assert.Contains("DataContextChanged += CustomersPage_DataContextChanged;", source, StringComparison.Ordinal);
+            Assert.Contains("FocusFirstSearchBox();\n\n            if (DataContext is CustomerManagementViewModel vm)", source, StringComparison.Ordinal);
+            Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", source, StringComparison.Ordinal);
+            Assert.Contains("if (!ReferenceEquals(DataContext, vm) || vm.IsCustomerDirectoryBusy)", source, StringComparison.Ordinal);
+            Assert.Contains("_loadCustomersTask = vm.LoadCustomersAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("IsCompletedSuccessfully", source, StringComparison.Ordinal);
+            Assert.Contains("_loadCustomersTask = null;", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomersPage_BlocksStaleRowAndShortcutActionsWhileRowsLoad()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml.cs");
+
+            Assert.Contains("CustomerManagementViewModel { IsCustomerDirectoryBusy: true }", source, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", source, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsCustomerDirectoryBusy && IsCustomerActionShortcut(e))", source, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsCustomerActionShortcut(KeyEventArgs e)", source, StringComparison.Ordinal);
+            Assert.Contains("e.Key is Key.N or Key.P or Key.C or Key.D", source, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.None && (e.Key is Key.Enter or Key.Delete)", source, StringComparison.Ordinal);
+            Assert.Contains("Key == Key.N && vm.AddCustomerCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("Key == Key.P && vm.PrintCustomerDirectoryCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("Key == Key.Delete && vm.DeleteCustomerCommand.CanExecute(null)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomerViewModel_GuardsBusyStateAndSelectedCommandAvailability()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CustomerManagementViewModel.cs");
+
+            Assert.Contains("AddCustomerCommand = new AsyncRelayCommand(AddCustomerAsync, CanRefreshCustomerDirectory);", source, StringComparison.Ordinal);
+            Assert.Contains("UpdateCustomerCommand = new AsyncRelayCommand(UpdateCustomerAsync, CanInteractWithSelectedCustomer);", source, StringComparison.Ordinal);
+            Assert.Contains("EditCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(EditCustomerAsync, CanInteractWithCustomer);", source, StringComparison.Ordinal);
+            Assert.Contains("DeleteCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(c => DeleteCustomerAsync(c), CanInteractWithCustomer);", source, StringComparison.Ordinal);
+            Assert.Contains("OpenCustomerDetailsCommand = new RelayCommand(OpenCustomerDetails, CanInteractWithSelectedCustomer);", source, StringComparison.Ordinal);
+            Assert.Contains("PrintSelectedCustomerCommand = new RelayCommand(PrintSelectedCustomer, CanInteractWithSelectedCustomer);", source, StringComparison.Ordinal);
+            Assert.Contains("CopySelectedCustomerCommand = new RelayCommand(CopySelectedCustomer, CanInteractWithSelectedCustomer);", source, StringComparison.Ordinal);
+            Assert.Contains("private bool CanInteractWithSelectedCustomer() => !IsCustomerDirectoryBusy && SelectedCustomer != null;", source, StringComparison.Ordinal);
+            Assert.Contains("private bool CanInteractWithCustomer(CustomerModel? customer) => !IsCustomerDirectoryBusy && customer != null;", source, StringComparison.Ordinal);
+            Assert.Contains("NotifySelectedCustomerActionStateChanged();", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomerViewModel_ExposesBusyPrintAndActionStatus()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CustomerManagementViewModel.cs");
+
+            Assert.Contains("Print paused while customer rows load", source, StringComparison.Ordinal);
+            Assert.Contains("Customer actions are paused while the directory refreshes", source, StringComparison.Ordinal);
+            Assert.Contains("ShowCustomerDirectoryBusyMessage", source, StringComparison.Ordinal);
+            Assert.Contains("Customer rows are still updating. Try again after the directory finishes loading.", source, StringComparison.Ordinal);
+            Assert.Contains("if (IsCustomerDirectoryBusy || SelectedCustomer == null", source, StringComparison.Ordinal);
+            Assert.Contains("if (IsCustomerDirectoryBusy || customer == null", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CustomerPrintSummary));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CustomerOperationsSummary));", source, StringComparison.Ordinal);
+        }
+
         private static string ReadRepoFile(params string[] parts)
         {
             var directory = AppContext.BaseDirectory;
