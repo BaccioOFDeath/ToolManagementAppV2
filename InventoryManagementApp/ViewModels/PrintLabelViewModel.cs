@@ -33,7 +33,10 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _selectedTemplate, value))
+                {
                     OnPropertyChanged(nameof(PrintReadinessText));
+                    OnPropertyChanged(nameof(LabelActionStatusText));
+                }
             }
         }
 
@@ -44,19 +47,41 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _includeQr, value))
+                {
                     OnPropertyChanged(nameof(PrintReadinessText));
+                    OnPropertyChanged(nameof(LabelActionStatusText));
+                }
+            }
+        }
+
+        private bool _isGeneratingDocument;
+        public bool IsGeneratingDocument
+        {
+            get => _isGeneratingDocument;
+            private set
+            {
+                if (SetProperty(ref _isGeneratingDocument, value))
+                {
+                    OnPropertyChanged(nameof(CanGenerateLabels));
+                    OnPropertyChanged(nameof(LabelActionBusyVisibility));
+                    OnPropertyChanged(nameof(LabelActionStatusText));
+                    PreviewCommand.NotifyCanExecuteChanged();
+                    PrintCommand.NotifyCanExecuteChanged();
+                }
             }
         }
 
         public ObservableCollection<ItemModel> Items { get; }
 
         public bool HasItems => Items.Count > 0;
+        public bool CanGenerateLabels => HasItems && !IsGeneratingDocument;
         public Visibility EmptyQueueVisibility => HasItems ? Visibility.Collapsed : Visibility.Visible;
+        public Visibility LabelActionBusyVisibility => IsGeneratingDocument ? Visibility.Visible : Visibility.Collapsed;
         public int VisibleLabelCount => Math.Min(Items.Count, MaxPrintableLabels);
         public int OmittedLabelCount => Math.Max(0, Items.Count - MaxPrintableLabels);
 
         public string QueueStatusText => HasItems
-            ? $"{Items.Count:N0} queued; {VisibleLabelCount:N0} printable preview labels"
+            ? $"{Items.Count:N0} queued; {VisibleLabelCount:N0} prepared for preview or print"
             : "No queued labels";
 
         public string PrintReadinessText
@@ -68,12 +93,16 @@ namespace InventoryManagementApp.ViewModels
 
                 var qrText = IncludeQr ? "QR markers included" : "QR markers excluded";
                 var omittedText = OmittedLabelCount > 0
-                    ? $"; {OmittedLabelCount:N0} additional labels omitted from this preview for responsiveness"
+                    ? $"; {OmittedLabelCount:N0} additional labels omitted from this run for responsiveness"
                     : string.Empty;
 
-                return $"Ready to preview {VisibleLabelCount:N0} {SelectedTemplate.ToLowerInvariant()} labels; {qrText}{omittedText}.";
+                return $"Ready to prepare {VisibleLabelCount:N0} {SelectedTemplate.ToLowerInvariant()} labels; {qrText}{omittedText}.";
             }
         }
+
+        public string LabelActionStatusText => IsGeneratingDocument
+            ? "Preparing the label document. Preview and print controls are paused until the current document is ready."
+            : PrintReadinessText;
 
         public IRelayCommand PreviewCommand { get; }
         public IRelayCommand PrintCommand { get; }
@@ -93,40 +122,61 @@ namespace InventoryManagementApp.ViewModels
             _selectedTemplate = Templates.First();
             Items = new ObservableCollection<ItemModel>();
             Items.CollectionChanged += Items_CollectionChanged;
-            PreviewCommand = new RelayCommand(Preview, () => HasItems);
-            PrintCommand = new RelayCommand(Print, () => HasItems);
+            PreviewCommand = new RelayCommand(Preview, () => CanGenerateLabels);
+            PrintCommand = new RelayCommand(Print, () => CanGenerateLabels);
             CloseCommand = new RelayCommand(() => _closeAction?.Invoke());
         }
 
         private void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             OnPropertyChanged(nameof(HasItems));
+            OnPropertyChanged(nameof(CanGenerateLabels));
             OnPropertyChanged(nameof(EmptyQueueVisibility));
             OnPropertyChanged(nameof(VisibleLabelCount));
             OnPropertyChanged(nameof(OmittedLabelCount));
             OnPropertyChanged(nameof(QueueStatusText));
             OnPropertyChanged(nameof(PrintReadinessText));
+            OnPropertyChanged(nameof(LabelActionStatusText));
             PreviewCommand.NotifyCanExecuteChanged();
             PrintCommand.NotifyCanExecuteChanged();
         }
 
         private void Preview()
         {
-            var doc = BuildDocument();
-            _dialogService.ShowPrintPreview(doc, $"{LabelProvider.Instance.ItemLabelSingular} Labels", PrintReadinessText);
+            if (!CanGenerateLabels)
+                return;
+
+            IsGeneratingDocument = true;
+            try
+            {
+                var doc = BuildDocument();
+                _dialogService.ShowPrintPreview(doc, $"{LabelProvider.Instance.ItemLabelSingular} Labels", PrintReadinessText);
+            }
+            finally
+            {
+                IsGeneratingDocument = false;
+            }
         }
 
         private void Print()
         {
-            var doc = BuildDocument();
-            PrintDocumentTheme.ApplyLightTheme(doc);
+            if (!CanGenerateLabels)
+                return;
+
+            IsGeneratingDocument = true;
             try
             {
+                var doc = BuildDocument();
+                PrintDocumentTheme.ApplyLightTheme(doc);
                 _printAction(doc);
             }
             catch (System.Exception ex)
             {
                 _dialogService.ShowInfo($"Failed to print labels: {ex.Message}", "Print Labels");
+            }
+            finally
+            {
+                IsGeneratingDocument = false;
             }
         }
 
