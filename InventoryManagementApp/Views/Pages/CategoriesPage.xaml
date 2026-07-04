@@ -73,8 +73,8 @@
                     </Border>
                     <Border Style="{StaticResource CategoryStatCard}">
                         <StackPanel>
-                            <TextBlock Text="SETUP" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding CategoryNameStatus}" Style="{StaticResource CategoryStatValueText}"/>
+                            <TextBlock Text="PRINT" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding CategoryPrintSummary}" Style="{StaticResource CategoryStatValueText}"/>
                         </StackPanel>
                     </Border>
                 </WrapPanel>
@@ -95,7 +95,7 @@
                         <Button Style="{StaticResource GhostButton}" Content="Open" Click="OpenCategoryDetail_Click" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopyCategory_Click" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintCategories_Click" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintCategories_Click" IsEnabled="{Binding IsDirectoryPrintAvailable}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCommand}" Margin="0,0,4,4"/>
                     </WrapPanel>
                 </DockPanel>
@@ -184,7 +184,7 @@
                                 <MenuItem Header="Save Rename" Command="{Binding SaveCommand}"/>
                                 <MenuItem Header="Delete Category" Command="{Binding DeleteCommand}"/>
                                 <Separator/>
-                                <MenuItem Header="Print Current Directory" Click="PrintCategories_Click"/>
+                                <MenuItem Header="Print Current Directory" Click="PrintCategories_Click" IsEnabled="{Binding IsDirectoryPrintAvailable}"/>
                                 <MenuItem Header="Clear Filter" Command="{Binding ClearSearchCommand}"/>
                                 <MenuItem Header="Refresh" Command="{Binding RefreshCommand}"/>
                             </ContextMenu>
@@ -214,20 +214,18 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <Border Grid.Row="2" MaxWidth="330" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Border.Style>
-                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding FilteredCategories.Count}" Value="0">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
+                    <Border Grid.Row="2" MaxWidth="340" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsCategoryEmptyStateVisible, Converter={StaticResource BoolToVis}}" Style="{StaticResource DesktopNoteCard}">
                         <StackPanel>
-                            <TextBlock Text="No categories match this filter" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
-                            <TextBlock Text="Clear the search, refresh the directory, or create a category name that matches how staff ask for tools." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding CategoryEmptyStateTitle}" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding CategoryEmptyStateMessage}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="2" MaxWidth="360" MinHeight="118" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsCategoryInteractionBusy, Converter={StaticResource BoolToVis}}" Style="{StaticResource DesktopNoteCard}">
+                        <StackPanel>
+                            <ProgressBar IsIndeterminate="True" Height="6" Margin="0,0,0,10"/>
+                            <TextBlock Text="Loading category rows" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="The directory is refreshing. Actions and print are paused until the saved category list is ready." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
@@ -317,13 +315,14 @@
             <DockPanel LastChildFill="True">
                 <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
                     <Button Style="{StaticResource PrimaryButton}" Content="Open" Click="OpenCategoryDetail_Click" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintCategories_Click" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintCategories_Click" IsEnabled="{Binding IsDirectoryPrintAvailable}" Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}" Content="Clear Filter" Command="{Binding ClearSearchCommand}" Margin="0,0,0,4"/>
                 </WrapPanel>
                 <StackPanel MinWidth="0">
                     <TextBlock Text="{Binding SelectedCategorySummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="2,0,10,0"/>
                     <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="2,2,10,0"/>
+                    <TextBlock Text="{Binding CategoryPrintSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="2,2,10,0"/>
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -331,6 +330,6 @@
         <ProgressBar Grid.Row="4"
                      IsIndeterminate="True"
                      Margin="0,4,0,0"
-                     Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                     Visibility="{Binding IsCategoryInteractionBusy, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Page>

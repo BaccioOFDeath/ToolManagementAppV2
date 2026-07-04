@@ -38,7 +38,7 @@ namespace InventoryManagementApp.ViewModels
                 if (_selectedInventoryId == value) return;
                 _selectedInventoryId = value;
                 OnPropertyChanged();
-                _addCommand.RaiseCanExecuteChanged();
+                RaiseCommandStates();
                 if (_schemaInitialized)
                 {
                     LoadCategoriesAsync();
@@ -56,8 +56,7 @@ namespace InventoryManagementApp.ViewModels
                 OnPropertyChanged();
                 CategoryName = value?.Name ?? "";
                 RaiseSelectedCategoryProperties();
-                _saveCommand.RaiseCanExecuteChanged();
-                _deleteCommand.RaiseCanExecuteChanged();
+                RaiseCommandStates();
             }
         }
 
@@ -71,8 +70,7 @@ namespace InventoryManagementApp.ViewModels
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CategoryNameStatus));
                 OnPropertyChanged(nameof(SelectedCategoryNextAction));
-                _addCommand.RaiseCanExecuteChanged();
-                _saveCommand.RaiseCanExecuteChanged();
+                RaiseCommandStates();
             }
         }
 
@@ -85,7 +83,7 @@ namespace InventoryManagementApp.ViewModels
                 _searchText = value;
                 OnPropertyChanged();
                 ApplyFilter();
-                _clearSearchCommand.RaiseCanExecuteChanged();
+                RaiseCommandStates();
             }
         }
 
@@ -108,8 +106,17 @@ namespace InventoryManagementApp.ViewModels
                 if (_isBusy == value) return;
                 _isBusy = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(IsCategoryInteractionBusy));
+                RaiseDirectoryProperties();
+                RaiseCommandStates();
             }
         }
+
+        public bool IsCategoryInteractionBusy => IsBusy;
+
+        public bool IsDirectoryPrintAvailable => !IsCategoryInteractionBusy && FilteredCategories.Count > 0;
+
+        public bool IsCategoryEmptyStateVisible => !IsCategoryInteractionBusy && FilteredCategories.Count == 0;
 
         public string CategoryResultsSummary => string.IsNullOrWhiteSpace(SearchText)
             ? $"{FilteredCategories.Count} {(FilteredCategories.Count == 1 ? "category" : "categories")} shown"
@@ -122,6 +129,44 @@ namespace InventoryManagementApp.ViewModels
         public string CategoryFilterSummary => string.IsNullOrWhiteSpace(SearchText)
             ? "Showing every linked category."
             : $"Filter active: \"{SearchText.Trim()}\".";
+
+        public string CategoryPrintSummary
+        {
+            get
+            {
+                if (IsCategoryInteractionBusy) return "Print is paused while category rows are loading.";
+                if (FilteredCategories.Count == 0) return "Print is available after categories are loaded or the filter has matches.";
+                return string.IsNullOrWhiteSpace(SearchText)
+                    ? $"Ready to print {FilteredCategories.Count} category row{(FilteredCategories.Count == 1 ? "" : "s")}."
+                    : $"Ready to print {FilteredCategories.Count} filtered category row{(FilteredCategories.Count == 1 ? "" : "s")}.";
+            }
+        }
+
+        public string CategoryEmptyStateTitle
+        {
+            get
+            {
+                if (Categories.Count == 0) return "No categories linked yet";
+                return string.IsNullOrWhiteSpace(SearchText)
+                    ? "No categories to show"
+                    : "No categories match this filter";
+            }
+        }
+
+        public string CategoryEmptyStateMessage
+        {
+            get
+            {
+                if (Categories.Count == 0)
+                {
+                    return "Create the first category for this inventory area so item setup, advisor search, and printed directories have a controlled vocabulary.";
+                }
+
+                return string.IsNullOrWhiteSpace(SearchText)
+                    ? "Refresh the directory or create a category name that matches how staff ask for tools."
+                    : "Clear the search, adjust the filter, or create a category name that matches how staff ask for tools.";
+            }
+        }
 
         public string CategoryNameStatus
         {
@@ -201,11 +246,11 @@ namespace InventoryManagementApp.ViewModels
         {
             _service = service;
             _logger = logger ?? NullLogger<CategoryManagementViewModel>.Instance;
-            _addCommand = new AsyncCommand(AddAsync, () => !string.IsNullOrWhiteSpace(CategoryName) && SelectedInventoryId > 0);
-            _saveCommand = new AsyncCommand(SaveAsync, () => SelectedCategory != null && !string.IsNullOrWhiteSpace(CategoryName));
-            _deleteCommand = new AsyncCommand(DeleteAsync, () => SelectedCategory != null);
-            _refreshCommand = new AsyncCommand(LoadAsync);
-            _clearSearchCommand = new AsyncCommand(ClearSearchAsync, () => !string.IsNullOrWhiteSpace(SearchText));
+            _addCommand = new AsyncCommand(AddAsync, () => !IsCategoryInteractionBusy && !string.IsNullOrWhiteSpace(CategoryName) && SelectedInventoryId > 0);
+            _saveCommand = new AsyncCommand(SaveAsync, () => !IsCategoryInteractionBusy && SelectedCategory != null && !string.IsNullOrWhiteSpace(CategoryName));
+            _deleteCommand = new AsyncCommand(DeleteAsync, () => !IsCategoryInteractionBusy && SelectedCategory != null);
+            _refreshCommand = new AsyncCommand(LoadAsync, () => !IsCategoryInteractionBusy && SelectedInventoryId > 0);
+            _clearSearchCommand = new AsyncCommand(ClearSearchAsync, () => !IsCategoryInteractionBusy && !string.IsNullOrWhiteSpace(SearchText));
         }
 
         private async void LoadCategoriesAsync()
@@ -237,13 +282,25 @@ namespace InventoryManagementApp.ViewModels
             await LoadAsync();
         }
 
-        private async Task LoadAsync()
+        private Task LoadAsync()
+        {
+            if (SelectedInventoryId <= 0) return Task.CompletedTask;
+            if (IsBusy)
+            {
+                StatusMessage = "Category refresh is already running.";
+                return Task.CompletedTask;
+            }
+
+            return LoadCategoryDirectoryAsync();
+        }
+
+        private async Task LoadCategoryDirectoryAsync(int? preferredSelectedId = null)
         {
             if (SelectedInventoryId <= 0) return;
             IsBusy = true;
             try
             {
-                var selectedId = SelectedCategory?.CategoryID;
+                var selectedId = preferredSelectedId ?? SelectedCategory?.CategoryID;
                 var list = await _service.GetCategoriesForInventoryAsync(SelectedInventoryId);
                 Categories.Clear();
                 foreach (var c in list) Categories.Add(new CategoryItem { CategoryID = c.CategoryID, Name = c.Name });
@@ -323,12 +380,12 @@ namespace InventoryManagementApp.ViewModels
                 : FilteredCategories.FirstOrDefault();
 
             RaiseDirectoryProperties();
+            RaiseSelectedCategoryProperties();
         }
 
         private async Task ClearSearchAsync()
         {
             SearchText = "";
-            ApplyFilter();
             StatusMessage = "Category filter cleared.";
             await Task.CompletedTask;
         }
@@ -354,7 +411,7 @@ namespace InventoryManagementApp.ViewModels
                     _logger.LogInformation(ex, "Category {CategoryId} was already linked to inventory {InventoryId}", id, SelectedInventoryId);
                 }
 
-                await LoadAsync();
+                await LoadCategoryDirectoryAsync(id);
                 SelectedCategory = FilteredCategories.FirstOrDefault(x => x.CategoryID == id)
                     ?? Categories.FirstOrDefault(x => x.CategoryID == id);
                 StatusMessage = $"Category '{name}' is ready for item assignment.";
@@ -460,6 +517,11 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CategoryResultsSummary));
             OnPropertyChanged(nameof(CategorySetupSummary));
             OnPropertyChanged(nameof(CategoryFilterSummary));
+            OnPropertyChanged(nameof(CategoryPrintSummary));
+            OnPropertyChanged(nameof(IsDirectoryPrintAvailable));
+            OnPropertyChanged(nameof(IsCategoryEmptyStateVisible));
+            OnPropertyChanged(nameof(CategoryEmptyStateTitle));
+            OnPropertyChanged(nameof(CategoryEmptyStateMessage));
             OnPropertyChanged(nameof(CategoryNameStatus));
         }
 
@@ -472,6 +534,15 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(SelectedCategorySummary));
             OnPropertyChanged(nameof(SelectedCategoryChecklist));
             OnPropertyChanged(nameof(SelectedCategoryHandoff));
+        }
+
+        private void RaiseCommandStates()
+        {
+            _addCommand.RaiseCanExecuteChanged();
+            _saveCommand.RaiseCanExecuteChanged();
+            _deleteCommand.RaiseCanExecuteChanged();
+            _refreshCommand.RaiseCanExecuteChanged();
+            _clearSearchCommand.RaiseCanExecuteChanged();
         }
 
         private void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
