@@ -14,6 +14,8 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class ReportsPage : Page
     {
+        private const int MaxReportPrintRows = 250;
+
         public ReportsPage()
         {
             InitializeComponent();
@@ -21,7 +23,10 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ReportGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            UiActionGuard.Run(this, "Reports", OpenSelectedDestination);
+            if (DataContext is ReportsViewModel { CanUseReportRows: true })
+            {
+                UiActionGuard.Run(this, "Reports", OpenSelectedDestination);
+            }
         }
 
         private void OpenSourcePage_Click(object sender, RoutedEventArgs e)
@@ -31,6 +36,12 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ReportGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (DataContext is ReportsViewModel { IsBusy: true })
+            {
+                e.Handled = true;
+                return;
+            }
+
             GridContextMenuSelection.SelectRow(sender, e);
         }
 
@@ -38,6 +49,12 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Reports", () =>
             {
+                if (DataContext is ReportsViewModel { IsBusy: true })
+                {
+                    WpfMessageBox.Show("Wait for the report to finish generating before copying a handoff.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
                 var line = GetSelectedReportLineForAction();
                 if (line == null)
                 {
@@ -53,22 +70,42 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Reports", () =>
             {
-                if (DataContext is not ReportsViewModel vm || !vm.CanPrintCurrentReport)
+                if (DataContext is not ReportsViewModel vm)
                 {
                     WpfMessageBox.Show("Run a report before printing.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
-                var document = BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, vm.ReportLines.ToList());
+                if (vm.IsBusy)
+                {
+                    WpfMessageBox.Show("Wait for the report to finish generating before opening print preview.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                if (!vm.CanPrintCurrentReport)
+                {
+                    WpfMessageBox.Show("Run a report before printing.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var totalLineCount = vm.ReportLines.Count;
+                var printRows = vm.ReportLines.Take(MaxReportPrintRows).ToList();
+                var document = BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, printRows, totalLineCount);
                 new PrintPreviewWindow().ShowPreview(
                     document,
                     vm.ReportTitle,
-                    "Review the report summary, destination routing, and next-action handoff before printing.");
+                    "Review the report summary, destination routing, next-action handoff, and any omitted rows before printing. Large reports print the first 250 rows so preview stays responsive.");
             });
         }
 
         private void OpenSelectedDestination()
         {
+            if (DataContext is ReportsViewModel { IsBusy: true })
+            {
+                WpfMessageBox.Show("Wait for the report to finish generating before opening a source page.", "Reports", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
             var line = GetSelectedReportLineForAction();
             if (line == null || string.IsNullOrWhiteSpace(line.DestinationKey))
             {
@@ -134,10 +171,12 @@ namespace InventoryManagementApp.Views.Pages
                    $"Destination: {line.DestinationName}";
         }
 
-        private static FlowDocument BuildReportDocument(string title, string summary, string lastRunText, IReadOnlyCollection<ReportLine> lines)
+        private static FlowDocument BuildReportDocument(string title, string summary, string lastRunText, IReadOnlyCollection<ReportLine> lines, int totalLineCount)
         {
             var safeLines = lines?.Where(line => line != null).ToList() ?? new List<ReportLine>();
             var safeTitle = ValueOrNotRecorded(title);
+            var printedLineCount = safeLines.Count;
+            var omittedLineCount = Math.Max(0, totalLineCount - printedLineCount);
             var document = new FlowDocument
             {
                 FontFamily = new FontFamily("Segoe UI"),
@@ -166,7 +205,7 @@ namespace InventoryManagementApp.Views.Pages
                 Margin = new Thickness(0, 0, 0, 2)
             });
 
-            document.Blocks.Add(BuildSummarySection(safeTitle, summary, lastRunText, safeLines.Count));
+            document.Blocks.Add(BuildSummarySection(safeTitle, summary, lastRunText, totalLineCount, printedLineCount, omittedLineCount));
 
             if (safeLines.Count == 0)
             {
@@ -220,7 +259,7 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             document.Blocks.Add(table);
-            document.Blocks.Add(new Paragraph(new Run("Review each destination, source-page route, and next action before closing the report packet or assigning follow-up work."))
+            document.Blocks.Add(new Paragraph(new Run("Review each destination, source-page route, next action, and omitted-row count before closing the report packet or assigning follow-up work."))
             {
                 FontSize = 10,
                 FontStyle = FontStyles.Italic,
@@ -229,7 +268,7 @@ namespace InventoryManagementApp.Views.Pages
             return document;
         }
 
-        private static Section BuildSummarySection(string title, string summary, string lastRunText, int lineCount)
+        private static Section BuildSummarySection(string title, string summary, string lastRunText, int totalLineCount, int printedLineCount, int omittedLineCount)
         {
             var section = new Section
             {
@@ -251,7 +290,10 @@ namespace InventoryManagementApp.Views.Pages
             var group = new TableRowGroup();
             table.RowGroups.Add(group);
             AddKeyValueRow(group, "Report", title);
-            AddKeyValueRow(group, "Action Rows", lineCount.ToString());
+            AddKeyValueRow(group, "Total Action Rows", totalLineCount.ToString());
+            AddKeyValueRow(group, "Printed Action Rows", printedLineCount.ToString());
+            AddKeyValueRow(group, "Omitted Action Rows", omittedLineCount == 0 ? "None" : $"{omittedLineCount} rows omitted to keep preview responsive");
+            AddKeyValueRow(group, "Large Report Limit", $"First {MaxReportPrintRows} action rows");
             AddKeyValueRow(group, "Last Run", ValueOrNotRecorded(lastRunText));
             AddKeyValueRow(group, "Summary", ValueOrNotRecorded(summary));
 

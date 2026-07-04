@@ -87,7 +87,11 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _isBusy, value))
+                {
                     RunReportCommand.NotifyCanExecuteChanged();
+                    OnPropertyChanged(nameof(CanPrintCurrentReport));
+                    OnPropertyChanged(nameof(CanUseReportRows));
+                }
             }
         }
 
@@ -107,7 +111,8 @@ namespace InventoryManagementApp.ViewModels
 
         public string LastRunText => LastRunAt.HasValue ? LastRunAt.Value.ToString("g") : "Not run";
         public int ReportLineCount => ReportLines.Count;
-        public bool CanPrintCurrentReport => LastRunAt.HasValue && ReportLines.Count > 0 && !string.Equals(ReportStatus, "Report failed.", StringComparison.Ordinal);
+        public bool CanPrintCurrentReport => !IsBusy && LastRunAt.HasValue && ReportLines.Count > 0 && !string.Equals(ReportStatus, "Report failed.", StringComparison.Ordinal);
+        public bool CanUseReportRows => !IsBusy && ReportLines.Count > 0;
         public string ReportOperatorPath => string.IsNullOrWhiteSpace(SelectedReport)
             ? "Choose a report, run it, then open the source page from any row that needs follow-up."
             : $"Run {SelectedReport}, select a row, then open {BuildDestinationName(SelectedReport, SelectedReportLine?.Category)} to continue the workflow.";
@@ -202,6 +207,7 @@ namespace InventoryManagementApp.ViewModels
                 LastRunAt = null;
                 OnPropertyChanged(nameof(ReportLineCount));
                 OnPropertyChanged(nameof(CanPrintCurrentReport));
+                OnPropertyChanged(nameof(CanUseReportRows));
                 OnPropertyChanged(nameof(ReportOperatorPath));
                 ClearReportCommand.NotifyCanExecuteChanged();
             }
@@ -247,6 +253,7 @@ namespace InventoryManagementApp.ViewModels
                 SelectedReportLine = ReportLines[0];
             OnPropertyChanged(nameof(ReportLineCount));
             OnPropertyChanged(nameof(CanPrintCurrentReport));
+            OnPropertyChanged(nameof(CanUseReportRows));
             OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
         }
@@ -265,6 +272,7 @@ namespace InventoryManagementApp.ViewModels
             LastRunAt = null;
             OnPropertyChanged(nameof(ReportLineCount));
             OnPropertyChanged(nameof(CanPrintCurrentReport));
+            OnPropertyChanged(nameof(CanUseReportRows));
             OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
         }
@@ -280,6 +288,7 @@ namespace InventoryManagementApp.ViewModels
             LastRunAt = null;
             OnPropertyChanged(nameof(ReportLineCount));
             OnPropertyChanged(nameof(CanPrintCurrentReport));
+            OnPropertyChanged(nameof(CanUseReportRows));
             OnPropertyChanged(nameof(ReportOperatorPath));
             ClearReportCommand.NotifyCanExecuteChanged();
         }
