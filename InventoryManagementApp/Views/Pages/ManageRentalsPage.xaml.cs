@@ -33,7 +33,7 @@ namespace InventoryManagementApp.Views.Pages
             if (DataContext is ManageRentalsViewModel vm && !ReferenceEquals(_loadedViewModel, vm))
             {
                 _loadedViewModel = vm;
-                await Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
+                await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
                 await vm.LoadRentalsAsync();
             }
         }
