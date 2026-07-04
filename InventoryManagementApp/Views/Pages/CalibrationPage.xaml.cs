@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using InventoryManagementApp.ViewModels;
 
@@ -17,10 +19,14 @@ namespace InventoryManagementApp.Views.Pages
             InitializeComponent();
             Loaded += CalibrationPage_Loaded;
             DataContextChanged += CalibrationPage_DataContextChanged;
+            PreviewKeyDown += CalibrationPage_PreviewKeyDown;
         }
 
         private async void CalibrationPage_Loaded(object sender, RoutedEventArgs e)
         {
+            Focus();
+            FocusFirstSearchBox();
+
             if (DataContext is CalibrationManagementViewModel vm)
             {
                 await LoadCalibrationOnceAsync(vm);
@@ -51,21 +57,170 @@ namespace InventoryManagementApp.Views.Pages
 
             _loadedViewModel = vm;
             await Dispatcher.Yield(DispatcherPriority.Background);
+
+            if (!ReferenceEquals(DataContext, vm) || !vm.LoadCalibrationCommand.CanExecute(null))
+            {
+                return;
+            }
+
             _loadCalibrationTask = vm.LoadCalibrationCommand.ExecuteAsync(null);
             await _loadCalibrationTask;
         }
 
         private void CalibrationRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (DataContext is CalibrationManagementViewModel { IsLoading: true })
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (GridContextMenuSelection.SelectRow(sender, e) == null)
+                return;
+
             if (DataContext is CalibrationManagementViewModel vm && vm.OpenCalibrationDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Calibration", () => vm.OpenCalibrationDetailsCommand.Execute(null));
+                e.Handled = true;
             }
         }
 
         private void CalibrationRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (DataContext is CalibrationManagementViewModel { IsLoading: true })
+            {
+                e.Handled = true;
+                return;
+            }
+
             GridContextMenuSelection.SelectRow(sender, e);
+        }
+
+        private void CalibrationPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (DataContext is not CalibrationManagementViewModel vm)
+                return;
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                FocusFirstSearchBox();
+                e.Handled = true;
+                return;
+            }
+
+            if (vm.IsLoading && IsCalibrationActionShortcut(e))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N && vm.AddCalibrationCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Calibration", async () => await vm.AddCalibrationCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R && vm.RefreshCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Calibration", async () => await vm.RefreshCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P && vm.PrintCalibrationListCommand.CanExecute(null))
+            {
+                UiActionGuard.Run(this, "Calibration", () => vm.PrintCalibrationListCommand.Execute(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P && vm.PrintSelectedCalibrationCommand.CanExecute(null))
+            {
+                UiActionGuard.Run(this, "Calibration", () => vm.PrintSelectedCalibrationCommand.Execute(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (!IsTextInputFocused() && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C && vm.CopySelectedCalibrationCommand.CanExecute(null))
+            {
+                UiActionGuard.Run(this, "Calibration", () => vm.CopySelectedCalibrationCommand.Execute(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.D && vm.OpenCalibrationDetailsCommand.CanExecute(null))
+            {
+                UiActionGuard.Run(this, "Calibration", () => vm.OpenCalibrationDetailsCommand.Execute(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.E && vm.EditCalibrationCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Calibration", async () => await vm.EditCalibrationCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter && vm.OpenCalibrationDetailsCommand.CanExecute(null))
+            {
+                UiActionGuard.Run(this, "Calibration", () => vm.OpenCalibrationDetailsCommand.Execute(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete && vm.DeleteCalibrationCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Calibration", async () => await vm.DeleteCalibrationCommand.ExecuteAsync(null));
+                e.Handled = true;
+            }
+        }
+
+        private static bool IsCalibrationActionShortcut(KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return e.Key is Key.N or Key.R or Key.P or Key.C or Key.D or Key.E;
+            }
+
+            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                return e.Key == Key.P;
+            }
+
+            return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete;
+        }
+
+        private void FocusFirstSearchBox()
+        {
+            var searchBox = FindDescendant<TextBox>(this);
+            if (searchBox == null)
+                return;
+
+            searchBox.Focus();
+            searchBox.SelectAll();
+        }
+
+        private static bool IsTextInputFocused()
+        {
+            return Keyboard.FocusedElement is TextBoxBase or PasswordBox;
+        }
+
+        private static T? FindDescendant<T>(DependencyObject current) where T : DependencyObject
+        {
+            for (var index = 0; index < VisualTreeHelper.GetChildrenCount(current); index++)
+            {
+                var child = VisualTreeHelper.GetChild(current, index);
+                if (child is T match)
+                    return match;
+
+                var nested = FindDescendant<T>(child);
+                if (nested != null)
+                    return nested;
+            }
+
+            return null;
         }
     }
 }
