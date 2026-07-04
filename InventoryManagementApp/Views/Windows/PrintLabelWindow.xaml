@@ -8,11 +8,11 @@
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         mc:Ignorable="d"
         Title="Print Labels"
-        Width="820" Height="540"
-        MinWidth="700" MinHeight="480"
+        Width="760" Height="520"
+        MinWidth="560" MinHeight="420"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="14">
+    <Grid x:Name="PrintLabelRoot" Margin="10" MinWidth="0" ClipToBounds="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -21,68 +21,76 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}" Padding="14,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" MinWidth="0"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel MinWidth="0">
+        <Border Style="{StaticResource ToolbarCard}" Padding="12,10">
+            <DockPanel LastChildFill="True">
+                <WrapPanel DockPanel.Dock="Right"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           MaxWidth="260"
+                           Margin="12,0,0,0">
+                    <Border Style="{StaticResource DesktopSummaryCard}"
+                            Padding="8,6"
+                            MinWidth="142"
+                            MaxWidth="240"
+                            Margin="0,0,0,6">
+                        <StackPanel>
+                            <TextBlock Text="Queue" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding QueueStatusText}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </WrapPanel>
+                <StackPanel MinWidth="0" MaxWidth="520">
                     <TextBlock Text="Label Output Workbench" Style="{StaticResource HeadingTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Select the label format, review the queued items, then preview or print."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,4,0,0"/>
                 </StackPanel>
-                <Border Grid.Column="1" Style="{StaticResource Card}" Padding="10,7" Margin="12,0,0,0" VerticalAlignment="Center" MaxWidth="190">
-                    <StackPanel>
-                        <TextBlock Text="Queue" Style="{StaticResource LabelTextBlock}"/>
-                        <TextBlock Text="{Binding QueueStatusText}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
+            </DockPanel>
         </Border>
 
-        <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Margin="0,10,0,8" Padding="10">
+        <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Margin="0,8,0,6" Padding="8">
             <WrapPanel>
                 <TextBlock Text="Label Template" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,6"/>
                 <ComboBox ItemsSource="{Binding Templates}"
                           SelectedItem="{Binding SelectedTemplate}"
-                          MinWidth="180"
-                          MaxWidth="300"
-                          Margin="0,0,14,6"
+                          MinWidth="160"
+                          MaxWidth="260"
+                          Margin="0,0,12,6"
                           ItemContainerStyle="{StaticResource DropdownItemStyle}"/>
                 <CheckBox Content="Include QR"
                           IsChecked="{Binding IncludeQr}"
                           VerticalAlignment="Center"
-                          Margin="0,0,14,6"/>
-                <TextBlock Text="{Binding PrintReadinessText}"
+                          Margin="0,0,12,6"/>
+                <TextBlock Text="{Binding LabelActionStatusText}"
                            Style="{StaticResource CaptionTextBlock}"
                            TextWrapping="Wrap"
-                           MaxWidth="460"
+                           MaxWidth="420"
                            Margin="0,1,0,6"
                            VerticalAlignment="Center"/>
             </WrapPanel>
         </Border>
 
-        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" MinWidth="0" MinHeight="150">
             <Grid MinWidth="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Border Style="{StaticResource ToolbarCard}" Padding="10,8" Margin="0">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" MinWidth="0"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                    <DockPanel LastChildFill="True">
+                        <TextBlock DockPanel.Dock="Right"
+                                   Text="Item number, name, and location"
+                                   Style="{StaticResource CaptionTextBlock}"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="220"
+                                   Margin="12,0,0,0"/>
                         <TextBlock Text="Queued Label Items" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
-                        <TextBlock Grid.Column="1" Text="Item number, name, and location" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" MaxWidth="260" Margin="12,0,0,0"/>
-                    </Grid>
+                    </DockPanel>
                 </Border>
                 <Grid Grid.Row="1" MinWidth="0">
-                    <DataGrid ItemsSource="{Binding Items}"
+                    <DataGrid x:Name="LabelQueueGrid"
+                              ItemsSource="{Binding Items}"
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               Style="{StaticResource VirtualizedDataGridStyle}"
@@ -95,22 +103,44 @@
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} #'}" Binding="{Binding ItemNumber}" Width="120" MinWidth="96"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" MinWidth="180"/>
-                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="1.2*" MinWidth="140"/>
+                            <DataGridTextColumn Header="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='{}{0} #'}" Binding="{Binding ItemNumber}" Width="104" MinWidth="82"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" MinWidth="140"/>
+                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="1.1*" MinWidth="112"/>
                         </DataGrid.Columns>
                     </DataGrid>
 
                     <Border Style="{StaticResource Card}"
-                            Padding="16"
+                            Padding="14"
                             Visibility="{Binding EmptyQueueVisibility}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            MaxWidth="380"
+                            MaxWidth="340"
+                            MinHeight="112"
+                            Margin="12"
                             IsHitTestVisible="False">
                         <StackPanel>
                             <TextBlock Text="No labels queued" Style="{StaticResource SectionHeader}" TextAlignment="Center"/>
-                            <TextBlock Text="Add items to the label queue before previewing or printing. The label sheet will stay capped for responsive previews when large batches are queued."
+                            <TextBlock Text="Add items to the label queue before previewing or printing. The label sheet stays capped for responsive large-batch output."
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center"
+                                       Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Visibility="{Binding LabelActionBusyVisibility}"
+                            Background="{DynamicResource SurfaceBrush}"
+                            BorderBrush="{DynamicResource BorderBrushBase}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="16"
+                            MaxWidth="360"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            IsHitTestVisible="True">
+                        <StackPanel>
+                            <TextBlock Text="Preparing label document" Style="{StaticResource SectionHeader}" TextAlignment="Center"/>
+                            <TextBlock Text="{Binding LabelActionStatusText}"
                                        Style="{StaticResource CaptionTextBlock}"
                                        TextWrapping="Wrap"
                                        TextAlignment="Center"
@@ -121,18 +151,18 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,10,0,0" Padding="10">
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,8,0,0" Padding="8">
             <WrapPanel HorizontalAlignment="Right">
-                <Button Style="{StaticResource GhostButton}" Content="Preview" Command="{Binding PreviewCommand}" MinWidth="104" Margin="0,0,8,6"/>
-                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintCommand}" MinWidth="104" Margin="0,0,8,6"/>
-                <Button Style="{StaticResource GhostButton}" Content="Close" Command="{Binding CloseCommand}" MinWidth="104" Margin="0,0,0,6"/>
+                <Button Style="{StaticResource GhostButton}" Content="Preview" Command="{Binding PreviewCommand}" MinWidth="96" Margin="0,0,8,6"/>
+                <Button Style="{StaticResource PrimaryButton}" Content="Print" Command="{Binding PrintCommand}" MinWidth="96" Margin="0,0,8,6"/>
+                <Button Style="{StaticResource GhostButton}" Content="Close" Command="{Binding CloseCommand}" MinWidth="96" Margin="0,0,0,6"/>
             </WrapPanel>
         </Border>
 
-        <Border Grid.Row="4" Style="{StaticResource ToolbarCard}" Margin="0,8,0,0" Padding="10,7">
+        <Border Grid.Row="4" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0" Padding="8,6">
             <WrapPanel>
-                <TextBlock Text="{Binding QueueStatusText}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,14,4"/>
-                <TextBlock Text="{Binding PrintReadinessText}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" MaxWidth="620" Margin="0,0,0,4"/>
+                <TextBlock Text="{Binding QueueStatusText}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,0,12,4"/>
+                <TextBlock Text="{Binding LabelActionStatusText}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" MaxWidth="560" Margin="0,0,0,4"/>
             </WrapPanel>
         </Border>
     </Grid>
