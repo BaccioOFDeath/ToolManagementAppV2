@@ -83,6 +83,58 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ImportExportViewModel_GatesAllDataOperationsThroughSharedBusyState()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
+
+            Assert.Contains("private int _activeDataOperationCount;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool IsDataOperationBusy => _activeDataOperationCount > 0;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool IsDataOperationReady => !IsDataOperationBusy;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public string DataOperationStatus => IsDataOperationBusy", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public string DataOperationSummary => IsDataOperationBusy", viewModel, StringComparison.Ordinal);
+            Assert.Contains("bool TryBeginDataOperation(string operationName)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("void EndDataOperation()", viewModel, StringComparison.Ordinal);
+            Assert.Contains("ImportItemsCommand = new AsyncRelayCommand(ct => ImportItemsAsync(ct), CanStartDataOperation);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("ExportItemsCommand = new AsyncRelayCommand(ct => ExportItemsAsync(ct), CanStartDataOperation);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("ImportCustomersCommand = new AsyncRelayCommand(ct => ImportCustomersAsync(ct), CanStartDataOperation);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("ExportCustomersCommand = new AsyncRelayCommand(ct => ExportCustomersAsync(ct), CanStartDataOperation);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("BackupDatabaseCommand = new AsyncRelayCommand(ct => BackupDatabaseAsync(ct), CanStartDataOperation);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("RestoreBackupCommand = new AsyncRelayCommand(ct => RestoreBackupAsync(ct), CanStartDataOperation);", viewModel, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ImportExportViewModel_UpdatesLogActionAvailabilityDuringBusyState()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
+
+            Assert.Contains("public bool CanReviewSelectedLog => !IsDataOperationBusy && !string.IsNullOrWhiteSpace(SelectedImportExportLog);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanPrintImportExportLogs => !IsDataOperationBusy && HasLogEntries;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("new RelayCommand(ClearImportExportLogs, () => HasLogEntries && !IsDataOperationBusy)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (IsDataOperationBusy)\n                return;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CanReviewSelectedLog));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CanPrintImportExportLogs));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("ClearImportExportLogsCommand.NotifyCanExecuteChanged();", viewModel, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ImportExportPage_CodeBehindGuardsLogActionsAndCapsPrintRows()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
+
+            Assert.Contains("private const int MaxPrintedLogRows = 250;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private bool IsDataOperationBusy() =>", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("vm.IsDataOperationBusy", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the current import, export, backup, or restore operation to finish before opening log details.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the current import, export, backup, or restore operation to finish before copying log details.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the current import, export, backup, or restore operation to finish before generating a print preview.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var printedLogs = safeLogs.Take(MaxPrintedLogRows).ToList();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var omittedLogCount = Math.Max(0, safeLogs.Count - printedLogs.Count);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Visible Log Rows", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Printed Log Rows", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Omitted Log Rows", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ImportExportPage_PreservesDataCommandsAndLogRowHandlers()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml");
