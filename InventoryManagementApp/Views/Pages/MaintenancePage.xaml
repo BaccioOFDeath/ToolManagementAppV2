@@ -65,8 +65,8 @@
                     </Border>
                     <Border Style="{StaticResource MaintenanceStatCard}">
                         <StackPanel>
-                            <TextBlock Text="HANDOFF" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="Copy / print ready" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="PRINT" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding MaintenancePrintStatus}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
                 </WrapPanel>
@@ -133,6 +133,7 @@
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
                         <DockPanel LastChildFill="True">
                             <TextBlock Text="{Binding MaintenanceBacklogSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding MaintenancePrintStatus}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
                     <DataGrid x:Name="MaintenanceGrid"
@@ -208,15 +209,39 @@
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding FilteredMaintenanceRecords.Count}" Value="0">
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding FilteredMaintenanceRecords.Count}" Value="0"/>
+                                            <Condition Binding="{Binding IsLoading}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="{Binding MaintenanceEmptyTitle}" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding MaintenanceEmptyMessage}"
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Row="2" MaxWidth="380" MinHeight="118" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="16">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
                         <StackPanel>
-                            <TextBlock Text="No maintenance work matches this filter" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
-                            <TextBlock Text="Clear search, switch the filter, or add a new work order to restart the technician queue."
+                            <TextBlock Text="Loading maintenance schedule" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="Work-order actions and schedule printing are paused until the latest saved rows are ready."
                                        Style="{StaticResource CaptionTextBlock}"
                                        TextAlignment="Center"
                                        TextWrapping="Wrap"
@@ -312,7 +337,10 @@
                     <Button Style="{StaticResource PrimaryButton}" Content="Complete" Command="{Binding CompleteMaintenanceCommand}" Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}" Content="Print Schedule" Command="{Binding PrintMaintenanceListCommand}" Margin="0,0,0,4"/>
                 </WrapPanel>
-                <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="2,0,10,0" TextWrapping="Wrap"/>
+                <StackPanel Margin="2,0,10,0">
+                    <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding MaintenancePrintStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                </StackPanel>
             </DockPanel>
         </Border>
     </Grid>
