@@ -1,22 +1,60 @@
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp.Views.Pages
 {
     public partial class KitManagementPage : Page
     {
+        private KitManagementViewModel? _loadedViewModel;
+        private Task? _loadKitsTask;
+
         public KitManagementPage()
         {
             InitializeComponent();
             Loaded += KitManagementPage_Loaded;
+            DataContextChanged += KitManagementPage_DataContextChanged;
             PreviewKeyDown += KitManagementPage_PreviewKeyDown;
         }
 
         private async void KitManagementPage_Loaded(object sender, RoutedEventArgs e)
         {
             if (DataContext is KitManagementViewModel vm)
+            {
+                await LoadKitsOnceForViewModelAsync(vm);
+            }
+        }
+
+        private void KitManagementPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!ReferenceEquals(e.NewValue, _loadedViewModel))
+            {
+                _loadedViewModel = null;
+                _loadKitsTask = null;
+            }
+        }
+
+        private async Task LoadKitsOnceForViewModelAsync(KitManagementViewModel vm)
+        {
+            if (ReferenceEquals(_loadedViewModel, vm) && _loadKitsTask != null)
+            {
+                await _loadKitsTask;
+                return;
+            }
+
+            _loadedViewModel = vm;
+            _loadKitsTask = LoadKitsAfterFirstPaintAsync(vm);
+            await _loadKitsTask;
+        }
+
+        private async Task LoadKitsAfterFirstPaintAsync(KitManagementViewModel vm)
+        {
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
+
+            if (DataContext is KitManagementViewModel currentVm && ReferenceEquals(currentVm, vm) && vm.LoadKitsCommand.CanExecute(null))
             {
                 await vm.LoadKitsCommand.ExecuteAsync(null);
             }
