@@ -169,6 +169,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("LoadReservationsOnceAsync", source, StringComparison.Ordinal);
             Assert.Contains("IsCompletedSuccessfully", source, StringComparison.Ordinal);
             Assert.Contains("_loadReservationsTask = null;", source, StringComparison.Ordinal);
+            Assert.Contains("Key == Key.N && vm.AddReservationCommand.CanExecute(null)", source, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)

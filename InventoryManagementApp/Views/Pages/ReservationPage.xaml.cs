@@ -86,7 +86,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N)
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N && vm.AddReservationCommand.CanExecute(null))
             {
                 UiActionGuard.RunAsync(this, "Reservations", async () => await vm.AddReservationCommand.ExecuteAsync(null));
                 e.Handled = true;
