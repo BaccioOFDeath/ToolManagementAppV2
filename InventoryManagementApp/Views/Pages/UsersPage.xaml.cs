@@ -29,13 +29,41 @@ namespace InventoryManagementApp.Views.Pages
         public UserManagementViewModel? ViewModel =>
             DataContext as UserManagementViewModel;
 
+        private bool IsUserDirectoryBusy => ViewModel?.IsLoadingUsers == true;
+
+        private bool TryRequireUserDirectoryReady(string actionDescription)
+        {
+            if (!IsUserDirectoryBusy)
+                return true;
+
+            WpfMessageBox.Show(
+                $"User rows are still loading. Wait for the account directory to finish before {actionDescription}.",
+                "User Directory",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return false;
+        }
+
         private void UserRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (!TryRequireUserDirectoryReady("opening account details"))
+            {
+                e.Handled = true;
+                return;
+            }
+
             OpenSelectedUser_Click(sender, e);
+            e.Handled = true;
         }
 
         private void UserRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (IsUserDirectoryBusy)
+            {
+                e.Handled = true;
+                return;
+            }
+
             GridContextMenuSelection.SelectRow(sender, e);
         }
 
@@ -43,7 +71,10 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "User Directory", () =>
             {
-                if (UsersDataGrid.SelectedItem is not UserModel user)
+                if (!TryRequireUserDirectoryReady("opening account details"))
+                    return;
+
+                if (ViewModel?.CanUseSelectedUserActions != true || UsersDataGrid.SelectedItem is not UserModel user)
                 {
                     WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -64,7 +95,10 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "User Directory", () =>
             {
-                if (UsersDataGrid.SelectedItem is not UserModel user)
+                if (!TryRequireUserDirectoryReady("copying account handoff details"))
+                    return;
+
+                if (ViewModel?.CanUseSelectedUserActions != true || UsersDataGrid.SelectedItem is not UserModel user)
                 {
                     WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -78,7 +112,10 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.RunAsync(this, "User Directory", async () =>
             {
-                if (ViewModel == null || UsersDataGrid.SelectedItem is not UserModel user)
+                if (!TryRequireUserDirectoryReady("resetting a password"))
+                    return;
+
+                if (ViewModel == null || ViewModel.CanUseSelectedUserActions != true || UsersDataGrid.SelectedItem is not UserModel user)
                 {
                     WpfMessageBox.Show("Select a user row first.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -92,7 +129,10 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "User Directory", () =>
             {
-                if (ViewModel == null || ViewModel.Users.Count == 0)
+                if (!TryRequireUserDirectoryReady("printing the account directory"))
+                    return;
+
+                if (ViewModel == null || !ViewModel.CanPrintUsers)
                 {
                     WpfMessageBox.Show("There are no users to print.", "User Directory", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -102,7 +142,7 @@ namespace InventoryManagementApp.Views.Pages
                 var printRows = ViewModel.Users.Take(MaxUsersPrintRows).ToList();
                 var summary = $"Visible users: {totalVisibleCount}; printed rows: {printRows.Count}; omitted rows: {Math.Max(0, totalVisibleCount - printRows.Count)}";
                 var document = BuildPrintDocument(printRows, totalVisibleCount, summary);
-                ShowPrintPreview(document, "User Directory", "Review the current account directory, access coverage, lockout state, and any omitted rows before filing an admin handoff.");
+                ShowPrintPreview(document, "User Directory", "Review the current account directory, access coverage, lockout state, active state, contact handoff details, and any omitted rows before filing an admin packet.");
             });
         }
 
@@ -195,7 +235,7 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             document.Blocks.Add(table);
-            document.Blocks.Add(new Paragraph(new Run("Review access coverage, lockout state, disabled accounts, and any omitted rows before changing permissions or filing this directory packet."))
+            document.Blocks.Add(new Paragraph(new Run("Review access coverage, lockout state, disabled accounts, contact handoff details, and any omitted rows before changing permissions or filing this directory packet."))
             {
                 FontSize = 10,
                 FontStyle = FontStyles.Italic,

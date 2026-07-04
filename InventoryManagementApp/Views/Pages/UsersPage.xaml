@@ -40,14 +40,19 @@
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
+                    <TextBlock Text="{Binding UserDirectoryStatusText}"
+                               Style="{StaticResource CaptionTextBlock}"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,0"/>
                 </StackPanel>
                 <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add User" Command="{Binding AddUserCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit Access" Command="{Binding EditUserCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Reset Password" Click="ResetSelectedUser_Click" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Upload Photo" Command="{Binding UploadUserPhotoCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedUser_Click" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintUsers_Click" Margin="0,0,0,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Add User" Command="{Binding AddUserCommand}" IsEnabled="{Binding CanUseUserActions}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Edit Access" Command="{Binding EditUserCommand}" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Reset Password" Click="ResetSelectedUser_Click" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Upload Photo" Command="{Binding UploadUserPhotoCommand}" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedUser_Click" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintUsers_Click" IsEnabled="{Binding CanPrintUsers}" Margin="0,0,0,6"/>
                 </WrapPanel>
             </DockPanel>
         </Border>
@@ -56,28 +61,28 @@
             <Border Style="{StaticResource UserStatCard}">
                 <StackPanel>
                     <TextBlock Text="Visible Users" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding Users.Count}" Style="{StaticResource UserStatValueText}"/>
-                    <TextBlock Text="Rows matching the current account search" Style="{StaticResource UserDetailText}"/>
+                    <TextBlock Text="{Binding VisibleUserCount}" Style="{StaticResource UserStatValueText}"/>
+                    <TextBlock Text="{Binding UserDirectoryStatusText}" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource UserStatCard}">
                 <StackPanel>
                     <TextBlock Text="Directory Filter" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding UserSearchText, TargetNullValue=All accounts}" Style="{StaticResource UserStatValueText}"/>
-                    <TextBlock Text="Search by user, role, contact, or access summary before printing" Style="{StaticResource UserDetailText}"/>
+                    <TextBlock Text="{Binding UserFilterStatusText}" Style="{StaticResource UserStatValueText}"/>
+                    <TextBlock Text="Search by ID, user, role, contact, lockout, or access summary before printing" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource UserStatCard}">
                 <StackPanel>
                     <TextBlock Text="Selected Access" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding SelectedUser.AccessSummary, TargetNullValue=No account selected}" Style="{StaticResource UserStatValueText}"/>
+                    <TextBlock Text="{Binding SelectedAccessStatusText}" Style="{StaticResource UserStatValueText}"/>
                     <TextBlock Text="Review allowed app areas before editing permissions" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource UserStatCard}" Margin="0,0,0,8">
                 <StackPanel>
                     <TextBlock Text="Security State" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding SelectedUser.LockoutStatus, TargetNullValue=Select a user}" Style="{StaticResource UserStatValueText}"/>
+                    <TextBlock Text="{Binding SelectedSecurityStatusText}" Style="{StaticResource UserStatValueText}"/>
                     <TextBlock Text="Password reset, lockout, and active-status context" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
@@ -107,7 +112,7 @@
                                            TextWrapping="Wrap"/>
                             </StackPanel>
                             <TextBlock DockPanel.Dock="Right"
-                                       Text="{Binding Users.Count, StringFormat='Visible: {0}'}"
+                                       Text="{Binding UserDirectoryStatusText}"
                                        Style="{StaticResource CaptionTextBlock}"
                                        VerticalAlignment="Center"
                                        TextWrapping="Wrap"
@@ -125,12 +130,13 @@
                                                  Text="{Binding UserSearchText, UpdateSourceTrigger=PropertyChanged}"
                                                  SearchCommand="{Binding SearchUsersCommand}"
                                                  ClearCommand="{Binding ClearUserSearchCommand}"
+                                                 IsEnabled="{Binding CanUseUserActions}"
                                                  Margin="0,0,8,6"/>
                             </WrapPanel>
                             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
-                                <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddUserCommand}" Margin="0,0,4,6"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Clear Filter" Command="{Binding ClearUserSearchCommand}" Margin="0,0,4,6"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintUsers_Click" Margin="0,0,0,6"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="Add" Command="{Binding AddUserCommand}" IsEnabled="{Binding CanUseUserActions}" Margin="0,0,4,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Clear Filter" Command="{Binding ClearUserSearchCommand}" IsEnabled="{Binding CanUseUserActions}" Margin="0,0,4,6"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintUsers_Click" IsEnabled="{Binding CanPrintUsers}" Margin="0,0,0,6"/>
                             </WrapPanel>
                         </DockPanel>
                     </Border>
@@ -211,15 +217,15 @@
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                                <MenuItem Header="Open User Detail" Click="OpenSelectedUser_Click"/>
-                                <MenuItem Header="Edit User Access" Command="{Binding EditUserCommand}"/>
-                                <MenuItem Header="Reset Password" Click="ResetSelectedUser_Click"/>
-                                <MenuItem Header="Upload Photo" Command="{Binding UploadUserPhotoCommand}"/>
+                                <MenuItem Header="Open User Detail" Click="OpenSelectedUser_Click" IsEnabled="{Binding CanUseSelectedUserActions}"/>
+                                <MenuItem Header="Edit User Access" Command="{Binding EditUserCommand}" IsEnabled="{Binding CanUseSelectedUserActions}"/>
+                                <MenuItem Header="Reset Password" Click="ResetSelectedUser_Click" IsEnabled="{Binding CanUseSelectedUserActions}"/>
+                                <MenuItem Header="Upload Photo" Command="{Binding UploadUserPhotoCommand}" IsEnabled="{Binding CanUseSelectedUserActions}"/>
                                 <Separator/>
-                                <MenuItem Header="Copy User Handoff" Click="CopySelectedUser_Click"/>
-                                <MenuItem Header="Print Current Directory" Click="PrintUsers_Click"/>
+                                <MenuItem Header="Copy User Handoff" Click="CopySelectedUser_Click" IsEnabled="{Binding CanUseSelectedUserActions}"/>
+                                <MenuItem Header="Print Current Directory" Click="PrintUsers_Click" IsEnabled="{Binding CanPrintUsers}"/>
                                 <Separator/>
-                                <MenuItem Header="Delete User" Command="{Binding DeleteUserFromRowCommand}" CommandParameter="{Binding SelectedUser}"/>
+                                <MenuItem Header="Delete User" Command="{Binding DeleteUserFromRowCommand}" CommandParameter="{Binding SelectedUser}" IsEnabled="{Binding CanUseSelectedUserActions}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                     </DataGrid>
@@ -229,15 +235,36 @@
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Users.Count}" Value="0">
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Users.Count}" Value="0"/>
+                                            <Condition Binding="{Binding IsLoadingUsers}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="{Binding UserEmptyStateTitle}" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding UserEmptyStateMessage}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="2" MaxWidth="360" MinHeight="118" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLoadingUsers}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
                         <StackPanel>
-                            <TextBlock Text="No users match this filter" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
-                            <TextBlock Text="Clear the filter or add a new account before assigning app access." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Loading account directory" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Existing rows remain visible when available. Account actions pause until the refresh finishes." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -327,10 +354,10 @@
 
                     <Border Grid.Row="2" Style="{StaticResource DesktopSectionActionStrip}">
                         <WrapPanel HorizontalAlignment="Right">
-                            <Button Style="{StaticResource GhostButton}" Content="Open Detail" Click="OpenSelectedUser_Click" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedUser_Click" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Reset Password" Click="ResetSelectedUser_Click" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintUsers_Click" Margin="0,0,0,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Open Detail" Click="OpenSelectedUser_Click" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedUser_Click" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Reset Password" Click="ResetSelectedUser_Click" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintUsers_Click" IsEnabled="{Binding CanPrintUsers}" Margin="0,0,0,4"/>
                         </WrapPanel>
                     </Border>
                 </Grid>
@@ -344,7 +371,7 @@
                 Padding="8,4">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Left"
-                           Text="{Binding Users.Count, StringFormat='Admin desk ready - {0} visible accounts'}"
+                           Text="{Binding UserDirectoryStatusText}"
                            FontSize="11"
                            VerticalAlignment="Center"/>
                 <TextBlock DockPanel.Dock="Right"
