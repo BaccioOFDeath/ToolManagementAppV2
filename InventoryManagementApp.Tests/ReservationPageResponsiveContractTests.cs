@@ -185,7 +185,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private static bool IsReservationActionShortcut(KeyEventArgs e)", source, StringComparison.Ordinal);
             Assert.Contains("e.Key is Key.N or Key.P or Key.C or Key.D or Key.Enter", source, StringComparison.Ordinal);
             Assert.Contains("e.Key is Key.P or Key.Enter", source, StringComparison.Ordinal);
-            Assert.Contains("Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete", source, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.None && (e.Key is Key.Enter or Key.Delete)", source, StringComparison.Ordinal);
             Assert.Contains("e.Handled = true;", source, StringComparison.Ordinal);
         }
 
