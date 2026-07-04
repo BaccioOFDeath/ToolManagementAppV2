@@ -105,15 +105,15 @@
                                   ToolTip="Choose the report to run"
                                   Margin="0,0,6,4"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Run Report" Command="{Binding RunReportCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Open Source Page" Click="OpenSourcePage_Click" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Open Source Page" Click="OpenSourcePage_Click" IsEnabled="{Binding CanUseReportRows}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearReportCommand}" Margin="0,0,4,4"/>
                     </WrapPanel>
                 </DockPanel>
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
                     <TextBlock Text="Output actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Print Report" Click="PrintReport_Click" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedRow_Click" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Print Report" Click="PrintReport_Click" IsEnabled="{Binding CanPrintCurrentReport}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedRow_Click" IsEnabled="{Binding CanUseReportRows}" Margin="0,0,4,4"/>
                         <TextBlock Text="{Binding ReportStatus}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="6,1,0,4"/>
                     </WrapPanel>
                 </DockPanel>
@@ -171,10 +171,10 @@
                               PreviewMouseRightButtonDown="ReportGrid_PreviewMouseRightButtonDown"
                               Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Open Source Page" Click="OpenSourcePage_Click"/>
-                                <MenuItem Header="Copy Handoff" Click="CopySelectedRow_Click"/>
-                                <MenuItem Header="Print Report" Click="PrintReport_Click"/>
+                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Open Source Page" Click="OpenSourcePage_Click" IsEnabled="{Binding CanUseReportRows}"/>
+                                <MenuItem Header="Copy Handoff" Click="CopySelectedRow_Click" IsEnabled="{Binding CanUseReportRows}"/>
+                                <MenuItem Header="Print Report" Click="PrintReport_Click" IsEnabled="{Binding CanPrintCurrentReport}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>
@@ -208,15 +208,40 @@
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding ReportLineCount}" Value="0">
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding ReportLineCount}" Value="0"/>
+                                            <Condition Binding="{Binding IsBusy}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
                                         <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
+                                    </MultiDataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
                         <StackPanel>
                             <TextBlock Text="No report rows are ready" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
                             <TextBlock Text="Choose a report, run it, then use this list to open source pages, copy handoffs, or print a report packet." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="2" MaxWidth="380" MinHeight="118" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="16">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="Generating report" FontSize="14" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="Report row routing, copying, and print preview are paused until the latest generated rows are ready."
+                                       Style="{StaticResource CaptionTextBlock}"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       Margin="0,4,0,0"/>
                         </StackPanel>
                     </Border>
 
@@ -284,9 +309,9 @@
 
                             <Border Style="{StaticResource DesktopInsetCard}" Padding="10" Margin="0,0,0,8">
                                 <WrapPanel>
-                                    <Button Style="{StaticResource PrimaryButton}" Content="Open Source" Click="OpenSourcePage_Click" Margin="0,0,4,4"/>
-                                    <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedRow_Click" Margin="0,0,4,4"/>
-                                    <Button Style="{StaticResource GhostButton}" Content="Print Report" Click="PrintReport_Click" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Open Source" Click="OpenSourcePage_Click" IsEnabled="{Binding CanUseReportRows}" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedRow_Click" IsEnabled="{Binding CanUseReportRows}" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Print Report" Click="PrintReport_Click" IsEnabled="{Binding CanPrintCurrentReport}" Margin="0,0,4,4"/>
                                 </WrapPanel>
                             </Border>
                         </StackPanel>
