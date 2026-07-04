@@ -32,6 +32,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IServiceProvider? _serviceProvider;
 
         private List<UserModel> _allUsers = new();
+        private bool _hasLoadedUsers;
 
         public ObservableCollection<UserModel> Users { get; } = new();
 
@@ -208,6 +209,7 @@ namespace InventoryManagementApp.ViewModels
                 .ThenBy(user => user.UserName, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(user => user.UserID)
                 .ToList();
+            _hasLoadedUsers = true;
 
             AssignInitialsBrushes(_allUsers);
             Users.ReplaceRange(FilterUsers(_allUsers));
@@ -217,6 +219,7 @@ namespace InventoryManagementApp.ViewModels
         private void ClearUsersAfterLoadFailure()
         {
             _allUsers.Clear();
+            _hasLoadedUsers = false;
             Users.Clear();
             SelectedUser = null;
             NotifyUserDirectoryStateChanged();
@@ -392,8 +395,12 @@ namespace InventoryManagementApp.ViewModels
             HashSet<string> existingNames;
             try
             {
+                var existingUsers = _hasLoadedUsers
+                    ? _allUsers
+                    : await _userService.GetAllUsersAsync(CancellationToken.None);
+
                 existingNames = new HashSet<string>(
-                    _allUsers.Select(u => u.UserName),
+                    existingUsers.Select(u => u.UserName),
                     StringComparer.OrdinalIgnoreCase);
             }
             catch (Exception ex)
@@ -432,6 +439,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _userService.AddUserAsync(newUser);
                 _allUsers.Add(newUser);
+                UserSearchText = string.Empty;
                 ApplyUserRows(_allUsers);
                 SelectedUser = Users.FirstOrDefault(user => ReferenceEquals(user, newUser))
                     ?? Users.FirstOrDefault(user => user.UserID == newUser.UserID)
