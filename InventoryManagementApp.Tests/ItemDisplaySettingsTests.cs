@@ -116,6 +116,7 @@ public class ItemDisplaySettingsTests
         public Task ExtendRentalAsync(int rentalID, DateTime newDueDate) => Task.CompletedTask;
         public Task DeleteRentalAsync(int rentalID) => Task.CompletedTask;
         public Task<List<Rental>> GetActiveRentalsAsync() => Task.FromResult(new List<Rental>());
+        public Task<List<Rental>> GetActiveRentalsDueOnAsync(DateTime dueDate) => Task.FromResult(new List<Rental>());
         public Task<int> CountRentalsAsync() => Task.FromResult(0);
         public Task<int> CountActiveRentalsAsync() => Task.FromResult(0);
         public Task<List<Rental>> GetOverdueRentalsAsync() => Task.FromResult(new List<Rental>());

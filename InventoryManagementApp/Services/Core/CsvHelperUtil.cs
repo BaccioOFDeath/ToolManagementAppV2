@@ -149,7 +149,7 @@ namespace InventoryManagementApp.Utilities.IO
             return (items, invalidRows);
         }
 
-        public static void ExportItemsToCsv(string filePath, List<ItemModel> items)
+        public static void ExportItemsToCsv(string filePath, IList<ItemModel> items)
         {
             var lines = new List<string>
             {
@@ -171,7 +171,7 @@ namespace InventoryManagementApp.Utilities.IO
             File.WriteAllLines(filePath, lines);
         }
 
-        public static async Task ExportItemsToCsvAsync(string filePath, List<ItemModel> items)
+        public static async Task ExportItemsToCsvAsync(string filePath, IList<ItemModel> items)
         {
             var lines = new List<string>
             {

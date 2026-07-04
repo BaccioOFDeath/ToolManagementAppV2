@@ -75,6 +75,8 @@ public class DashboardViewModelTests
             return Task.FromResult(Rentals);
         }
 
+        public Task<List<Rental>> GetActiveRentalsDueOnAsync(DateTime dueDate) => Task.FromResult(new List<Rental>());
+
         public Task ReturnItemAsync(int rentalID, DateTime returnDate)
         {
             ReturnCalls++;
