@@ -15,7 +15,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Width=\"760\" Height=\"520\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"560\" MinHeight=\"420\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"PrintLabelRoot\" Margin=\"10\" MinWidth=\"0\" ClipToBounds=\"True\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("this.UseResponsiveDefaultSize(820, 540);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("this.UseResponsiveDefaultSize(760, 520);", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("this.UseResponsiveDefaultSize(820, 540);", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("Width=\"820\" Height=\"540\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("MinWidth=\"700\" MinHeight=\"480\"", xaml, StringComparison.Ordinal);
         }
