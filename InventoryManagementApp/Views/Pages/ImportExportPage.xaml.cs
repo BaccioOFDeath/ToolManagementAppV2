@@ -14,6 +14,8 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class ImportExportPage : Page
     {
+        private const int MaxPrintedLogRows = 250;
+
         public ImportExportPage()
         {
             InitializeComponent();
@@ -33,6 +35,12 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Import / Export", () =>
             {
+                if (IsDataOperationBusy())
+                {
+                    WpfMessageBox.Show("Wait for the current import, export, backup, or restore operation to finish before opening log details.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
                 var log = GetSelectedLogForAction();
                 if (string.IsNullOrWhiteSpace(log))
                 {
@@ -55,6 +63,12 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Import / Export", () =>
             {
+                if (IsDataOperationBusy())
+                {
+                    WpfMessageBox.Show("Wait for the current import, export, backup, or restore operation to finish before copying log details.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
                 var log = GetSelectedLogForAction();
                 if (string.IsNullOrWhiteSpace(log))
                 {
@@ -76,10 +90,19 @@ namespace InventoryManagementApp.Views.Pages
                 : string.Empty;
         }
 
+        private bool IsDataOperationBusy() =>
+            DataContext is ImportExportViewModel vm && vm.IsDataOperationBusy;
+
         private void PrintLogs_Click(object sender, RoutedEventArgs e)
         {
             UiActionGuard.Run(this, "Import / Export", () =>
             {
+                if (IsDataOperationBusy())
+                {
+                    WpfMessageBox.Show("Wait for the current import, export, backup, or restore operation to finish before generating a print preview.", "Import / Export", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
                 var selectedLog = GetSelectedLogForAction();
                 if (!string.IsNullOrWhiteSpace(selectedLog))
                 {
@@ -108,6 +131,8 @@ namespace InventoryManagementApp.Views.Pages
             string title = "Import / Export Operation Log")
         {
             var safeLogs = logs?.Where(log => !string.IsNullOrWhiteSpace(log)).ToList() ?? new List<string>();
+            var printedLogs = safeLogs.Take(MaxPrintedLogRows).ToList();
+            var omittedLogCount = Math.Max(0, safeLogs.Count - printedLogs.Count);
             var document = new FlowDocument
             {
                 FontFamily = new FontFamily("Segoe UI"),
@@ -129,9 +154,9 @@ namespace InventoryManagementApp.Views.Pages
                 Margin = new Thickness(0, 0, 0, 2)
             });
 
-            document.Blocks.Add(BuildSummarySection(title, summary, safeLogs.Count));
+            document.Blocks.Add(BuildSummarySection(title, summary, safeLogs.Count, printedLogs.Count, omittedLogCount));
 
-            if (safeLogs.Count == 0)
+            if (printedLogs.Count == 0)
             {
                 document.Blocks.Add(new Paragraph(new Run("No import/export operation results were available when this packet was prepared."))
                 {
@@ -158,7 +183,7 @@ namespace InventoryManagementApp.Views.Pages
             AddCell(header, "Operation Result", true);
 
             var number = 1;
-            foreach (var log in safeLogs)
+            foreach (var log in printedLogs)
             {
                 var row = new TableRow();
                 rowGroup.Rows.Add(row);
@@ -168,7 +193,17 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             document.Blocks.Add(table);
-            document.Blocks.Add(new Paragraph(new Run("Review skipped rows, failures, backup paths, and restore notices before clearing the in-app run log."))
+            if (omittedLogCount > 0)
+            {
+                document.Blocks.Add(new Paragraph(new Run($"{omittedLogCount} additional log rows were omitted from this preview. Narrow the session handoff or print a selected row when the full run log is very large."))
+                {
+                    FontSize = 10,
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 10, 0, 0)
+                });
+            }
+
+            document.Blocks.Add(new Paragraph(new Run("Review skipped rows, failures, backup paths, restore notices, and omitted-row counts before clearing the in-app run log."))
             {
                 FontSize = 10,
                 FontStyle = FontStyles.Italic,
@@ -177,7 +212,7 @@ namespace InventoryManagementApp.Views.Pages
             return document;
         }
 
-        private static Section BuildSummarySection(string title, string summary, int logCount)
+        private static Section BuildSummarySection(string title, string summary, int logCount, int printedLogCount, int omittedLogCount)
         {
             var section = new Section
             {
@@ -199,7 +234,9 @@ namespace InventoryManagementApp.Views.Pages
             var group = new TableRowGroup();
             table.RowGroups.Add(group);
             AddKeyValueRow(group, "Packet", title);
-            AddKeyValueRow(group, "Result Count", logCount.ToString());
+            AddKeyValueRow(group, "Visible Log Rows", logCount.ToString());
+            AddKeyValueRow(group, "Printed Log Rows", printedLogCount.ToString());
+            AddKeyValueRow(group, "Omitted Log Rows", omittedLogCount.ToString());
             AddKeyValueRow(group, "Session Summary", ValueOrNotRecorded(summary));
 
             section.Blocks.Add(table);
