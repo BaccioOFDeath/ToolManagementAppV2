@@ -15,22 +15,70 @@ namespace InventoryManagementApp.ViewModels
 {
     public class MaintenanceManagementViewModel : ObservableObject
     {
+        private const int MaxMaintenancePrintRows = 250;
+
         private readonly MaintenanceService _maintenanceService;
         private readonly IDialogService _dialogService;
 
         public ObservableCollection<MaintenanceRecord> MaintenanceRecords { get; }
         public ObservableCollection<MaintenanceRecord> FilteredMaintenanceRecords { get; }
 
-        public string MaintenanceResultsSummary => $"{FilteredMaintenanceRecords.Count} of {MaintenanceRecords.Count} maintenance record{(MaintenanceRecords.Count == 1 ? string.Empty : "s")} shown";
+        public string MaintenanceResultsSummary => IsLoading
+            ? "Loading maintenance records..."
+            : $"{FilteredMaintenanceRecords.Count} of {MaintenanceRecords.Count} maintenance record{(MaintenanceRecords.Count == 1 ? string.Empty : "s")} shown";
+
         public string MaintenanceBacklogSummary
         {
             get
             {
+                if (IsLoading)
+                {
+                    return "Refreshing maintenance backlog";
+                }
+
                 var scheduled = MaintenanceRecords.Count(r => IsScheduled(r));
                 var overdue = MaintenanceRecords.Count(r => r.IsOverdue);
                 var upcoming = MaintenanceRecords.Count(r => IsUpcoming(r));
                 var completed = MaintenanceRecords.Count(r => IsCompleted(r));
                 return $"{overdue} overdue | {upcoming} upcoming | {scheduled} scheduled | {completed} completed";
+            }
+        }
+
+        public bool IsFilterActive => !string.IsNullOrWhiteSpace(SearchText) || !string.Equals(SelectedFilter, "All", StringComparison.Ordinal);
+
+        public string MaintenanceEmptyTitle => MaintenanceRecords.Count == 0
+            ? "No maintenance work recorded"
+            : "No maintenance work matches this filter";
+
+        public string MaintenanceEmptyMessage => MaintenanceRecords.Count == 0
+            ? "Add a work order or refresh the schedule when service history is available."
+            : "Clear search, switch the filter, or add a new work order to restart the technician queue.";
+
+        public bool CanPrintMaintenanceList => !IsLoading && FilteredMaintenanceRecords.Count > 0;
+
+        public string MaintenancePrintStatus
+        {
+            get
+            {
+                if (IsLoading)
+                {
+                    return "Print paused while maintenance rows load";
+                }
+
+                if (FilteredMaintenanceRecords.Count == 0)
+                {
+                    return IsFilterActive
+                        ? "No filtered rows ready to print"
+                        : "No maintenance rows ready to print";
+                }
+
+                var visible = FilteredMaintenanceRecords.Count;
+                var printed = Math.Min(visible, MaxMaintenancePrintRows);
+                var omitted = Math.Max(0, visible - printed);
+                var filterContext = IsFilterActive ? "filtered" : "all rows";
+                return omitted == 0
+                    ? $"Ready to print {printed} {filterContext} row{(printed == 1 ? string.Empty : "s")}."
+                    : $"Ready to print first {printed} of {visible} {filterContext} rows; {omitted} omitted from preview.";
             }
         }
 
@@ -78,6 +126,20 @@ namespace InventoryManagementApp.ViewModels
             ? "Select work first, then verify the item tag, confirm service notes, complete or edit the record, and print/copy the handoff before releasing the item."
             : "Verify item tag and location, capture who performed the work, record cost/notes, mark complete when finished, and keep the printed or copied handoff with the item.";
 
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            private set
+            {
+                if (SetProperty(ref _isLoading, value))
+                {
+                    NotifyCommandStatesAndSummaries();
+                    NotifyMaintenanceListStateChanged();
+                }
+            }
+        }
+
         private MaintenanceRecord? _selectedRecord;
         public MaintenanceRecord? SelectedRecord
         {
@@ -86,13 +148,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _selectedRecord, value))
                 {
-                    EditMaintenanceCommand.NotifyCanExecuteChanged();
-                    DeleteMaintenanceCommand.NotifyCanExecuteChanged();
-                    CompleteMaintenanceCommand.NotifyCanExecuteChanged();
-                    OpenMaintenanceDetailsCommand.NotifyCanExecuteChanged();
-                    PrintSelectedMaintenanceCommand.NotifyCanExecuteChanged();
-                    CopySelectedMaintenanceCommand.NotifyCanExecuteChanged();
-                    OnSelectedRecordSummariesChanged();
+                    NotifyCommandStatesAndSummaries();
                 }
             }
         }
@@ -158,26 +214,32 @@ namespace InventoryManagementApp.ViewModels
                 "Upcoming (30 days)"
             };
 
-            LoadMaintenanceCommand = new AsyncRelayCommand(LoadMaintenanceAsync);
-            AddMaintenanceCommand = new AsyncRelayCommand(AddMaintenanceAsync);
+            LoadMaintenanceCommand = new AsyncRelayCommand(LoadMaintenanceAsync, CanRefreshMaintenance);
+            AddMaintenanceCommand = new AsyncRelayCommand(AddMaintenanceAsync, CanInteractWithMaintenanceList);
             EditMaintenanceCommand = new AsyncRelayCommand(EditMaintenanceAsync, CanEditOrDelete);
             DeleteMaintenanceCommand = new AsyncRelayCommand(DeleteMaintenanceAsync, CanEditOrDelete);
             CompleteMaintenanceCommand = new AsyncRelayCommand(CompleteMaintenanceAsync, CanComplete);
-            RefreshCommand = new AsyncRelayCommand(LoadMaintenanceAsync);
+            RefreshCommand = new AsyncRelayCommand(LoadMaintenanceAsync, CanRefreshMaintenance);
             OpenMaintenanceDetailsCommand = new RelayCommand(OpenMaintenanceDetails, CanEditOrDelete);
-            PrintMaintenanceListCommand = new RelayCommand(PrintMaintenanceList);
+            PrintMaintenanceListCommand = new RelayCommand(PrintMaintenanceList, () => CanPrintMaintenanceList);
             PrintSelectedMaintenanceCommand = new RelayCommand(PrintSelectedMaintenance, CanEditOrDelete);
             CopySelectedMaintenanceCommand = new RelayCommand(CopySelectedMaintenance, CanEditOrDelete);
-            ClearSearchCommand = new RelayCommand(ClearSearch);
-            ShowOverdueCommand = new RelayCommand(() => SelectedFilter = "Overdue");
-            ShowUpcomingCommand = new RelayCommand(() => SelectedFilter = "Upcoming (30 days)");
-            ShowScheduledCommand = new RelayCommand(() => SelectedFilter = "Scheduled");
+            ClearSearchCommand = new RelayCommand(ClearSearch, CanInteractWithMaintenanceList);
+            ShowOverdueCommand = new RelayCommand(() => SelectedFilter = "Overdue", CanInteractWithMaintenanceList);
+            ShowUpcomingCommand = new RelayCommand(() => SelectedFilter = "Upcoming (30 days)", CanInteractWithMaintenanceList);
+            ShowScheduledCommand = new RelayCommand(() => SelectedFilter = "Scheduled", CanInteractWithMaintenanceList);
         }
 
         private async Task LoadMaintenanceAsync()
         {
+            if (IsLoading)
+            {
+                return;
+            }
+
             try
             {
+                IsLoading = true;
                 var selectedId = SelectedRecord?.MaintenanceID;
                 var records = await _maintenanceService.GetAllMaintenanceRecordsAsync();
                 MaintenanceRecords.Clear();
@@ -191,6 +253,11 @@ namespace InventoryManagementApp.ViewModels
             {
                 ClearMaintenanceStateAfterLoadFailure();
                 await _dialogService.ShowErrorAsync("Error loading maintenance records", $"{ex.Message} Maintenance rows were cleared until reload succeeds.");
+            }
+            finally
+            {
+                IsLoading = false;
+                NotifyMaintenanceListStateChanged();
             }
         }
 
@@ -343,6 +410,7 @@ namespace InventoryManagementApp.ViewModels
             FilteredMaintenanceRecords.Clear();
             SelectedRecord = null;
             NotifyCommandStatesAndSummaries();
+            NotifyMaintenanceListStateChanged();
         }
 
         private async Task RefreshMaintenanceAfterMutationFailureAsync(
@@ -369,6 +437,7 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 NotifyCommandStatesAndSummaries();
+                NotifyMaintenanceListStateChanged();
                 await _dialogService.ShowErrorAsync(title, message);
             }
             catch (Exception refreshEx)
@@ -420,8 +489,7 @@ namespace InventoryManagementApp.ViewModels
             SelectedRecord = FilteredMaintenanceRecords.FirstOrDefault(r => r.MaintenanceID == preferredMaintenanceId)
                 ?? FilteredMaintenanceRecords.FirstOrDefault();
 
-            OnPropertyChanged(nameof(MaintenanceResultsSummary));
-            OnPropertyChanged(nameof(MaintenanceBacklogSummary));
+            NotifyMaintenanceListStateChanged();
         }
 
         private void OpenMaintenanceDetails()
@@ -478,40 +546,59 @@ namespace InventoryManagementApp.ViewModels
 
         private void PrintMaintenanceList()
         {
-            if (FilteredMaintenanceRecords.Count == 0)
+            if (!CanPrintMaintenanceList)
             {
-                _dialogService.ShowInfo("There are no maintenance records to print.", "Maintenance Report");
+                _dialogService.ShowInfo("There are no maintenance records ready to print.", "Maintenance Report");
                 return;
             }
 
             try
             {
+                var visibleRows = FilteredMaintenanceRecords.Count;
+                var printRows = FilteredMaintenanceRecords.Take(MaxMaintenancePrintRows).ToList();
+                var omittedRows = Math.Max(0, visibleRows - printRows.Count);
                 var doc = CreateMaintenanceDocument("Maintenance Schedule", fontSize: 11);
-                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | {MaintenanceResultsSummary} | {MaintenanceBacklogSummary}"))
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows} | {MaintenanceBacklogSummary}"))
                 {
                     FontSize = 10,
-                    Margin = new Thickness(0, 0, 0, 10)
+                    Margin = new Thickness(0, 0, 0, 8)
                 });
 
+                if (omittedRows > 0)
+                {
+                    doc.Blocks.Add(new Paragraph(new Run($"Large schedule preview limited to the first {MaxMaintenancePrintRows} visible rows to keep print preview responsive. Clear filters or export smaller packets for full handoff review."))
+                    {
+                        FontSize = 10,
+                        FontStyle = FontStyles.Italic,
+                        Margin = new Thickness(0, 0, 0, 8)
+                    });
+                }
+
                 var table = new Table { CellSpacing = 0 };
-                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(150) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(85) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(85) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(110) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.05, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.65, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.25, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.05, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.0, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.25, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.05, GridUnitType.Star) });
 
                 var group = new TableRowGroup();
                 table.RowGroups.Add(group);
-                AddPrintRow(group, true, "Item #", "Name", "Type", "Scheduled", "Status", "Performed By", "Completed");
-                foreach (var record in FilteredMaintenanceRecords)
+                AddPrintRow(group, true, "Item #", "Name", "Type", "Scheduled", "Status", "Technician", "Completed");
+                foreach (var record in printRows)
                 {
                     AddPrintRow(group, false, record.ItemNumber, record.ItemName, record.MaintenanceType, record.ScheduledDate.ToString("yyyy-MM-dd"), record.StatusDisplay, record.PerformedBy, FormatDate(record.CompletedDate));
                 }
 
                 doc.Blocks.Add(table);
-                _dialogService.ShowPrintPreview(doc, "Maintenance Schedule", string.Empty);
+                doc.Blocks.Add(new Paragraph(new Run("Review overdue rows, technician assignment, completed dates, and omitted-row counts before handing this schedule to the bench."))
+                {
+                    FontSize = 10,
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 10, 0, 0)
+                });
+                _dialogService.ShowPrintPreview(doc, "Maintenance Schedule", MaintenancePrintStatus);
             }
             catch (Exception ex)
             {
@@ -542,7 +629,7 @@ namespace InventoryManagementApp.ViewModels
                 AddKeyValueRow(group, "Next action:", SelectedMaintenanceNextAction);
                 doc.Blocks.Add(table);
 
-                _dialogService.ShowPrintPreview(doc, $"Maintenance {record.MaintenanceID}", string.Empty);
+                _dialogService.ShowPrintPreview(doc, $"Maintenance {record.MaintenanceID}", SelectedMaintenanceNextAction);
             }
             catch (Exception ex)
             {
@@ -550,21 +637,45 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private bool CanEditOrDelete() => SelectedRecord != null;
+        private bool CanInteractWithMaintenanceList() => !IsLoading;
 
-        private bool CanComplete() => SelectedRecord != null && IsScheduled(SelectedRecord);
+        private bool CanRefreshMaintenance() => !IsLoading;
+
+        private bool CanEditOrDelete() => !IsLoading && SelectedRecord != null;
+
+        private bool CanComplete() => !IsLoading && SelectedRecord != null && IsScheduled(SelectedRecord);
 
         private void NotifyCommandStatesAndSummaries()
         {
+            LoadMaintenanceCommand.NotifyCanExecuteChanged();
+            AddMaintenanceCommand.NotifyCanExecuteChanged();
             EditMaintenanceCommand.NotifyCanExecuteChanged();
             DeleteMaintenanceCommand.NotifyCanExecuteChanged();
             CompleteMaintenanceCommand.NotifyCanExecuteChanged();
+            RefreshCommand.NotifyCanExecuteChanged();
             OpenMaintenanceDetailsCommand.NotifyCanExecuteChanged();
+            PrintMaintenanceListCommand.NotifyCanExecuteChanged();
             PrintSelectedMaintenanceCommand.NotifyCanExecuteChanged();
             CopySelectedMaintenanceCommand.NotifyCanExecuteChanged();
+            ClearSearchCommand.NotifyCanExecuteChanged();
+            ShowOverdueCommand.NotifyCanExecuteChanged();
+            ShowUpcomingCommand.NotifyCanExecuteChanged();
+            ShowScheduledCommand.NotifyCanExecuteChanged();
             OnSelectedRecordSummariesChanged();
             OnPropertyChanged(nameof(MaintenanceBacklogSummary));
             OnPropertyChanged(nameof(MaintenanceResultsSummary));
+        }
+
+        private void NotifyMaintenanceListStateChanged()
+        {
+            OnPropertyChanged(nameof(MaintenanceResultsSummary));
+            OnPropertyChanged(nameof(MaintenanceBacklogSummary));
+            OnPropertyChanged(nameof(IsFilterActive));
+            OnPropertyChanged(nameof(MaintenanceEmptyTitle));
+            OnPropertyChanged(nameof(MaintenanceEmptyMessage));
+            OnPropertyChanged(nameof(CanPrintMaintenanceList));
+            OnPropertyChanged(nameof(MaintenancePrintStatus));
+            PrintMaintenanceListCommand.NotifyCanExecuteChanged();
         }
 
         private void OnSelectedRecordSummariesChanged()
