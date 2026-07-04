@@ -131,6 +131,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ManageRentalsPage_LoadingStateBlocksCodeBehindActionBypasses()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
+
+            Assert.Contains("!vm.IsLoading && vm.OpenRentalDetailsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("!vm.IsLoading && vm.OpenRequestDetailsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsLoading)\n                return;", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is ManageRentalsViewModel { IsLoading: true })", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;\n                return;", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
+            Assert.DoesNotContain("DataContext is ManageRentalsViewModel vm && vm.OpenRentalDetailsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("DataContext is ManageRentalsViewModel vm && vm.OpenRequestDetailsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ManageRentalsPage_PreservesRentalAndRequestCommandsAndRowHandlers()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml");
