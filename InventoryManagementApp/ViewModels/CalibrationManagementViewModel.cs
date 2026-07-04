@@ -15,21 +15,69 @@ namespace InventoryManagementApp.ViewModels
 {
     public class CalibrationManagementViewModel : ObservableObject
     {
+        private const int MaxCalibrationPrintRows = 250;
+
         private readonly CalibrationService _calibrationService;
         private readonly IDialogService _dialogService;
 
         public ObservableCollection<CalibrationRecord> CalibrationRecords { get; }
         public ObservableCollection<CalibrationRecord> FilteredCalibrationRecords { get; }
 
-        public string CalibrationResultsSummary => $"{FilteredCalibrationRecords.Count} of {CalibrationRecords.Count} calibration record{(CalibrationRecords.Count == 1 ? string.Empty : "s")} shown";
+        public string CalibrationResultsSummary => IsLoading
+            ? "Loading calibration records..."
+            : $"{FilteredCalibrationRecords.Count} of {CalibrationRecords.Count} calibration record{(CalibrationRecords.Count == 1 ? string.Empty : "s")} shown";
+
         public string CalibrationBacklogSummary
         {
             get
             {
+                if (IsLoading)
+                {
+                    return "Refreshing calibration due state";
+                }
+
                 var overdue = CalibrationRecords.Count(r => r.IsOverdue);
                 var dueSoon = CalibrationRecords.Count(r => r.IsDueSoon);
                 var current = CalibrationRecords.Count(r => IsCurrent(r));
                 return $"{overdue} overdue | {dueSoon} due soon | {current} current";
+            }
+        }
+
+        public bool IsFilterActive => !string.IsNullOrWhiteSpace(SearchText) || !string.Equals(SelectedFilter, "All", StringComparison.Ordinal);
+
+        public string CalibrationEmptyTitle => CalibrationRecords.Count == 0
+            ? "No calibration records found"
+            : "No calibration records match this filter";
+
+        public string CalibrationEmptyMessage => CalibrationRecords.Count == 0
+            ? "Add a certificate record or refresh when calibration history is available."
+            : "Clear search, switch the due-state filter, or add a certificate record to rebuild the calibration queue.";
+
+        public bool CanPrintCalibrationList => !IsLoading && FilteredCalibrationRecords.Count > 0;
+
+        public string CalibrationPrintStatus
+        {
+            get
+            {
+                if (IsLoading)
+                {
+                    return "Print paused while calibration rows load";
+                }
+
+                if (FilteredCalibrationRecords.Count == 0)
+                {
+                    return IsFilterActive
+                        ? "No filtered certificate rows ready to print"
+                        : "No certificate rows ready to print";
+                }
+
+                var visible = FilteredCalibrationRecords.Count;
+                var printed = Math.Min(visible, MaxCalibrationPrintRows);
+                var omitted = Math.Max(0, visible - printed);
+                var filterContext = IsFilterActive ? "filtered" : "all rows";
+                return omitted == 0
+                    ? $"Ready to print {printed} {filterContext} certificate row{(printed == 1 ? string.Empty : "s")}."
+                    : $"Ready to print first {printed} of {visible} {filterContext} certificate rows; {omitted} omitted from preview.";
             }
         }
 
@@ -72,6 +120,20 @@ namespace InventoryManagementApp.ViewModels
             ? "Select a certificate first, then verify the item tag, certificate number, due date, result, and shelf release status before the item is issued."
             : "Verify item tag and location, confirm certificate number and standard, check due date/result, update missing notes if needed, and keep the printed or copied handoff with the item.";
 
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            private set
+            {
+                if (SetProperty(ref _isLoading, value))
+                {
+                    NotifyCommandStatesAndSummaries();
+                    NotifyCalibrationListStateChanged();
+                }
+            }
+        }
+
         private CalibrationRecord? _selectedRecord;
         public CalibrationRecord? SelectedRecord
         {
@@ -80,12 +142,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _selectedRecord, value))
                 {
-                    EditCalibrationCommand.NotifyCanExecuteChanged();
-                    DeleteCalibrationCommand.NotifyCanExecuteChanged();
-                    OpenCalibrationDetailsCommand.NotifyCanExecuteChanged();
-                    PrintSelectedCalibrationCommand.NotifyCanExecuteChanged();
-                    CopySelectedCalibrationCommand.NotifyCanExecuteChanged();
-                    OnSelectedRecordSummariesChanged();
+                    NotifyCommandStatesAndSummaries();
                 }
             }
         }
@@ -149,25 +206,31 @@ namespace InventoryManagementApp.ViewModels
                 "Overdue"
             };
 
-            LoadCalibrationCommand = new AsyncRelayCommand(LoadCalibrationAsync);
-            AddCalibrationCommand = new AsyncRelayCommand(AddCalibrationAsync);
+            LoadCalibrationCommand = new AsyncRelayCommand(LoadCalibrationAsync, CanRefreshCalibration);
+            AddCalibrationCommand = new AsyncRelayCommand(AddCalibrationAsync, CanInteractWithCalibrationList);
             EditCalibrationCommand = new AsyncRelayCommand(EditCalibrationAsync, CanEditOrDelete);
             DeleteCalibrationCommand = new AsyncRelayCommand(DeleteCalibrationAsync, CanEditOrDelete);
-            RefreshCommand = new AsyncRelayCommand(LoadCalibrationAsync);
+            RefreshCommand = new AsyncRelayCommand(LoadCalibrationAsync, CanRefreshCalibration);
             OpenCalibrationDetailsCommand = new RelayCommand(OpenCalibrationDetails, CanEditOrDelete);
-            PrintCalibrationListCommand = new RelayCommand(PrintCalibrationList);
+            PrintCalibrationListCommand = new RelayCommand(PrintCalibrationList, () => CanPrintCalibrationList);
             PrintSelectedCalibrationCommand = new RelayCommand(PrintSelectedCalibration, CanEditOrDelete);
             CopySelectedCalibrationCommand = new RelayCommand(CopySelectedCalibration, CanEditOrDelete);
-            ClearSearchCommand = new RelayCommand(ClearSearch);
-            ShowOverdueCommand = new RelayCommand(() => SelectedFilter = "Overdue");
-            ShowDueSoonCommand = new RelayCommand(() => SelectedFilter = "Due Soon");
-            ShowCurrentCommand = new RelayCommand(() => SelectedFilter = "Current");
+            ClearSearchCommand = new RelayCommand(ClearSearch, CanInteractWithCalibrationList);
+            ShowOverdueCommand = new RelayCommand(() => SelectedFilter = "Overdue", CanInteractWithCalibrationList);
+            ShowDueSoonCommand = new RelayCommand(() => SelectedFilter = "Due Soon", CanInteractWithCalibrationList);
+            ShowCurrentCommand = new RelayCommand(() => SelectedFilter = "Current", CanInteractWithCalibrationList);
         }
 
         private async Task LoadCalibrationAsync()
         {
+            if (IsLoading)
+            {
+                return;
+            }
+
             try
             {
+                IsLoading = true;
                 var selectedId = SelectedRecord?.CalibrationID;
                 var records = await _calibrationService.GetAllCalibrationRecordsAsync();
                 CalibrationRecords.Clear();
@@ -181,6 +244,11 @@ namespace InventoryManagementApp.ViewModels
             {
                 ClearCalibrationStateAfterLoadFailure();
                 await _dialogService.ShowErrorAsync("Error loading calibration records", $"{ex.Message} Calibration rows were cleared until reload succeeds.");
+            }
+            finally
+            {
+                IsLoading = false;
+                NotifyCalibrationListStateChanged();
             }
         }
 
@@ -299,6 +367,7 @@ namespace InventoryManagementApp.ViewModels
             FilteredCalibrationRecords.Clear();
             SelectedRecord = null;
             NotifyCommandStatesAndSummaries();
+            NotifyCalibrationListStateChanged();
         }
 
         private async Task RefreshCalibrationAfterMutationFailureAsync(
@@ -325,6 +394,7 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 NotifyCommandStatesAndSummaries();
+                NotifyCalibrationListStateChanged();
                 await _dialogService.ShowErrorAsync(title, message);
             }
             catch (Exception refreshEx)
@@ -376,8 +446,7 @@ namespace InventoryManagementApp.ViewModels
             SelectedRecord = FilteredCalibrationRecords.FirstOrDefault(r => r.CalibrationID == preferredCalibrationId)
                 ?? FilteredCalibrationRecords.FirstOrDefault();
 
-            OnPropertyChanged(nameof(CalibrationResultsSummary));
-            OnPropertyChanged(nameof(CalibrationBacklogSummary));
+            NotifyCalibrationListStateChanged();
         }
 
         private void OpenCalibrationDetails()
@@ -436,40 +505,59 @@ namespace InventoryManagementApp.ViewModels
 
         private void PrintCalibrationList()
         {
-            if (FilteredCalibrationRecords.Count == 0)
+            if (!CanPrintCalibrationList)
             {
-                _dialogService.ShowInfo("There are no calibration records to print.", "Calibration Report");
+                _dialogService.ShowInfo("There are no calibration records ready to print.", "Calibration Report");
                 return;
             }
 
             try
             {
+                var visibleRows = FilteredCalibrationRecords.Count;
+                var printRows = FilteredCalibrationRecords.Take(MaxCalibrationPrintRows).ToList();
+                var omittedRows = Math.Max(0, visibleRows - printRows.Count);
                 var doc = CreateCalibrationDocument("Calibration Due Report", fontSize: 11);
-                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | {CalibrationResultsSummary} | {CalibrationBacklogSummary}"))
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows} | {CalibrationBacklogSummary}"))
                 {
                     FontSize = 10,
-                    Margin = new Thickness(0, 0, 0, 10)
+                    Margin = new Thickness(0, 0, 0, 8)
                 });
 
+                if (omittedRows > 0)
+                {
+                    doc.Blocks.Add(new Paragraph(new Run($"Large calibration preview limited to the first {MaxCalibrationPrintRows} visible rows to keep print preview responsive. Clear filters or print smaller certificate packets for full handoff review."))
+                    {
+                        FontSize = 10,
+                        FontStyle = FontStyles.Italic,
+                        Margin = new Thickness(0, 0, 0, 8)
+                    });
+                }
+
                 var table = new Table { CellSpacing = 0 };
-                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(150) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(105) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(105) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(80) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.05, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.65, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.05, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.05, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.2, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.35, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.1, GridUnitType.Star) });
 
                 var group = new TableRowGroup();
                 table.RowGroups.Add(group);
-                AddPrintRow(group, true, "Item #", "Name", "Calibrated", "Next Due", "By", "Certificate", "Status");
-                foreach (var record in FilteredCalibrationRecords)
+                AddPrintRow(group, true, "Item #", "Name", "Calibrated", "Next Due", "Calibrated By", "Certificate", "Status");
+                foreach (var record in printRows)
                 {
                     AddPrintRow(group, false, record.ItemNumber, record.ItemName, record.CalibrationDate.ToString("yyyy-MM-dd"), record.NextCalibrationDue.ToString("yyyy-MM-dd"), record.CalibratedBy, record.CertificateNumber, record.StatusDisplay);
                 }
 
                 doc.Blocks.Add(table);
-                _dialogService.ShowPrintPreview(doc, "Calibration Due Report", string.Empty);
+                doc.Blocks.Add(new Paragraph(new Run("Review overdue rows, due-soon certificates, missing certificate numbers, calibration standard, and omitted-row counts before releasing items to the shelf."))
+                {
+                    FontSize = 10,
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 10, 0, 0)
+                });
+                _dialogService.ShowPrintPreview(doc, "Calibration Due Report", CalibrationPrintStatus);
             }
             catch (Exception ex)
             {
@@ -501,7 +589,7 @@ namespace InventoryManagementApp.ViewModels
                 AddKeyValueRow(group, "Next action:", SelectedCalibrationNextAction);
                 doc.Blocks.Add(table);
 
-                _dialogService.ShowPrintPreview(doc, $"Calibration {record.CalibrationID}", string.Empty);
+                _dialogService.ShowPrintPreview(doc, $"Calibration {record.CalibrationID}", SelectedCalibrationNextAction);
             }
             catch (Exception ex)
             {
@@ -509,18 +597,42 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        private bool CanEditOrDelete() => SelectedRecord != null;
+        private bool CanInteractWithCalibrationList() => !IsLoading;
+
+        private bool CanRefreshCalibration() => !IsLoading;
+
+        private bool CanEditOrDelete() => !IsLoading && SelectedRecord != null;
 
         private void NotifyCommandStatesAndSummaries()
         {
+            LoadCalibrationCommand.NotifyCanExecuteChanged();
+            AddCalibrationCommand.NotifyCanExecuteChanged();
             EditCalibrationCommand.NotifyCanExecuteChanged();
             DeleteCalibrationCommand.NotifyCanExecuteChanged();
+            RefreshCommand.NotifyCanExecuteChanged();
             OpenCalibrationDetailsCommand.NotifyCanExecuteChanged();
+            PrintCalibrationListCommand.NotifyCanExecuteChanged();
             PrintSelectedCalibrationCommand.NotifyCanExecuteChanged();
             CopySelectedCalibrationCommand.NotifyCanExecuteChanged();
+            ClearSearchCommand.NotifyCanExecuteChanged();
+            ShowOverdueCommand.NotifyCanExecuteChanged();
+            ShowDueSoonCommand.NotifyCanExecuteChanged();
+            ShowCurrentCommand.NotifyCanExecuteChanged();
             OnSelectedRecordSummariesChanged();
             OnPropertyChanged(nameof(CalibrationBacklogSummary));
             OnPropertyChanged(nameof(CalibrationResultsSummary));
+        }
+
+        private void NotifyCalibrationListStateChanged()
+        {
+            OnPropertyChanged(nameof(CalibrationResultsSummary));
+            OnPropertyChanged(nameof(CalibrationBacklogSummary));
+            OnPropertyChanged(nameof(IsFilterActive));
+            OnPropertyChanged(nameof(CalibrationEmptyTitle));
+            OnPropertyChanged(nameof(CalibrationEmptyMessage));
+            OnPropertyChanged(nameof(CanPrintCalibrationList));
+            OnPropertyChanged(nameof(CalibrationPrintStatus));
+            PrintCalibrationListCommand.NotifyCanExecuteChanged();
         }
 
         private void OnSelectedRecordSummariesChanged()
