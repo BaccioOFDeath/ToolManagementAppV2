@@ -165,11 +165,28 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private Task? _loadReservationsTask;", source, StringComparison.Ordinal);
             Assert.Contains("private ReservationManagementViewModel? _loadedViewModel;", source, StringComparison.Ordinal);
             Assert.Contains("DataContextChanged += ReservationPage_DataContextChanged;", source, StringComparison.Ordinal);
+            Assert.Contains("FocusFirstSearchBox();\n\n            if (DataContext is ReservationManagementViewModel vm)", source, StringComparison.Ordinal);
             Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", source, StringComparison.Ordinal);
+            Assert.Contains("if (!ReferenceEquals(DataContext, vm) || !vm.LoadReservationsCommand.CanExecute(null))", source, StringComparison.Ordinal);
             Assert.Contains("LoadReservationsOnceAsync", source, StringComparison.Ordinal);
             Assert.Contains("IsCompletedSuccessfully", source, StringComparison.Ordinal);
             Assert.Contains("_loadReservationsTask = null;", source, StringComparison.Ordinal);
             Assert.Contains("Key == Key.N && vm.AddReservationCommand.CanExecute(null)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ReservationPage_BlocksStaleRowAndShortcutActionsWhileRowsLoad()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ReservationPage.xaml.cs");
+
+            Assert.Contains("ReservationManagementViewModel { IsLoading: true }", source, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", source, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsLoading && IsReservationActionShortcut(e))", source, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsReservationActionShortcut(KeyEventArgs e)", source, StringComparison.Ordinal);
+            Assert.Contains("e.Key is Key.N or Key.P or Key.C or Key.D or Key.Enter", source, StringComparison.Ordinal);
+            Assert.Contains("e.Key is Key.P or Key.Enter", source, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete", source, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", source, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)
