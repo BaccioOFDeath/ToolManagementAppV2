@@ -35,11 +35,29 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<UserModel> Users { get; } = new();
 
+        private bool _isLoadingUsers;
+        public bool IsLoadingUsers
+        {
+            get => _isLoadingUsers;
+            private set
+            {
+                if (SetProperty(ref _isLoadingUsers, value))
+                {
+                    NotifyUserDirectoryStateChanged();
+                    NotifyUserCommandStatesChanged();
+                }
+            }
+        }
+
         private string _userSearchText = string.Empty;
         public string UserSearchText
         {
             get => _userSearchText;
-            set => SetProperty(ref _userSearchText, value);
+            set
+            {
+                if (SetProperty(ref _userSearchText, value))
+                    NotifyUserDirectoryStateChanged();
+            }
         }
 
         private UserModel? _selectedUser;
@@ -50,11 +68,71 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _selectedUser, value))
                 {
-                    ((AsyncRelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
-                    ((AsyncRelayCommand)EditUserCommand).NotifyCanExecuteChanged();
+                    NotifySelectedUserStateChanged();
+                    NotifyUserCommandStatesChanged();
                 }
             }
         }
+
+        public int TotalUserCount => _allUsers.Count;
+        public int VisibleUserCount => Users.Count;
+        public bool HasUserFilter => !string.IsNullOrWhiteSpace(UserSearchText);
+        public bool CanUseUserActions => !IsLoadingUsers;
+        public bool CanUseSelectedUserActions => !IsLoadingUsers && SelectedUser != null;
+        public bool CanPrintUsers => !IsLoadingUsers && Users.Count > 0;
+
+        public string UserDirectoryStatusText
+        {
+            get
+            {
+                if (IsLoadingUsers)
+                    return Users.Count > 0
+                        ? $"Refreshing account directory - keeping {Users.Count} current rows visible"
+                        : "Loading account directory";
+
+                if (Users.Count == 0)
+                    return HasUserFilter
+                        ? $"No users match \"{UserSearchText.Trim()}\""
+                        : "No user accounts are available";
+
+                return $"Admin desk ready - {Users.Count} visible of {_allUsers.Count} accounts";
+            }
+        }
+
+        public string UserFilterStatusText
+        {
+            get
+            {
+                if (IsLoadingUsers)
+                    return "Search pauses until account rows finish loading";
+
+                return HasUserFilter
+                    ? $"Filter: {UserSearchText.Trim()}"
+                    : "All accounts";
+            }
+        }
+
+        public string SelectedAccessStatusText =>
+            IsLoadingUsers
+                ? "Account rows are refreshing"
+                : SelectedUser?.AccessSummary ?? "No account selected";
+
+        public string SelectedSecurityStatusText =>
+            IsLoadingUsers
+                ? "Security state loading"
+                : SelectedUser?.LockoutStatus ?? "Select a user";
+
+        public string UserEmptyStateTitle =>
+            IsLoadingUsers
+                ? "Loading users"
+                : HasUserFilter ? "No users match this filter" : "No users are available";
+
+        public string UserEmptyStateMessage =>
+            IsLoadingUsers
+                ? "Account rows are being prepared. Existing rows stay visible when available."
+                : HasUserFilter
+                    ? "Clear the filter or search another user, role, contact detail, access area, status, or user ID."
+                    : "Add a new account before assigning app access, resetting passwords, or printing directory evidence.";
 
         public IAsyncRelayCommand LoadUsersCommand { get; }
         public IAsyncRelayCommand UploadUserPhotoCommand { get; }
@@ -86,27 +164,30 @@ namespace InventoryManagementApp.ViewModels
             _logger = logger ?? NullLogger<UserManagementViewModel>.Instance;
             _serviceProvider = serviceProvider;
 
-            LoadUsersCommand = new AsyncRelayCommand(LoadUsersAsync);
-            UploadUserPhotoCommand = new AsyncRelayCommand(UploadUserPhotoAsync);
-            UpdateUserCommand = new AsyncRelayCommand(UpdateUserAsync, () => SelectedUser != null);
-            AddUserCommand = new AsyncRelayCommand(AddUserAsync);
+            LoadUsersCommand = new AsyncRelayCommand(LoadUsersAsync, () => !IsLoadingUsers);
+            UploadUserPhotoCommand = new AsyncRelayCommand(UploadUserPhotoAsync, () => CanUseSelectedUserActions);
+            UpdateUserCommand = new AsyncRelayCommand(UpdateUserAsync, () => CanUseSelectedUserActions);
+            AddUserCommand = new AsyncRelayCommand(AddUserAsync, () => CanUseUserActions);
 
-            SearchUsersCommand = new RelayCommand(SearchUsers);
-            ClearUserSearchCommand = new RelayCommand(ClearUserSearch);
+            SearchUsersCommand = new RelayCommand(SearchUsers, () => CanUseUserActions);
+            ClearUserSearchCommand = new RelayCommand(ClearUserSearch, () => CanUseUserActions);
 
-            EditUserCommand = new AsyncRelayCommand(() => EditUserAsync(SelectedUser), () => SelectedUser != null);
-            EditUserFromRowCommand = new AsyncRelayCommand<UserModel>(EditUserAsync);
-            ResetPasswordFromRowCommand = new AsyncRelayCommand<UserModel>(ResetPasswordFor);
-            DeleteUserFromRowCommand = new AsyncRelayCommand<UserModel>(DeleteUserAsync);
+            EditUserCommand = new AsyncRelayCommand(() => EditUserAsync(SelectedUser), () => CanUseSelectedUserActions);
+            EditUserFromRowCommand = new AsyncRelayCommand<UserModel>(EditUserAsync, user => CanUseUserActions && user != null);
+            ResetPasswordFromRowCommand = new AsyncRelayCommand<UserModel>(ResetPasswordFor, user => CanUseUserActions && user != null);
+            DeleteUserFromRowCommand = new AsyncRelayCommand<UserModel>(DeleteUserAsync, user => CanUseUserActions && user != null);
         }
 
         public async Task LoadUsersAsync()
         {
+            if (IsLoadingUsers)
+                return;
+
+            IsLoadingUsers = true;
+
             try
             {
-                _allUsers = await _userService.GetAllUsersAsync(CancellationToken.None);
-                AssignInitialsBrushes(_allUsers);
-                Users.ReplaceRange(FilterUsers(_allUsers));
+                ApplyUserRows(await _userService.GetAllUsersAsync(CancellationToken.None));
             }
             catch (Exception ex)
             {
@@ -114,6 +195,23 @@ namespace InventoryManagementApp.ViewModels
                 ClearUsersAfterLoadFailure();
                 await _dialogService.ShowInfoAsync($"Failed to load users: {ex.Message}. User rows were cleared until refresh succeeds.", "Error");
             }
+            finally
+            {
+                IsLoadingUsers = false;
+            }
+        }
+
+        private void ApplyUserRows(IEnumerable<UserModel> users)
+        {
+            _allUsers = users
+                .OrderByDescending(user => user.IsActive)
+                .ThenBy(user => user.UserName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(user => user.UserID)
+                .ToList();
+
+            AssignInitialsBrushes(_allUsers);
+            Users.ReplaceRange(FilterUsers(_allUsers));
+            NotifyUserDirectoryStateChanged();
         }
 
         private void ClearUsersAfterLoadFailure()
@@ -121,17 +219,15 @@ namespace InventoryManagementApp.ViewModels
             _allUsers.Clear();
             Users.Clear();
             SelectedUser = null;
-            ((AsyncRelayCommand)UpdateUserCommand).NotifyCanExecuteChanged();
-            ((AsyncRelayCommand)EditUserCommand).NotifyCanExecuteChanged();
+            NotifyUserDirectoryStateChanged();
+            NotifyUserCommandStatesChanged();
         }
 
         private async Task<bool> RefreshUsersAfterMutationFailureAsync(int? preferredUserId, bool clearSelectionWhenMissing)
         {
             try
             {
-                _allUsers = await _userService.GetAllUsersAsync(CancellationToken.None);
-                AssignInitialsBrushes(_allUsers);
-                Users.ReplaceRange(FilterUsers(_allUsers));
+                ApplyUserRows(await _userService.GetAllUsersAsync(CancellationToken.None));
 
                 var refreshedSelection = preferredUserId.HasValue
                     ? Users.FirstOrDefault(user => user.UserID == preferredUserId.Value)
@@ -202,7 +298,7 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task UploadUserPhotoAsync()
         {
-            if (SelectedUser == null) return;
+            if (!CanUseSelectedUserActions || SelectedUser == null) return;
 
             var path = _fileDialogService.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
             if (string.IsNullOrWhiteSpace(path))
@@ -249,6 +345,7 @@ namespace InventoryManagementApp.ViewModels
                 if (idx >= 0) Users[idx] = SelectedUser;
                 if (_userContext?.CurrentUser?.UserID == SelectedUser.UserID)
                     _userContext.CurrentUser = SelectedUser;
+                NotifyUserDirectoryStateChanged();
             }
             catch (UnauthorizedAccessException)
             {
@@ -264,7 +361,7 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task UpdateUserAsync()
         {
-            if (SelectedUser == null) return;
+            if (!CanUseSelectedUserActions || SelectedUser == null) return;
             try
             {
                 await _userService.UpdateUserAsync(SelectedUser);
@@ -274,6 +371,7 @@ namespace InventoryManagementApp.ViewModels
                 if (idx >= 0) Users[idx] = SelectedUser;
                 if (_userContext?.CurrentUser?.UserID == SelectedUser.UserID)
                     _userContext.CurrentUser = SelectedUser;
+                NotifyUserDirectoryStateChanged();
             }
             catch (UnauthorizedAccessException)
             {
@@ -289,11 +387,13 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task AddUserAsync()
         {
+            if (!CanUseUserActions) return;
+
             HashSet<string> existingNames;
             try
             {
                 existingNames = new HashSet<string>(
-                    (await _userService.GetAllUsersAsync(CancellationToken.None)).Select(u => u.UserName),
+                    _allUsers.Select(u => u.UserName),
                     StringComparer.OrdinalIgnoreCase);
             }
             catch (Exception ex)
@@ -332,8 +432,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 await _userService.AddUserAsync(newUser);
                 _allUsers.Add(newUser);
-                Users.Add(newUser);
-                SelectedUser = newUser;
+                ApplyUserRows(_allUsers);
+                SelectedUser = Users.FirstOrDefault(user => ReferenceEquals(user, newUser))
+                    ?? Users.FirstOrDefault(user => user.UserID == newUser.UserID)
+                    ?? newUser;
             }
             catch (UnauthorizedAccessException)
             {
@@ -384,7 +486,9 @@ namespace InventoryManagementApp.ViewModels
 
         void SearchUsers()
         {
+            if (!CanUseUserActions) return;
             Users.ReplaceRange(FilterUsers(_allUsers));
+            NotifyUserDirectoryStateChanged();
         }
 
         private IEnumerable<UserModel> FilterUsers(IEnumerable<UserModel> users)
@@ -396,24 +500,28 @@ namespace InventoryManagementApp.ViewModels
 
             var term = UserSearchText.Trim();
             return users.Where(u =>
+                u.UserID.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
                 (u.UserName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (u.Role?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (u.Email?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (u.Phone?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (u.Mobile?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (u.Address?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.LockoutStatus?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 (u.AccessSummary?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
         void ClearUserSearch()
         {
+            if (!CanUseUserActions) return;
             UserSearchText = string.Empty;
             Users.ReplaceRange(_allUsers);
+            NotifyUserDirectoryStateChanged();
         }
 
         public async Task EditUserAsync(UserModel? user)
         {
-            if (user == null) return;
+            if (!CanUseUserActions || user == null) return;
 
             UserModel source = user;
             try
@@ -464,6 +572,7 @@ namespace InventoryManagementApp.ViewModels
                         var idxAll = _allUsers.IndexOf(user);
                         if (idxAll >= 0) _allUsers[idxAll] = clone;
                         AssignInitialsBrushes(_allUsers);
+                        NotifyUserDirectoryStateChanged();
                         if (ReferenceEquals(SelectedUser, user)) SelectedUser = clone;
                         if (_userContext?.CurrentUser?.UserID == clone.UserID)
                             _userContext.CurrentUser = clone;
@@ -494,7 +603,7 @@ namespace InventoryManagementApp.ViewModels
 
         async Task ResetPasswordFor(UserModel? user)
         {
-            if (user == null) return;
+            if (!CanUseUserActions || user == null) return;
             var newPassword = PasswordDefaults.TemporaryPassword;
             try
             {
@@ -516,6 +625,8 @@ namespace InventoryManagementApp.ViewModels
                     user.FailedLoginAttempts = refreshed.FailedLoginAttempts;
                     user.LockoutEndUtc = refreshed.LockoutEndUtc;
                     user.Permissions = refreshed.Permissions;
+                    NotifySelectedUserStateChanged();
+                    NotifyUserDirectoryStateChanged();
                 }
                 await _dialogService.ShowInfoAsync(
                     $"Password has been reset to \"{newPassword}\". The user must change it at next login.",
@@ -540,7 +651,7 @@ namespace InventoryManagementApp.ViewModels
 
         async Task DeleteUserAsync(UserModel? user)
         {
-            if (user == null) return;
+            if (!CanUseUserActions || user == null) return;
             try
             {
                 var deleted = await _userService.TryDeleteUserAsync(user.UserID);
@@ -549,6 +660,8 @@ namespace InventoryManagementApp.ViewModels
                     _allUsers.Remove(user);
                     Users.Remove(user);
                     if (ReferenceEquals(SelectedUser, user)) SelectedUser = null;
+                    NotifyUserDirectoryStateChanged();
+                    NotifyUserCommandStatesChanged();
                 }
                 else
                 {
@@ -566,6 +679,43 @@ namespace InventoryManagementApp.ViewModels
                 _logger.LogError(ex, "Failed to delete user {UserID}", user.UserID);
                 await _dialogService.ShowInfoAsync(BuildMutationFailureMessage("Failed to delete user", ex, refreshed), "Error");
             }
+        }
+
+        private void NotifyUserDirectoryStateChanged()
+        {
+            OnPropertyChanged(nameof(TotalUserCount));
+            OnPropertyChanged(nameof(VisibleUserCount));
+            OnPropertyChanged(nameof(HasUserFilter));
+            OnPropertyChanged(nameof(CanUseUserActions));
+            OnPropertyChanged(nameof(CanUseSelectedUserActions));
+            OnPropertyChanged(nameof(CanPrintUsers));
+            OnPropertyChanged(nameof(UserDirectoryStatusText));
+            OnPropertyChanged(nameof(UserFilterStatusText));
+            OnPropertyChanged(nameof(UserEmptyStateTitle));
+            OnPropertyChanged(nameof(UserEmptyStateMessage));
+            OnPropertyChanged(nameof(SelectedAccessStatusText));
+            OnPropertyChanged(nameof(SelectedSecurityStatusText));
+        }
+
+        private void NotifySelectedUserStateChanged()
+        {
+            OnPropertyChanged(nameof(CanUseSelectedUserActions));
+            OnPropertyChanged(nameof(SelectedAccessStatusText));
+            OnPropertyChanged(nameof(SelectedSecurityStatusText));
+        }
+
+        private void NotifyUserCommandStatesChanged()
+        {
+            LoadUsersCommand.NotifyCanExecuteChanged();
+            UploadUserPhotoCommand.NotifyCanExecuteChanged();
+            UpdateUserCommand.NotifyCanExecuteChanged();
+            AddUserCommand.NotifyCanExecuteChanged();
+            SearchUsersCommand.NotifyCanExecuteChanged();
+            ClearUserSearchCommand.NotifyCanExecuteChanged();
+            EditUserCommand.NotifyCanExecuteChanged();
+            EditUserFromRowCommand.NotifyCanExecuteChanged();
+            ResetPasswordFromRowCommand.NotifyCanExecuteChanged();
+            DeleteUserFromRowCommand.NotifyCanExecuteChanged();
         }
     }
 }
