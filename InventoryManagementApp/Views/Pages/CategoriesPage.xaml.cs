@@ -16,6 +16,7 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class CategoriesPage : Page
     {
+        private const int MaxDirectoryPrintRows = 250;
         private bool _hasInitialized;
 
         public CategoriesPage(int inventoryId)
@@ -138,13 +139,21 @@ namespace InventoryManagementApp.Views.Pages
         {
             UiActionGuard.Run(this, "Category Directory", () =>
             {
-                if (DataContext is not CategoryManagementViewModel vm || vm.FilteredCategories.Count == 0)
+                if (DataContext is not CategoryManagementViewModel vm || !vm.IsDirectoryPrintAvailable)
                 {
-                    WpfMessageBox.Show("There are no categories to print.", "Category Directory", MessageBoxButton.OK, MessageBoxImage.Information);
+                    WpfMessageBox.Show("There are no categories ready to print. Wait for loading to finish or clear the filter.", "Category Directory", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
-                var document = BuildDirectoryPrintDocument(vm.FilteredCategories.ToList(), vm.CategoryResultsSummary, vm.CategorySetupSummary);
+                var visibleRowCount = vm.FilteredCategories.Count;
+                var snapshot = vm.FilteredCategories.Take(MaxDirectoryPrintRows).ToList();
+                var document = BuildDirectoryPrintDocument(
+                    snapshot,
+                    visibleRowCount,
+                    vm.Categories.Count,
+                    vm.SearchText,
+                    vm.CategoryResultsSummary,
+                    vm.CategorySetupSummary);
                 ShowPrintPreview(document, "Category Directory");
             });
         }
@@ -182,14 +191,25 @@ namespace InventoryManagementApp.Views.Pages
         private static string FormatCategoryDetail(CategoryManagementViewModel.CategoryItem category)
         {
             return $"Category #: {category.CategoryID}{Environment.NewLine}" +
-                   $"Name: {category.Name}{Environment.NewLine}" +
-                   $"Directory label: {category.DirectoryLabel}{Environment.NewLine}{Environment.NewLine}" +
+                   $"Name: {ValueOrNotRecorded(category.Name)}{Environment.NewLine}" +
+                   $"Directory label: {ValueOrNotRecorded(category.DirectoryLabel)}{Environment.NewLine}{Environment.NewLine}" +
                    "Admin handoff: confirm the category name matches staff language, assign matching inventory records, review search/filter coverage, and remove obsolete duplicates.";
         }
 
-        private static FlowDocument BuildDirectoryPrintDocument(IReadOnlyCollection<CategoryManagementViewModel.CategoryItem> categories, string summary, string setupSummary)
+        private static FlowDocument BuildDirectoryPrintDocument(
+            IReadOnlyCollection<CategoryManagementViewModel.CategoryItem> categories,
+            int visibleRowCount,
+            int totalRowCount,
+            string searchText,
+            string summary,
+            string setupSummary)
         {
             var document = CreateBaseDocument();
+            var printedRowCount = categories.Count;
+            var omittedRowCount = Math.Max(0, visibleRowCount - printedRowCount);
+            var filterText = string.IsNullOrWhiteSpace(searchText)
+                ? "No filter applied"
+                : $"Filter: {searchText.Trim()}";
 
             document.Blocks.Add(new Paragraph(new Run("Category Directory"))
             {
@@ -200,13 +220,34 @@ namespace InventoryManagementApp.Views.Pages
             document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {summary}. {setupSummary}"))
             {
                 FontSize = 10,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+            document.Blocks.Add(new Paragraph(new Run($"Rows visible: {visibleRowCount}. Rows printed: {printedRowCount}. Rows omitted: {omittedRowCount}. Total linked categories: {totalRowCount}. {filterText}."))
+            {
+                FontSize = 10,
+                Margin = new Thickness(0, 0, 0, 8)
+            });
+            document.Blocks.Add(new Paragraph(new Run("Review note: verify category names, item assignments, search/filter coverage, and any omitted rows before using this packet for setup cleanup."))
+            {
+                FontSize = 10,
+                FontStyle = FontStyles.Italic,
                 Margin = new Thickness(0, 0, 0, 10)
             });
 
+            if (printedRowCount == 0)
+            {
+                document.Blocks.Add(new Paragraph(new Run("No category rows were available for this directory packet."))
+                {
+                    Margin = new Thickness(0, 0, 0, 10)
+                });
+                return document;
+            }
+
             var table = new Table { CellSpacing = 0 };
-            table.Columns.Add(new TableColumn { Width = new GridLength(90) });
-            table.Columns.Add(new TableColumn { Width = new GridLength(220) });
-            table.Columns.Add(new TableColumn { Width = new GridLength(280) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(0.7, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(1.6, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(2.4, GridUnitType.Star) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(1.8, GridUnitType.Star) });
 
             var rowGroup = new TableRowGroup();
             table.RowGroups.Add(rowGroup);
@@ -215,6 +256,7 @@ namespace InventoryManagementApp.Views.Pages
             rowGroup.Rows.Add(header);
             AddCell(header, "ID");
             AddCell(header, "Category");
+            AddCell(header, "Directory Label");
             AddCell(header, "Admin Handoff");
 
             foreach (var category in categories)
@@ -222,7 +264,8 @@ namespace InventoryManagementApp.Views.Pages
                 var row = new TableRow();
                 rowGroup.Rows.Add(row);
                 AddCell(row, category.CategoryID.ToString());
-                AddCell(row, category.Name);
+                AddCell(row, ValueOrNotRecorded(category.Name));
+                AddCell(row, ValueOrNotRecorded(category.DirectoryLabel));
                 AddCell(row, "Verify item assignment and search/filter coverage.");
             }
 
@@ -234,7 +277,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             var document = CreateBaseDocument();
 
-            document.Blocks.Add(new Paragraph(new Run($"Category Sheet - {category.Name}"))
+            document.Blocks.Add(new Paragraph(new Run($"Category Sheet - {ValueOrNotRecorded(category.Name)}"))
             {
                 FontSize = 16,
                 FontWeight = FontWeights.SemiBold,
@@ -259,6 +302,7 @@ namespace InventoryManagementApp.Views.Pages
             document.Blocks.Add(new Paragraph(new Run("[ ] Matching inventory records are assigned")) { Margin = new Thickness(0, 0, 0, 2) });
             document.Blocks.Add(new Paragraph(new Run("[ ] Search and filter coverage has been checked")) { Margin = new Thickness(0, 0, 0, 2) });
             document.Blocks.Add(new Paragraph(new Run("[ ] Duplicate or obsolete categories have been removed")) { Margin = new Thickness(0, 0, 0, 2) });
+            document.Blocks.Add(new Paragraph(new Run("[ ] Printed directory totals were reviewed if this category appears in a filtered packet")) { Margin = new Thickness(0, 0, 0, 2) });
             return document;
         }
 
@@ -269,6 +313,11 @@ namespace InventoryManagementApp.Views.Pages
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
                 FontSize = 10
             };
+        }
+
+        private static string ValueOrNotRecorded(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "Not recorded" : value.Trim();
         }
 
         private static void AddCell(TableRow row, string text)
