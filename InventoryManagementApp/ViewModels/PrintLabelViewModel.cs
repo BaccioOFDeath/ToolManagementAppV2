@@ -51,6 +51,7 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<ItemModel> Items { get; }
 
         public bool HasItems => Items.Count > 0;
+        public Visibility EmptyQueueVisibility => HasItems ? Visibility.Collapsed : Visibility.Visible;
         public int VisibleLabelCount => Math.Min(Items.Count, MaxPrintableLabels);
         public int OmittedLabelCount => Math.Max(0, Items.Count - MaxPrintableLabels);
 
@@ -100,6 +101,7 @@ namespace InventoryManagementApp.ViewModels
         private void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             OnPropertyChanged(nameof(HasItems));
+            OnPropertyChanged(nameof(EmptyQueueVisibility));
             OnPropertyChanged(nameof(VisibleLabelCount));
             OnPropertyChanged(nameof(OmittedLabelCount));
             OnPropertyChanged(nameof(QueueStatusText));
