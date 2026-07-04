@@ -69,7 +69,19 @@ namespace InventoryManagementApp.Views.Pages
 
         private void CustomerRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is CustomerManagementViewModel vm && vm.OpenCustomerDetailsCommand.CanExecute(null))
+            if (DataContext is not CustomerManagementViewModel vm)
+                return;
+
+            if (vm.IsCustomerDirectoryBusy)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (GridContextMenuSelection.SelectRow(sender, e) == null)
+                return;
+
+            if (vm.OpenCustomerDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Customers", () => vm.OpenCustomerDetailsCommand.Execute(null));
                 e.Handled = true;
