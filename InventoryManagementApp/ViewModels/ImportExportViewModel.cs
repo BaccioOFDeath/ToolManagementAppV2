@@ -319,7 +319,7 @@ namespace InventoryManagementApp.ViewModels
                             return;
                         }
                         
-                        await _dialogService.ShowInfoAsync($"Importing {plural}...", $"Import {plural}");
+                        AddLog($"Importing {plural} from {path}...");
                         skippedRows = await _itemService.ImportItemsFromCsvAsync(path, map, cancellationToken);
                     }
                     else
@@ -334,7 +334,7 @@ namespace InventoryManagementApp.ViewModels
                             return;
                         }
                         
-                        await _dialogService.ShowInfoAsync($"Importing {plural} from {importer.FormatName}...", $"Import {plural}");
+                        AddLog($"Importing {plural} from {path} ({importer.FormatName} format)...");
                         skippedRows = await _itemService.ImportItemsAsync(path, importer, cancellationToken);
                     }
                     

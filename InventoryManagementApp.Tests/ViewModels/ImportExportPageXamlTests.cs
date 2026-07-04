@@ -21,7 +21,8 @@ namespace InventoryManagementApp.Tests.ViewModels
                 "CustomerDataSummary",
                 "BackupSummary",
                 "ImageImportSummary",
-                "Data desk ready");
+                "DataOperationStatus",
+                "DataOperationSummary");
         }
 
         [Fact]

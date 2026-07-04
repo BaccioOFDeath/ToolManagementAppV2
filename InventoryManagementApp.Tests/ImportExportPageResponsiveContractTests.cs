@@ -76,7 +76,12 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"340\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalScrollBarVisibility=\"Disabled\" MaxHeight=\"260\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<TextBlock Text=\"{Binding LogSummary}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding DataOperationStatus}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding DataOperationSummary}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ProgressBar Width=\"120\" Height=\"14\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Visibility=\"{Binding IsDataOperationBusy, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Text=\"Data desk ready\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Text=\"Item import running\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"360\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Columns=\"2\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<StackPanel DockPanel.Dock=\"Right\" Orientation=\"Horizontal\">", xaml, StringComparison.Ordinal);
@@ -92,6 +97,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("public bool IsDataOperationReady => !IsDataOperationBusy;", viewModel, StringComparison.Ordinal);
             Assert.Contains("public string DataOperationStatus => IsDataOperationBusy", viewModel, StringComparison.Ordinal);
             Assert.Contains("public string DataOperationSummary => IsDataOperationBusy", viewModel, StringComparison.Ordinal);
+            Assert.Contains("AddLog($\"Importing {plural} from {path}...\");", viewModel, StringComparison.Ordinal);
+            Assert.Contains("AddLog($\"Importing {plural} from {path} ({importer.FormatName} format)...\");", viewModel, StringComparison.Ordinal);
+            Assert.DoesNotContain("await _dialogService.ShowInfoAsync($\"Importing {plural}", viewModel, StringComparison.Ordinal);
             Assert.Contains("bool TryBeginDataOperation(string operationName)", viewModel, StringComparison.Ordinal);
             Assert.Contains("void EndDataOperation()", viewModel, StringComparison.Ordinal);
             Assert.Contains("ImportItemsCommand = new AsyncRelayCommand(ct => ImportItemsAsync(ct), CanStartDataOperation);", viewModel, StringComparison.Ordinal);

@@ -565,9 +565,9 @@
         <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0" Padding="8,5">
             <WrapPanel>
                 <TextBlock Text="{Binding LogSummary}" Style="{StaticResource CaptionTextBlock}" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="680" Margin="0,0,10,4"/>
-                <TextBlock Text="Data desk ready" FontSize="11" Margin="0,0,10,4" VerticalAlignment="Center"/>
-                <TextBlock Text="Item import running" FontSize="11" Margin="0,0,6,4" Visibility="{Binding ImportItemsCommand.IsRunning, Converter={StaticResource BoolToVis}}" VerticalAlignment="Center"/>
-                <ProgressBar Width="120" Height="14" IsIndeterminate="True" Visibility="{Binding ImportItemsCommand.IsRunning, Converter={StaticResource BoolToVis}}" Margin="0,0,0,4"/>
+                <TextBlock Text="{Binding DataOperationStatus}" FontSize="11" FontWeight="SemiBold" Margin="0,0,10,4" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding DataOperationSummary}" Style="{StaticResource CaptionTextBlock}" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="520" Margin="0,0,10,4"/>
+                <ProgressBar Width="120" Height="14" IsIndeterminate="True" Visibility="{Binding IsDataOperationBusy, Converter={StaticResource BoolToVis}}" Margin="0,0,0,4"/>
             </WrapPanel>
         </Border>
     </Grid>
