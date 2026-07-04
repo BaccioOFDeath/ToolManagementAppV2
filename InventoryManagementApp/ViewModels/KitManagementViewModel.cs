@@ -16,26 +16,148 @@ namespace InventoryManagementApp.ViewModels
 {
     public class KitManagementViewModel : ObservableObject
     {
+        private const int MaxDirectoryPrintRows = 250;
         private readonly KitService _kitService;
         private readonly IDialogService _dialogService;
+        private bool _isLoadingKits;
+        private bool _isLoadingKitItems;
+        private int _kitItemLoadVersion;
 
         public ObservableCollection<Kit> Kits { get; }
         public ObservableCollection<Kit> FilteredKits { get; }
         public ObservableCollection<KitItem> KitItems { get; }
 
-        public string KitResultsSummary => $"{FilteredKits.Count} kit{(FilteredKits.Count == 1 ? string.Empty : "s")} shown | {Kits.Count(k => k.IsActive)} active | {Kits.Count(k => !k.IsActive)} inactive";
+        public bool IsLoadingKits
+        {
+            get => _isLoadingKits;
+            private set
+            {
+                if (SetProperty(ref _isLoadingKits, value))
+                {
+                    RaiseDirectoryStateChanged();
+                    RaiseCommandStates();
+                }
+            }
+        }
+
+        public bool IsLoadingKitItems
+        {
+            get => _isLoadingKitItems;
+            private set
+            {
+                if (SetProperty(ref _isLoadingKitItems, value))
+                {
+                    RaiseKitItemStateChanged();
+                    RaiseCommandStates();
+                }
+            }
+        }
+
+        public bool IsKitInteractionBusy => IsLoadingKits;
+
+        public bool IsKitItemInteractionBusy => IsLoadingKits || IsLoadingKitItems;
+
+        public bool IsKitDirectoryEmptyVisible => !IsKitInteractionBusy && FilteredKits.Count == 0;
+
+        public bool IsKitItemsEmptyVisible => !IsKitItemInteractionBusy && SelectedKit != null && KitItems.Count == 0;
+
+        public bool IsKitDirectoryPrintAvailable => !IsKitInteractionBusy && FilteredKits.Count > 0;
+
+        public string KitResultsSummary
+        {
+            get
+            {
+                if (IsLoadingKits) return "Loading kit directory...";
+                var active = Kits.Count(k => k.IsActive);
+                var inactive = Kits.Count - active;
+                return $"{FilteredKits.Count} kit{(FilteredKits.Count == 1 ? string.Empty : "s")} shown | {active} active | {inactive} inactive";
+            }
+        }
+
+        public string KitFilterSummary
+        {
+            get
+            {
+                if (IsLoadingKits) return "Filter and search are paused while kit rows load.";
+
+                var status = SelectedFilter == "All" ? "all kits" : SelectedFilter.ToLowerInvariant() + " kits";
+                return string.IsNullOrWhiteSpace(SearchText)
+                    ? $"Showing {status}."
+                    : $"Showing {status} matching \"{SearchText.Trim()}\".";
+            }
+        }
+
+        public string KitPrintSummary
+        {
+            get
+            {
+                if (IsLoadingKits) return "Print is paused while kit rows are loading.";
+                if (FilteredKits.Count == 0) return "Print is available after kits are loaded or the filter has matches.";
+
+                var visible = FilteredKits.Count;
+                var printed = Math.Min(visible, MaxDirectoryPrintRows);
+                var omitted = visible - printed;
+                var suffix = omitted > 0 ? $" First {printed} will print; {omitted} omitted for preview speed." : string.Empty;
+                return $"Ready to print {visible} visible kit row{(visible == 1 ? string.Empty : "s")}.{suffix}";
+            }
+        }
+
+        public string KitEmptyStateTitle
+        {
+            get
+            {
+                if (Kits.Count == 0) return "No kits saved yet";
+                return string.IsNullOrWhiteSpace(SearchText) && SelectedFilter == "All"
+                    ? "No kits to show"
+                    : "No kits match this filter";
+            }
+        }
+
+        public string KitEmptyStateMessage
+        {
+            get
+            {
+                if (Kits.Count == 0)
+                {
+                    return "Add the first reusable kit so staff can stage grouped items, confirm availability, and print a pick sheet from one workflow.";
+                }
+
+                return "Clear the search, change the status filter, or add a kit that matches the current shop language.";
+            }
+        }
+
+        public string KitItemLoadSummary
+        {
+            get
+            {
+                if (SelectedKit == null) return "Select a kit to load required and optional item lines.";
+                if (IsLoadingKitItems) return $"Loading membership for {ValueOrNotRecorded(SelectedKit.KitNumber)}...";
+                if (KitItems.Count == 0) return "No item lines are assigned to this kit yet.";
+                return $"{KitItems.Count} item line{(KitItems.Count == 1 ? string.Empty : "s")} ready for availability review and pick-sheet printing.";
+            }
+        }
+
+        public string KitItemsEmptyStateTitle => SelectedKit == null
+            ? "No kit selected"
+            : "No items assigned to this kit";
+
+        public string KitItemsEmptyStateMessage => SelectedKit == null
+            ? "Choose a kit from the directory to load its membership lines."
+            : "Add required and optional item lines so availability checks and printed handoffs have enough detail.";
 
         public string SelectedKitSummary => SelectedKit == null
             ? "Select a kit to review membership, check availability, copy details, print a pick sheet, or maintain its item list."
-            : $"{ValueOrNotRecorded(SelectedKit.KitNumber)} | {ValueOrNotRecorded(SelectedKit.Name)} | {KitItems.Count} item line{(KitItems.Count == 1 ? string.Empty : "s")} | {(SelectedKit.IsActive ? "Active" : "Inactive")}";
+            : $"{ValueOrNotRecorded(SelectedKit.KitNumber)} | {ValueOrNotRecorded(SelectedKit.Name)} | {(IsLoadingKitItems ? "loading" : KitItems.Count.ToString())} item line{(KitItems.Count == 1 ? string.Empty : "s")} | {(SelectedKit.IsActive ? "Active" : "Inactive")}";
 
         public string SelectedKitDetail => SelectedKit == null
             ? "No kit selected. Choose a row from the directory to see the operational detail here."
-            : $"Kit # {ValueOrNotRecorded(SelectedKit.KitNumber)}\nName: {ValueOrNotRecorded(SelectedKit.Name)}\nCategory: {ValueOrNotRecorded(SelectedKit.Category)}\nStatus: {(SelectedKit.IsActive ? "Active" : "Inactive")}\nItems: {KitItems.Count}\nUpdated: {SelectedKit.UpdatedAt:yyyy-MM-dd HH:mm}\n\n{ValueOrNotRecorded(SelectedKit.Description)}";
+            : $"Kit # {ValueOrNotRecorded(SelectedKit.KitNumber)}\nName: {ValueOrNotRecorded(SelectedKit.Name)}\nCategory: {ValueOrNotRecorded(SelectedKit.Category)}\nStatus: {(SelectedKit.IsActive ? "Active" : "Inactive")}\nItems: {(IsLoadingKitItems ? "Loading" : KitItems.Count.ToString())}\nUpdated: {SelectedKit.UpdatedAt:yyyy-MM-dd HH:mm}\n\n{ValueOrNotRecorded(SelectedKit.Description)}";
 
         public string KitItemsSummary => SelectedKit == null
             ? "No kit selected"
-            : $"{KitItems.Count} item line{(KitItems.Count == 1 ? string.Empty : "s")} in {ValueOrNotRecorded(SelectedKit.KitNumber)} | {KitItems.Count(i => !i.IsOptional)} required | {KitItems.Count(i => i.IsOptional)} optional";
+            : IsLoadingKitItems
+                ? $"Loading item lines for {ValueOrNotRecorded(SelectedKit.KitNumber)}"
+                : $"{KitItems.Count} item line{(KitItems.Count == 1 ? string.Empty : "s")} in {ValueOrNotRecorded(SelectedKit.KitNumber)} | {KitItems.Count(i => !i.IsOptional)} required | {KitItems.Count(i => i.IsOptional)} optional";
 
         public string SelectedKitItemSummary => SelectedKitItem == null
             ? "Select a kit item to edit quantity, mark optional, or remove it from this kit."
@@ -43,7 +165,9 @@ namespace InventoryManagementApp.ViewModels
 
         public string SelectedKitAvailabilitySummary => SelectedKit == null
             ? "Availability check is ready once a kit is selected."
-            : "Use Check Availability before promising the kit; required item quantities are checked against current stock.";
+            : IsLoadingKitItems
+                ? "Membership is loading; availability checks are paused until item lines are ready."
+                : "Use Check Availability before promising the kit; required item quantities are checked against current stock.";
 
         private Kit? _selectedKit;
         public Kit? SelectedKit
@@ -53,18 +177,14 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _selectedKit, value))
                 {
-                    EditKitCommand.NotifyCanExecuteChanged();
-                    DeleteKitCommand.NotifyCanExecuteChanged();
-                    ViewKitItemsCommand.NotifyCanExecuteChanged();
-                    AddKitItemCommand.NotifyCanExecuteChanged();
-                    CheckAvailabilityCommand.NotifyCanExecuteChanged();
-                    OpenKitDetailsCommand.NotifyCanExecuteChanged();
-                    CopySelectedKitCommand.NotifyCanExecuteChanged();
-                    PrintSelectedKitCommand.NotifyCanExecuteChanged();
+                    RaiseCommandStates();
                     OnPropertyChanged(nameof(SelectedKitSummary));
                     OnPropertyChanged(nameof(SelectedKitDetail));
                     OnPropertyChanged(nameof(KitItemsSummary));
                     OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));
+                    OnPropertyChanged(nameof(KitItemLoadSummary));
+                    OnPropertyChanged(nameof(KitItemsEmptyStateTitle));
+                    OnPropertyChanged(nameof(KitItemsEmptyStateMessage));
 
                     if (value != null)
                     {
@@ -72,6 +192,7 @@ namespace InventoryManagementApp.ViewModels
                     }
                     else
                     {
+                        _kitItemLoadVersion++;
                         ClearKitItemsForReload();
                     }
                 }
@@ -154,31 +275,36 @@ namespace InventoryManagementApp.ViewModels
                 "Inactive"
             };
 
-            LoadKitsCommand = new AsyncRelayCommand(LoadKitsAsync);
-            AddKitCommand = new AsyncRelayCommand(AddKitAsync);
+            LoadKitsCommand = new AsyncRelayCommand(LoadKitsAsync, () => !IsKitInteractionBusy);
+            AddKitCommand = new AsyncRelayCommand(AddKitAsync, () => !IsKitInteractionBusy);
             EditKitCommand = new AsyncRelayCommand(EditKitAsync, CanEditOrDelete);
             DeleteKitCommand = new AsyncRelayCommand(DeleteKitAsync, CanEditOrDelete);
             ViewKitItemsCommand = new AsyncRelayCommand(ViewKitItemsAsync, CanEditOrDelete);
-            AddKitItemCommand = new AsyncRelayCommand(AddKitItemAsync, CanEditOrDelete);
+            AddKitItemCommand = new AsyncRelayCommand(AddKitItemAsync, CanMaintainKitItems);
             EditKitItemCommand = new AsyncRelayCommand(EditKitItemAsync, CanEditOrRemoveKitItem);
             RemoveKitItemCommand = new AsyncRelayCommand(RemoveKitItemAsync, CanEditOrRemoveKitItem);
             CheckAvailabilityCommand = new AsyncRelayCommand(CheckAvailabilityAsync, CanEditOrDelete);
-            RefreshCommand = new AsyncRelayCommand(LoadKitsAsync);
-            ClearSearchCommand = new RelayCommand(ClearSearch);
+            RefreshCommand = new AsyncRelayCommand(LoadKitsAsync, () => !IsKitInteractionBusy);
+            ClearSearchCommand = new RelayCommand(ClearSearch, () => !IsKitInteractionBusy && (!string.IsNullOrWhiteSpace(SearchText) || SelectedFilter != "Active"));
             OpenKitDetailsCommand = new RelayCommand(OpenKitDetails, CanEditOrDelete);
             CopySelectedKitCommand = new RelayCommand(CopySelectedKit, CanEditOrDelete);
-            PrintKitListCommand = new RelayCommand(PrintKitList);
+            PrintKitListCommand = new RelayCommand(PrintKitList, () => IsKitDirectoryPrintAvailable);
             PrintSelectedKitCommand = new RelayCommand(PrintSelectedKit, CanEditOrDelete);
         }
 
         private async Task LoadKitsAsync()
         {
+            if (IsKitInteractionBusy)
+                return;
+
+            IsLoadingKits = true;
+
             try
             {
                 var kits = await _kitService.GetAllKitsAsync();
                 var previouslySelectedKitId = SelectedKit?.KitID;
                 Kits.Clear();
-                foreach (var kit in kits)
+                foreach (var kit in kits.OrderByDescending(k => k.IsActive).ThenBy(k => k.Name).ThenBy(k => k.KitNumber))
                 {
                     Kits.Add(kit);
                 }
@@ -188,6 +314,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 ClearKitStateAfterLoadFailure();
                 await _dialogService.ShowErrorAsync("Error loading kits", $"{ex.Message} Kit rows were cleared until reload succeeds.");
+            }
+            finally
+            {
+                IsLoadingKits = false;
             }
         }
 
@@ -199,20 +329,25 @@ namespace InventoryManagementApp.ViewModels
             SelectedKitItem = null;
             KitItems.Clear();
             RefreshKitItemSummaries();
-            OnPropertyChanged(nameof(KitResultsSummary));
+            RaiseDirectoryStateChanged();
             OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));
             PrintKitListCommand.NotifyCanExecuteChanged();
         }
 
         private async Task LoadKitItemsAsync(int kitID)
         {
+            var loadVersion = ++_kitItemLoadVersion;
             var selectedKitItemId = SelectedKitItem?.KitItemID;
             ClearKitItemsForReload();
+            IsLoadingKitItems = true;
 
             try
             {
                 var items = await _kitService.GetKitItemsAsync(kitID);
-                foreach (var item in items)
+                if (loadVersion != _kitItemLoadVersion || SelectedKit?.KitID != kitID)
+                    return;
+
+                foreach (var item in items.OrderBy(i => i.IsOptional).ThenBy(i => i.ItemName).ThenBy(i => i.ItemNumber))
                 {
                     KitItems.Add(item);
                 }
@@ -221,8 +356,18 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
+                if (loadVersion != _kitItemLoadVersion)
+                    return;
+
                 ClearKitItemsForReload();
                 await _dialogService.ShowErrorAsync("Error loading kit items", $"{ex.Message} Kit item rows were cleared until reload succeeds.");
+            }
+            finally
+            {
+                if (loadVersion == _kitItemLoadVersion)
+                {
+                    IsLoadingKitItems = false;
+                }
             }
         }
 
@@ -231,6 +376,7 @@ namespace InventoryManagementApp.ViewModels
             KitItems.Clear();
             SelectedKitItem = null;
             RefreshKitItemSummaries();
+            RaiseKitItemStateChanged();
         }
 
         private async Task RefreshKitItemsAfterMutationFailureAsync(string title, string message)
@@ -258,7 +404,7 @@ namespace InventoryManagementApp.ViewModels
             var selectedKitItemId = SelectedKitItem?.KitItemID;
             ClearKitItemsForReload();
             var items = await _kitService.GetKitItemsAsync(kitID);
-            foreach (var item in items)
+            foreach (var item in items.OrderBy(i => i.IsOptional).ThenBy(i => i.ItemName).ThenBy(i => i.ItemNumber))
             {
                 KitItems.Add(item);
             }
@@ -268,6 +414,8 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task AddKitAsync()
         {
+            if (IsKitInteractionBusy) return;
+
             var newKit = new Kit
             {
                 KitNumber = $"KIT-{DateTime.Now:yyyyMMddHHmmss}",
@@ -295,7 +443,7 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task EditKitAsync()
         {
-            if (SelectedKit == null) return;
+            if (SelectedKit == null || IsKitInteractionBusy) return;
 
             var clone = new Kit
             {
@@ -330,7 +478,7 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task DeleteKitAsync()
         {
-            if (SelectedKit == null) return;
+            if (SelectedKit == null || IsKitInteractionBusy) return;
 
             var kitName = SelectedKit.Name;
             var confirmed = await _dialogService.ShowConfirmAsync(
@@ -356,13 +504,13 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task ViewKitItemsAsync()
         {
-            if (SelectedKit == null) return;
+            if (SelectedKit == null || IsKitInteractionBusy) return;
             await LoadKitItemsAsync(SelectedKit.KitID);
         }
 
         private async Task AddKitItemAsync()
         {
-            if (SelectedKit == null) return;
+            if (SelectedKit == null || IsKitItemInteractionBusy) return;
 
             var newKitItem = new KitItem
             {
@@ -392,7 +540,7 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task EditKitItemAsync()
         {
-            if (SelectedKitItem == null) return;
+            if (SelectedKitItem == null || IsKitItemInteractionBusy) return;
 
             var clone = new KitItem
             {
@@ -426,7 +574,7 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task RemoveKitItemAsync()
         {
-            if (SelectedKitItem == null) return;
+            if (SelectedKitItem == null || IsKitItemInteractionBusy) return;
 
             var itemName = ValueOrNotRecorded(SelectedKitItem.ItemName);
             var confirmed = await _dialogService.ShowConfirmAsync(
@@ -452,7 +600,7 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task CheckAvailabilityAsync()
         {
-            if (SelectedKit == null) return;
+            if (SelectedKit == null || IsKitItemInteractionBusy) return;
 
             try
             {
@@ -470,6 +618,8 @@ namespace InventoryManagementApp.ViewModels
 
         private void ClearSearch()
         {
+            if (IsKitInteractionBusy) return;
+
             SearchText = string.Empty;
             SelectedFilter = "Active";
             ApplyFilter();
@@ -477,7 +627,7 @@ namespace InventoryManagementApp.ViewModels
 
         private void OpenKitDetails()
         {
-            if (SelectedKit == null) return;
+            if (SelectedKit == null || IsKitInteractionBusy) return;
 
             var details = BuildSelectedKitDetails();
             _dialogService.ShowInfo(details, $"Kit Details - {ValueOrNotRecorded(SelectedKit.Name)}");
@@ -485,7 +635,7 @@ namespace InventoryManagementApp.ViewModels
 
         private void CopySelectedKit()
         {
-            if (SelectedKit == null) return;
+            if (SelectedKit == null || IsKitInteractionBusy) return;
 
             try
             {
@@ -500,6 +650,12 @@ namespace InventoryManagementApp.ViewModels
 
         private void PrintKitList()
         {
+            if (IsKitInteractionBusy)
+            {
+                _dialogService.ShowInfo("Kit directory printing is paused while rows are loading.", "Kit Directory");
+                return;
+            }
+
             if (FilteredKits.Count == 0)
             {
                 _dialogService.ShowInfo("There are no kits to print for the current filter.", "Kit Directory");
@@ -508,30 +664,42 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
+                var visibleKits = FilteredKits.ToList();
+                var printedKits = visibleKits.Take(MaxDirectoryPrintRows).ToList();
+                var omittedCount = visibleKits.Count - printedKits.Count;
+                var filterContext = string.IsNullOrWhiteSpace(SearchText)
+                    ? $"Status filter: {SelectedFilter}"
+                    : $"Status filter: {SelectedFilter} | Search: {SearchText.Trim()}";
+
                 var doc = CreateKitDocument("Kit Directory", fontSize: 11);
-                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | {KitResultsSummary}"))
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Visible {visibleKits.Count} | Printed {printedKits.Count} | Omitted {omittedCount} | {filterContext}"))
+                {
+                    FontSize = 10,
+                    Margin = new Thickness(0, 0, 0, 8)
+                });
+                doc.Blocks.Add(new Paragraph(new Run("Review active status, category, and descriptions before staging grouped item sets. Large filtered directories print the first 250 visible rows to keep preview responsive."))
                 {
                     FontSize = 10,
                     Margin = new Thickness(0, 0, 0, 10)
                 });
 
                 var table = new Table { CellSpacing = 0 };
-                table.Columns.Add(new TableColumn { Width = new GridLength(120) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(210) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(150) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(90) });
-                table.Columns.Add(new TableColumn { Width = new GridLength(230) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.15, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.85, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(1.25, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(0.8, GridUnitType.Star) });
+                table.Columns.Add(new TableColumn { Width = new GridLength(2.25, GridUnitType.Star) });
 
                 var group = new TableRowGroup();
                 table.RowGroups.Add(group);
                 AddPrintRow(group, true, "Kit #", "Name", "Category", "Status", "Description");
-                foreach (var kit in FilteredKits)
+                foreach (var kit in printedKits)
                 {
                     AddPrintRow(group, false, kit.KitNumber, kit.Name, kit.Category, kit.IsActive ? "Active" : "Inactive", kit.Description);
                 }
 
                 doc.Blocks.Add(table);
-                _dialogService.ShowPrintPreview(doc, "Kit Directory", string.Empty);
+                _dialogService.ShowPrintPreview(doc, "Kit Directory", KitPrintSummary);
             }
             catch (Exception ex)
             {
@@ -541,7 +709,7 @@ namespace InventoryManagementApp.ViewModels
 
         private void PrintSelectedKit()
         {
-            if (SelectedKit == null) return;
+            if (SelectedKit == null || IsKitItemInteractionBusy) return;
 
             try
             {
@@ -564,10 +732,10 @@ namespace InventoryManagementApp.ViewModels
                 });
 
                 var itemTable = new Table { CellSpacing = 0 };
-                itemTable.Columns.Add(new TableColumn { Width = new GridLength(130) });
-                itemTable.Columns.Add(new TableColumn { Width = new GridLength(280) });
-                itemTable.Columns.Add(new TableColumn { Width = new GridLength(80) });
-                itemTable.Columns.Add(new TableColumn { Width = new GridLength(100) });
+                itemTable.Columns.Add(new TableColumn { Width = new GridLength(1.2, GridUnitType.Star) });
+                itemTable.Columns.Add(new TableColumn { Width = new GridLength(2.4, GridUnitType.Star) });
+                itemTable.Columns.Add(new TableColumn { Width = new GridLength(0.7, GridUnitType.Star) });
+                itemTable.Columns.Add(new TableColumn { Width = new GridLength(0.9, GridUnitType.Star) });
                 var itemGroup = new TableRowGroup();
                 itemTable.RowGroups.Add(itemGroup);
                 AddPrintRow(itemGroup, true, "Item #", "Item", "Qty", "Required");
@@ -577,7 +745,7 @@ namespace InventoryManagementApp.ViewModels
                 }
                 doc.Blocks.Add(itemTable);
 
-                _dialogService.ShowPrintPreview(doc, $"Kit {kit.KitNumber}", string.Empty);
+                _dialogService.ShowPrintPreview(doc, $"Kit {kit.KitNumber}", KitItemLoadSummary);
             }
             catch (Exception ex)
             {
@@ -601,7 +769,11 @@ namespace InventoryManagementApp.ViewModels
             details.AppendLine(ValueOrNotRecorded(kit.Description));
             details.AppendLine();
             details.AppendLine("Kit items:");
-            if (KitItems.Count == 0)
+            if (IsLoadingKitItems)
+            {
+                details.AppendLine("- Kit items are still loading.");
+            }
+            else if (KitItems.Count == 0)
             {
                 details.AppendLine("- No items assigned.");
             }
@@ -640,7 +812,7 @@ namespace InventoryManagementApp.ViewModels
                 _ => filtered
             };
 
-            foreach (var kit in filtered)
+            foreach (var kit in filtered.OrderByDescending(k => k.IsActive).ThenBy(k => k.Name).ThenBy(k => k.KitNumber))
             {
                 FilteredKits.Add(kit);
             }
@@ -650,11 +822,8 @@ namespace InventoryManagementApp.ViewModels
                 : FilteredKits.FirstOrDefault(k => SelectedKit != null && k.KitID == SelectedKit.KitID);
             SelectedKit = selectedKit ?? FilteredKits.FirstOrDefault();
 
-            OnPropertyChanged(nameof(KitResultsSummary));
-            OnPropertyChanged(nameof(SelectedKitSummary));
-            OnPropertyChanged(nameof(SelectedKitDetail));
-            OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));
-            PrintKitListCommand.NotifyCanExecuteChanged();
+            RaiseDirectoryStateChanged();
+            RaiseCommandStates();
         }
 
         private void RefreshKitItemSummaries()
@@ -663,11 +832,58 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(SelectedKitSummary));
             OnPropertyChanged(nameof(SelectedKitDetail));
             OnPropertyChanged(nameof(SelectedKitItemSummary));
+            OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));
+            OnPropertyChanged(nameof(KitItemLoadSummary));
+            OnPropertyChanged(nameof(IsKitItemsEmptyVisible));
         }
 
-        private bool CanEditOrDelete() => SelectedKit != null;
+        private void RaiseDirectoryStateChanged()
+        {
+            OnPropertyChanged(nameof(IsKitInteractionBusy));
+            OnPropertyChanged(nameof(IsKitDirectoryEmptyVisible));
+            OnPropertyChanged(nameof(IsKitDirectoryPrintAvailable));
+            OnPropertyChanged(nameof(KitResultsSummary));
+            OnPropertyChanged(nameof(KitFilterSummary));
+            OnPropertyChanged(nameof(KitPrintSummary));
+            OnPropertyChanged(nameof(KitEmptyStateTitle));
+            OnPropertyChanged(nameof(KitEmptyStateMessage));
+        }
 
-        private bool CanEditOrRemoveKitItem() => SelectedKitItem != null;
+        private void RaiseKitItemStateChanged()
+        {
+            OnPropertyChanged(nameof(IsKitItemInteractionBusy));
+            OnPropertyChanged(nameof(IsKitItemsEmptyVisible));
+            OnPropertyChanged(nameof(KitItemsSummary));
+            OnPropertyChanged(nameof(SelectedKitSummary));
+            OnPropertyChanged(nameof(SelectedKitDetail));
+            OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));
+            OnPropertyChanged(nameof(KitItemLoadSummary));
+        }
+
+        private void RaiseCommandStates()
+        {
+            LoadKitsCommand.NotifyCanExecuteChanged();
+            AddKitCommand.NotifyCanExecuteChanged();
+            EditKitCommand.NotifyCanExecuteChanged();
+            DeleteKitCommand.NotifyCanExecuteChanged();
+            ViewKitItemsCommand.NotifyCanExecuteChanged();
+            AddKitItemCommand.NotifyCanExecuteChanged();
+            EditKitItemCommand.NotifyCanExecuteChanged();
+            RemoveKitItemCommand.NotifyCanExecuteChanged();
+            CheckAvailabilityCommand.NotifyCanExecuteChanged();
+            RefreshCommand.NotifyCanExecuteChanged();
+            ClearSearchCommand.NotifyCanExecuteChanged();
+            OpenKitDetailsCommand.NotifyCanExecuteChanged();
+            CopySelectedKitCommand.NotifyCanExecuteChanged();
+            PrintKitListCommand.NotifyCanExecuteChanged();
+            PrintSelectedKitCommand.NotifyCanExecuteChanged();
+        }
+
+        private bool CanEditOrDelete() => SelectedKit != null && !IsKitInteractionBusy && !IsLoadingKitItems;
+
+        private bool CanMaintainKitItems() => SelectedKit != null && !IsKitItemInteractionBusy;
+
+        private bool CanEditOrRemoveKitItem() => SelectedKitItem != null && !IsKitItemInteractionBusy;
 
         static bool Contains(string? source, string search) =>
             !string.IsNullOrWhiteSpace(source) && source.Contains(search, StringComparison.OrdinalIgnoreCase);
