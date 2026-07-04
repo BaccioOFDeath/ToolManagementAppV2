@@ -134,7 +134,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("new GridLength(1.05, GridUnitType.Star)", source, StringComparison.Ordinal);
             Assert.Contains("new GridLength(1.65, GridUnitType.Star)", source, StringComparison.Ordinal);
             Assert.Contains("Review overdue rows, technician assignment", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("new GridLength(150)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("table.Columns.Add(new TableColumn { Width = new GridLength(90) });", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("table.Columns.Add(new TableColumn { Width = new GridLength(110) });", source, StringComparison.Ordinal);
             Assert.DoesNotContain("foreach (var record in FilteredMaintenanceRecords)", source, StringComparison.Ordinal);
         }
 
