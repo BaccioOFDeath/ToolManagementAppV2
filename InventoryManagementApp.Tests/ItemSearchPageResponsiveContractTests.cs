@@ -108,6 +108,45 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ItemSearchPage_GuardsStartupLoadAndBusyActionPaths()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml.cs");
+
+            Assert.Contains("private ItemManagementViewModel? _loadedSearchViewModel;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private bool _hasLoadedSearchForViewModel;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DataContextChanged += ItemSearchPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ReferenceEquals(_loadedSearchViewModel, vm) && _hasLoadedSearchForViewModel", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!vm.SearchCommand.IsRunning && vm.SearchCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsSearchBusy(ItemManagementViewModel vm)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return vm.SearchCommand.IsRunning;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the item search to finish before opening item details.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the current search to finish before repeating another search.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the item search to finish before opening unavailable-demand details.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the item search to finish before clearing session intelligence.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the item search to finish before printing search intelligence.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the item search to finish before opening print preview.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is ItemManagementViewModel vm && IsSearchBusy(vm))\n            {\n                e.Handled = true;", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ItemSearchPage_BoundsPrintPreviewRowsAndShowsOmittedAccounting()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml.cs");
+
+            Assert.Contains("private const int MaxItemPrintRows = 250;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var itemList = items.Take(MaxItemPrintRows).ToList();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var omittedCount = Math.Max(0, totalCount - itemList.Count);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("BuildPrintDocument(title, itemList, totalCount, omittedCount)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("BuildCheckedOutPrintDocument(title, items, totalCount, omittedCount)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("showing {items.Count} of {totalCount} row(s); {omittedCount} omitted", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("showing {items.Count} of {totalCount} checked-out item(s); {omittedCount} omitted", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Large result sets print the first 250 rows so preview stays responsive.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Large checked-out lists print the first 250 rows so preview stays responsive.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Review row count, omitted-row guidance, item status, holder, stock, and location details before printing.", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ItemSearchPage_PreservesSearchActionsAndRowHandlers()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml");
