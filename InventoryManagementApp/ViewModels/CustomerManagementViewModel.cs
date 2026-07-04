@@ -79,6 +79,14 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        public bool IsCustomerDirectoryActionAvailable => !IsCustomerDirectoryBusy;
+
+        public bool IsSelectedCustomerActionAvailable => !IsCustomerDirectoryBusy && SelectedCustomer != null;
+
+        public bool IsCustomerDirectoryPrintAvailable => !IsCustomerDirectoryBusy && Customers.Count > 0;
+
+        public bool IsCustomerEmptyStateVisible => !IsCustomerDirectoryBusy && Customers.Count == 0;
+
         public bool IsCustomerDirectoryBusy
         {
             get => _isCustomerDirectoryBusy;
@@ -90,6 +98,7 @@ namespace InventoryManagementApp.ViewModels
                     OnPropertyChanged(nameof(CustomerPrintSummary));
                     OnPropertyChanged(nameof(CustomerEmptyStateMessage));
                     OnPropertyChanged(nameof(CustomerOperationsSummary));
+                    NotifyCustomerAvailabilityStateChanged();
                     AddCustomerCommand.NotifyCanExecuteChanged();
                     SearchCustomersCommand.NotifyCanExecuteChanged();
                     ClearCustomerSearchCommand.NotifyCanExecuteChanged();
@@ -138,6 +147,7 @@ namespace InventoryManagementApp.ViewModels
                     OnPropertyChanged(nameof(CustomerContactSummary));
                     OnPropertyChanged(nameof(CustomerAddressSummary));
                     OnPropertyChanged(nameof(CustomerOperationsSummary));
+                    OnPropertyChanged(nameof(IsSelectedCustomerActionAvailable));
 
                     if (value != null)
                     {
@@ -230,9 +240,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                ClearCustomerDirectoryAfterLoadFailure();
+                NotifyCustomerDirectoryStateChanged();
                 if (_dialogService != null)
-                    await _dialogService.ShowInfoAsync($"Failed to load customers: {ex.Message} Customer rows were cleared until reload succeeds.", "Customer Load Failed");
+                    await _dialogService.ShowInfoAsync($"Failed to load customers: {ex.Message} Existing customer rows were kept when available so current work can continue.", "Customer Load Failed");
             }
             finally
             {
@@ -319,9 +329,9 @@ namespace InventoryManagementApp.ViewModels
             }
             catch (Exception ex)
             {
-                ClearCustomerDirectoryAfterLoadFailure();
+                NotifyCustomerDirectoryStateChanged();
                 if (_dialogService != null)
-                    await _dialogService.ShowInfoAsync($"Failed to search customers: {ex.Message} Customer rows were cleared until reload succeeds.", "Customer Search Failed");
+                    await _dialogService.ShowInfoAsync($"Failed to search customers: {ex.Message} Existing customer rows were kept when available so current work can continue.", "Customer Search Failed");
             }
             finally
             {
@@ -379,8 +389,17 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CustomerPrintSummary));
             OnPropertyChanged(nameof(CustomerEmptyStateMessage));
             OnPropertyChanged(nameof(CustomerOperationsSummary));
+            NotifyCustomerAvailabilityStateChanged();
             PrintCustomerDirectoryCommand.NotifyCanExecuteChanged();
             NotifySelectedCustomerActionStateChanged();
+        }
+
+        private void NotifyCustomerAvailabilityStateChanged()
+        {
+            OnPropertyChanged(nameof(IsCustomerDirectoryActionAvailable));
+            OnPropertyChanged(nameof(IsSelectedCustomerActionAvailable));
+            OnPropertyChanged(nameof(IsCustomerDirectoryPrintAvailable));
+            OnPropertyChanged(nameof(IsCustomerEmptyStateVisible));
         }
 
         private void NotifySelectedCustomerActionStateChanged()
@@ -397,11 +416,11 @@ namespace InventoryManagementApp.ViewModels
 
         private bool CanRefreshCustomerDirectory() => !IsCustomerDirectoryBusy;
 
-        private bool CanInteractWithSelectedCustomer() => !IsCustomerDirectoryBusy && SelectedCustomer != null;
+        private bool CanInteractWithSelectedCustomer() => IsSelectedCustomerActionAvailable;
 
         private bool CanInteractWithCustomer(CustomerModel? customer) => !IsCustomerDirectoryBusy && customer != null;
 
-        private bool CanPrintCustomerDirectory() => Customers.Count > 0 && !IsCustomerDirectoryBusy;
+        private bool CanPrintCustomerDirectory() => IsCustomerDirectoryPrintAvailable;
 
         private void ClearNewCustomerFields()
         {
