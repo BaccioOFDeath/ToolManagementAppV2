@@ -54,6 +54,9 @@ namespace InventoryManagementApp.ViewModels
         {
             get
             {
+                if (IsCustomerDirectoryBusy)
+                    return "Print paused while customer rows load";
+
                 if (Customers.Count == 0)
                     return "No printable customer rows yet";
 
@@ -84,10 +87,14 @@ namespace InventoryManagementApp.ViewModels
                 if (SetProperty(ref _isCustomerDirectoryBusy, value))
                 {
                     OnPropertyChanged(nameof(CustomerFilterStatus));
+                    OnPropertyChanged(nameof(CustomerPrintSummary));
                     OnPropertyChanged(nameof(CustomerEmptyStateMessage));
+                    OnPropertyChanged(nameof(CustomerOperationsSummary));
+                    AddCustomerCommand.NotifyCanExecuteChanged();
                     SearchCustomersCommand.NotifyCanExecuteChanged();
                     ClearCustomerSearchCommand.NotifyCanExecuteChanged();
                     PrintCustomerDirectoryCommand.NotifyCanExecuteChanged();
+                    NotifySelectedCustomerActionStateChanged();
                 }
             }
         }
@@ -105,9 +112,18 @@ namespace InventoryManagementApp.ViewModels
             ? "No address is selected yet."
             : ValueOrNotRecorded(SelectedCustomer.Address);
 
-        public string CustomerOperationsSummary => SelectedCustomer == null
-            ? "Choose a customer before starting a rental, reservation, delivery promise, or printed handoff."
-            : "Verify this contact, then use Rentals or Requests to review open activity before promising availability or collection times.";
+        public string CustomerOperationsSummary
+        {
+            get
+            {
+                if (IsCustomerDirectoryBusy)
+                    return "Customer actions are paused while the directory refreshes, so row handoffs stay tied to current data.";
+
+                return SelectedCustomer == null
+                    ? "Choose a customer before starting a rental, reservation, delivery promise, or printed handoff."
+                    : "Verify this contact, then use Rentals or Requests to review open activity before promising availability or collection times.";
+            }
+        }
 
         private CustomerModel? _selectedCustomer;
         public CustomerModel? SelectedCustomer
@@ -117,12 +133,7 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (SetProperty(ref _selectedCustomer, value))
                 {
-                    ((AsyncRelayCommand)UpdateCustomerCommand).NotifyCanExecuteChanged();
-                    ((AsyncRelayCommand)DeleteCustomerCommand).NotifyCanExecuteChanged();
-                    ((AsyncRelayCommand)EditCustomerCommand).NotifyCanExecuteChanged();
-                    OpenCustomerDetailsCommand.NotifyCanExecuteChanged();
-                    PrintSelectedCustomerCommand.NotifyCanExecuteChanged();
-                    CopySelectedCustomerCommand.NotifyCanExecuteChanged();
+                    NotifySelectedCustomerActionStateChanged();
                     OnPropertyChanged(nameof(SelectedCustomerSummary));
                     OnPropertyChanged(nameof(CustomerContactSummary));
                     OnPropertyChanged(nameof(CustomerAddressSummary));
@@ -190,18 +201,18 @@ namespace InventoryManagementApp.ViewModels
         {
             _customerService = customerService;
             _dialogService = dialogService;
-            AddCustomerCommand = new AsyncRelayCommand(AddCustomerAsync);
-            UpdateCustomerCommand = new AsyncRelayCommand(UpdateCustomerAsync, () => SelectedCustomer != null);
+            AddCustomerCommand = new AsyncRelayCommand(AddCustomerAsync, CanRefreshCustomerDirectory);
+            UpdateCustomerCommand = new AsyncRelayCommand(UpdateCustomerAsync, CanInteractWithSelectedCustomer);
             SearchCustomersCommand = new AsyncRelayCommand(SearchCustomersAsync, CanRefreshCustomerDirectory);
-            DeleteCustomerCommand = new AsyncRelayCommand(() => DeleteCustomerAsync(), () => SelectedCustomer != null);
-            EditCustomerCommand = new AsyncRelayCommand(() => EditCustomerAsync(SelectedCustomer), () => SelectedCustomer != null);
-            EditCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(EditCustomerAsync);
-            DeleteCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(c => DeleteCustomerAsync(c));
+            DeleteCustomerCommand = new AsyncRelayCommand(() => DeleteCustomerAsync(), CanInteractWithSelectedCustomer);
+            EditCustomerCommand = new AsyncRelayCommand(() => EditCustomerAsync(SelectedCustomer), CanInteractWithSelectedCustomer);
+            EditCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(EditCustomerAsync, CanInteractWithCustomer);
+            DeleteCustomerFromRowCommand = new AsyncRelayCommand<CustomerModel>(c => DeleteCustomerAsync(c), CanInteractWithCustomer);
             ClearCustomerSearchCommand = new AsyncRelayCommand(ClearCustomerSearchAsync, CanRefreshCustomerDirectory);
-            OpenCustomerDetailsCommand = new RelayCommand(OpenCustomerDetails, () => SelectedCustomer != null);
+            OpenCustomerDetailsCommand = new RelayCommand(OpenCustomerDetails, CanInteractWithSelectedCustomer);
             PrintCustomerDirectoryCommand = new RelayCommand(PrintCustomerDirectory, CanPrintCustomerDirectory);
-            PrintSelectedCustomerCommand = new RelayCommand(PrintSelectedCustomer, () => SelectedCustomer != null);
-            CopySelectedCustomerCommand = new RelayCommand(CopySelectedCustomer, () => SelectedCustomer != null);
+            PrintSelectedCustomerCommand = new RelayCommand(PrintSelectedCustomer, CanInteractWithSelectedCustomer);
+            CopySelectedCustomerCommand = new RelayCommand(CopySelectedCustomer, CanInteractWithSelectedCustomer);
         }
 
         public async Task LoadCustomersAsync()
@@ -231,6 +242,8 @@ namespace InventoryManagementApp.ViewModels
 
         async Task AddCustomerAsync()
         {
+            if (IsCustomerDirectoryBusy) return;
+
             var customer = _dialogService?.ShowAddCustomerDialog();
             if (customer == null || _customerService == null || _dialogService == null) return;
 
@@ -257,7 +270,7 @@ namespace InventoryManagementApp.ViewModels
 
         async Task UpdateCustomerAsync()
         {
-            if (SelectedCustomer == null || _customerService == null || _dialogService == null) return;
+            if (IsCustomerDirectoryBusy || SelectedCustomer == null || _customerService == null || _dialogService == null) return;
             var selectedId = SelectedCustomer.CustomerID;
             var updated = new CustomerModel
             {
@@ -365,10 +378,28 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CustomerFilterStatus));
             OnPropertyChanged(nameof(CustomerPrintSummary));
             OnPropertyChanged(nameof(CustomerEmptyStateMessage));
+            OnPropertyChanged(nameof(CustomerOperationsSummary));
             PrintCustomerDirectoryCommand.NotifyCanExecuteChanged();
+            NotifySelectedCustomerActionStateChanged();
+        }
+
+        private void NotifySelectedCustomerActionStateChanged()
+        {
+            ((AsyncRelayCommand)UpdateCustomerCommand).NotifyCanExecuteChanged();
+            ((AsyncRelayCommand)DeleteCustomerCommand).NotifyCanExecuteChanged();
+            ((AsyncRelayCommand)EditCustomerCommand).NotifyCanExecuteChanged();
+            EditCustomerFromRowCommand.NotifyCanExecuteChanged();
+            DeleteCustomerFromRowCommand.NotifyCanExecuteChanged();
+            OpenCustomerDetailsCommand.NotifyCanExecuteChanged();
+            PrintSelectedCustomerCommand.NotifyCanExecuteChanged();
+            CopySelectedCustomerCommand.NotifyCanExecuteChanged();
         }
 
         private bool CanRefreshCustomerDirectory() => !IsCustomerDirectoryBusy;
+
+        private bool CanInteractWithSelectedCustomer() => !IsCustomerDirectoryBusy && SelectedCustomer != null;
+
+        private bool CanInteractWithCustomer(CustomerModel? customer) => !IsCustomerDirectoryBusy && customer != null;
 
         private bool CanPrintCustomerDirectory() => Customers.Count > 0 && !IsCustomerDirectoryBusy;
 
@@ -393,7 +424,7 @@ namespace InventoryManagementApp.ViewModels
         async Task DeleteCustomerAsync(CustomerModel? customer = null)
         {
             customer ??= SelectedCustomer;
-            if (customer == null || _customerService == null || _dialogService == null)
+            if (IsCustomerDirectoryBusy || customer == null || _customerService == null || _dialogService == null)
                 return;
 
             var confirmed = await _dialogService.ShowConfirmAsync("Delete Customer", $"Delete {ValueOrNotRecorded(customer.Company)} from the customer list?");
@@ -423,7 +454,7 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task EditCustomerAsync(CustomerModel? customer)
         {
-            if (customer == null || _dialogService == null || _customerService == null) return;
+            if (IsCustomerDirectoryBusy || customer == null || _dialogService == null || _customerService == null) return;
             var edited = _dialogService.ShowEditCustomerDialog(customer);
             if (edited == null) return;
             try
@@ -449,7 +480,16 @@ namespace InventoryManagementApp.ViewModels
 
         void OpenCustomerDetails()
         {
-            if (SelectedCustomer == null || _dialogService == null)
+            if (_dialogService == null)
+                return;
+
+            if (IsCustomerDirectoryBusy)
+            {
+                ShowCustomerDirectoryBusyMessage("Customer Details");
+                return;
+            }
+
+            if (SelectedCustomer == null)
                 return;
 
             var customer = SelectedCustomer;
@@ -460,7 +500,16 @@ namespace InventoryManagementApp.ViewModels
 
         void CopySelectedCustomer()
         {
-            if (SelectedCustomer == null || _dialogService == null)
+            if (_dialogService == null)
+                return;
+
+            if (IsCustomerDirectoryBusy)
+            {
+                ShowCustomerDirectoryBusyMessage("Customer Handoff");
+                return;
+            }
+
+            if (SelectedCustomer == null)
                 return;
 
             try
@@ -563,7 +612,16 @@ namespace InventoryManagementApp.ViewModels
 
         void PrintSelectedCustomer()
         {
-            if (SelectedCustomer == null || _dialogService == null)
+            if (_dialogService == null)
+                return;
+
+            if (IsCustomerDirectoryBusy)
+            {
+                ShowCustomerDirectoryBusyMessage("Customer Sheet");
+                return;
+            }
+
+            if (SelectedCustomer == null)
                 return;
 
             try
@@ -591,6 +649,11 @@ namespace InventoryManagementApp.ViewModels
             {
                 _dialogService.ShowInfo($"Failed to print customer sheet: {ex.Message}", "Print Failed");
             }
+        }
+
+        private void ShowCustomerDirectoryBusyMessage(string title)
+        {
+            _dialogService?.ShowInfo("Customer rows are still updating. Try again after the directory finishes loading.", title);
         }
 
         void SelectBestCustomerAfterRefresh(int? preferredCustomerId = null, bool clearSelectionWhenPreferredMissing = false)
