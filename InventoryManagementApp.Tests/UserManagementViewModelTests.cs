@@ -45,6 +45,93 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task LoadUsersAsync_ExposesBusyStateAndDisablesDirectoryActionsWhileRowsLoad()
+        {
+            var existingUser = new UserModel { UserID = 2, UserName = "bravo", Role = "Technician" };
+            var newUser = new UserModel { UserID = 1, UserName = "alpha", Role = "Admin", IsAdmin = true };
+            var service = new StubUserService();
+            service.Users.Add(existingUser);
+            var dialog = new StubDialogService();
+            var vm = new UserManagementViewModel(service, new StubFileDialogService(), dialog);
+
+            await vm.LoadUsersAsync();
+            vm.SelectedUser = existingUser;
+            service.Users.Insert(0, newUser);
+            service.HoldNextGetAllUsers();
+
+            var reloadTask = vm.LoadUsersAsync();
+            await service.WaitForGetAllUsersAsync();
+
+            Assert.True(vm.IsLoadingUsers);
+            Assert.False(vm.LoadUsersCommand.CanExecute(null));
+            Assert.False(vm.AddUserCommand.CanExecute(null));
+            Assert.False(vm.SearchUsersCommand.CanExecute(null));
+            Assert.False(vm.ClearUserSearchCommand.CanExecute(null));
+            Assert.False(vm.EditUserCommand.CanExecute(null));
+            Assert.False(vm.UploadUserPhotoCommand.CanExecute(null));
+            Assert.False(vm.ResetPasswordFromRowCommand.CanExecute(existingUser));
+            Assert.False(vm.DeleteUserFromRowCommand.CanExecute(existingUser));
+            Assert.False(vm.CanPrintUsers);
+            Assert.Contains("Refreshing account directory", vm.UserDirectoryStatusText);
+            Assert.Contains("Search pauses", vm.UserFilterStatusText);
+
+            await vm.LoadUsersAsync();
+            Assert.Equal(2, service.GetAllUsersCallCount);
+
+            service.ReleaseHeldGetAllUsers();
+            await reloadTask;
+
+            Assert.False(vm.IsLoadingUsers);
+            Assert.True(vm.LoadUsersCommand.CanExecute(null));
+            Assert.True(vm.AddUserCommand.CanExecute(null));
+            Assert.True(vm.SearchUsersCommand.CanExecute(null));
+            Assert.True(vm.ClearUserSearchCommand.CanExecute(null));
+            Assert.True(vm.CanPrintUsers);
+            Assert.Equal(2, vm.VisibleUserCount);
+            Assert.Equal(2, vm.TotalUserCount);
+            Assert.Equal(new[] { "alpha", "bravo" }, vm.Users.Select(user => user.UserName).ToArray());
+        }
+
+        [Fact]
+        public async Task SearchUsers_FiltersByUserIdLockoutAndAccessSummary()
+        {
+            var service = new StubUserService();
+            service.Users.Add(new UserModel
+            {
+                UserID = 101,
+                UserName = "scheduler",
+                Role = "Planner",
+                Permissions = UserModel.BuildPermissions(new[] { UserModel.PermissionReservations })
+            });
+            service.Users.Add(new UserModel
+            {
+                UserID = 202,
+                UserName = "locked",
+                Role = "Auditor",
+                FailedLoginAttempts = 3,
+                Permissions = UserModel.BuildPermissions(Array.Empty<string>())
+            });
+
+            var vm = new UserManagementViewModel(service, new StubFileDialogService(), new StubDialogService());
+            await vm.LoadUsersAsync();
+
+            vm.UserSearchText = "101";
+            vm.SearchUsersCommand.Execute(null);
+            var userById = Assert.Single(vm.Users);
+            Assert.Equal("scheduler", userById.UserName);
+
+            vm.UserSearchText = "failed login";
+            vm.SearchUsersCommand.Execute(null);
+            var userByLockout = Assert.Single(vm.Users);
+            Assert.Equal("locked", userByLockout.UserName);
+
+            vm.UserSearchText = "Reservations";
+            vm.SearchUsersCommand.Execute(null);
+            var userByAccess = Assert.Single(vm.Users);
+            Assert.Equal("scheduler", userByAccess.UserName);
+        }
+
+        [Fact]
         public async Task AddUserAsync_WhenAddFailsAfterPersistence_RefreshesRowsAndSelectsSavedUser()
         {
             var service = new StubUserService { ThrowAfterAdd = true };
@@ -151,20 +238,44 @@ namespace InventoryManagementApp.Tests
 
         private sealed class StubUserService : IUserService
         {
+            private TaskCompletionSource? _getAllUsersStarted;
+            private TaskCompletionSource? _releaseGetAllUsers;
+
             public List<UserModel> Users { get; } = new();
             public bool ChangePasswordResult { get; set; } = true;
             public bool ThrowOnGetAllUsers { get; set; }
             public bool ThrowOnGetAllUsersAfterMutation { get; set; }
             public bool ThrowAfterAdd { get; set; }
             public bool ThrowAfterDelete { get; set; }
+            public int GetAllUsersCallCount { get; private set; }
             public int UpdateCallCount { get; private set; }
 
-            public Task<List<UserModel>> GetAllUsersAsync(CancellationToken cancellationToken = default)
+            public void HoldNextGetAllUsers()
             {
+                _getAllUsersStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                _releaseGetAllUsers = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            }
+
+            public Task WaitForGetAllUsersAsync() => _getAllUsersStarted?.Task ?? Task.CompletedTask;
+
+            public void ReleaseHeldGetAllUsers() => _releaseGetAllUsers?.TrySetResult();
+
+            public async Task<List<UserModel>> GetAllUsersAsync(CancellationToken cancellationToken = default)
+            {
+                GetAllUsersCallCount++;
+
+                if (_getAllUsersStarted != null && _releaseGetAllUsers != null)
+                {
+                    _getAllUsersStarted.TrySetResult();
+                    await _releaseGetAllUsers.Task;
+                    _getAllUsersStarted = null;
+                    _releaseGetAllUsers = null;
+                }
+
                 if (ThrowOnGetAllUsers || ThrowOnGetAllUsersAfterMutation)
                     throw new InvalidOperationException("Users are offline");
 
-                return Task.FromResult(Users.ToList());
+                return Users.ToList();
             }
 
             public Task<int> CountUsersAsync(CancellationToken cancellationToken = default)
