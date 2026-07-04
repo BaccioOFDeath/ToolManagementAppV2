@@ -22,10 +22,44 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("ScrollViewer.CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Width=\"1.2*\" MinWidth=\"140\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("QueueStatusText", xaml, StringComparison.Ordinal);
+            Assert.Contains("PrintReadinessText", xaml, StringComparison.Ordinal);
+            Assert.Contains("EmptyQueueVisibility", xaml, StringComparison.Ordinal);
+            Assert.Contains("No labels queued", xaml, StringComparison.Ordinal);
             Assert.Contains("PreviewCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("CloseCommand", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<StackPanel Orientation=\"Horizontal\" HorizontalAlignment=\"Right\">", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void PrintLabelViewModel_BoundsPreviewAndPrintsProfessionalLabelSheets()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "PrintLabelViewModel.cs");
+
+            Assert.Contains("private const int MaxPrintableLabels = 250;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool HasItems => Items.Count > 0;", source, StringComparison.Ordinal);
+            Assert.Contains("public Visibility EmptyQueueVisibility => HasItems ? Visibility.Collapsed : Visibility.Visible;", source, StringComparison.Ordinal);
+            Assert.Contains("public int VisibleLabelCount => Math.Min(Items.Count, MaxPrintableLabels);", source, StringComparison.Ordinal);
+            Assert.Contains("public int OmittedLabelCount => Math.Max(0, Items.Count - MaxPrintableLabels);", source, StringComparison.Ordinal);
+            Assert.Contains("PreviewCommand = new RelayCommand(Preview, () => HasItems);", source, StringComparison.Ordinal);
+            Assert.Contains("PrintCommand = new RelayCommand(Print, () => HasItems);", source, StringComparison.Ordinal);
+            Assert.Contains("Items.CollectionChanged += Items_CollectionChanged;", source, StringComparison.Ordinal);
+            Assert.Contains("PreviewCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
+            Assert.Contains("PrintCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
+            Assert.Contains(".Take(MaxPrintableLabels)", source, StringComparison.Ordinal);
+            Assert.Contains("SelectedTemplate, \"Compact\", StringComparison.OrdinalIgnoreCase) ? 3 : 2", source, StringComparison.Ordinal);
+            Assert.Contains("new TableColumn { Width = new GridLength(1, GridUnitType.Star) }", source, StringComparison.Ordinal);
+            Assert.Contains("PrintDocumentTheme.PageBackgroundBrush", source, StringComparison.Ordinal);
+            Assert.Contains("PrintDocumentTheme.RuleBorderBrush", source, StringComparison.Ordinal);
+            Assert.Contains("Prepared {DateTime.Now:g}", source, StringComparison.Ordinal);
+            Assert.Contains("Large queue note", source, StringComparison.Ordinal);
+            Assert.Contains("No label rows are queued", source, StringComparison.Ordinal);
+            Assert.Contains("Normalize(item.ItemNumber, \"Unnumbered item\")", source, StringComparison.Ordinal);
+            Assert.Contains("Normalize(item.Name, \"Unnamed item\")", source, StringComparison.Ordinal);
+            Assert.Contains("Normalize(item.Location, \"No location\")", source, StringComparison.Ordinal);
+            Assert.Contains("PrintDocumentTheme.ApplyLightTheme(doc);", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("new BlockUIContainer", source, StringComparison.Ordinal);
         }
 
         [Fact]
