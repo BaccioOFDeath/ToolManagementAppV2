@@ -208,7 +208,6 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (DataContext is ManageRentalsViewModel { IsLoading: true })
             {
-                e.Handled = true;
                 return;
             }
 

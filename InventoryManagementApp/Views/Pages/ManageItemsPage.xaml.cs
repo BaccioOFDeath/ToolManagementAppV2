@@ -33,7 +33,6 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (IsItemDirectoryBusy())
             {
-                e.Handled = true;
                 return;
             }
 
