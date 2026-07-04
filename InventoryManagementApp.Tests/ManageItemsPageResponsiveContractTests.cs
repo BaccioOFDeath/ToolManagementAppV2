@@ -112,15 +112,43 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void ManageItemsPage_CodeBehindGuardsRowActionsWhileLoading()
+        public void ManageItemsPage_CodeBehindGuardsStartupAndRowActionsWhileLoading()
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml.cs");
 
+            Assert.Contains("private ItemsViewModel? _loadedViewModel;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("DataContextChanged += ManageItemsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("PreviewKeyDown += ManageItemsPage_PreviewKeyDown;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (ReferenceEquals(_loadedViewModel, vm))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (vm.Items.IsLoading || vm.Items.Count > 0)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!vm.Items.IsLoading && vm.Items.Count == 0 && vm.Items.HasMoreItems)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (IsItemDirectoryBusy())", codeBehind, StringComparison.Ordinal);
             Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("return DataContext is ItemsViewModel { Items.IsLoading: true };", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("private bool _isLoadedForCurrentLifetime;", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (_isLoadedForCurrentLifetime)", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageItemsPage_ProvidesKeyboardShortcutsThroughCommandAvailability()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml.cs");
+
+            Assert.Contains("private void ManageItemsPage_PreviewKeyDown(object sender, KeyEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("IsManagedDirectoryShortcut(e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N && vm.NewItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.M && vm.OpenMobileCaptureCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.E && vm.EditItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.D && vm.ViewDetailsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.H && vm.OpenRentalHistoryCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S && vm.CommitChangesCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete && vm.DeleteItemsCommand.CanExecute(ItemDirectoryGrid.SelectedItems)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter && vm.ViewDetailsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("UiActionGuard.RunAsync(this, \"Manage Items\", async () => await vm.NewItemCommand.ExecuteAsync(null));", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("UiActionGuard.Run(this, \"Manage Items\", () => vm.ViewDetailsCommand.Execute(null));", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return e.Key is Key.N or Key.M or Key.E or Key.D or Key.H or Key.S;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Delete or Key.Enter;", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
