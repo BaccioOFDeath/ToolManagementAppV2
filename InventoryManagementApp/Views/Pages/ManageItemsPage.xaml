@@ -22,6 +22,36 @@
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
         </Style>
+        <Style x:Key="LoadingAwarePrimaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Items.IsLoading}" Value="True">
+                    <Setter Property="IsEnabled" Value="False"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="LoadingAwareGhostButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Items.IsLoading}" Value="True">
+                    <Setter Property="IsEnabled" Value="False"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="DirectoryStatusValueText" TargetType="TextBlock" BasedOn="{StaticResource DirectoryStatValueText}">
+            <Setter Property="Text" Value="Ready"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Items.IsLoading}" Value="True">
+                    <Setter Property="Text" Value="Loading rows"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="DirectoryStatusDetailText" TargetType="TextBlock" BasedOn="{StaticResource DirectoryDetailText}">
+            <Setter Property="Text" Value="Actions use the currently loaded page of rows"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Items.IsLoading}" Value="True">
+                    <Setter Property="Text" Value="Row actions pause until the directory finishes loading"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
         <Style x:Key="AvailabilityTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
@@ -57,12 +87,12 @@
                     <TextBlock Text="Maintain the item directory, review current availability, and save inline stock/location edits before staff use live records." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
                 <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0,0,0">
-                    <Button Style="{StaticResource PrimaryButton}" Content="New" Command="{Binding NewItemCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Mobile Capture" Command="{Binding OpenMobileCaptureCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditItemCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteSelectedItemCommand}" CommandParameter="{Binding SelectedItem}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="New" Command="{Binding NewItemCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="Mobile Capture" Command="{Binding OpenMobileCaptureCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="Edit" Command="{Binding EditItemCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource LoadingAwareGhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource LoadingAwareGhostButton}" Content="History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource LoadingAwareGhostButton}" Content="Delete" Command="{Binding DeleteSelectedItemCommand}" CommandParameter="{Binding SelectedItem}" Margin="0,0,4,4"/>
                 </WrapPanel>
             </DockPanel>
         </Border>
@@ -94,6 +124,13 @@
                     <TextBlock Text="Page Size" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding PageSize}" Style="{StaticResource DirectoryStatValueText}"/>
                     <TextBlock Text="Rows requested per directory load" Style="{StaticResource DirectoryDetailText}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource DirectoryStatCard}">
+                <StackPanel>
+                    <TextBlock Text="Directory Status" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Style="{StaticResource DirectoryStatusValueText}"/>
+                    <TextBlock Style="{StaticResource DirectoryStatusDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource DirectoryStatCard}">
@@ -135,21 +172,23 @@
                                 <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
                                 <pages:SearchBar Width="240"
                                                  MinWidth="180"
+                                                 IsEnabled="{Binding Items.IsLoading, Converter={StaticResource InverseBooleanConverter}}"
                                                  Text="{Binding Filter}"
                                                  SearchCommand="{Binding SearchCommand}"
                                                  SearchLabel="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Search {0}}"/>
                                 <TextBlock Text="Sort" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="12,0,6,4"/>
                                 <ComboBox Width="110"
                                           MinWidth="96"
+                                          IsEnabled="{Binding Items.IsLoading, Converter={StaticResource InverseBooleanConverter}}"
                                           ItemsSource="{Binding SortOptions}"
                                           SelectedItem="{Binding SelectedSortOption}"
                                           DisplayMemberPath="DisplayName"/>
                                 <TextBlock Text="Rows" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="12,0,6,4"/>
-                                <TextBox Width="56" MinWidth="48" Text="{Binding PageSize, UpdateSourceTrigger=LostFocus}"/>
+                                <TextBox Width="56" MinWidth="48" IsEnabled="{Binding Items.IsLoading, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding PageSize, UpdateSourceTrigger=LostFocus}"/>
                             </WrapPanel>
                             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0,0,0">
-                                <Button Style="{StaticResource PrimaryButton}" Content="Save Changes" Command="{Binding CommitChangesCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="Save Changes" Command="{Binding CommitChangesCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource LoadingAwareGhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,4"/>
                             </WrapPanel>
                         </DockPanel>
                     </Border>
@@ -210,15 +249,20 @@
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
                                         DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                                 <MenuItem Header="View details"
+                                          IsEnabled="{Binding PlacementTarget.DataContext.Items.IsLoading, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
                                           Command="{Binding PlacementTarget.DataContext.ViewDetailsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Edit item"
+                                          IsEnabled="{Binding PlacementTarget.DataContext.Items.IsLoading, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
                                           Command="{Binding PlacementTarget.DataContext.EditItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Rental history"
+                                          IsEnabled="{Binding PlacementTarget.DataContext.Items.IsLoading, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
                                           Command="{Binding PlacementTarget.DataContext.OpenRentalHistoryCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <Separator/>
                                 <MenuItem Header="Save pending changes"
+                                          IsEnabled="{Binding PlacementTarget.DataContext.Items.IsLoading, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
                                           Command="{Binding PlacementTarget.DataContext.CommitChangesCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Delete selected"
+                                          IsEnabled="{Binding PlacementTarget.DataContext.Items.IsLoading, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
                                           Command="{Binding PlacementTarget.DataContext.DeleteItemsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                             </ContextMenu>
@@ -232,13 +276,29 @@
                                     <DataTrigger Binding="{Binding Items.Count}" Value="0">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
+                                    <DataTrigger Binding="{Binding Items.IsLoading}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
                         <StackPanel>
                             <TextBlock Text="No matching items" Style="{StaticResource SectionHeader}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
                             <TextBlock Text="Adjust the filter or create a new item to begin building the directory." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,4,0,8"/>
-                            <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" HorizontalAlignment="Center"/>
+                            <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Row="2" MaxWidth="360" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Items.IsLoading, Converter={StaticResource BoolToVis}}" IsHitTestVisible="False">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                <Setter Property="Opacity" Value="0.96"/>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="Loading item rows" Style="{StaticResource SectionHeader}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="The directory is refreshing. Row actions will resume when the current page is ready." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,4,0,8"/>
+                            <ProgressBar IsIndeterminate="True" Height="4" MinWidth="180"/>
                         </StackPanel>
                     </Border>
                     <ProgressBar Grid.Row="3"
@@ -259,11 +319,11 @@
                     </Border>
                     <Border DockPanel.Dock="Bottom" Style="{StaticResource DesktopSectionActionStrip}">
                         <WrapPanel>
-                            <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditItemCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Save" Command="{Binding CommitChangesCommand}" Margin="0,0,4,4"/>
-                            <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteSelectedItemCommand}" CommandParameter="{Binding SelectedItem}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="Edit" Command="{Binding EditItemCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource LoadingAwareGhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource LoadingAwareGhostButton}" Content="History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource LoadingAwareGhostButton}" Content="Save" Command="{Binding CommitChangesCommand}" Margin="0,0,4,4"/>
+                            <Button Style="{StaticResource LoadingAwareGhostButton}" Content="Delete" Command="{Binding DeleteSelectedItemCommand}" CommandParameter="{Binding SelectedItem}" Margin="0,0,4,4"/>
                         </WrapPanel>
                     </Border>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -325,7 +385,8 @@
         <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Padding="6,3" Margin="0,5,0,0">
             <WrapPanel>
                 <TextBlock Text="{Binding PendingEdits.Count, StringFormat='Pending inline edits: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <TextBlock Text="{Binding SelectedSortOption.DisplayName, StringFormat='Sort: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding SelectedSortOption.DisplayName, StringFormat='Sort: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding Items.HasMoreItems, StringFormat='More rows available: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
             </WrapPanel>
         </Border>
     </Grid>

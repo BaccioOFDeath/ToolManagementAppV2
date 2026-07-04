@@ -70,9 +70,28 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"320\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel>", xaml, StringComparison.Ordinal);
+            Assert.Contains("More rows available: {0}", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"300\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("VerticalScrollBarVisibility=\"Hidden\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<DockPanel LastChildFill=\"False\">\n                <TextBlock DockPanel.Dock=\"Left\" Text=\"{Binding PendingEdits.Count", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageItemsPage_DisplaysAndGatesDirectoryLoadingState()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml");
+
+            Assert.Contains("LoadingAwarePrimaryButton", xaml, StringComparison.Ordinal);
+            Assert.Contains("LoadingAwareGhostButton", xaml, StringComparison.Ordinal);
+            Assert.Contains("DirectoryStatusValueText", xaml, StringComparison.Ordinal);
+            Assert.Contains("DirectoryStatusDetailText", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"Directory Status\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"Text\" Value=\"Loading rows\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"IsEnabled\" Value=\"False\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding Items.IsLoading, Converter={StaticResource InverseBooleanConverter}}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Loading item rows", xaml, StringComparison.Ordinal);
+            Assert.Contains("Visibility=\"{Binding Items.IsLoading, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Row actions will resume when the current page is ready", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -90,6 +109,26 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("SearchCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("DataGridRow_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
             Assert.Contains("DataGridRow_MouseDoubleClick", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageItemsPage_CodeBehindGuardsRowActionsWhileLoading()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml.cs");
+
+            Assert.Contains("DataContextChanged += ManageItemsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (IsItemDirectoryBusy())", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return DataContext is ItemsViewModel { Items.IsLoading: true };", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void SharedConverters_RegisterInverseBooleanConverterForLoadingState()
+        {
+            var converters = ReadRepoFile("InventoryManagementApp", "Resources", "Converters.xaml");
+
+            Assert.Contains("<conv:InverseBooleanConverter x:Key=\"InverseBooleanConverter\"/>", converters, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)
