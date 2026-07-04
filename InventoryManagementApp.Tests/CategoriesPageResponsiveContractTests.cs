@@ -81,11 +81,26 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void CategoriesPage_DisablesSelectedCategoryActionsWhileRowsAreBusyOrUnselected()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml");
+
+            Assert.Contains("Content=\"Open\" Click=\"OpenCategoryDetail_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Copy Handoff\" Click=\"CopyCategory_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Print Sheet\" Click=\"PrintSelectedCategory_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Open Category Detail\" Click=\"OpenCategoryDetail_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Copy Setup Handoff\" Click=\"CopyCategory_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Print Selected Sheet\" Click=\"PrintSelectedCategory_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CategoryViewModel_GuardsLoadingCommandsAndProfessionalDirectoryState()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CategoryManagementViewModel.cs");
 
             Assert.Contains("public bool IsCategoryInteractionBusy => IsBusy;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsCategoryActionAvailable => !IsCategoryInteractionBusy;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsSelectedCategoryActionAvailable => !IsCategoryInteractionBusy && SelectedCategory != null;", source, StringComparison.Ordinal);
             Assert.Contains("public bool IsDirectoryPrintAvailable => !IsCategoryInteractionBusy && FilteredCategories.Count > 0;", source, StringComparison.Ordinal);
             Assert.Contains("public bool IsCategoryEmptyStateVisible => !IsCategoryInteractionBusy && FilteredCategories.Count == 0;", source, StringComparison.Ordinal);
             Assert.Contains("CategoryPrintSummary", source, StringComparison.Ordinal);
@@ -95,7 +110,21 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Category refresh is already running.", source, StringComparison.Ordinal);
             Assert.Contains("_refreshCommand = new AsyncCommand(LoadAsync, () => !IsCategoryInteractionBusy && SelectedInventoryId > 0);", source, StringComparison.Ordinal);
             Assert.Contains("_clearSearchCommand = new AsyncCommand(ClearSearchAsync, () => !IsCategoryInteractionBusy && !string.IsNullOrWhiteSpace(SearchText));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(IsCategoryActionAvailable));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(IsSelectedCategoryActionAvailable));", source, StringComparison.Ordinal);
             Assert.Contains("RaiseCommandStates();", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CategoryViewModel_PreservesVisibleRowsWhenDirectoryRefreshFails()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CategoryManagementViewModel.cs");
+            var loadBlock = ExtractSourceBlock(source, "private async Task LoadCategoryDirectoryAsync", "private void ShowCategoryLoadFailureDialogOnce");
+
+            Assert.Contains("Category refresh failed. Existing category rows were kept so current work can continue.", loadBlock, StringComparison.Ordinal);
+            Assert.Contains("Existing category rows were kept when available", source, StringComparison.Ordinal);
+            Assert.Contains("RaiseDirectoryProperties();", loadBlock, StringComparison.Ordinal);
+            Assert.DoesNotContain("ClearCategoryStateAfterLoadFailure();", loadBlock, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -116,6 +145,55 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("new GridLength(90)", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new GridLength(220)", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new GridLength(280)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CategoriesPage_GuardsStartupLoadingThroughActiveViewModelAndFirstPaintYield()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs");
+
+            Assert.Contains("private Task? _initializeCategoriesTask;", source, StringComparison.Ordinal);
+            Assert.Contains("private CategoryManagementViewModel? _initializedViewModel;", source, StringComparison.Ordinal);
+            Assert.Contains("Loaded += CategoriesPage_Loaded;", source, StringComparison.Ordinal);
+            Assert.Contains("DataContextChanged += CategoriesPage_DataContextChanged;", source, StringComparison.Ordinal);
+            Assert.Contains("FindBox.Focus();", source, StringComparison.Ordinal);
+            Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", source, StringComparison.Ordinal);
+            Assert.Contains("!ReferenceEquals(DataContext, vm) || vm.IsCategoryInteractionBusy", source, StringComparison.Ordinal);
+            Assert.Contains("_initializeCategoriesTask = vm.InitializeAsync();", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("private bool _hasInitialized;", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("Loaded += async (_, __) =>", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CategoriesPage_GuardsRowGesturesAndKeyboardActionsWhileRowsLoad()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs");
+            var doubleClick = ExtractSourceBlock(source, "private void CategoryRow_MouseDoubleClick", "private void CategoryRow_PreviewMouseRightButtonDown");
+            var rightClick = ExtractSourceBlock(source, "private void CategoryRow_PreviewMouseRightButtonDown", "private void OpenCategoryDetail_Click");
+            var keyHandler = ExtractSourceBlock(source, "private void Page_PreviewKeyDown", "private static bool IsCategoryActionShortcut");
+            var busyShortcut = ExtractSourceBlock(source, "private static bool IsCategoryActionShortcut", "private static bool IsTextInputFocused");
+
+            Assert.Contains("ViewModel is { IsCategoryInteractionBusy: true }", doubleClick, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e) == null", doubleClick, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", doubleClick, StringComparison.Ordinal);
+            Assert.Contains("ViewModel is { IsCategoryInteractionBusy: true }", rightClick, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", rightClick, StringComparison.Ordinal);
+            Assert.Contains("ViewModel.IsCategoryInteractionBusy && IsCategoryActionShortcut(e)", keyHandler, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R", keyHandler, StringComparison.Ordinal);
+            Assert.Contains("!IsTextInputFocused() && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C", keyHandler, StringComparison.Ordinal);
+            Assert.Contains("e.Key is Key.R or Key.S or Key.P or Key.C", busyShortcut, StringComparison.Ordinal);
+            Assert.Contains("return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete;", busyShortcut, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CategoriesPage_CodeBehindActionsCheckBusyStateBeforeOpeningSelectionWorkflows()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml.cs");
+
+            Assert.Contains("private bool AreCategoryRowsReady(string title)", source, StringComparison.Ordinal);
+            Assert.Contains("Category rows are still loading. Wait for the refresh to finish before using category actions.", source, StringComparison.Ordinal);
+            Assert.Contains("!AreCategoryRowsReady(\"Category Detail\") || !TryGetSelectedCategory(out var category)", source, StringComparison.Ordinal);
+            Assert.Contains("!AreCategoryRowsReady(\"Category Sheet\") || !TryGetSelectedCategory(out var category)", source, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -154,6 +232,17 @@ namespace InventoryManagementApp.Tests
             }
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
+        }
+
+        private static string ExtractSourceBlock(string source, string startMarker, string endMarker)
+        {
+            var start = source.IndexOf(startMarker, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Could not find source block start marker: {startMarker}");
+
+            var end = source.IndexOf(endMarker, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Could not find source block end marker: {endMarker}");
+
+            return source[start..end];
         }
     }
 }
