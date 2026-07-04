@@ -71,7 +71,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void RentalRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is ManageRentalsViewModel vm && vm.OpenRentalDetailsCommand.CanExecute(null))
+            if (DataContext is ManageRentalsViewModel vm && !vm.IsLoading && vm.OpenRentalDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Rentals", () => vm.OpenRentalDetailsCommand.Execute(null));
             }
@@ -84,7 +84,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void RequestRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is ManageRentalsViewModel vm && vm.OpenRequestDetailsCommand.CanExecute(null))
+            if (DataContext is ManageRentalsViewModel vm && !vm.IsLoading && vm.OpenRequestDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Rentals", () => vm.OpenRequestDetailsCommand.Execute(null));
             }
@@ -107,6 +107,9 @@ namespace InventoryManagementApp.Views.Pages
                 e.Handled = true;
                 return;
             }
+
+            if (vm.IsLoading)
+                return;
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P && vm.PrintSearchResultsCommand.CanExecute(null))
             {
@@ -180,6 +183,9 @@ namespace InventoryManagementApp.Views.Pages
 
         private void OpenFocusedDetails(ManageRentalsViewModel vm)
         {
+            if (vm.IsLoading)
+                return;
+
             UiActionGuard.Run(this, "Rentals", () =>
             {
                 if (Keyboard.FocusedElement is DependencyObject focusedElement && GridContextMenuSelection.FindAncestor<System.Windows.Controls.DataGrid>(focusedElement) is System.Windows.Controls.DataGrid grid)
@@ -200,6 +206,12 @@ namespace InventoryManagementApp.Views.Pages
 
         private void SelectRowForContextMenu(object sender, MouseButtonEventArgs e)
         {
+            if (DataContext is ManageRentalsViewModel { IsLoading: true })
+            {
+                e.Handled = true;
+                return;
+            }
+
             var row = GridContextMenuSelection.SelectRow(sender, e);
             if (row == null)
                 return;
