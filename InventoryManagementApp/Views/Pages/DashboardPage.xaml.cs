@@ -15,23 +15,45 @@ namespace InventoryManagementApp.Views.Pages
     {
         private CancellationTokenSource? _loadCts;
         private bool _isLoadingDashboard;
+        private DashboardViewModel? _loadedDashboardViewModel;
+        private bool _hasLoadedDashboardForViewModel;
 
         public DashboardPage()
         {
             InitializeComponent();
             Loaded += DashboardPage_Loaded;
             Unloaded += DashboardPage_Unloaded;
+            DataContextChanged += DashboardPage_DataContextChanged;
             PreviewKeyDown += DashboardPage_PreviewKeyDown;
         }
 
         private async void DashboardPage_Loaded(object sender, RoutedEventArgs e)
         {
             Focus();
+
+            if (DataContext is not DashboardViewModel vm)
+                return;
+
+            if (ReferenceEquals(_loadedDashboardViewModel, vm) && _hasLoadedDashboardForViewModel)
+                return;
+
+            _loadedDashboardViewModel = vm;
+            _hasLoadedDashboardForViewModel = true;
             await LoadDashboardAsync("Loading dashboard data...");
+        }
+
+        private void DashboardPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!ReferenceEquals(_loadedDashboardViewModel, e.NewValue))
+            {
+                _loadedDashboardViewModel = e.NewValue as DashboardViewModel;
+                _hasLoadedDashboardForViewModel = false;
+            }
         }
 
         private async void DashboardLoadRetryButton_Click(object sender, RoutedEventArgs e)
         {
+            _hasLoadedDashboardForViewModel = false;
             await LoadDashboardAsync("Refreshing dashboard data...");
         }
 
@@ -98,28 +120,35 @@ namespace InventoryManagementApp.Views.Pages
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
             {
-                UiActionGuard.RunAsync(this, "Dashboard", async () => await vm.PrintDashboardSnapshotCommand.ExecuteAsync(null));
+                if (!_isLoadingDashboard && vm.PrintDashboardSnapshotCommand.CanExecute(null))
+                    UiActionGuard.RunAsync(this, "Dashboard", async () => await vm.PrintDashboardSnapshotCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P)
             {
-                UiActionGuard.RunAsync(this, "Dashboard", async () => await vm.PrintCheckedOutItemsCommand.ExecuteAsync(null));
+                if (!_isLoadingDashboard && vm.PrintCheckedOutItemsCommand.CanExecute(null))
+                    UiActionGuard.RunAsync(this, "Dashboard", async () => await vm.PrintCheckedOutItemsCommand.ExecuteAsync(null));
                 e.Handled = true;
                 return;
             }
 
+            if (_isLoadingDashboard)
+                return;
+
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.I)
             {
-                UiActionGuard.Run(this, "Dashboard", () => vm.OpenItemsCommand.Execute(null));
+                if (vm.OpenItemsCommand.CanExecute(null))
+                    UiActionGuard.Run(this, "Dashboard", () => vm.OpenItemsCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R)
             {
-                UiActionGuard.Run(this, "Dashboard", () => vm.OpenRentalsCommand.Execute(null));
+                if (vm.OpenRentalsCommand.CanExecute(null))
+                    UiActionGuard.Run(this, "Dashboard", () => vm.OpenRentalsCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
@@ -133,36 +162,49 @@ namespace InventoryManagementApp.Views.Pages
 
         private void CommonItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is DashboardViewModel vm)
-                UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedCommonItemCommand.Execute(null));
+            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm.OpenSelectedCommonItemCommand.CanExecute(null))
+                return;
+
+            UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedCommonItemCommand.Execute(null));
         }
 
         private void CheckedOutItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is DashboardViewModel vm)
-                UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedCheckedOutItemCommand.Execute(null));
+            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm.OpenSelectedCheckedOutItemCommand.CanExecute(null))
+                return;
+
+            UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedCheckedOutItemCommand.Execute(null));
         }
 
         private void RentedItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is DashboardViewModel vm)
-                UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedRentalCommand.Execute(null));
+            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm.OpenSelectedRentalCommand.CanExecute(null))
+                return;
+
+            UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedRentalCommand.Execute(null));
         }
 
         private void RecentActivityGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is DashboardViewModel vm)
-                UiActionGuard.Run(this, "Dashboard", () => vm.OpenActivityDestinationCommand.Execute(null));
+            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm.OpenActivityDestinationCommand.CanExecute(null))
+                return;
+
+            UiActionGuard.Run(this, "Dashboard", () => vm.OpenActivityDestinationCommand.Execute(null));
         }
 
         private void IncompleteItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is DashboardViewModel vm)
-                UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedIncompleteItemCommand.Execute(null));
+            if (_isLoadingDashboard || DataContext is not DashboardViewModel vm || !vm.OpenSelectedIncompleteItemCommand.CanExecute(null))
+                return;
+
+            UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedIncompleteItemCommand.Execute(null));
         }
 
         private void DashboardGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (_isLoadingDashboard)
+                return;
+
             var row = GridContextMenuSelection.SelectRow(sender, e);
             if (row == null || DataContext is not DashboardViewModel vm)
                 return;
@@ -193,25 +235,26 @@ namespace InventoryManagementApp.Views.Pages
             {
                 switch (grid.Name)
                 {
-                    case nameof(CommonItemsGrid):
+                    case nameof(CommonItemsGrid) when vm.OpenSelectedCommonItemCommand.CanExecute(null):
                         vm.OpenSelectedCommonItemCommand.Execute(null);
                         return;
-                    case nameof(CheckedOutItemsGrid):
+                    case nameof(CheckedOutItemsGrid) when vm.OpenSelectedCheckedOutItemCommand.CanExecute(null):
                         vm.OpenSelectedCheckedOutItemCommand.Execute(null);
                         return;
-                    case nameof(RentedItemsGrid):
+                    case nameof(RentedItemsGrid) when vm.OpenSelectedRentalCommand.CanExecute(null):
                         vm.OpenSelectedRentalCommand.Execute(null);
                         return;
-                    case nameof(IncompleteItemsGrid):
+                    case nameof(IncompleteItemsGrid) when vm.OpenSelectedIncompleteItemCommand.CanExecute(null):
                         vm.OpenSelectedIncompleteItemCommand.Execute(null);
                         return;
-                    case nameof(RecentActivityGrid):
+                    case nameof(RecentActivityGrid) when vm.OpenActivityDestinationCommand.CanExecute(null):
                         vm.OpenActivityDestinationCommand.Execute(null);
                         return;
                 }
             }
 
-            vm.OpenItemsCommand.Execute(null);
+            if (vm.OpenItemsCommand.CanExecute(null))
+                vm.OpenItemsCommand.Execute(null);
         }
     }
 }
