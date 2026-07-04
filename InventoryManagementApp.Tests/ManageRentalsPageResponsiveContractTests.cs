@@ -101,6 +101,36 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ManageRentalsPage_LoadsOncePerViewModelAfterFirstPaintAndResetsOnDataContextChange()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
+
+            Assert.Contains("ManageRentalsViewModel? _loadedViewModel;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DataContextChanged += ManageRentalsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("SearchTextBox.Focus();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("UpdateCompactHeightMode();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is ManageRentalsViewModel vm && !ReferenceEquals(_loadedViewModel, vm))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadedViewModel = vm;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("await Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("await vm.LoadRentalsAsync();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!ReferenceEquals(e.NewValue, _loadedViewModel))", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (DataContext is ManageRentalsViewModel vm)\n            {\n                await vm.LoadRentalsAsync();\n            }", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageRentalsPage_KeyboardShortcutsRespectCommandAvailabilityBeforePrinting()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
+
+            Assert.Contains("e.Key == Key.P && vm.PrintSearchResultsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("e.Key == Key.P && vm.PrintCheckedOutCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("e.Key == Key.R && vm.PrintRequestsCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)\n            {\n                UiActionGuard.Run(this, \"Rentals\", () => vm.PrintSearchResultsCommand.Execute(null));", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
+            Assert.DoesNotContain("if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P)\n            {\n                UiActionGuard.Run(this, \"Rentals\", () => vm.PrintCheckedOutCommand.Execute(null));", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
+            Assert.DoesNotContain("if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.R)\n            {\n                UiActionGuard.Run(this, \"Rentals\", () => vm.PrintRequestsCommand.Execute(null));", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ManageRentalsPage_PreservesRentalAndRequestCommandsAndRowHandlers()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml");
@@ -131,6 +161,8 @@ namespace InventoryManagementApp.Tests
             foreach (var contract in requiredContracts)
                 Assert.Contains(contract, xaml, StringComparison.Ordinal);
         }
+
+        private static string NormalizeNewlines(string value) => value.Replace("\r\n", "\n", StringComparison.Ordinal);
 
         private static string ReadRepoFile(params string[] parts)
         {
