@@ -48,16 +48,68 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void UsersPage_BoundsSearchEmptyStateAndHandoffScrolling()
+        public void UsersPage_BoundsSearchEmptyStateLoadingStateAndHandoffScrolling()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
 
             Assert.Contains("<pages:SearchBar Width=\"300\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"220\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding CanUseUserActions}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"330\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<MultiDataTrigger>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Condition Binding=\"{Binding IsLoadingUsers}\" Value=\"False\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"360\" MinHeight=\"118\" Margin=\"12\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<DataTrigger Binding=\"{Binding IsLoadingUsers}\" Value=\"True\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer Grid.Row=\"1\" VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"330\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("VerticalScrollBarVisibility=\"Hidden\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void UsersPage_UsesViewModelBackedStatusAndActionReadiness()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
+
+            Assert.Contains("UserDirectoryStatusText", xaml, StringComparison.Ordinal);
+            Assert.Contains("UserFilterStatusText", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedAccessStatusText", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedSecurityStatusText", xaml, StringComparison.Ordinal);
+            Assert.Contains("UserEmptyStateTitle", xaml, StringComparison.Ordinal);
+            Assert.Contains("UserEmptyStateMessage", xaml, StringComparison.Ordinal);
+            Assert.Contains("VisibleUserCount", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanUseUserActions", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanUseSelectedUserActions", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanPrintUsers", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void UsersPage_DisablesToolbarContextAndFooterActionsDuringBusyState()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
+
+            Assert.Contains("Content=\"Add User\" Command=\"{Binding AddUserCommand}\" IsEnabled=\"{Binding CanUseUserActions}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Edit Access\" Command=\"{Binding EditUserCommand}\" IsEnabled=\"{Binding CanUseSelectedUserActions}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Reset Password\" Click=\"ResetSelectedUser_Click\" IsEnabled=\"{Binding CanUseSelectedUserActions}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Copy Handoff\" Click=\"CopySelectedUser_Click\" IsEnabled=\"{Binding CanUseSelectedUserActions}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Print Directory\" Click=\"PrintUsers_Click\" IsEnabled=\"{Binding CanPrintUsers}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Open User Detail\" Click=\"OpenSelectedUser_Click\" IsEnabled=\"{Binding CanUseSelectedUserActions}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Print Current Directory\" Click=\"PrintUsers_Click\" IsEnabled=\"{Binding CanPrintUsers}\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void UsersPage_CodeBehindGuardsBusyRowActionsAndPrint()
+        {
+            var code = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs");
+
+            Assert.Contains("private bool IsUserDirectoryBusy => ViewModel?.IsLoadingUsers == true;", code, StringComparison.Ordinal);
+            Assert.Contains("TryRequireUserDirectoryReady", code, StringComparison.Ordinal);
+            Assert.Contains("User rows are still loading", code, StringComparison.Ordinal);
+            Assert.Contains("UserRow_MouseDoubleClick", code, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", code, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", code, StringComparison.Ordinal);
+            Assert.Contains("ViewModel?.CanUseSelectedUserActions != true", code, StringComparison.Ordinal);
+            Assert.Contains("!ViewModel.CanPrintUsers", code, StringComparison.Ordinal);
+            Assert.Contains("active state, contact handoff details", code, StringComparison.Ordinal);
         }
 
         [Fact]
