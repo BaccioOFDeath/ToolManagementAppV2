@@ -157,8 +157,8 @@ namespace InventoryManagementApp.Tests
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
 
-            Assert.Equal(6, CountOccurrences(codeBehind, "if (_isLoadingDashboard)"));
-            Assert.Equal(6, CountOccurrences(codeBehind, "e.Handled = true;\n                return;"));
+            Assert.True(CountOccurrences(codeBehind, "if (_isLoadingDashboard)") >= 7);
+            Assert.True(CountOccurrences(codeBehind, "e.Handled = true;\n                return;") >= 7);
             Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedCommonItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedCheckedOutItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedRentalCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
