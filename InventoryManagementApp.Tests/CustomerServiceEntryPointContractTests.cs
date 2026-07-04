@@ -88,12 +88,14 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "Services", "Customers", "CustomerService.cs");
 
             Assert.Contains("static void NormalizeCustomerForSave(CustomerModel customer)", source, StringComparison.Ordinal);
-            Assert.Contains("customer.Company = (customer.Company ?? string.Empty).Trim();", source, StringComparison.Ordinal);
-            Assert.Contains("customer.Email = (customer.Email ?? string.Empty).Trim();", source, StringComparison.Ordinal);
-            Assert.Contains("customer.Contact = (customer.Contact ?? string.Empty).Trim();", source, StringComparison.Ordinal);
-            Assert.Contains("customer.Phone = (customer.Phone ?? string.Empty).Trim();", source, StringComparison.Ordinal);
-            Assert.Contains("customer.Mobile = (customer.Mobile ?? string.Empty).Trim();", source, StringComparison.Ordinal);
-            Assert.Contains("customer.Address = (customer.Address ?? string.Empty).Trim();", source, StringComparison.Ordinal);
+            Assert.Contains("NormalizeImportedCustomer(customer);", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Company = NormalizeImportedText(customer.Company) ?? string.Empty;", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Email = NormalizeImportedText(customer.Email) ?? string.Empty;", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Contact = NormalizeImportedText(customer.Contact) ?? string.Empty;", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Phone = NormalizeImportedText(customer.Phone) ?? string.Empty;", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Mobile = NormalizeImportedText(customer.Mobile) ?? string.Empty;", source, StringComparison.Ordinal);
+            Assert.Contains("customer.Address = NormalizeImportedText(customer.Address) ?? string.Empty;", source, StringComparison.Ordinal);
+            Assert.Contains("static string? NormalizeImportedText(string? value) => value?.Trim();", source, StringComparison.Ordinal);
             Assert.Contains("static void ValidateCustomerRequiredFields(CustomerModel customer)", source, StringComparison.Ordinal);
             Assert.Contains("var reason = GetSkipReason(customer);", source, StringComparison.Ordinal);
             Assert.Contains("throw new ArgumentException(reason, nameof(customer));", source, StringComparison.Ordinal);
@@ -123,7 +125,7 @@ namespace InventoryManagementApp.Tests
                 source,
                 "async Task ExportCustomersToCsvInternalAsync",
                 "async Task InsertCustomerAsync",
-                "GetAllCustomersInternalAsync");
+                "CollectCustomersForExportAsync");
             AssertCancellationGuardBeforeSql(
                 source,
                 "async Task InsertCustomerAsync",
@@ -159,7 +161,7 @@ namespace InventoryManagementApp.Tests
                 source,
                 "public async Task ExportCustomersAsync",
                 "    }\n}",
-                "GetAllCustomersAsync");
+                "CollectCustomersForExportAsync");
         }
 
         [Fact]
@@ -284,25 +286,25 @@ namespace InventoryManagementApp.Tests
                 "public async Task<int> ImportCustomersAsync",
                 "public async Task ExportCustomersAsync");
 
-            Assert.Contains("NormalizeCustomerForSave(c);", csvImportMethod, StringComparison.Ordinal);
-            Assert.Contains("NormalizeCustomerForSave(customerModel);", genericImportMethod, StringComparison.Ordinal);
+            Assert.Contains("NormalizeImportedCustomer(c);", csvImportMethod, StringComparison.Ordinal);
+            Assert.Contains("var customerModel = CreateImportedCustomerModel(customer);", genericImportMethod, StringComparison.Ordinal);
             Assert.True(
-                csvImportMethod.IndexOf("NormalizeCustomerForSave(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("var reason = GetSkipReason(c);", StringComparison.Ordinal),
+                csvImportMethod.IndexOf("NormalizeImportedCustomer(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("var reason = GetSkipReason(c);", StringComparison.Ordinal),
                 "CSV imports should trim row text before required-field validation.");
             Assert.True(
-                csvImportMethod.IndexOf("NormalizeCustomerForSave(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("CustomerExistsAsync(conn, tran, c.Contact, c.Phone, c.Mobile, cancellationToken)", StringComparison.Ordinal),
+                csvImportMethod.IndexOf("NormalizeImportedCustomer(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("CustomerExistsAsync(conn, tran, c.Contact, c.Phone, c.Mobile, cancellationToken)", StringComparison.Ordinal),
                 "CSV imports should check duplicates using normalized customer identity fields.");
             Assert.True(
-                csvImportMethod.IndexOf("NormalizeCustomerForSave(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("await InsertCustomerAsync(conn, tran, c, cancellationToken);", StringComparison.Ordinal),
+                csvImportMethod.IndexOf("NormalizeImportedCustomer(c);", StringComparison.Ordinal) < csvImportMethod.IndexOf("await InsertCustomerAsync(conn, tran, c, cancellationToken);", StringComparison.Ordinal),
                 "CSV imports should insert normalized customer values.");
             Assert.True(
-                genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("var skipReason = GetSkipReason(customerModel);", StringComparison.Ordinal),
+                genericImportMethod.IndexOf("var customerModel = CreateImportedCustomerModel(customer);", StringComparison.Ordinal) < genericImportMethod.IndexOf("var skipReason = GetSkipReason(customerModel);", StringComparison.Ordinal),
                 "Generic imports should trim row text before required-field validation.");
             Assert.True(
-                genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("CustomerExistsAsync(conn, transaction, customerModel.Contact, customerModel.Phone, customerModel.Mobile, cancellationToken)", StringComparison.Ordinal),
+                genericImportMethod.IndexOf("var customerModel = CreateImportedCustomerModel(customer);", StringComparison.Ordinal) < genericImportMethod.IndexOf("CustomerExistsAsync(conn, transaction, customerModel.Contact, customerModel.Phone, customerModel.Mobile, cancellationToken)", StringComparison.Ordinal),
                 "Generic imports should check duplicates using normalized customer identity fields.");
             Assert.True(
-                genericImportMethod.IndexOf("NormalizeCustomerForSave(customerModel);", StringComparison.Ordinal) < genericImportMethod.IndexOf("await InsertCustomerAsync(conn, transaction, customerModel, cancellationToken);", StringComparison.Ordinal),
+                genericImportMethod.IndexOf("var customerModel = CreateImportedCustomerModel(customer);", StringComparison.Ordinal) < genericImportMethod.IndexOf("await InsertCustomerAsync(conn, transaction, customerModel, cancellationToken);", StringComparison.Ordinal),
                 "Generic imports should insert normalized customer values.");
         }
 

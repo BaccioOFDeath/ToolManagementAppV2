@@ -68,6 +68,7 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
 
             Assert.Contains("MinHeight=\"44\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"Auto\" MinWidth=\"0\" MaxWidth=\"420\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<StackPanel VerticalAlignment=\"Center\" MinWidth=\"0\" Margin=\"0,0,12,0\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel Grid.Column=\"1\" Orientation=\"Horizontal\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" MaxWidth=\"420\">", xaml, StringComparison.Ordinal);
@@ -161,7 +162,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)
@@ -172,5 +173,8 @@ namespace InventoryManagementApp.Tests
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
         }
+
+        private static string NormalizeLineEndings(string text) =>
+            text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\r", "\n", StringComparison.Ordinal);
     }
 }

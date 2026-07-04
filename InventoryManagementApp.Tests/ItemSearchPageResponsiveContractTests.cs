@@ -9,7 +9,7 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void ItemSearchPage_WrapsSearchToolbarAndSummaryActions()
         {
-            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml");
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml"));
 
             Assert.Contains("<DockPanel LastChildFill=\"True\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
@@ -25,7 +25,7 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void ItemSearchPage_AvoidsLargeFixedMinimumsInMainSearchSplit()
         {
-            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml");
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml"));
 
             Assert.Contains("<ColumnDefinition Width=\"1.7*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"0.95*\" MinWidth=\"300\"/>", xaml, StringComparison.Ordinal);
@@ -39,7 +39,7 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void ItemSearchPage_WrapsPaneHeadersAndIntelligenceActionCards()
         {
-            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml");
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml"));
 
             Assert.Contains("<StackPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\" MinWidth=\"180\" MaxWidth=\"420\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<StackPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\" MinWidth=\"170\" MaxWidth=\"360\">", xaml, StringComparison.Ordinal);
@@ -139,6 +139,8 @@ namespace InventoryManagementApp.Tests
 
             return count;
         }
+
+        private static string NormalizeNewlines(string source) => source.Replace("\r\n", "\n", StringComparison.Ordinal);
 
         private static string ReadRepoFile(params string[] parts)
         {

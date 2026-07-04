@@ -94,8 +94,14 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("$allowedRelativePaths = @(", source);
             Assert.Contains("$allowedPathPrefixes = @(", source);
             Assert.Contains("Legacy To" + "ol Manager/Legacy data/", source);
-            Assert.Contains("$relative -notmatch '(^|/)\\.[^/]+($|/)'", source);
-            Assert.Contains("$relative -notmatch '(^|/)(bin|obj|publish)/'", source);
+            Assert.Contains("$ignoredPathPrefixes = @(", source);
+            Assert.Contains("\".git/\"", source);
+            Assert.Contains("$ignoredPathSegments = @(", source);
+            Assert.Contains("\"/bin/\"", source);
+            Assert.Contains("\"/obj/\"", source);
+            Assert.Contains("\"/publish/\"", source);
+            Assert.Contains("$normalizedRelative = \"/$relative/\"", source);
+            Assert.Contains("$normalizedRelative.IndexOf($ignoredPathSegment", source);
             Assert.Contains("--glob '!**/bin/**'", source);
             Assert.Contains("--glob '!**/obj/**'", source);
             Assert.Contains("--glob '!**/publish/**'", source);

@@ -168,7 +168,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("var kits = await kitsTask.ConfigureAwait(false);", kitReport, StringComparison.Ordinal);
             Assert.Contains("var totalActiveKits = await totalActiveKitsTask.ConfigureAwait(false);", kitReport, StringComparison.Ordinal);
             Assert.Contains("AddExactReportLimitNotice(lines, kits.Count, totalActiveKits, \"active kits\")", kitReport, StringComparison.Ordinal);
-            Assert.Contains("var itemCount = FormatLimitedCount(items.Count);", kitReport, StringComparison.Ordinal);
+            Assert.Contains("var itemCounts = await _kitService.CountKitItemsByKitIdsAsync(kits.Select(kit => kit.KitID)).ConfigureAwait(false);", kitReport, StringComparison.Ordinal);
+            Assert.Contains("var itemCount = itemCounts.TryGetValue(kit.KitID, out var count)", kitReport, StringComparison.Ordinal);
+            Assert.Contains("? FormatLimitedCount(count)", kitReport, StringComparison.Ordinal);
 
             Assert.Contains("count >= DetailedReportResultLimit ? $\"{DetailedReportResultLimit}+\" : count.ToString();", limitNotice, StringComparison.Ordinal);
             Assert.Contains("totalCount > displayedCount", limitNotice, StringComparison.Ordinal);
@@ -202,10 +204,10 @@ namespace InventoryManagementApp.Tests
                 "public async Task<FlowDocument> GenerateSummaryReport()",
                 "public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)");
 
-            Assert.Contains("var overdueMaintenanceTask = _maintenanceService.CountOverdueMaintenanceAsync();", summaryReport, StringComparison.Ordinal);
-            Assert.Contains("var upcomingMaintenanceTask = _maintenanceService.CountUpcomingMaintenanceAsync(30);", summaryReport, StringComparison.Ordinal);
-            Assert.Contains("var overdueCalibrationTask = _calibrationService.CountOverdueCalibrationAsync();", summaryReport, StringComparison.Ordinal);
-            Assert.Contains("var upcomingCalibrationTask = _calibrationService.CountUpcomingCalibrationAsync(30);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var overdueMaintenanceTask = _maintenanceService?.CountOverdueMaintenanceAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var upcomingMaintenanceTask = _maintenanceService?.CountUpcomingMaintenanceAsync(30);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var overdueCalibrationTask = _calibrationService?.CountOverdueCalibrationAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var upcomingCalibrationTask = _calibrationService?.CountUpcomingCalibrationAsync(30);", summaryReport, StringComparison.Ordinal);
 
             Assert.Contains("$\"Overdue Maintenance: {overdueMaintenance}\"", summaryReport, StringComparison.Ordinal);
             Assert.Contains("$\"Upcoming Maintenance (30 days): {upcomingMaintenance}\"", summaryReport, StringComparison.Ordinal);
@@ -231,9 +233,10 @@ namespace InventoryManagementApp.Tests
                 "public async Task<FlowDocument> GenerateSummaryReport()",
                 "public async Task<FlowDocument> GenerateMaintenanceReport(bool overdueOnly = false)");
 
-            Assert.Contains("var activeReservationsTask = _reservationService.CountActiveReservationsAsync();", summaryReport, StringComparison.Ordinal);
-            Assert.Contains("var upcomingReservationsTask = _reservationService.CountUpcomingReservationsAsync(7);", summaryReport, StringComparison.Ordinal);
-            Assert.Contains("var activeKits = await _kitService.CountActiveKitsAsync().ConfigureAwait(false);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var activeReservationsTask = _reservationService?.CountActiveReservationsAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var upcomingReservationsTask = _reservationService?.CountUpcomingReservationsAsync(7);", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var activeKitsTask = _kitService?.CountActiveKitsAsync();", summaryReport, StringComparison.Ordinal);
+            Assert.Contains("var activeKits = await activeKitsTask.ConfigureAwait(false);", summaryReport, StringComparison.Ordinal);
 
             Assert.Contains("$\"Active Reservations: {activeReservations}\"", summaryReport, StringComparison.Ordinal);
             Assert.Contains("$\"Upcoming Reservations (7 days): {upcomingReservations}\"", summaryReport, StringComparison.Ordinal);
@@ -303,7 +306,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("SELECT COUNT(m.MaintenanceID)", overdueMaintenanceCount, StringComparison.Ordinal);
             Assert.Contains("FROM MaintenanceRecords m", overdueMaintenanceCount, StringComparison.Ordinal);
             Assert.Contains("JOIN Items i ON m.ItemID = i.ItemID", overdueMaintenanceCount, StringComparison.Ordinal);
-            Assert.Contains("WHERE m.Status = 'Scheduled' AND m.ScheduledDate < @Now", overdueMaintenanceCount, StringComparison.Ordinal);
+            Assert.Contains("WHERE TRIM(IFNULL(m.Status, '')) = 'Scheduled' AND m.ScheduledDate < @Now", overdueMaintenanceCount, StringComparison.Ordinal);
             Assert.DoesNotContain("LIMIT @MaintenanceListLimit", overdueMaintenanceCount, StringComparison.Ordinal);
 
             Assert.Contains("SELECT COUNT(m.MaintenanceID)", upcomingMaintenanceCount, StringComparison.Ordinal);

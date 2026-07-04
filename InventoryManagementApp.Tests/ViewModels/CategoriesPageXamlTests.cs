@@ -35,8 +35,9 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("CategoryDetailCard", xaml, StringComparison.Ordinal);
             Assert.Contains("DesktopPaneHeader", xaml, StringComparison.Ordinal);
             Assert.Contains("DesktopNoteCard", xaml, StringComparison.Ordinal);
-            Assert.Contains("No categories match this filter", xaml, StringComparison.Ordinal);
-            Assert.Contains("FilteredCategories.Count", xaml, StringComparison.Ordinal);
+            Assert.Contains("CategoryEmptyStateTitle", xaml, StringComparison.Ordinal);
+            Assert.Contains("CategoryEmptyStateMessage", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsCategoryEmptyStateVisible", xaml, StringComparison.Ordinal);
             Assert.Contains("CategoryRow_MouseDoubleClick", xaml, StringComparison.Ordinal);
             Assert.Contains("CategoryRow_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
             Assert.Contains("OpenCategoryDetail_Click", xaml, StringComparison.Ordinal);

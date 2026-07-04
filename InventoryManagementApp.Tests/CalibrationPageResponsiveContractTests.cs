@@ -130,17 +130,18 @@ namespace InventoryManagementApp.Tests
         public void CalibrationPrintPreview_IsBoundedAndUsesProportionalColumns()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CalibrationManagementViewModel.cs");
+            var printListMethod = ExtractSourceBlock(source, "private void PrintCalibrationList()", "private void PrintSelectedCalibration()");
 
             Assert.Contains("private const int MaxCalibrationPrintRows = 250;", source, StringComparison.Ordinal);
-            Assert.Contains("FilteredCalibrationRecords.Take(MaxCalibrationPrintRows).ToList();", source, StringComparison.Ordinal);
-            Assert.Contains("Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows}", source, StringComparison.Ordinal);
-            Assert.Contains("Large calibration preview limited to the first", source, StringComparison.Ordinal);
-            Assert.Contains("new GridLength(1.05, GridUnitType.Star)", source, StringComparison.Ordinal);
-            Assert.Contains("new GridLength(1.65, GridUnitType.Star)", source, StringComparison.Ordinal);
-            Assert.Contains("Review overdue rows, due-soon certificates", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("table.Columns.Add(new TableColumn { Width = new GridLength(90) });", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("table.Columns.Add(new TableColumn { Width = new GridLength(150) });", source, StringComparison.Ordinal);
-            Assert.DoesNotContain("foreach (var record in FilteredCalibrationRecords)", source, StringComparison.Ordinal);
+            Assert.Contains("FilteredCalibrationRecords.Take(MaxCalibrationPrintRows).ToList();", printListMethod, StringComparison.Ordinal);
+            Assert.Contains("Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows}", printListMethod, StringComparison.Ordinal);
+            Assert.Contains("Large calibration preview limited to the first", printListMethod, StringComparison.Ordinal);
+            Assert.Contains("new GridLength(1.05, GridUnitType.Star)", printListMethod, StringComparison.Ordinal);
+            Assert.Contains("new GridLength(1.65, GridUnitType.Star)", printListMethod, StringComparison.Ordinal);
+            Assert.Contains("Review overdue rows, due-soon certificates", printListMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("table.Columns.Add(new TableColumn { Width = new GridLength(90) });", printListMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("table.Columns.Add(new TableColumn { Width = new GridLength(150) });", printListMethod, StringComparison.Ordinal);
+            Assert.DoesNotContain("foreach (var record in FilteredCalibrationRecords)", printListMethod, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -175,6 +176,17 @@ namespace InventoryManagementApp.Tests
             }
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
+        }
+
+        private static string ExtractSourceBlock(string source, string startMarker, string endMarker)
+        {
+            var start = source.IndexOf(startMarker, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Could not find source block start marker: {startMarker}");
+
+            var end = source.IndexOf(endMarker, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Could not find source block end marker: {endMarker}");
+
+            return source[start..end];
         }
     }
 }

@@ -55,7 +55,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Write-ValidationStepSummary -Name $Name -Status \"Failed\" -DurationSeconds $durationSeconds -Detail $_.Exception.Message", source);
             Assert.Contains("Write-Warning \"Unable to write validation step summary: $($_.Exception.Message)\"", source);
             AssertAppearsBefore(source, "Write-ValidationStepSummary -Name $Name -Status \"Succeeded\"", "function Write-ValidationArtifactManifest", "The runner should record each successful validation step before the final manifest is generated.");
-            AssertAppearsBefore(source, "Write-ValidationStepSummary -Name $Name -Status \"Failed\"", "throw\n    }", "The runner should record failed validation steps before rethrowing the original failure.");
+            AssertAppearsBefore(source, "Write-ValidationStepSummary -Name $Name -Status \"Failed\"", "throw\n    }\n}", "The runner should record failed validation steps before rethrowing the original failure.");
         }
 
         [Fact]
@@ -223,7 +223,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)
@@ -234,5 +234,8 @@ namespace InventoryManagementApp.Tests
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
         }
+
+        private static string NormalizeLineEndings(string text) =>
+            text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\r", "\n", StringComparison.Ordinal);
     }
 }

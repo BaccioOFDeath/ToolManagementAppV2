@@ -41,6 +41,10 @@ namespace InventoryManagementApp.Tests
             var csvExportMethod = ExtractMethod(
                 source,
                 "async Task ExportCustomersToCsvInternalAsync",
+                "async Task<List<CustomerModel>> CollectCustomersForExportAsync");
+            var collectExportMethod = ExtractMethod(
+                source,
+                "async Task<List<CustomerModel>> CollectCustomersForExportAsync",
                 "async Task InsertCustomerAsync");
             var genericExportMethod = ExtractMethod(
                 source,
@@ -49,8 +53,12 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("const string sql = \"SELECT * FROM Customers\";", allCustomersMethod, StringComparison.Ordinal);
             Assert.DoesNotContain("LIMIT", allCustomersMethod, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("var all = await GetAllCustomersInternalAsync(cancellationToken);", csvExportMethod, StringComparison.Ordinal);
-            Assert.Contains("var all = await GetAllCustomersAsync(cancellationToken).ConfigureAwait(false);", genericExportMethod, StringComparison.Ordinal);
+            Assert.Contains("var all = await CollectCustomersForExportAsync(cancellationToken).ConfigureAwait(false);", csvExportMethod, StringComparison.Ordinal);
+            Assert.Contains("const string sql = @\"", collectExportMethod, StringComparison.Ordinal);
+            Assert.Contains("ORDER BY Company ASC, Contact ASC, CustomerID ASC", collectExportMethod, StringComparison.Ordinal);
+            Assert.Contains("LIMIT @CustomerExportPageSize OFFSET @CustomerExportOffset", collectExportMethod, StringComparison.Ordinal);
+            Assert.Contains("customers.AddRange(page);", collectExportMethod, StringComparison.Ordinal);
+            Assert.Contains("var all = await CollectCustomersForExportAsync(cancellationToken).ConfigureAwait(false);", genericExportMethod, StringComparison.Ordinal);
         }
 
         private static string ExtractMethod(string source, string startMarker, string endMarker)

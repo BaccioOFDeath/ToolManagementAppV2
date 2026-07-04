@@ -9,7 +9,7 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void ManageRentalsPage_KeepsRentalSummaryCardsWrappedAndBounded()
         {
-            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml");
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
 
             Assert.Contains("<WrapPanel x:Name=\"RentalStatsStrip\" Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
@@ -22,7 +22,7 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void ManageRentalsPage_AvoidsLargeFixedMinimumsInRentalDeskSplit()
         {
-            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml");
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
 
             Assert.Contains("<ColumnDefinition Width=\"1.65*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
@@ -89,7 +89,7 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void ManageRentalsPage_BoundsRequestEmptyStateAndWrapsRequestActions()
         {
-            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml");
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
 
             Assert.Contains("<Border Grid.Column=\"0\" MaxWidth=\"330\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border MaxHeight=\"156\" Padding=\"0\" Margin=\"0,0,0,8\" ClipToBounds=\"True\">", xaml, StringComparison.Ordinal);

@@ -30,10 +30,12 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml");
 
-            Assert.Contains("No kits match this filter", xaml, StringComparison.Ordinal);
-            Assert.Contains("FilteredKits.Count", xaml, StringComparison.Ordinal);
-            Assert.Contains("No items assigned to this kit", xaml, StringComparison.Ordinal);
-            Assert.Contains("KitItems.Count", xaml, StringComparison.Ordinal);
+            Assert.Contains("KitEmptyStateTitle", xaml, StringComparison.Ordinal);
+            Assert.Contains("KitEmptyStateMessage", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsKitDirectoryEmptyVisible", xaml, StringComparison.Ordinal);
+            Assert.Contains("KitItemsEmptyStateTitle", xaml, StringComparison.Ordinal);
+            Assert.Contains("KitItemsEmptyStateMessage", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsKitItemsEmptyVisible", xaml, StringComparison.Ordinal);
             Assert.Contains("DesktopNoteCard", xaml, StringComparison.Ordinal);
         }
 

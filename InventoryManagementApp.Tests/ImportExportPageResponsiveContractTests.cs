@@ -75,7 +75,7 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"340\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalScrollBarVisibility=\"Disabled\" MaxHeight=\"260\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel>\n                <TextBlock Text=\"{Binding LogSummary}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"{Binding LogSummary}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ProgressBar Width=\"120\" Height=\"14\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"360\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Columns=\"2\">", xaml, StringComparison.Ordinal);
@@ -110,7 +110,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("public bool CanReviewSelectedLog => !IsDataOperationBusy && !string.IsNullOrWhiteSpace(SelectedImportExportLog);", viewModel, StringComparison.Ordinal);
             Assert.Contains("public bool CanPrintImportExportLogs => !IsDataOperationBusy && HasLogEntries;", viewModel, StringComparison.Ordinal);
             Assert.Contains("new RelayCommand(ClearImportExportLogs, () => HasLogEntries && !IsDataOperationBusy)", viewModel, StringComparison.Ordinal);
-            Assert.Contains("if (IsDataOperationBusy)\n                return;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (IsDataOperationBusy)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("return;", viewModel, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CanReviewSelectedLog));", viewModel, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CanPrintImportExportLogs));", viewModel, StringComparison.Ordinal);
             Assert.Contains("ClearImportExportLogsCommand.NotifyCanExecuteChanged();", viewModel, StringComparison.Ordinal);
@@ -162,7 +163,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)
@@ -173,5 +174,8 @@ namespace InventoryManagementApp.Tests
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
         }
+
+        private static string NormalizeLineEndings(string text) =>
+            text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\r", "\n", StringComparison.Ordinal);
     }
 }

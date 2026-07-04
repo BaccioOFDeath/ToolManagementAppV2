@@ -117,10 +117,10 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadXaml();
 
             Assert.Contains("<Setter Property=\"MinHeight\" Value=\"54\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("Style=\"{StaticResource StatisticValueTextBlock}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"3.4*\" MinWidth=\"620\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"1*\" MinWidth=\"250\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<pages:SearchBar Width=\"260\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Style=\"{StaticResource DirectoryStatValueText}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"1.7*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"0.95*\" MinWidth=\"300\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<pages:SearchBar Width=\"240\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Padding=\"6,3\"", xaml, StringComparison.Ordinal);
         }
 

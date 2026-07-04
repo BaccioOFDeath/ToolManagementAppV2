@@ -33,8 +33,8 @@ namespace InventoryManagementApp.Tests
                 "async Task ExportCustomersToCsvInternalAsync",
                 "async Task InsertCustomerAsync");
 
-            AssertCancellationBefore(method, "GetAllCustomersInternalAsync(cancellationToken)");
-            AssertCancellationBetween(method, "GetAllCustomersInternalAsync(cancellationToken)", "Task.Run");
+            AssertCancellationBefore(method, "CollectCustomersForExportAsync(cancellationToken)");
+            AssertCancellationBetween(method, "CollectCustomersForExportAsync(cancellationToken)", "Task.Run");
             AssertCancellationBetween(method, "Task.Run", "CsvHelperUtil.ExportCustomersToCsv(filePath, all)");
             Assert.Contains("CsvHelperUtil.ExportCustomersToCsv(filePath, all);", method, StringComparison.Ordinal);
         }
@@ -49,8 +49,8 @@ namespace InventoryManagementApp.Tests
                 "static void NotifyChanged");
 
             Assert.Contains("_auth.EnsurePermission(User.PermissionImportExport);", method, StringComparison.Ordinal);
-            AssertCancellationBefore(method, "GetAllCustomersAsync(cancellationToken)");
-            AssertCancellationBetween(method, "GetAllCustomersAsync(cancellationToken)", "exporter.ExportAsync(filePath, all, cancellationToken)");
+            AssertCancellationBefore(method, "CollectCustomersForExportAsync(cancellationToken)");
+            AssertCancellationBetween(method, "CollectCustomersForExportAsync(cancellationToken)", "exporter.ExportAsync(filePath, all, cancellationToken)");
 
             Assert.True(
                 method.IndexOf("_auth.EnsurePermission(User.PermissionImportExport);", StringComparison.Ordinal) <

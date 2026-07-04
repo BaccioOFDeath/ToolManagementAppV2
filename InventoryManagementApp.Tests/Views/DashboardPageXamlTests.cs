@@ -68,8 +68,8 @@ namespace InventoryManagementApp.Tests.Views
             Assert.Contains("Style=\"{StaticResource PageTitleTextBlock}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"92\"", xaml, StringComparison.Ordinal);
             Assert.Contains("FontSize=\"18\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Padding=\"8,5\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("FontSize=\"15\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Padding=\"9,5\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"FontSize\" Value=\"15\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("Padding=\"6,3\"", xaml, StringComparison.Ordinal);
         }
 

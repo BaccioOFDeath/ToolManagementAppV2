@@ -28,8 +28,12 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
 
             Assert.Contains("private bool _hasLoadedLogs;", source, StringComparison.Ordinal);
-            Assert.Contains("if (!_hasLoadedLogs && DataContext is ActivityLogsViewModel vm)", source, StringComparison.Ordinal);
+            Assert.Contains("private ActivityLogsViewModel? _loadedViewModel;", source, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is not ActivityLogsViewModel vm)", source, StringComparison.Ordinal);
+            Assert.Contains("if (_hasLoadedLogs && ReferenceEquals(_loadedViewModel, vm))", source, StringComparison.Ordinal);
+            Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", source, StringComparison.Ordinal);
             Assert.Contains("_hasLoadedLogs = await vm.LoadLogsAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("ActivityLogsPage_DataContextChanged", source, StringComparison.Ordinal);
             Assert.Contains("private async void RefreshLogs_Click", source, StringComparison.Ordinal);
             Assert.Contains("await vm.LoadLogsAsync();", source, StringComparison.Ordinal);
             Assert.DoesNotContain("Loaded += async", source, StringComparison.Ordinal);

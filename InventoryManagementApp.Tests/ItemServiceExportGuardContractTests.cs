@@ -32,10 +32,15 @@ namespace InventoryManagementApp.Tests
                 source,
                 "private async Task ExportItemsToCsvInternalAsync",
                 "public async Task UpdateItemQuantitiesAsync");
+            var collector = ExtractMethod(
+                source,
+                "private async Task<List<ItemModel>> CollectItemsForExportAsync",
+                "public async Task UpdateItemQuantitiesAsync");
 
-            AssertCancellationBefore(method, "var items = new List<ItemModel>();");
-            AssertCancellationBetween(method, "await foreach", "items.Add(item);");
-            AssertCancellationBetween(method, "items.Add(item);", "CsvHelperUtil.ExportItemsToCsvAsync(filePath, items)");
+            Assert.Contains("var items = await CollectItemsForExportAsync(cancellationToken).ConfigureAwait(false);", method, StringComparison.Ordinal);
+            AssertCancellationBefore(collector, "var items = new List<ItemModel>();");
+            AssertCancellationBetween(collector, "await foreach", "items.Add(item);");
+            AssertCancellationBetween(method, "CollectItemsForExportAsync(cancellationToken)", "CsvHelperUtil.ExportItemsToCsvAsync(filePath, items)");
             Assert.Contains("await CsvHelperUtil.ExportItemsToCsvAsync(filePath, items).ConfigureAwait(false);", method, StringComparison.Ordinal);
         }
 
@@ -49,9 +54,7 @@ namespace InventoryManagementApp.Tests
                 "static void NotifyChanged");
 
             Assert.Contains("_auth.EnsurePermission(User.PermissionImportExport);", method, StringComparison.Ordinal);
-            AssertCancellationBefore(method, "var items = new List<ItemModel>();");
-            AssertCancellationBetween(method, "await foreach", "items.Add(item);");
-            AssertCancellationBetween(method, "items.Add(item);", "exporter.ExportAsync(filePath, items, cancellationToken)");
+            AssertCancellationBetween(method, "CollectItemsForExportAsync(cancellationToken)", "exporter.ExportAsync(filePath, items, cancellationToken)");
 
             Assert.True(
                 method.IndexOf("_auth.EnsurePermission(User.PermissionImportExport);", StringComparison.Ordinal) <

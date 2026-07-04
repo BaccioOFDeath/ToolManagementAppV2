@@ -28,7 +28,7 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile(path);
 
-            Assert.Contains("_dialogService.ShowPrintPreview(doc", source, StringComparison.Ordinal);
+            Assert.Contains("_dialogService.ShowPrintPreview", source, StringComparison.Ordinal);
             Assert.DoesNotContain("WpfPrintDialog", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new PrintDialog", source, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", source, StringComparison.Ordinal);
@@ -39,15 +39,17 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
 
-            Assert.Contains("BuildSummarySection(title, summary, safeLogs.Count)", source, StringComparison.Ordinal);
+            Assert.Contains("BuildSummarySection(title, summary, safeLogs.Count, printedLogs.Count, omittedLogCount)", source, StringComparison.Ordinal);
             Assert.Contains("AddKeyValueRow(group, \"Packet\", title)", source, StringComparison.Ordinal);
-            Assert.Contains("AddKeyValueRow(group, \"Result Count\", logCount.ToString())", source, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Visible Log Rows\", logCount.ToString())", source, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Printed Log Rows\", printedLogCount.ToString())", source, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Omitted Log Rows\", omittedLogCount.ToString())", source, StringComparison.Ordinal);
             Assert.Contains("AddKeyValueRow(group, \"Session Summary\", ValueOrNotRecorded(summary))", source, StringComparison.Ordinal);
             Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.14, GridUnitType.Star) });", source, StringComparison.Ordinal);
             Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.86, GridUnitType.Star) });", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Entry\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Operation Result\", true)", source, StringComparison.Ordinal);
-            Assert.Contains("Review skipped rows, failures, backup paths, and restore notices", source, StringComparison.Ordinal);
+            Assert.Contains("Review skipped rows, failures, backup paths, restore notices, and omitted-row counts", source, StringComparison.Ordinal);
             Assert.Contains("Review one selected data-operation result before copying, printing, or filing the handoff.", source, StringComparison.Ordinal);
             Assert.Contains("Review the current session's import, export, image, backup, and restore results before staff handoff.", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new GridLength(680)", source, StringComparison.Ordinal);
@@ -62,7 +64,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private const int MaxActivityPrintRows = 250;", source, StringComparison.Ordinal);
             Assert.Contains("var totalFilteredCount = vm.FilteredLogs.Count;", source, StringComparison.Ordinal);
             Assert.Contains("var printRows = vm.FilteredLogs.Take(MaxActivityPrintRows).ToList();", source, StringComparison.Ordinal);
-            Assert.Contains("BuildPrintDocument(printRows, totalFilteredCount, vm.StatusMessage, vm.ActivitySummary)", source, StringComparison.Ordinal);
+            Assert.Contains("BuildPrintDocument(printRows, totalFilteredCount, vm.PrintStatusText, vm.ActivitySummary)", source, StringComparison.Ordinal);
             Assert.Contains("Large result sets print the first 250 rows so preview stays responsive.", source, StringComparison.Ordinal);
             Assert.Contains("BuildSummarySection(summary, activitySummary, totalFilteredCount, printedRowCount, omittedRowCount)", source, StringComparison.Ordinal);
             Assert.Contains("AddSummaryLine(group, \"Print Packet\"", source, StringComparison.Ordinal);
@@ -247,9 +249,11 @@ namespace InventoryManagementApp.Tests
             var customerSource = ReadRepoFile("InventoryManagementApp", "ViewModels", "CustomerManagementViewModel.cs");
             var kitSource = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
 
-            Assert.Contains("_dialogService.ShowPrintPreview(doc, \"Customer Directory\"", customerSource, StringComparison.Ordinal);
+            Assert.Contains("_dialogService.ShowPrintPreview", customerSource, StringComparison.Ordinal);
+            Assert.Contains("\"Customer Directory\"", customerSource, StringComparison.Ordinal);
             Assert.Contains("CreateCustomerDocument($\"Customer Sheet - {ValueOrNotRecorded(customer.Company)}\")", customerSource, StringComparison.Ordinal);
-            Assert.Contains("_dialogService.ShowPrintPreview(doc, \"Kit Directory\"", kitSource, StringComparison.Ordinal);
+            Assert.Contains("_dialogService.ShowPrintPreview", kitSource, StringComparison.Ordinal);
+            Assert.Contains("\"Kit Directory\"", kitSource, StringComparison.Ordinal);
             Assert.Contains("CreateKitDocument($\"Kit Pick Sheet - {ValueOrNotRecorded(kit.Name)}\")", kitSource, StringComparison.Ordinal);
         }
 

@@ -32,7 +32,8 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             Assert.Contains("ReservationStatCard", xaml, StringComparison.Ordinal);
             Assert.Contains("Pickup Handoff", xaml, StringComparison.Ordinal);
-            Assert.Contains("No reservations match this filter", xaml, StringComparison.Ordinal);
+            Assert.Contains("ReservationEmptyTitle", xaml, StringComparison.Ordinal);
+            Assert.Contains("ReservationEmptyMessage", xaml, StringComparison.Ordinal);
             Assert.Contains("FilteredReservations.Count", xaml, StringComparison.Ordinal);
             Assert.Contains("DesktopNoteCard", xaml, StringComparison.Ordinal);
         }

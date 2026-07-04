@@ -25,8 +25,8 @@ namespace InventoryManagementApp.Tests
                 "OnPropertyChanged(nameof(KitResultsSummary));",
                 "OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));",
                 "PrintKitListCommand.NotifyCanExecuteChanged();",
-                "private bool CanEditOrDelete() => SelectedKit != null;",
-                "private bool CanEditOrRemoveKitItem() => SelectedKitItem != null;");
+                "private bool CanEditOrDelete() => SelectedKit != null && !IsKitInteractionBusy && !IsLoadingKitItems;",
+                "private bool CanEditOrRemoveKitItem() => SelectedKitItem != null && !IsKitItemInteractionBusy;");
             Assert.DoesNotContain("await _dialogService.ShowErrorAsync(\"Error loading kits\", ex.Message);", source, StringComparison.Ordinal);
         }
 

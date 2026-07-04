@@ -11,11 +11,12 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
 
-            var method = ExtractMethod(source, "public async Task<bool> LoadLogsAsync()", "private void ClearActivityLogRowsAfterLoadFailure");
+            var method = ExtractMethod(source, "public async Task<bool> LoadLogsAsync()", "private void PreserveActivityLogRowsAfterLoadFailure");
 
             Assert.Contains("var result = await _service.GetRecentLogsAsync();", method, StringComparison.Ordinal);
             Assert.Contains("if (!result.Success || result.Value == null)", method, StringComparison.Ordinal);
-            Assert.Contains("foreach (var log in result.Value)", method, StringComparison.Ordinal);
+            Assert.Contains("var refreshedRows = result.Value", method, StringComparison.Ordinal);
+            Assert.Contains("foreach (var log in refreshedRows)", method, StringComparison.Ordinal);
             Assert.DoesNotContain("result.Data", method, StringComparison.Ordinal);
             Assert.DoesNotContain("result?.Data", method, StringComparison.Ordinal);
         }

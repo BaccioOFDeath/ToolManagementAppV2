@@ -16,7 +16,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("ShellWorkflowTicker", xaml, StringComparison.Ordinal);
             Assert.Contains("CurrentWorkflowGuide", xaml, StringComparison.Ordinal);
             Assert.Contains("TextTrimming=\"CharacterEllipsis\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("HorizontalAlignment=\"Center\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("HorizontalAlignment=\"Stretch\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("RepeatBehavior=\"Forever\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Storyboard.TargetProperty=\"(TextBlock.RenderTransform).(TranslateTransform.X)\"", xaml, StringComparison.Ordinal);
         }
@@ -35,7 +35,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
             var codeBehind = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml.cs");
 
-            Assert.Contains("MinHeight=\"540\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinHeight=\"520\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"ShellHeader\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"ShellMenu\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"PageHeaderBand\"", xaml, StringComparison.Ordinal);

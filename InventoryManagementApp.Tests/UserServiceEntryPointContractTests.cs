@@ -91,7 +91,7 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("if (user is null)", method, StringComparison.Ordinal);
             Assert.Contains("throw new ArgumentNullException(nameof(user));", method, StringComparison.Ordinal);
-            Assert.Contains("user.UserName = (user.UserName ?? string.Empty).Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("NormalizeUserForSave(user);", method, StringComparison.Ordinal);
             Assert.Contains("throw new ArgumentException(\"Username cannot be empty.\", nameof(user.UserName));", method, StringComparison.Ordinal);
             Assert.Contains("var password = (user.PasswordHash ?? string.Empty).Trim();", method, StringComparison.Ordinal);
             Assert.Contains("throw new ArgumentException(\"Password cannot be empty.\", nameof(user.PasswordHash));", method, StringComparison.Ordinal);
@@ -100,7 +100,7 @@ namespace InventoryManagementApp.Tests
                 method.IndexOf("if (user is null)", StringComparison.Ordinal) < method.IndexOf("var existingUsers = await GetAllUsersAsync", StringComparison.Ordinal),
                 "Null users should fail before loading existing users.");
             Assert.True(
-                method.IndexOf("user.UserName = (user.UserName ?? string.Empty).Trim();", StringComparison.Ordinal) < method.IndexOf("var existingUsers = await GetAllUsersAsync", StringComparison.Ordinal),
+                method.IndexOf("NormalizeUserForSave(user);", StringComparison.Ordinal) < method.IndexOf("var existingUsers = await GetAllUsersAsync", StringComparison.Ordinal),
                 "Usernames should be normalized before existing-user lookup and insert work.");
             Assert.True(
                 method.IndexOf("throw new ArgumentException(\"Username cannot be empty.\", nameof(user.UserName));", StringComparison.Ordinal) < method.IndexOf("var existingUsers = await GetAllUsersAsync", StringComparison.Ordinal),
@@ -158,7 +158,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("if (user is null)", method, StringComparison.Ordinal);
             Assert.Contains("throw new ArgumentNullException(nameof(user));", method, StringComparison.Ordinal);
             Assert.Contains("if (user.UserID < 1)", method, StringComparison.Ordinal);
-            Assert.Contains("user.UserName = (user.UserName ?? string.Empty).Trim();", method, StringComparison.Ordinal);
+            Assert.Contains("NormalizeUserForSave(user);", method, StringComparison.Ordinal);
             Assert.Contains("throw new ArgumentException(\"Username cannot be empty.\", nameof(user.UserName));", method, StringComparison.Ordinal);
 
             Assert.True(
@@ -168,7 +168,7 @@ namespace InventoryManagementApp.Tests
                 method.IndexOf("if (user.UserID < 1)", StringComparison.Ordinal) < method.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
                 "Invalid update user IDs should fail before authorization work.");
             Assert.True(
-                method.IndexOf("user.UserName = (user.UserName ?? string.Empty).Trim();", StringComparison.Ordinal) < method.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
+                method.IndexOf("NormalizeUserForSave(user);", StringComparison.Ordinal) < method.IndexOf("_auth.EnsurePermission", StringComparison.Ordinal),
                 "Update usernames should be normalized before authorization, lookup, and SQL work.");
             Assert.True(
                 method.IndexOf("throw new ArgumentException(\"Username cannot be empty.\", nameof(user.UserName));", StringComparison.Ordinal) < method.IndexOf("GetUserByIDAsync", StringComparison.Ordinal),

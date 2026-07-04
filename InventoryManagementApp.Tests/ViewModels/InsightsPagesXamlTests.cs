@@ -77,7 +77,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("DesktopPaneHeader", xaml, StringComparison.Ordinal);
             Assert.Contains("DesktopPaneSubheader", xaml, StringComparison.Ordinal);
             Assert.Contains("ActivityDetailCard", xaml, StringComparison.Ordinal);
-            Assert.Contains("No activity rows match", xaml, StringComparison.Ordinal);
+            Assert.Contains("ActivityEmptyStateTitle", xaml, StringComparison.Ordinal);
+            Assert.Contains("ActivityEmptyStateMessage", xaml, StringComparison.Ordinal);
             Assert.Contains("ActivityGrid_MouseDoubleClick", xaml, StringComparison.Ordinal);
             Assert.Contains("ActivityGridRow_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
             Assert.Contains("OpenSelectedLog_Click", xaml, StringComparison.Ordinal);
@@ -101,13 +102,13 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public void ActivityLogsLoadFailure_ClearsRowsFiltersSelectionAndKeepsFailureStatus()
+        public void ActivityLogsLoadFailure_PreservesExistingRowsAndKeepsFailureStatus()
         {
             var source = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
 
-            Assert.Contains("ClearActivityLogRowsAfterLoadFailure(\"Activity logs could not be loaded. Activity rows were cleared until refresh succeeds.\");", source, StringComparison.Ordinal);
-            Assert.Contains("private void ClearActivityLogRowsAfterLoadFailure(string message)", source, StringComparison.Ordinal);
-            Assert.Contains("Logs.Clear();", source, StringComparison.Ordinal);
+            Assert.Contains("PreserveActivityLogRowsAfterLoadFailure(\"Activity logs could not be loaded. Existing activity rows were kept on screen until refresh succeeds.\");", source, StringComparison.Ordinal);
+            Assert.Contains("private void PreserveActivityLogRowsAfterLoadFailure(string message)", source, StringComparison.Ordinal);
+            Assert.Contains("if (Logs.Count == 0)", source, StringComparison.Ordinal);
             Assert.Contains("FilteredLogs.Clear();", source, StringComparison.Ordinal);
             Assert.Contains("SelectedLog = null;", source, StringComparison.Ordinal);
             Assert.Contains("RebuildFilterLists();", source, StringComparison.Ordinal);

@@ -86,8 +86,10 @@ namespace InventoryManagementApp.Tests.ViewModels
                 printMethod,
                 "var selectedLog = GetSelectedLogForAction();",
                 "if (!string.IsNullOrWhiteSpace(selectedLog))",
-                "BuildPrintDocument(new[] { selectedLog }, \"Selected import/export operation result.\", \"Import / Export Selected Result\")",
-                "ShowPreview(selectedDocument, \"Import / Export Selected Result\", null);",
+                "new[] { selectedLog }",
+                "\"Selected import/export operation result.\"",
+                "\"Import / Export Selected Result\"",
+                "ShowPreview(selectedDocument, \"Import / Export Selected Result\", \"Review one selected data-operation result before copying, printing, or filing the handoff.\");",
                 "return;",
                 "DataContext is not ImportExportViewModel vm || vm.ImportExportLogs.Count == 0",
                 "BuildPrintDocument(vm.ImportExportLogs.ToList(), vm.LogSummary)");

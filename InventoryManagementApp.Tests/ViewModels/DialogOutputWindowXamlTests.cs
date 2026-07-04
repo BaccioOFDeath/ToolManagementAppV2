@@ -174,7 +174,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("UseResponsiveDefaultSize(880, 720)", calibrationCode, StringComparison.Ordinal);
             Assert.Contains("UseResponsiveDefaultSize(880, 720)", kitCode, StringComparison.Ordinal);
             Assert.Contains("UseResponsiveDefaultSize(760, 660)", kitItemCode, StringComparison.Ordinal);
-            Assert.Contains("UseResponsiveDefaultSize(1000, 780)", reservationCode, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(820, 640)", reservationCode, StringComparison.Ordinal);
             Assert.Contains("UseResponsiveDefaultSize(1040, 760)", rentCode, StringComparison.Ordinal);
         }
 

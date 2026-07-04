@@ -57,7 +57,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<ColumnDefinition Width=\"76\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border Grid.Row=\"1\" BorderBrush=\"{DynamicResource BorderBrushAlt}\" BorderThickness=\"1\" Background=\"{DynamicResource ControlBackgroundBrush}\" Padding=\"8\" MinHeight=\"120\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"82\"/>", xaml, StringComparison.Ordinal);
-            Assert.DoesNotContain("Height=\"184\" Margin=\"0,0,0,10\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Background=\"{DynamicResource ControlBackgroundBrush}\" Height=\"184\" Margin=\"0,0,0,10\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]

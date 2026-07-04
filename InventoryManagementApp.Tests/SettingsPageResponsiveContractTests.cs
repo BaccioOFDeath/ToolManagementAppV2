@@ -9,7 +9,7 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void SettingsPage_KeepsHeaderMetricsWrappedAndBounded()
         {
-            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml");
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml"));
 
             Assert.Contains("<ColumnDefinition Width=\"1.15*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"1.85*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
@@ -24,7 +24,7 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void SettingsPage_WrapsActionStripsSoPrimaryCommandsStayReachable()
         {
-            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml");
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml"));
 
             Assert.Contains("SettingsPrimaryActionButton", xaml, StringComparison.Ordinal);
             Assert.Contains("SettingsActionButton", xaml, StringComparison.Ordinal);
@@ -53,12 +53,12 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void SettingsPage_BoundsFormControlsAndItemDisplayTiles()
         {
-            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml");
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml"));
 
             Assert.True(CountOccurrences(xaml, "<ColumnDefinition Width=\"155\"/>") >= 6);
             Assert.Contains("<Border Style=\"{StaticResource DesktopNoteCard}\" MinWidth=\"190\" MaxWidth=\"245\" MinHeight=\"46\" Margin=\"0,0,8,8\" Padding=\"10,8\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<TextBox MinWidth=\"190\" MaxWidth=\"260\" Text=\"{Binding NewFromEmail}\" Margin=\"0,0,6,6\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Button Style=\"{StaticResource SettingsPrimaryActionButton}\" Content=\"Save Backup Settings\" Command=\"{Binding SaveBackupSettingsCommand}\" Margin=\"8,0,0,0\" HorizontalAlignment=\"Left\" MinWidth=\"170\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("Style=\"{StaticResource SettingsPrimaryActionButton}\" Content=\"Save Backup Settings\" Command=\"{Binding SaveBackupSettingsCommand}\" Margin=\"8,0,0,0\" HorizontalAlignment=\"Left\" MinWidth=\"170\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Width=\"210\" Text=\"{Binding NewFromEmail}\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Style=\"{StaticResource DesktopNoteCard}\" Width=\"210\"", xaml, StringComparison.Ordinal);
         }
@@ -151,6 +151,8 @@ namespace InventoryManagementApp.Tests
 
             return count;
         }
+
+        private static string NormalizeNewlines(string source) => source.Replace("\r\n", "\n", StringComparison.Ordinal);
 
         private static string ReadRepoFile(params string[] parts)
         {
