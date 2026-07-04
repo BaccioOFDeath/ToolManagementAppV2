@@ -59,6 +59,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("MinHeight=\"130\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MaxHeight=\"260\"", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalScrollBarVisibility=\"Disabled\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<MultiDataTrigger>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Condition Binding=\"{Binding IsBusy}\" Value=\"False\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Generating report\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"360\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("MinHeight=\"150\"", xaml, StringComparison.Ordinal);
         }
@@ -76,6 +79,28 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("ReportGrid_MouseDoubleClick", xaml, StringComparison.Ordinal);
             Assert.Contains("ReportGrid_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedLineHandoff", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ReportsPage_DisablesRowAndPrintActionsWhileReportsGenerate()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml");
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
+
+            Assert.Contains("public bool CanUseReportRows => !IsBusy && ReportLines.Count > 0;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanPrintCurrentReport => !IsBusy && LastRunAt.HasValue", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CanPrintCurrentReport));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CanUseReportRows));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding CanUseReportRows}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding CanPrintCurrentReport}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("DataContext=\"{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ReportsViewModel { CanUseReportRows: true }", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ReportsViewModel { IsBusy: true }", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the report to finish generating before opening a source page.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the report to finish generating before copying a handoff.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Wait for the report to finish generating before opening print preview.", codeBehind, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)
