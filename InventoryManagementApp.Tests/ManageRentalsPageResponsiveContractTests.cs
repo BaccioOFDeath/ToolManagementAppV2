@@ -111,7 +111,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("UpdateCompactHeightMode();", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (DataContext is ManageRentalsViewModel vm && !ReferenceEquals(_loadedViewModel, vm))", codeBehind, StringComparison.Ordinal);
             Assert.Contains("_loadedViewModel = vm;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("await Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("await vm.LoadRentalsAsync();", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (!ReferenceEquals(e.NewValue, _loadedViewModel))", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("if (DataContext is ManageRentalsViewModel vm)\n            {\n                await vm.LoadRentalsAsync();\n            }", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
