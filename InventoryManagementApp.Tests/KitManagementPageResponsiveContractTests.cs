@@ -16,6 +16,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"235\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("KitStatValueText", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"1.15*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("{Binding KitFilterSummary}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{Binding KitPrintSummary}", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Grid.Column=\"2\" Columns=\"4\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"2*\" MinWidth=\"380\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"3*\" MinWidth=\"520\"/>", xaml, StringComparison.Ordinal);
@@ -61,12 +63,30 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<TextBox Width=\"240\" MinWidth=\"190\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ComboBox Width=\"140\" MinWidth=\"120\"", xaml, StringComparison.Ordinal);
             Assert.Equal(2, CountOccurrences(xaml, "MaxWidth=\"330\" MinHeight=\"120\" Margin=\"12\""));
+            Assert.Contains("Visibility=\"{Binding IsKitDirectoryEmptyVisible, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Visibility=\"{Binding IsKitItemsEmptyVisible, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("{Binding KitEmptyStateTitle}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{Binding KitItemsEmptyStateMessage}", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer Grid.Row=\"1\" VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\" Padding=\"12\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"320\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Width=\"320\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("VerticalScrollBarVisibility=\"Hidden\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<StackPanel DockPanel.Dock=\"Right\" Orientation=\"Horizontal\">", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void KitManagementPage_ShowsBoundedLoadingOverlaysForDirectoryAndMembership()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml");
+
+            Assert.Contains("Visibility=\"{Binding IsLoadingKits, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Visibility=\"{Binding IsLoadingKitItems, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
+            Assert.Equal(2, CountOccurrences(xaml, "MaxWidth=\"360\" MinHeight=\"118\" Margin=\"12\""));
+            Assert.Equal(2, CountOccurrences(xaml, "<ProgressBar IsIndeterminate=\"True\" Height=\"6\""));
+            Assert.Contains("Loading kit rows", xaml, StringComparison.Ordinal);
+            Assert.Contains("Loading kit membership", xaml, StringComparison.Ordinal);
+            Assert.Contains("{Binding KitItemLoadSummary}", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -81,6 +101,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("CopySelectedKitCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintSelectedKitCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintKitListCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding IsKitDirectoryPrintAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("DeleteKitCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("AddKitItemCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("EditKitItemCommand", xaml, StringComparison.Ordinal);
@@ -89,6 +110,54 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("KitRow_MouseDoubleClick", xaml, StringComparison.Ordinal);
             Assert.Contains("KitItemRow_MouseDoubleClick", xaml, StringComparison.Ordinal);
             Assert.Contains("DataGridRow_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void KitManagementViewModel_GuardsLoadingCommandsAndStaleMembershipRefreshes()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
+
+            Assert.Contains("private const int MaxDirectoryPrintRows = 250;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsLoadingKits", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsLoadingKitItems", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsKitInteractionBusy => IsLoadingKits;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsKitItemInteractionBusy => IsLoadingKits || IsLoadingKitItems;", source, StringComparison.Ordinal);
+            Assert.Contains("if (IsKitInteractionBusy)", source, StringComparison.Ordinal);
+            Assert.Contains("LoadKitsCommand = new AsyncRelayCommand(LoadKitsAsync, () => !IsKitInteractionBusy);", source, StringComparison.Ordinal);
+            Assert.Contains("RefreshCommand = new AsyncRelayCommand(LoadKitsAsync, () => !IsKitInteractionBusy);", source, StringComparison.Ordinal);
+            Assert.Contains("ClearSearchCommand = new RelayCommand(ClearSearch, () => !IsKitInteractionBusy", source, StringComparison.Ordinal);
+            Assert.Contains("var loadVersion = ++_kitItemLoadVersion;", source, StringComparison.Ordinal);
+            Assert.Contains("loadVersion != _kitItemLoadVersion || SelectedKit?.KitID != kitID", source, StringComparison.Ordinal);
+            Assert.Contains("if (loadVersion == _kitItemLoadVersion)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void KitManagementViewModel_CapsAndDescribesPrintPreviewOutput()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
+
+            Assert.Contains("var printedKits = visibleKits.Take(MaxDirectoryPrintRows).ToList();", source, StringComparison.Ordinal);
+            Assert.Contains("var omittedCount = visibleKits.Count - printedKits.Count;", source, StringComparison.Ordinal);
+            Assert.Contains("Visible {visibleKits.Count} | Printed {printedKits.Count} | Omitted {omittedCount}", source, StringComparison.Ordinal);
+            Assert.Contains("Large filtered directories print the first 250 visible rows to keep preview responsive.", source, StringComparison.Ordinal);
+            Assert.Contains("new GridLength(1.15, GridUnitType.Star)", source, StringComparison.Ordinal);
+            Assert.Contains("new GridLength(2.25, GridUnitType.Star)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("new GridLength(120)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("new GridLength(230)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void KitManagementPage_CodeBehindUsesFirstPaintLoadGuard()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml.cs");
+
+            Assert.Contains("private KitManagementViewModel? _loadedViewModel;", source, StringComparison.Ordinal);
+            Assert.Contains("private Task? _loadKitsTask;", source, StringComparison.Ordinal);
+            Assert.Contains("DataContextChanged += KitManagementPage_DataContextChanged;", source, StringComparison.Ordinal);
+            Assert.Contains("LoadKitsOnceForViewModelAsync", source, StringComparison.Ordinal);
+            Assert.Contains("await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);", source, StringComparison.Ordinal);
+            Assert.Contains("vm.LoadKitsCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("ReferenceEquals(currentVm, vm)", source, StringComparison.Ordinal);
         }
 
         private static int CountOccurrences(string text, string value)
