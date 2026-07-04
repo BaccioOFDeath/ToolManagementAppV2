@@ -74,7 +74,7 @@ namespace InventoryManagementApp.Views.Pages
             try
             {
                 await vm.InitializeAsync(_loadCts.Token);
-                await Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
+                await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
                 await vm.LoadMoreAsync(_loadCts.Token);
             }
             catch (OperationCanceledException)
