@@ -92,9 +92,9 @@
                     <WrapPanel>
                         <Button Style="{StaticResource PrimaryButton}" Content="New" Command="{Binding AddCommand}" Margin="0,0,4,4" ToolTip="Create and link a new category"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Save" Command="{Binding SaveCommand}" Margin="0,0,4,4" ToolTip="Save the selected category name"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Open" Click="OpenCategoryDetail_Click" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopyCategory_Click" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Open" Click="OpenCategoryDetail_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopyCategory_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintCategories_Click" IsEnabled="{Binding IsDirectoryPrintAvailable}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCommand}" Margin="0,0,4,4"/>
                     </WrapPanel>
@@ -176,9 +176,9 @@
                         </DataGrid.RowStyle>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                                <MenuItem Header="Open Category Detail" Click="OpenCategoryDetail_Click"/>
-                                <MenuItem Header="Copy Setup Handoff" Click="CopyCategory_Click"/>
-                                <MenuItem Header="Print Selected Sheet" Click="PrintSelectedCategory_Click"/>
+                                <MenuItem Header="Open Category Detail" Click="OpenCategoryDetail_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}"/>
+                                <MenuItem Header="Copy Setup Handoff" Click="CopyCategory_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}"/>
+                                <MenuItem Header="Print Selected Sheet" Click="PrintSelectedCategory_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}"/>
                                 <Separator/>
                                 <MenuItem Header="New Category" Command="{Binding AddCommand}"/>
                                 <MenuItem Header="Save Rename" Command="{Binding SaveCommand}"/>
@@ -299,9 +299,9 @@
 
                             <Border Style="{StaticResource DesktopInsetCard}" Padding="10" Margin="0,0,0,8">
                                 <WrapPanel>
-                                    <Button Style="{StaticResource PrimaryButton}" Content="Open" Click="OpenCategoryDetail_Click" Margin="0,0,4,4"/>
-                                    <Button Style="{StaticResource GhostButton}" Content="Copy" Click="CopyCategory_Click" Margin="0,0,4,4"/>
-                                    <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Open" Click="OpenCategoryDetail_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Copy" Click="CopyCategory_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
                                     <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
                                 </WrapPanel>
                             </Border>
@@ -314,9 +314,9 @@
         <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0">
             <DockPanel LastChildFill="True">
                 <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Open" Click="OpenCategoryDetail_Click" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="Open" Click="OpenCategoryDetail_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintCategories_Click" IsEnabled="{Binding IsDirectoryPrintAvailable}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" Margin="0,0,4,4"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
                     <Button Style="{StaticResource GhostButton}" Content="Clear Filter" Command="{Binding ClearSearchCommand}" Margin="0,0,0,4"/>
                 </WrapPanel>
                 <StackPanel MinWidth="0">
