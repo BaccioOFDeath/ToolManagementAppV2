@@ -12,11 +12,13 @@ namespace InventoryManagementApp.Views.Pages
     {
         const double CompactHeightThreshold = 650;
         bool _isCompactHeight;
+        ManageRentalsViewModel? _loadedViewModel;
 
         public ManageRentalsPage()
         {
             InitializeComponent();
             Loaded += ManageRentalsPage_Loaded;
+            DataContextChanged += ManageRentalsPage_DataContextChanged;
             SizeChanged += ManageRentalsPage_SizeChanged;
             PreviewKeyDown += ManageRentalsPage_PreviewKeyDown;
         }
@@ -24,14 +26,22 @@ namespace InventoryManagementApp.Views.Pages
         private async void ManageRentalsPage_Loaded(object sender, RoutedEventArgs e)
         {
             Focus();
-            if (DataContext is ManageRentalsViewModel vm)
-            {
-                await vm.LoadRentalsAsync();
-            }
-
             SearchTextBox.Focus();
             SearchTextBox.SelectAll();
             UpdateCompactHeightMode();
+
+            if (DataContext is ManageRentalsViewModel vm && !ReferenceEquals(_loadedViewModel, vm))
+            {
+                _loadedViewModel = vm;
+                await Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
+                await vm.LoadRentalsAsync();
+            }
+        }
+
+        private void ManageRentalsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!ReferenceEquals(e.NewValue, _loadedViewModel))
+                _loadedViewModel = null;
         }
 
         private void ManageRentalsPage_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -98,21 +108,21 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P && vm.PrintSearchResultsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Rentals", () => vm.PrintSearchResultsCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
-            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P)
+            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P && vm.PrintCheckedOutCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Rentals", () => vm.PrintCheckedOutCommand.Execute(null));
                 e.Handled = true;
                 return;
             }
 
-            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.R)
+            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.R && vm.PrintRequestsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Rentals", () => vm.PrintRequestsCommand.Execute(null));
                 e.Handled = true;
