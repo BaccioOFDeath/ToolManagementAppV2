@@ -20,11 +20,14 @@ namespace InventoryManagementApp.Views.Pages
         private const int SearchHistoryLimit = 10;
         private const int UnavailableDemandLimit = 12;
         private const int SearchSignatureItemLimit = 250;
+        private const int MaxItemPrintRows = 250;
 
         private readonly ObservableCollection<SearchHistoryEntry> _searchHistory = new();
         private readonly ObservableCollection<UnavailableDemandEntry> _unavailableDemand = new();
         private readonly Dictionary<int, UnavailableDemandEntry> _demandByItemId = new();
         private ItemManagementViewModel? _attachedViewModel;
+        private ItemManagementViewModel? _loadedSearchViewModel;
+        private bool _hasLoadedSearchForViewModel;
         private bool _recordSearchPending;
         private string _lastSearchSignature = string.Empty;
 
@@ -35,6 +38,7 @@ namespace InventoryManagementApp.Views.Pages
             UnavailableDemandGrid.ItemsSource = _unavailableDemand;
             ResultsGrid.PreviewMouseRightButtonDown += ItemGrid_PreviewMouseRightButtonDown;
             CheckedOutGrid.PreviewMouseRightButtonDown += ItemGrid_PreviewMouseRightButtonDown;
+            DataContextChanged += ItemSearchPage_DataContextChanged;
             PreviewKeyDown += ItemSearchPage_PreviewKeyDown;
             UpdateSearchIntelligenceSummary();
         }
@@ -43,11 +47,30 @@ namespace InventoryManagementApp.Views.Pages
         {
             UpdateState();
             Focus();
-            if (DataContext is ItemManagementViewModel vm)
-            {
-                AttachViewModel(vm);
+            if (DataContext is not ItemManagementViewModel vm)
+                return;
+
+            AttachViewModel(vm);
+            if (ReferenceEquals(_loadedSearchViewModel, vm) && _hasLoadedSearchForViewModel)
+                return;
+
+            _loadedSearchViewModel = vm;
+            _hasLoadedSearchForViewModel = true;
+            await Dispatcher.Yield(DispatcherPriority.Background);
+
+            if (vm.SelectedCategory != "All")
                 vm.SelectedCategory = "All";
+
+            if (!vm.SearchCommand.IsRunning && vm.SearchCommand.CanExecute(null))
                 await vm.SearchCommand.ExecuteAsync(null);
+        }
+
+        private void ItemSearchPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!ReferenceEquals(_loadedSearchViewModel, e.NewValue))
+            {
+                _loadedSearchViewModel = e.NewValue as ItemManagementViewModel;
+                _hasLoadedSearchForViewModel = false;
             }
         }
 
@@ -83,6 +106,12 @@ namespace InventoryManagementApp.Views.Pages
             if (DataContext is not ItemManagementViewModel vm || sender is not WpfDataGrid grid || grid.SelectedItem is not ItemModel item)
                 return;
 
+            if (IsSearchBusy(vm))
+            {
+                ShowBusyInfo("Wait for the item search to finish before opening item details.");
+                return;
+            }
+
             vm.SelectedItem = item;
             UiActionGuard.Run(this, "Item Search", () => OpenSelectedItemDetails(vm));
         }
@@ -92,14 +121,20 @@ namespace InventoryManagementApp.Views.Pages
             if (sender is not WpfDataGrid grid)
                 return;
 
+            if (DataContext is ItemManagementViewModel vm && IsSearchBusy(vm))
+            {
+                e.Handled = true;
+                return;
+            }
+
             var row = GridContextMenuSelection.SelectRow(sender, e);
             if (row?.Item is not ItemModel item)
                 return;
 
             grid.SelectedItem = item;
 
-            if (DataContext is ItemManagementViewModel vm)
-                vm.SelectedItem = item;
+            if (DataContext is ItemManagementViewModel rowVm)
+                rowVm.SelectedItem = item;
         }
 
         private void ItemSearchPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -137,7 +172,10 @@ namespace InventoryManagementApp.Views.Pages
 
             if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter && vm.SelectedItem != null)
             {
-                UiActionGuard.Run(this, "Item Search", () => OpenSelectedItemDetails(vm));
+                if (IsSearchBusy(vm))
+                    ShowBusyInfo("Wait for the item search to finish before opening item details.");
+                else
+                    UiActionGuard.Run(this, "Item Search", () => OpenSelectedItemDetails(vm));
                 e.Handled = true;
             }
         }
@@ -165,6 +203,12 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (_attachedViewModel == null)
                 return;
+
+            if (IsSearchBusy(_attachedViewModel))
+            {
+                UpdateSearchIntelligenceSummary();
+                return;
+            }
 
             var term = (_attachedViewModel.SearchText ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(term))
@@ -291,10 +335,17 @@ namespace InventoryManagementApp.Views.Pages
             if (entry == null || DataContext is not ItemManagementViewModel vm)
                 return;
 
+            if (IsSearchBusy(vm))
+            {
+                ShowBusyInfo("Wait for the current search to finish before repeating another search.");
+                return;
+            }
+
             if (vm.Categories.Contains(entry.Category))
                 vm.SelectedCategory = entry.Category;
             vm.SearchText = entry.Term;
-            _ = vm.SearchCommand.ExecuteAsync(null);
+            if (vm.SearchCommand.CanExecute(null))
+                _ = vm.SearchCommand.ExecuteAsync(null);
         }
 
         private void OpenDemandItem_Click(object sender, RoutedEventArgs e)
@@ -312,12 +363,24 @@ namespace InventoryManagementApp.Views.Pages
             if (entry?.Item == null || DataContext is not ItemManagementViewModel vm)
                 return;
 
+            if (IsSearchBusy(vm))
+            {
+                ShowBusyInfo("Wait for the item search to finish before opening unavailable-demand details.");
+                return;
+            }
+
             vm.SelectedItem = entry.Item;
             UiActionGuard.Run(this, "Item Search", () => OpenSelectedItemDetails(vm));
         }
 
         private void ClearSearchIntelligence_Click(object sender, RoutedEventArgs e)
         {
+            if (DataContext is ItemManagementViewModel vm && IsSearchBusy(vm))
+            {
+                ShowBusyInfo("Wait for the item search to finish before clearing session intelligence.");
+                return;
+            }
+
             if (_searchHistory.Count == 0 && _unavailableDemand.Count == 0)
                 return;
 
@@ -335,6 +398,12 @@ namespace InventoryManagementApp.Views.Pages
 
         private void PrintSearchIntelligence()
         {
+            if (DataContext is ItemManagementViewModel vm && IsSearchBusy(vm))
+            {
+                ShowBusyInfo("Wait for the item search to finish before printing search intelligence.");
+                return;
+            }
+
             if (_searchHistory.Count == 0 && _unavailableDemand.Count == 0)
             {
                 ShowInfo("There is no search intelligence to print yet.", "Print Search Intelligence");
@@ -359,26 +428,39 @@ namespace InventoryManagementApp.Views.Pages
 
         private void PrintItems(string title, IEnumerable<ItemModel> items)
         {
-            var itemList = items.ToList();
-            if (itemList.Count == 0)
+            if (DataContext is ItemManagementViewModel vm && IsSearchBusy(vm))
+            {
+                ShowBusyInfo("Wait for the item search to finish before opening print preview.");
+                return;
+            }
+
+            var totalCount = items is IReadOnlyCollection<ItemModel> readOnlyCollection
+                ? readOnlyCollection.Count
+                : items.Count();
+            var itemList = items.Take(MaxItemPrintRows).ToList();
+            if (totalCount == 0)
             {
                 ShowInfo("There are no rows to print.", title);
                 return;
             }
 
-            var document = BuildPrintDocument(title, itemList);
+            var omittedCount = Math.Max(0, totalCount - itemList.Count);
+            var document = BuildPrintDocument(title, itemList, totalCount, omittedCount);
             ShowPrintPreview(document, title);
         }
 
-        private static FlowDocument BuildPrintDocument(string title, IReadOnlyCollection<ItemModel> items)
+        private static FlowDocument BuildPrintDocument(string title, IReadOnlyCollection<ItemModel> items, int totalCount, int omittedCount)
         {
             if (title.Contains("Checked Out", StringComparison.OrdinalIgnoreCase))
-                return BuildCheckedOutPrintDocument(title, items);
+                return BuildCheckedOutPrintDocument(title, items, totalCount, omittedCount);
 
             var document = new FlowDocument
             {
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-                FontSize = 11
+                FontSize = 11,
+                PagePadding = new Thickness(36),
+                ColumnGap = 0,
+                TextAlignment = TextAlignment.Left
             };
 
             document.Blocks.Add(new Paragraph(new Run(title))
@@ -387,11 +469,20 @@ namespace InventoryManagementApp.Views.Pages
                 FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(0, 0, 0, 4)
             });
-            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {items.Count} row(s)"))
+            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - showing {items.Count} of {totalCount} row(s); {omittedCount} omitted"))
             {
                 FontSize = 10,
-                Margin = new Thickness(0, 0, 0, 10)
+                Margin = new Thickness(0, 0, 0, omittedCount > 0 ? 4 : 10)
             });
+            if (omittedCount > 0)
+            {
+                document.Blocks.Add(new Paragraph(new Run("Large result sets print the first 250 rows so preview stays responsive. Narrow the search or brand filter before filing a complete printed list."))
+                {
+                    FontSize = 10,
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 0, 0, 10)
+                });
+            }
 
             var table = new Table { CellSpacing = 0 };
             foreach (var width in new[] { 72.0, 150.0, 90.0, 88.0, 86.0, 80.0, 72.0, 150.0 })
@@ -428,12 +519,15 @@ namespace InventoryManagementApp.Views.Pages
             return document;
         }
 
-        private static FlowDocument BuildCheckedOutPrintDocument(string title, IReadOnlyCollection<ItemModel> items)
+        private static FlowDocument BuildCheckedOutPrintDocument(string title, IReadOnlyCollection<ItemModel> items, int totalCount, int omittedCount)
         {
             var document = new FlowDocument
             {
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-                FontSize = 10.5
+                FontSize = 10.5,
+                PagePadding = new Thickness(36),
+                ColumnGap = 0,
+                TextAlignment = TextAlignment.Left
             };
 
             document.Blocks.Add(new Paragraph(new Run(title))
@@ -442,11 +536,20 @@ namespace InventoryManagementApp.Views.Pages
                 FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(0, 0, 0, 4)
             });
-            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - {items.Count} checked-out item(s)"))
+            document.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:g} - showing {items.Count} of {totalCount} checked-out item(s); {omittedCount} omitted"))
             {
                 FontSize = 10,
-                Margin = new Thickness(0, 0, 0, 10)
+                Margin = new Thickness(0, 0, 0, omittedCount > 0 ? 4 : 10)
             });
+            if (omittedCount > 0)
+            {
+                document.Blocks.Add(new Paragraph(new Run("Large checked-out lists print the first 250 rows so preview stays responsive. Use the checked-out desk for live follow-up before printing the remaining rows."))
+                {
+                    FontSize = 10,
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 0, 0, 10)
+                });
+            }
 
             var table = new Table { CellSpacing = 0 };
             foreach (var width in new[] { 55.0, 105.0, 110.0, 70.0, 80.0, 80.0, 55.0, 135.0, 100.0 })
@@ -492,7 +595,10 @@ namespace InventoryManagementApp.Views.Pages
             var document = new FlowDocument
             {
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-                FontSize = 11
+                FontSize = 11,
+                PagePadding = new Thickness(36),
+                ColumnGap = 0,
+                TextAlignment = TextAlignment.Left
             };
 
             document.Blocks.Add(new Paragraph(new Run("Item Search Intelligence"))
@@ -603,7 +709,7 @@ namespace InventoryManagementApp.Views.Pages
         private void ShowPrintPreview(FlowDocument document, string title)
         {
             var preview = new PrintPreviewWindow();
-            preview.ShowPreview(document, title, string.Empty);
+            preview.ShowPreview(document, title, "Review row count, omitted-row guidance, item status, holder, stock, and location details before printing.");
         }
 
         private void ShowInfo(string message, string title)
@@ -612,6 +718,16 @@ namespace InventoryManagementApp.Views.Pages
             try { dialog.Owner = System.Windows.Application.Current?.MainWindow; }
             catch { }
             dialog.ShowDialog();
+        }
+
+        private void ShowBusyInfo(string message)
+        {
+            ShowInfo(message, "Item Search");
+        }
+
+        private static bool IsSearchBusy(ItemManagementViewModel vm)
+        {
+            return vm.SearchCommand.IsRunning;
         }
 
         private static bool IsUnavailable(ItemModel item)
