@@ -25,12 +25,12 @@ namespace InventoryManagementApp.Views.Pages
         private async void ReservationPage_Loaded(object sender, RoutedEventArgs e)
         {
             Focus();
+            FocusFirstSearchBox();
+
             if (DataContext is ReservationManagementViewModel vm)
             {
                 await LoadReservationsOnceAsync(vm);
             }
-
-            FocusFirstSearchBox();
         }
 
         private void ReservationPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -57,6 +57,12 @@ namespace InventoryManagementApp.Views.Pages
 
             _loadedViewModel = vm;
             await Dispatcher.Yield(DispatcherPriority.Background);
+
+            if (!ReferenceEquals(DataContext, vm) || !vm.LoadReservationsCommand.CanExecute(null))
+            {
+                return;
+            }
+
             _loadReservationsTask = vm.LoadReservationsCommand.ExecuteAsync(null);
             await _loadReservationsTask;
         }
@@ -66,11 +72,18 @@ namespace InventoryManagementApp.Views.Pages
             if (DataContext is ReservationManagementViewModel vm && vm.OpenReservationDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Reservations", () => vm.OpenReservationDetailsCommand.Execute(null));
+                e.Handled = true;
             }
         }
 
         private void ReservationRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (DataContext is ReservationManagementViewModel { IsLoading: true })
+            {
+                e.Handled = true;
+                return;
+            }
+
             GridContextMenuSelection.SelectRow(sender, e);
         }
 
@@ -82,6 +95,12 @@ namespace InventoryManagementApp.Views.Pages
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
             {
                 FocusFirstSearchBox();
+                e.Handled = true;
+                return;
+            }
+
+            if (vm.IsLoading && IsReservationActionShortcut(e))
+            {
                 e.Handled = true;
                 return;
             }
@@ -147,6 +166,21 @@ namespace InventoryManagementApp.Views.Pages
                 UiActionGuard.RunAsync(this, "Reservations", async () => await vm.CancelReservationCommand.ExecuteAsync(null));
                 e.Handled = true;
             }
+        }
+
+        private static bool IsReservationActionShortcut(KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return e.Key is Key.N or Key.P or Key.C or Key.D or Key.Enter;
+            }
+
+            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                return e.Key is Key.P or Key.Enter;
+            }
+
+            return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete;
         }
 
         private void FocusFirstSearchBox()
