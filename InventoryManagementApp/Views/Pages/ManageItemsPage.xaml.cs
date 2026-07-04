@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,15 +20,34 @@ namespace InventoryManagementApp.Views.Pages
             DataContext = ((App)Application.Current).Host.Services.GetRequiredService<ItemsViewModel>();
             Loaded += ManageItemsPage_Loaded;
             Unloaded += ManageItemsPage_Unloaded;
+            DataContextChanged += ManageItemsPage_DataContextChanged;
+        }
+
+        private void ManageItemsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!ReferenceEquals(e.OldValue, e.NewValue))
+                _isLoadedForCurrentLifetime = false;
         }
 
         private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (IsItemDirectoryBusy())
+            {
+                e.Handled = true;
+                return;
+            }
+
             GridContextMenuSelection.SelectRow(sender, e);
         }
 
         private void DataGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (IsItemDirectoryBusy())
+            {
+                e.Handled = true;
+                return;
+            }
+
             if (GridContextMenuSelection.SelectRow(sender, e) == null)
                 return;
 
@@ -54,6 +74,7 @@ namespace InventoryManagementApp.Views.Pages
             try
             {
                 await vm.InitializeAsync(_loadCts.Token);
+                await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
                 await vm.LoadMoreAsync(_loadCts.Token);
             }
             catch (OperationCanceledException)
@@ -72,6 +93,11 @@ namespace InventoryManagementApp.Views.Pages
             }
             _loadCts.Dispose();
             _loadCts = new CancellationTokenSource();
+        }
+
+        private bool IsItemDirectoryBusy()
+        {
+            return DataContext is ItemsViewModel { Items.IsLoading: true };
         }
     }
 }
