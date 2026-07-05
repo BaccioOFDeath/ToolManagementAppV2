@@ -17,6 +17,8 @@ namespace InventoryManagementApp.ViewModels
     public class KitManagementViewModel : ObservableObject
     {
         private const int MaxDirectoryPrintRows = 250;
+        private const int MaxSelectedKitHandoffRows = 100;
+        private const int MaxSelectedKitPrintRows = 250;
         private readonly KitService _kitService;
         private readonly IDialogService _dialogService;
         private bool _isLoadingKits;
@@ -102,6 +104,38 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        public string SelectedKitHandoffSummary
+        {
+            get
+            {
+                if (SelectedKit == null) return "Select a kit to copy handoff details with membership context.";
+                if (IsLoadingKitItems) return "Copy and detail handoffs wait until kit membership finishes loading.";
+                if (KitItems.Count == 0) return "Handoff details include the selected kit and note that no item lines are assigned.";
+
+                var shown = Math.Min(KitItems.Count, MaxSelectedKitHandoffRows);
+                var omitted = KitItems.Count - shown;
+                return omitted > 0
+                    ? $"Copy/details include the first {shown} of {KitItems.Count} item lines; {omitted} older lines are summarized for responsiveness."
+                    : $"Copy/details include all {KitItems.Count} item line{(KitItems.Count == 1 ? string.Empty : "s")}.";
+            }
+        }
+
+        public string SelectedKitPrintSummary
+        {
+            get
+            {
+                if (SelectedKit == null) return "Select a kit to print a staged pick sheet.";
+                if (IsLoadingKitItems) return "Kit sheet printing is paused while membership rows load.";
+                if (KitItems.Count == 0) return "Kit sheet can print the selected kit details and a no-items notice.";
+
+                var printed = Math.Min(KitItems.Count, MaxSelectedKitPrintRows);
+                var omitted = KitItems.Count - printed;
+                return omitted > 0
+                    ? $"Kit sheet prints the first {printed} of {KitItems.Count} item lines; {omitted} omitted for preview speed."
+                    : $"Kit sheet prints all {KitItems.Count} item line{(KitItems.Count == 1 ? string.Empty : "s")}.";
+            }
+        }
+
         public string KitEmptyStateTitle
         {
             get
@@ -180,6 +214,8 @@ namespace InventoryManagementApp.ViewModels
                     RaiseCommandStates();
                     OnPropertyChanged(nameof(SelectedKitSummary));
                     OnPropertyChanged(nameof(SelectedKitDetail));
+                    OnPropertyChanged(nameof(SelectedKitHandoffSummary));
+                    OnPropertyChanged(nameof(SelectedKitPrintSummary));
                     OnPropertyChanged(nameof(KitItemsSummary));
                     OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));
                     OnPropertyChanged(nameof(KitItemLoadSummary));
@@ -714,7 +750,15 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var kit = SelectedKit;
+                var visibleItems = KitItems.ToList();
+                var printedItems = visibleItems.Take(MaxSelectedKitPrintRows).ToList();
+                var omittedCount = visibleItems.Count - printedItems.Count;
                 var doc = CreateKitDocument($"Kit Pick Sheet - {ValueOrNotRecorded(kit.Name)}");
+                doc.Blocks.Add(new Paragraph(new Run($"Prepared {DateTime.Now:yyyy-MM-dd HH:mm} | Item lines {visibleItems.Count} | Printed {printedItems.Count} | Omitted {omittedCount}"))
+                {
+                    FontSize = 10,
+                    Margin = new Thickness(0, 0, 0, 8)
+                });
                 var detailTable = CreateKeyValueTable();
                 var detailGroup = detailTable.RowGroups[0];
                 AddKeyValueRow(detailGroup, "Kit #:", kit.KitNumber);
@@ -731,6 +775,24 @@ namespace InventoryManagementApp.ViewModels
                     Margin = new Thickness(0, 14, 0, 6)
                 });
 
+                if (omittedCount > 0)
+                {
+                    doc.Blocks.Add(new Paragraph(new Run($"Large kit membership: printing the first {printedItems.Count} item lines and omitting {omittedCount} for preview speed. Review the live kit membership grid before final staging."))
+                    {
+                        FontSize = 10,
+                        Foreground = Brushes.DarkSlateGray,
+                        Margin = new Thickness(0, 0, 0, 8)
+                    });
+                }
+                else if (printedItems.Count == 0)
+                {
+                    doc.Blocks.Add(new Paragraph(new Run("No item lines are assigned to this kit yet."))
+                    {
+                        FontSize = 10,
+                        Margin = new Thickness(0, 0, 0, 8)
+                    });
+                }
+
                 var itemTable = new Table { CellSpacing = 0 };
                 itemTable.Columns.Add(new TableColumn { Width = new GridLength(1.2, GridUnitType.Star) });
                 itemTable.Columns.Add(new TableColumn { Width = new GridLength(2.4, GridUnitType.Star) });
@@ -739,13 +801,13 @@ namespace InventoryManagementApp.ViewModels
                 var itemGroup = new TableRowGroup();
                 itemTable.RowGroups.Add(itemGroup);
                 AddPrintRow(itemGroup, true, "Item #", "Item", "Qty", "Required");
-                foreach (var item in KitItems)
+                foreach (var item in printedItems)
                 {
                     AddPrintRow(itemGroup, false, item.ItemNumber, item.ItemName, item.Quantity.ToString(), item.IsOptional ? "Optional" : "Required");
                 }
                 doc.Blocks.Add(itemTable);
 
-                _dialogService.ShowPrintPreview(doc, $"Kit {kit.KitNumber}", KitItemLoadSummary);
+                _dialogService.ShowPrintPreview(doc, $"Kit {kit.KitNumber}", SelectedKitPrintSummary);
             }
             catch (Exception ex)
             {
@@ -779,12 +841,20 @@ namespace InventoryManagementApp.ViewModels
             }
             else
             {
-                foreach (var item in KitItems)
+                var handoffItems = KitItems.Take(MaxSelectedKitHandoffRows).ToList();
+                foreach (var item in handoffItems)
                 {
                     details.AppendLine($"- {ValueOrNotRecorded(item.ItemNumber)} | {ValueOrNotRecorded(item.ItemName)} | Qty {item.Quantity} | {(item.IsOptional ? "Optional" : "Required")}");
                 }
+
+                var omittedCount = KitItems.Count - handoffItems.Count;
+                if (omittedCount > 0)
+                {
+                    details.AppendLine($"- {omittedCount} additional item line{(omittedCount == 1 ? string.Empty : "s")} omitted from this handoff summary for responsiveness.");
+                }
             }
             details.AppendLine();
+            details.AppendLine(SelectedKitHandoffSummary);
             details.AppendLine("Next steps: check availability, stage required items, then use rentals to complete checkout.");
             return details.ToString();
         }
@@ -831,6 +901,8 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(KitItemsSummary));
             OnPropertyChanged(nameof(SelectedKitSummary));
             OnPropertyChanged(nameof(SelectedKitDetail));
+            OnPropertyChanged(nameof(SelectedKitHandoffSummary));
+            OnPropertyChanged(nameof(SelectedKitPrintSummary));
             OnPropertyChanged(nameof(SelectedKitItemSummary));
             OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));
             OnPropertyChanged(nameof(KitItemLoadSummary));
@@ -856,6 +928,8 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(KitItemsSummary));
             OnPropertyChanged(nameof(SelectedKitSummary));
             OnPropertyChanged(nameof(SelectedKitDetail));
+            OnPropertyChanged(nameof(SelectedKitHandoffSummary));
+            OnPropertyChanged(nameof(SelectedKitPrintSummary));
             OnPropertyChanged(nameof(SelectedKitAvailabilitySummary));
             OnPropertyChanged(nameof(KitItemLoadSummary));
         }

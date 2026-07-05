@@ -90,6 +90,18 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void KitManagementPage_ShowsSelectedKitOutputSummariesInHandoffPane()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml");
+
+            Assert.Contains("Handoff output", xaml, StringComparison.Ordinal);
+            Assert.Contains("Print output", xaml, StringComparison.Ordinal);
+            Assert.Contains("{Binding SelectedKitHandoffSummary}", xaml, StringComparison.Ordinal);
+            Assert.Contains("{Binding SelectedKitPrintSummary}", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ScrollViewer Grid.Row=\"1\" VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\" Padding=\"12\">", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void KitManagementPage_PreservesPrimaryKitActionsAndRowHandoff()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml");
@@ -144,6 +156,25 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("new GridLength(2.25, GridUnitType.Star)", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new GridLength(120)", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new GridLength(230)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void KitManagementViewModel_CapsSelectedKitHandoffAndPrintOutput()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
+
+            Assert.Contains("private const int MaxSelectedKitHandoffRows = 100;", source, StringComparison.Ordinal);
+            Assert.Contains("private const int MaxSelectedKitPrintRows = 250;", source, StringComparison.Ordinal);
+            Assert.Contains("public string SelectedKitHandoffSummary", source, StringComparison.Ordinal);
+            Assert.Contains("public string SelectedKitPrintSummary", source, StringComparison.Ordinal);
+            Assert.Contains("var handoffItems = KitItems.Take(MaxSelectedKitHandoffRows).ToList();", source, StringComparison.Ordinal);
+            Assert.Contains("additional item line", source, StringComparison.Ordinal);
+            Assert.Contains("var printedItems = visibleItems.Take(MaxSelectedKitPrintRows).ToList();", source, StringComparison.Ordinal);
+            Assert.Contains("Item lines {visibleItems.Count} | Printed {printedItems.Count} | Omitted {omittedCount}", source, StringComparison.Ordinal);
+            Assert.Contains("Large kit membership: printing the first {printedItems.Count} item lines", source, StringComparison.Ordinal);
+            Assert.Contains("_dialogService.ShowPrintPreview(doc, $\"Kit {kit.KitNumber}\", SelectedKitPrintSummary);", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(SelectedKitHandoffSummary));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(SelectedKitPrintSummary));", source, StringComparison.Ordinal);
         }
 
         [Fact]

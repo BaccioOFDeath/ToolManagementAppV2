@@ -15,6 +15,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("KitResultsSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("KitItemsSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedKitSummary", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedKitHandoffSummary", xaml, StringComparison.Ordinal);
+            Assert.Contains("SelectedKitPrintSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedKitAvailabilitySummary", xaml, StringComparison.Ordinal);
             Assert.Contains("AddKitCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("CheckAvailabilityCommand", xaml, StringComparison.Ordinal);
