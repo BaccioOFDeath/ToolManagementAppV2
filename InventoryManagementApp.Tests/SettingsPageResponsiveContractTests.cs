@@ -103,7 +103,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private void QueueSensitiveFieldSync(SettingsViewModel? sourceViewModel)", source, StringComparison.Ordinal);
             Assert.Contains("sourceViewModel == null || _sensitiveFieldSyncQueued || !ReferenceEquals(_settingsViewModel, sourceViewModel)", source, StringComparison.Ordinal);
             Assert.Contains("_sensitiveFieldSyncQueued = true;", source, StringComparison.Ordinal);
-            Assert.Contains("Dispatcher.BeginInvoke(() => SyncSensitiveFieldsFromViewModel(sourceViewModel), DispatcherPriority.Background);", source, StringComparison.Ordinal);
+            Assert.Contains("Dispatcher.BeginInvoke(new Action(() => SyncSensitiveFieldsFromViewModel(sourceViewModel)), DispatcherPriority.Background);", source, StringComparison.Ordinal);
             Assert.Contains("_sensitiveFieldSyncQueued = false;", source, StringComparison.Ordinal);
             Assert.Contains("private void SyncSensitiveFieldsFromViewModel(SettingsViewModel sourceViewModel)", source, StringComparison.Ordinal);
             Assert.Contains("if (!ReferenceEquals(_settingsViewModel, sourceViewModel))", source, StringComparison.Ordinal);
