@@ -115,7 +115,7 @@
                     </WrapPanel>
                 </Border>
 
-                <Border Grid.Row="2" Style="{StaticResource AdminHandoffCard}" Margin="8,0,8,8" MaxWidth="780" HorizontalAlignment="Left">
+                <Border Grid.Row="2" Margin="8,0,8,8" MaxWidth="780" HorizontalAlignment="Left">
                     <Border.Style>
                         <Style TargetType="Border" BasedOn="{StaticResource AdminHandoffCard}">
                             <Setter Property="Visibility" Value="Collapsed"/>
