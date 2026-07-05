@@ -110,8 +110,8 @@
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
                     <TextBlock Text="Result actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <Button Style="{StaticResource DataActionButton}" Content="Copy Selected" Click="CopySelectedLog_Click"/>
-                        <Button Style="{StaticResource DataActionButton}" Content="Print Log" Click="PrintLogs_Click"/>
+                        <Button Style="{StaticResource DataActionButton}" Content="Copy Selected" Click="CopySelectedLog_Click" IsEnabled="{Binding CanReviewSelectedLog}"/>
+                        <Button Style="{StaticResource DataActionButton}" Content="Print Log" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintImportExportLogs}"/>
                         <Button Style="{StaticResource DataActionButton}" Content="Clear Log" Command="{Binding ClearImportExportLogsCommand}"/>
                         <TextBlock Text="{Binding LogSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="6,1,0,4" MaxWidth="520"/>
                     </WrapPanel>
@@ -213,8 +213,8 @@
                                         </Border>
                                         <Border Style="{StaticResource DesktopInsetCard}" Padding="10">
                                             <WrapPanel>
-                                                <Button Style="{StaticResource PrimaryButton}" Content="Copy Result" Click="CopySelectedLog_Click" Margin="0,0,4,4"/>
-                                                <Button Style="{StaticResource DataActionButton}" Content="Print Log" Click="PrintLogs_Click"/>
+                                                <Button Style="{StaticResource PrimaryButton}" Content="Copy Result" Click="CopySelectedLog_Click" IsEnabled="{Binding CanReviewSelectedLog}" Margin="0,0,4,4"/>
+                                                <Button Style="{StaticResource DataActionButton}" Content="Print Log" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintImportExportLogs}"/>
                                                 <Button Style="{StaticResource DataActionButton}" Content="Clear Log" Command="{Binding ClearImportExportLogsCommand}"/>
                                             </WrapPanel>
                                         </Border>
@@ -448,8 +448,8 @@
                                 </Border>
                                 <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}">
                                     <WrapPanel>
-                                        <Button Style="{StaticResource DataActionButton}" Content="Copy Selected" Click="CopySelectedLog_Click"/>
-                                        <Button Style="{StaticResource DataActionButton}" Content="Print Log" Click="PrintLogs_Click"/>
+                                        <Button Style="{StaticResource DataActionButton}" Content="Copy Selected" Click="CopySelectedLog_Click" IsEnabled="{Binding CanReviewSelectedLog}"/>
+                                        <Button Style="{StaticResource DataActionButton}" Content="Print Log" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintImportExportLogs}"/>
                                         <Button Style="{StaticResource DataActionButton}" Content="Clear" Command="{Binding ClearImportExportLogsCommand}"/>
                                     </WrapPanel>
                                 </Border>
@@ -474,11 +474,11 @@
                                         </Style>
                                     </DataGrid.RowStyle>
                                     <DataGrid.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="Open Log Detail" Click="OpenSelectedLog_Click"/>
-                                            <MenuItem Header="Copy Selected Log" Click="CopySelectedLog_Click"/>
+                                        <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                            <MenuItem Header="Open Log Detail" Click="OpenSelectedLog_Click" IsEnabled="{Binding CanReviewSelectedLog}"/>
+                                            <MenuItem Header="Copy Selected Log" Click="CopySelectedLog_Click" IsEnabled="{Binding CanReviewSelectedLog}"/>
                                             <Separator/>
-                                            <MenuItem Header="Print Current Log" Click="PrintLogs_Click"/>
+                                            <MenuItem Header="Print Current Log" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintImportExportLogs}"/>
                                         </ContextMenu>
                                     </DataGrid.ContextMenu>
                                     <DataGrid.Columns>
@@ -504,12 +504,32 @@
                                                 <DataTrigger Binding="{Binding HasLogEntries}" Value="False">
                                                     <Setter Property="Visibility" Value="Visible"/>
                                                 </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsDataOperationBusy}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
                                     <StackPanel>
                                         <TextBlock Text="No operation log rows yet" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
                                         <TextBlock Text="Run an import, export, image import, or backup action. The exact result appears here for review, copy, and print handoff." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Row="2" MaxWidth="380" MinHeight="116" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Border.Style>
+                                        <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDataOperationBusy}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <StackPanel>
+                                        <ProgressBar IsIndeterminate="True" Height="6" Margin="0,0,0,10"/>
+                                        <TextBlock Text="Data operation in progress" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding DataOperationSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>
                                 <Border Grid.Row="3" Style="{StaticResource DesktopPaneSubheader}" BorderThickness="0,1,0,0">
@@ -551,8 +571,8 @@
                                 </ScrollViewer>
                                 <Border Grid.Row="2" Style="{StaticResource DesktopInsetCard}" Padding="10">
                                     <WrapPanel>
-                                        <Button Style="{StaticResource DataActionButton}" Content="Copy" Click="CopySelectedLog_Click"/>
-                                        <Button Style="{StaticResource DataActionButton}" Content="Print" Click="PrintLogs_Click"/>
+                                        <Button Style="{StaticResource DataActionButton}" Content="Copy" Click="CopySelectedLog_Click" IsEnabled="{Binding CanReviewSelectedLog}"/>
+                                        <Button Style="{StaticResource DataActionButton}" Content="Print" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintImportExportLogs}"/>
                                     </WrapPanel>
                                 </Border>
                             </Grid>

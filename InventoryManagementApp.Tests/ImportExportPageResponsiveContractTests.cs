@@ -88,6 +88,31 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ImportExportPage_DisablesRunLogActionsThroughSharedReadinessBindings()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml");
+
+            Assert.True(CountOccurrences(xaml, "IsEnabled=\"{Binding CanReviewSelectedLog}\"") >= 6);
+            Assert.True(CountOccurrences(xaml, "IsEnabled=\"{Binding CanPrintImportExportLogs}\"") >= 5);
+            Assert.Contains("<ContextMenu DataContext=\"{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<MenuItem Header=\"Open Log Detail\" Click=\"OpenSelectedLog_Click\" IsEnabled=\"{Binding CanReviewSelectedLog}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<MenuItem Header=\"Copy Selected Log\" Click=\"CopySelectedLog_Click\" IsEnabled=\"{Binding CanReviewSelectedLog}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<MenuItem Header=\"Print Current Log\" Click=\"PrintLogs_Click\" IsEnabled=\"{Binding CanPrintImportExportLogs}\"/>", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ImportExportPage_ShowsBusyOverlayWithoutCompetingWithEmptyState()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml");
+
+            Assert.Contains("<DataTrigger Binding=\"{Binding IsDataOperationBusy}\" Value=\"True\">\n                                                    <Setter Property=\"Visibility\" Value=\"Collapsed\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"380\" MinHeight=\"116\" Margin=\"12\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"Data operation in progress\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"{Binding DataOperationSummary}\" Style=\"{StaticResource CaptionTextBlock}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ProgressBar IsIndeterminate=\"True\" Height=\"6\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ImportExportViewModel_GatesAllDataOperationsThroughSharedBusyState()
         {
             var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ImportExportViewModel.cs");
@@ -144,6 +169,24 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ImportExportPage_CodeBehindGuardsBusyRowGesturesAndKeyboardShortcuts()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
+
+            Assert.Contains("PreviewKeyDown += ImportExportPage_PreviewKeyDown;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private void ImportExportPage_PreviewKeyDown", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (IsDataOperationBusy())\n            {\n                e.Handled = true;\n                return;\n            }", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("RetargetLogSelectionFromEvent(e);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsRunLogShortcut(KeyEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return e.Key is Key.C or Key.D or Key.P;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsTextEditingElement(object? source) =>", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("source is TextBoxBase or PasswordBox;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static T? FindAncestor<T>(DependencyObject? current)", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ImportExportPage_PreservesDataCommandsAndLogRowHandlers()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml");
@@ -161,6 +204,21 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("OpenSelectedLog_Click", xaml, StringComparison.Ordinal);
             Assert.Contains("ImportExportLogGrid_MouseDoubleClick", xaml, StringComparison.Ordinal);
             Assert.Contains("ImportExportLogRow_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
+        }
+
+        private static int CountOccurrences(string text, string value)
+        {
+            var count = 0;
+            var startIndex = 0;
+            while (true)
+            {
+                var index = text.IndexOf(value, startIndex, StringComparison.Ordinal);
+                if (index < 0)
+                    return count;
+
+                count++;
+                startIndex = index + value.Length;
+            }
         }
 
         private static string ReadRepoFile(params string[] parts)
