@@ -146,10 +146,20 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("private Task? _loadMaintenanceTask;", source, StringComparison.Ordinal);
             Assert.Contains("private MaintenanceManagementViewModel? _loadedViewModel;", source, StringComparison.Ordinal);
+            Assert.Contains("private CancellationTokenSource? _startupLoadCancellation;", source, StringComparison.Ordinal);
+            Assert.Contains("private int _startupLoadVersion;", source, StringComparison.Ordinal);
+            Assert.Contains("Unloaded += MaintenancePage_Unloaded;", source, StringComparison.Ordinal);
             Assert.Contains("DataContextChanged += MaintenancePage_DataContextChanged;", source, StringComparison.Ordinal);
             Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", source, StringComparison.Ordinal);
             Assert.Contains("LoadMaintenanceOnceAsync", source, StringComparison.Ordinal);
             Assert.Contains("IsCompletedSuccessfully", source, StringComparison.Ordinal);
+            Assert.Contains("CancelStartupLoad();", source, StringComparison.Ordinal);
+            Assert.Contains("token.ThrowIfCancellationRequested();", source, StringComparison.Ordinal);
+            Assert.Contains("loadVersion != _startupLoadVersion", source, StringComparison.Ordinal);
+            Assert.Contains("!ReferenceEquals(DataContext, vm)", source, StringComparison.Ordinal);
+            Assert.Contains("catch (OperationCanceledException) when (token.IsCancellationRequested || !IsLoaded || !ReferenceEquals(DataContext, vm))", source, StringComparison.Ordinal);
+            Assert.Contains("_startupLoadCancellation?.Cancel();", source, StringComparison.Ordinal);
+            Assert.Contains("_startupLoadCancellation?.Dispose();", source, StringComparison.Ordinal);
             Assert.Contains("_loadMaintenanceTask = null;", source, StringComparison.Ordinal);
         }
 
