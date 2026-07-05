@@ -169,6 +169,25 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ImportExportPage_CodeBehindBoundsLongRunLogHandoffText()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
+
+            Assert.Contains("private const int MaxPrintedLogCharacters = 1200;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private const int MaxDetailLogCharacters = 6000;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("BuildBoundedLogText(log, MaxDetailLogCharacters", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("The selected result was shortened for dialog responsiveness.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var truncatedPrintedLogCount = CountTruncatedLogEntries(printedLogs, MaxPrintedLogCharacters);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("BuildSummarySection(title, summary, safeLogs.Count, printedLogs.Count, omittedLogCount, truncatedPrintedLogCount)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("BuildBoundedLogText(log, MaxPrintedLogCharacters", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("This row was shortened for print-preview responsiveness.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Shortened Log Rows", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("shortened-row counts", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static int CountTruncatedLogEntries", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static string BuildBoundedLogText", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ImportExportPage_CodeBehindGuardsBusyRowGesturesAndKeyboardShortcuts()
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
