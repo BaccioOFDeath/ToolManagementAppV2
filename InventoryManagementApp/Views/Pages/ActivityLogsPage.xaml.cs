@@ -24,6 +24,7 @@ namespace InventoryManagementApp.Views.Pages
             InitializeComponent();
             Loaded += ActivityLogsPage_Loaded;
             DataContextChanged += ActivityLogsPage_DataContextChanged;
+            PreviewKeyDown += ActivityLogsPage_PreviewKeyDown;
         }
 
         private async void ActivityLogsPage_Loaded(object sender, RoutedEventArgs e)
@@ -31,11 +32,16 @@ namespace InventoryManagementApp.Views.Pages
             if (DataContext is not ActivityLogsViewModel vm)
                 return;
 
+            ActivitySearchBox.Focus();
+
             if (_hasLoadedLogs && ReferenceEquals(_loadedViewModel, vm))
                 return;
 
+            if (!vm.RefreshCommand.CanExecute(null))
+                return;
+
             await Dispatcher.Yield(DispatcherPriority.Background);
-            if (!ReferenceEquals(DataContext, vm))
+            if (!ReferenceEquals(DataContext, vm) || !vm.RefreshCommand.CanExecute(null))
                 return;
 
             _loadedViewModel = vm;
@@ -53,22 +59,88 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ActivityGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (IsActivityDirectoryBusy())
+            {
+                e.Handled = true;
+                return;
+            }
+
+            RetargetActivitySelectionFromEvent(e);
             OpenSelectedLog_Click(sender, e);
+            e.Handled = true;
         }
 
         private void ActivityGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (IsActivityDirectoryBusy())
+            {
+                e.Handled = true;
+                return;
+            }
+
             GridContextMenuSelection.SelectRow(sender, e);
         }
 
         private async void RefreshLogs_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is ActivityLogsViewModel vm)
+            if (DataContext is ActivityLogsViewModel vm && vm.RefreshCommand.CanExecute(null))
             {
-                await vm.LoadLogsAsync();
-                _hasLoadedLogs = true;
+                _hasLoadedLogs = false;
+                var loaded = await vm.LoadLogsAsync();
+                _hasLoadedLogs = loaded;
                 _loadedViewModel = vm;
             }
+        }
+
+        private void ActivityLogsPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                ActivitySearchBox.Focus();
+                ActivitySearchBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
+            if (IsTextEditingElement(e.OriginalSource) || !IsActivityLogShortcut(e))
+                return;
+
+            if (IsActivityDirectoryBusy())
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R)
+            {
+                RefreshLogs_Click(sender, e);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.O)
+            {
+                OpenRelatedPage_Click(sender, e);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+            {
+                CopySelectedLog_Click(sender, e);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
+            {
+                PrintLogs_Click(sender, e);
+                e.Handled = true;
+                return;
+            }
+
+            OpenSelectedLog_Click(sender, e);
+            e.Handled = true;
         }
 
         private void OpenSelectedLog_Click(object sender, RoutedEventArgs e)
@@ -205,6 +277,20 @@ namespace InventoryManagementApp.Views.Pages
             });
         }
 
+        private bool IsActivityDirectoryBusy() => DataContext is ActivityLogsViewModel { IsBusy: true };
+
+        private void RetargetActivitySelectionFromEvent(RoutedEventArgs e)
+        {
+            var row = FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
+            if (row?.Item is not ActivityLog log)
+                return;
+
+            ActivityGrid.SelectedItem = log;
+            ActivityGrid.ScrollIntoView(log);
+            if (DataContext is ActivityLogsViewModel vm)
+                vm.SelectedLog = log;
+        }
+
         private ActivityLog? GetSelectedActivityLogForAction()
         {
             if (ActivityGrid.SelectedItem is ActivityLog gridLog)
@@ -213,6 +299,48 @@ namespace InventoryManagementApp.Views.Pages
             return DataContext is ActivityLogsViewModel vm
                 ? vm.SelectedLog
                 : null;
+        }
+
+        private static bool IsActivityLogShortcut(KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+                return e.Key is Key.R or Key.O or Key.D or Key.C or Key.P;
+
+            return Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter;
+        }
+
+        private static bool IsTextEditingElement(object? source)
+        {
+            return source is TextBox or ComboBox;
+        }
+
+        private static T? FindAncestor<T>(DependencyObject? current) where T : DependencyObject
+        {
+            while (current != null)
+            {
+                if (current is T match)
+                    return match;
+
+                current = TryGetParent(current);
+            }
+
+            return null;
+        }
+
+        private static DependencyObject? TryGetParent(DependencyObject current)
+        {
+            try
+            {
+                return System.Windows.Media.VisualTreeHelper.GetParent(current) ?? LogicalTreeHelper.GetParent(current);
+            }
+            catch (InvalidOperationException)
+            {
+                return LogicalTreeHelper.GetParent(current);
+            }
+            catch (ArgumentException)
+            {
+                return LogicalTreeHelper.GetParent(current);
+            }
         }
 
         private static string FormatLogDetail(ActivityLog log)

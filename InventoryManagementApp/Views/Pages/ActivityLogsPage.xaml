@@ -97,7 +97,8 @@
                 <DockPanel LastChildFill="True">
                     <TextBlock Text="Audit filters" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <TextBox MinWidth="180"
+                        <TextBox x:Name="ActivitySearchBox"
+                                 MinWidth="180"
                                  Width="250"
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                  IsEnabled="{Binding CanChangeActivityFilters}"
@@ -194,7 +195,7 @@
                                 <MenuItem Header="Copy Handoff" Click="CopySelectedLog_Click" IsEnabled="{Binding CanUseSelectedLogActions}"/>
                                 <Separator/>
                                 <MenuItem Header="Print Current Results" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintActivityRows}"/>
-                                <MenuItem Header="Refresh" Click="RefreshLogs_Click" IsEnabled="{Binding CanChangeActivityFilters}"/>
+                                <MenuItem Header="Refresh" Click="RefreshLogs_Click" IsEnabled="{Binding CanRefreshActivityRows}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
                         <DataGrid.Columns>

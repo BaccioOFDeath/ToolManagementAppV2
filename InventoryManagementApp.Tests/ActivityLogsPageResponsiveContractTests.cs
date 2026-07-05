@@ -77,6 +77,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("IsEnabled=\"{Binding CanUseSelectedLogActions}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("IsEnabled=\"{Binding CanPrintActivityRows}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("IsEnabled=\"{Binding CanChangeActivityFilters}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding CanRefreshActivityRows}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<TextBlock Text=\"{Binding PrintStatusText}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("DataContext=\"{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}\"", xaml, StringComparison.Ordinal);
         }
@@ -102,9 +103,47 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("DataContextChanged += ActivityLogsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ReferenceEquals(_loadedViewModel, vm)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ActivitySearchBox.Focus();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("!vm.RefreshCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("DataContext is ActivityLogsViewModel { IsBusy: true }", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (vm.IsBusy)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("vm.PrintStatusText", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsPage_CodeBehindRetargetsRowsAndSuppressesBusyGestures()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+
+            Assert.Contains("private bool IsActivityDirectoryBusy() =>", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (IsActivityDirectoryBusy())\n            {\n                e.Handled = true;\n                return;\n            }", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("RetargetActivitySelectionFromEvent(e);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ActivityGrid.SelectedItem = log;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ActivityGrid.ScrollIntoView(log);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("vm.SelectedLog = log;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static T? FindAncestor<T>(DependencyObject? current)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("System.Windows.Media.VisualTreeHelper.GetParent(current) ?? LogicalTreeHelper.GetParent(current)", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsPage_CodeBehindAddsKeyboardShortcutsWithoutBreakingTextEditing()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+
+            Assert.Contains("PreviewKeyDown += ActivityLogsPage_PreviewKeyDown;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private void ActivityLogsPage_PreviewKeyDown", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ActivitySearchBox.SelectAll();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("RefreshLogs_Click(sender, e);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("OpenRelatedPage_Click(sender, e);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("CopySelectedLog_Click(sender, e);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("PrintLogs_Click(sender, e);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("OpenSelectedLog_Click(sender, e);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsActivityLogShortcut(KeyEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return e.Key is Key.R or Key.O or Key.D or Key.C or Key.P;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsTextEditingElement(object? source)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return source is TextBox or ComboBox;", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -127,8 +166,13 @@ namespace InventoryManagementApp.Tests
             var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
 
             Assert.Contains("public bool IsBusy => IsLoading || IsFiltering;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanRefreshActivityRows => !IsBusy;", viewModel, StringComparison.Ordinal);
             Assert.Contains("public bool CanPrintActivityRows => !IsBusy && FilteredLogs.Count > 0;", viewModel, StringComparison.Ordinal);
             Assert.Contains("public bool CanUseSelectedLogActions => !IsBusy && SelectedLog != null;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("RefreshCommand = new AsyncRelayCommand(LoadLogsAsync, () => CanRefreshActivityRows);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (IsBusy)\n                return false;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("RefreshCommand.NotifyCanExecuteChanged();", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CanRefreshActivityRows));", viewModel, StringComparison.Ordinal);
             Assert.Contains("public string ActivityEmptyStateTitle", viewModel, StringComparison.Ordinal);
             Assert.Contains("public string ActivityEmptyStateMessage", viewModel, StringComparison.Ordinal);
             Assert.Contains("public string PrintStatusText", viewModel, StringComparison.Ordinal);

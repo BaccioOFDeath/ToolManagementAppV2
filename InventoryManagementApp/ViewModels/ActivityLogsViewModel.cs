@@ -124,7 +124,10 @@ namespace InventoryManagementApp.ViewModels
             private set
             {
                 if (SetProperty(ref _isFiltering, value))
+                {
+                    RefreshCommand.NotifyCanExecuteChanged();
                     NotifyActivityStateChanged();
+                }
             }
         }
 
@@ -134,6 +137,7 @@ namespace InventoryManagementApp.ViewModels
         public bool IsBusy => IsLoading || IsFiltering;
         public bool HasActiveFilters => HasActiveFilter();
         public bool CanChangeActivityFilters => !IsLoading;
+        public bool CanRefreshActivityRows => !IsBusy;
         public bool CanUseSelectedLogActions => !IsBusy && SelectedLog != null;
         public bool CanPrintActivityRows => !IsBusy && FilteredLogs.Count > 0;
         public bool CanShowActivityEmptyState => !IsBusy && FilteredLogs.Count == 0;
@@ -240,7 +244,7 @@ namespace InventoryManagementApp.ViewModels
         {
             _service = service;
             _logger = logger ?? NullLogger<ActivityLogsViewModel>.Instance;
-            RefreshCommand = new AsyncRelayCommand(LoadLogsAsync, () => !IsLoading);
+            RefreshCommand = new AsyncRelayCommand(LoadLogsAsync, () => CanRefreshActivityRows);
             ClearFiltersCommand = new RelayCommand(ClearFilters, () => !IsLoading && HasActiveFilter());
             UserFilters.Add(AllUsersFilter);
             ActionFilters.Add(AllActionsFilter);
@@ -248,7 +252,7 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task<bool> LoadLogsAsync()
         {
-            if (IsLoading)
+            if (IsBusy)
                 return false;
 
             try
@@ -428,6 +432,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(IsBusy));
             OnPropertyChanged(nameof(HasActiveFilters));
             OnPropertyChanged(nameof(CanChangeActivityFilters));
+            OnPropertyChanged(nameof(CanRefreshActivityRows));
             OnPropertyChanged(nameof(CanUseSelectedLogActions));
             OnPropertyChanged(nameof(CanPrintActivityRows));
             OnPropertyChanged(nameof(CanShowActivityEmptyState));
