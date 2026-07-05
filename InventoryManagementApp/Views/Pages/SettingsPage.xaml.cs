@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,6 +18,8 @@ namespace InventoryManagementApp.Views.Pages
         private bool _themeDesignerTabRetryQueued;
         private bool _sensitiveFieldSyncQueued;
         private Task? _initializeSettingsTask;
+        private CancellationTokenSource? _initializeSettingsCts;
+        private int _initializeSettingsVersion;
 
         public SettingsPage()
         {
@@ -30,19 +33,20 @@ namespace InventoryManagementApp.Views.Pages
         {
             AddThemeDesignerTab();
             AttachViewModel(DataContext as SettingsViewModel);
-            QueueSensitiveFieldSync();
+            QueueSensitiveFieldSync(_settingsViewModel);
             StartSettingsInitialization();
         }
 
         private void SettingsPage_Unloaded(object sender, RoutedEventArgs e)
         {
+            CancelSettingsInitialization();
             AttachViewModel(null);
         }
 
         private void SettingsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             AttachViewModel(e.NewValue as SettingsViewModel);
-            QueueSensitiveFieldSync();
+            QueueSensitiveFieldSync(_settingsViewModel);
             StartSettingsInitialization();
         }
 
@@ -123,50 +127,61 @@ namespace InventoryManagementApp.Views.Pages
                 _settingsViewModel.PropertyChanged -= SettingsViewModel_PropertyChanged;
             }
 
+            CancelSettingsInitialization();
             _settingsViewModel = viewModel;
-            _initializeSettingsTask = null;
+            _sensitiveFieldSyncQueued = false;
             if (_settingsViewModel != null)
             {
                 _settingsViewModel.PropertyChanged += SettingsViewModel_PropertyChanged;
             }
         }
 
+        private void CancelSettingsInitialization()
+        {
+            _initializeSettingsVersion++;
+            _initializeSettingsCts?.Cancel();
+            _initializeSettingsCts?.Dispose();
+            _initializeSettingsCts = null;
+            _initializeSettingsTask = null;
+        }
+
         private void SettingsViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName is nameof(SettingsViewModel.SmtpPassword) or nameof(SettingsViewModel.SmsApiKey))
+            if (e.PropertyName is nameof(SettingsViewModel.SmtpPassword) or nameof(SettingsViewModel.SmsApiKey)
+                && sender is SettingsViewModel sourceViewModel)
             {
-                QueueSensitiveFieldSync();
+                QueueSensitiveFieldSync(sourceViewModel);
             }
         }
 
-        private void QueueSensitiveFieldSync()
+        private void QueueSensitiveFieldSync(SettingsViewModel? sourceViewModel)
         {
-            if (_settingsViewModel == null || _sensitiveFieldSyncQueued)
+            if (sourceViewModel == null || _sensitiveFieldSyncQueued || !ReferenceEquals(_settingsViewModel, sourceViewModel))
             {
                 return;
             }
 
             _sensitiveFieldSyncQueued = true;
-            Dispatcher.BeginInvoke(SyncSensitiveFieldsFromViewModel, DispatcherPriority.Background);
+            Dispatcher.BeginInvoke(() => SyncSensitiveFieldsFromViewModel(sourceViewModel), DispatcherPriority.Background);
         }
 
-        private void SyncSensitiveFieldsFromViewModel()
+        private void SyncSensitiveFieldsFromViewModel(SettingsViewModel sourceViewModel)
         {
             _sensitiveFieldSyncQueued = false;
 
-            if (_settingsViewModel == null)
+            if (!ReferenceEquals(_settingsViewModel, sourceViewModel))
             {
                 return;
             }
 
-            if (SmtpPasswordBox.Password != _settingsViewModel.SmtpPassword)
+            if (SmtpPasswordBox.Password != sourceViewModel.SmtpPassword)
             {
-                SmtpPasswordBox.Password = _settingsViewModel.SmtpPassword;
+                SmtpPasswordBox.Password = sourceViewModel.SmtpPassword;
             }
 
-            if (SmsApiKeyBox.Password != _settingsViewModel.SmsApiKey)
+            if (SmsApiKeyBox.Password != sourceViewModel.SmsApiKey)
             {
-                SmsApiKeyBox.Password = _settingsViewModel.SmsApiKey;
+                SmsApiKeyBox.Password = sourceViewModel.SmsApiKey;
             }
         }
 
@@ -177,22 +192,41 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            _initializeSettingsTask = InitializeSettingsAsync(_settingsViewModel);
+            _initializeSettingsCts?.Dispose();
+            _initializeSettingsCts = new CancellationTokenSource();
+            var version = ++_initializeSettingsVersion;
+            _initializeSettingsTask = InitializeSettingsAsync(_settingsViewModel, _initializeSettingsCts.Token, version);
         }
 
-        private async Task InitializeSettingsAsync(SettingsViewModel viewModel)
+        private async Task InitializeSettingsAsync(SettingsViewModel viewModel, CancellationToken cancellationToken, int version)
         {
             try
             {
                 await Dispatcher.Yield(DispatcherPriority.Background);
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!ReferenceEquals(_settingsViewModel, viewModel) || version != _initializeSettingsVersion)
+                {
+                    return;
+                }
+
                 await viewModel.InitializeAsync().ConfigureAwait(true);
-                QueueSensitiveFieldSync();
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!ReferenceEquals(_settingsViewModel, viewModel) || version != _initializeSettingsVersion)
+                {
+                    return;
+                }
+
+                QueueSensitiveFieldSync(viewModel);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Navigation away from Settings or a DataContext swap owns this cancellation path.
             }
             catch (Exception ex)
             {
                 _initializeSettingsTask = null;
 
-                if (!ReferenceEquals(_settingsViewModel, viewModel))
+                if (!ReferenceEquals(_settingsViewModel, viewModel) || version != _initializeSettingsVersion)
                 {
                     return;
                 }
