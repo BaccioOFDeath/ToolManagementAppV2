@@ -139,8 +139,16 @@ namespace InventoryManagementApp.Views.Pages
             if (e.Key == Key.Enter || e.Key == Key.F5 || e.Key == Key.Delete)
                 return true;
 
-            return Keyboard.Modifiers is ModifierKeys.Control or (ModifierKeys.Control | ModifierKeys.Shift)
-                && e.Key is Key.N or Key.E or Key.I or Key.C or Key.P or Key.D;
+            var modifiers = Keyboard.Modifiers;
+            if (modifiers != ModifierKeys.Control && modifiers != (ModifierKeys.Control | ModifierKeys.Shift))
+                return false;
+
+            return e.Key == Key.N
+                || e.Key == Key.E
+                || e.Key == Key.I
+                || e.Key == Key.C
+                || e.Key == Key.P
+                || e.Key == Key.D;
         }
 
         private void KitRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
