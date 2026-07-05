@@ -16,6 +16,8 @@ namespace InventoryManagementApp.Views.Pages
     public partial class ImportExportPage : Page
     {
         private const int MaxPrintedLogRows = 250;
+        private const int MaxPrintedLogCharacters = 1200;
+        private const int MaxDetailLogCharacters = 6000;
 
         public ImportExportPage()
         {
@@ -106,11 +108,12 @@ namespace InventoryManagementApp.Views.Pages
                     return;
                 }
 
+                var detailText = BuildBoundedLogText(log, MaxDetailLogCharacters, "The selected result was shortened for dialog responsiveness. Copy the selected log when the full message is needed for deeper troubleshooting.");
                 DetailDialogWindow.ShowDialogFor(
                     Window.GetWindow(this),
                     "Import / Export Result",
                     "Import / Export Result",
-                    log,
+                    detailText,
                     "Review the selected operation result before copying, printing, or continuing the data workflow.",
                     "Run Log",
                     "Close returns to the run log with the selected result still available for copy, print, or review.");
@@ -234,9 +237,10 @@ namespace InventoryManagementApp.Views.Pages
             string summary,
             string title = "Import / Export Operation Log")
         {
-            var safeLogs = logs?.Where(log => !string.IsNullOrWhiteSpace(log)).ToList() ?? new List<string>();
+            var safeLogs = logs?.Where(log => !string.IsNullOrWhiteSpace(log)).Select(log => log.Trim()).ToList() ?? new List<string>();
             var printedLogs = safeLogs.Take(MaxPrintedLogRows).ToList();
             var omittedLogCount = Math.Max(0, safeLogs.Count - printedLogs.Count);
+            var truncatedPrintedLogCount = CountTruncatedLogEntries(printedLogs, MaxPrintedLogCharacters);
             var document = new FlowDocument
             {
                 FontFamily = new FontFamily("Segoe UI"),
@@ -258,7 +262,7 @@ namespace InventoryManagementApp.Views.Pages
                 Margin = new Thickness(0, 0, 0, 2)
             });
 
-            document.Blocks.Add(BuildSummarySection(title, summary, safeLogs.Count, printedLogs.Count, omittedLogCount));
+            document.Blocks.Add(BuildSummarySection(title, summary, safeLogs.Count, printedLogs.Count, omittedLogCount, truncatedPrintedLogCount));
 
             if (printedLogs.Count == 0)
             {
@@ -292,7 +296,7 @@ namespace InventoryManagementApp.Views.Pages
                 var row = new TableRow();
                 rowGroup.Rows.Add(row);
                 AddCell(row, number.ToString());
-                AddCell(row, log.Trim());
+                AddCell(row, BuildBoundedLogText(log, MaxPrintedLogCharacters, "This row was shortened for print-preview responsiveness. Copy the selected log for the complete operation text."));
                 number++;
             }
 
@@ -307,7 +311,17 @@ namespace InventoryManagementApp.Views.Pages
                 });
             }
 
-            document.Blocks.Add(new Paragraph(new Run("Review skipped rows, failures, backup paths, restore notices, and omitted-row counts before clearing the in-app run log."))
+            if (truncatedPrintedLogCount > 0)
+            {
+                document.Blocks.Add(new Paragraph(new Run($"{truncatedPrintedLogCount} printed log row{(truncatedPrintedLogCount == 1 ? " was" : "s were")} shortened to keep print preview responsive. Copy selected rows when exact full text is required."))
+                {
+                    FontSize = 10,
+                    FontStyle = FontStyles.Italic,
+                    Margin = new Thickness(0, 8, 0, 0)
+                });
+            }
+
+            document.Blocks.Add(new Paragraph(new Run("Review skipped rows, failures, backup paths, restore notices, omitted-row counts, and shortened-row counts before clearing the in-app run log."))
             {
                 FontSize = 10,
                 FontStyle = FontStyles.Italic,
@@ -316,7 +330,7 @@ namespace InventoryManagementApp.Views.Pages
             return document;
         }
 
-        private static Section BuildSummarySection(string title, string summary, int logCount, int printedLogCount, int omittedLogCount)
+        private static Section BuildSummarySection(string title, string summary, int logCount, int printedLogCount, int omittedLogCount, int truncatedLogCount)
         {
             var section = new Section
             {
@@ -341,6 +355,7 @@ namespace InventoryManagementApp.Views.Pages
             AddKeyValueRow(group, "Visible Log Rows", logCount.ToString());
             AddKeyValueRow(group, "Printed Log Rows", printedLogCount.ToString());
             AddKeyValueRow(group, "Omitted Log Rows", omittedLogCount.ToString());
+            AddKeyValueRow(group, "Shortened Log Rows", truncatedLogCount.ToString());
             AddKeyValueRow(group, "Session Summary", ValueOrNotRecorded(summary));
 
             section.Blocks.Add(table);
@@ -368,6 +383,23 @@ namespace InventoryManagementApp.Views.Pages
                 Padding = new Thickness(4, 3, 4, 3),
                 FontWeight = isHeader ? FontWeights.SemiBold : FontWeights.Normal
             });
+        }
+
+        private static int CountTruncatedLogEntries(IEnumerable<string> logs, int maxCharacters) =>
+            logs.Count(log => !string.IsNullOrWhiteSpace(log) && log.Trim().Length > maxCharacters);
+
+        private static string BuildBoundedLogText(string? value, int maxCharacters, string truncationNotice)
+        {
+            var text = ValueOrNotRecorded(value);
+            if (text.Length <= maxCharacters)
+                return text;
+
+            var visibleText = text.Substring(0, maxCharacters).TrimEnd();
+            var omittedCharacters = text.Length - visibleText.Length;
+            return string.Join(Environment.NewLine,
+                visibleText,
+                string.Empty,
+                $"... {omittedCharacters:N0} characters omitted. {truncationNotice}");
         }
 
         private static string ValueOrNotRecorded(string? value) =>
