@@ -60,7 +60,7 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml");
 
-            Assert.Contains("<TextBox Width=\"240\" MinWidth=\"190\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBox x:Name=\"SearchTextBox\" Width=\"240\" MinWidth=\"190\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ComboBox Width=\"140\" MinWidth=\"120\"", xaml, StringComparison.Ordinal);
             Assert.Equal(2, CountOccurrences(xaml, "MaxWidth=\"330\" MinHeight=\"120\" Margin=\"12\""));
             Assert.Contains("Visibility=\"{Binding IsKitDirectoryEmptyVisible, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
@@ -155,9 +155,35 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private Task? _loadKitsTask;", source, StringComparison.Ordinal);
             Assert.Contains("DataContextChanged += KitManagementPage_DataContextChanged;", source, StringComparison.Ordinal);
             Assert.Contains("LoadKitsOnceForViewModelAsync", source, StringComparison.Ordinal);
+            Assert.Contains("SearchTextBox.Focus();", source, StringComparison.Ordinal);
             Assert.Contains("await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);", source, StringComparison.Ordinal);
             Assert.Contains("vm.LoadKitsCommand.CanExecute(null)", source, StringComparison.Ordinal);
             Assert.Contains("ReferenceEquals(currentVm, vm)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void KitManagementPage_CodeBehindGuardsBusyActionsAndRetargetsInvokedRows()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml.cs");
+
+            Assert.Contains("if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)", source, StringComparison.Ordinal);
+            Assert.Contains("SearchTextBox.SelectAll();", source, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsKitItemInteractionBusy && IsManagedKitShortcut(e))", source, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsManagedKitShortcut(KeyEventArgs e)", source, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers;", source, StringComparison.Ordinal);
+            Assert.Contains("vm.AddKitCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("vm.EditKitCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("vm.AddKitItemCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("vm.EditKitItemCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("vm.CopySelectedKitCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("vm.DeleteKitCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsKitItemInteractionBusy)", source, StringComparison.Ordinal);
+            Assert.Contains("sender is FrameworkElement { DataContext: Kit kit }", source, StringComparison.Ordinal);
+            Assert.Contains("vm.SelectedKit = kit;", source, StringComparison.Ordinal);
+            Assert.Contains("sender is FrameworkElement { DataContext: KitItem kitItem }", source, StringComparison.Ordinal);
+            Assert.Contains("vm.SelectedKitItem = kitItem;", source, StringComparison.Ordinal);
+            Assert.Contains("DataContext is KitManagementViewModel { IsKitItemInteractionBusy: true }", source, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", source, StringComparison.Ordinal);
         }
 
         private static int CountOccurrences(string text, string value)
