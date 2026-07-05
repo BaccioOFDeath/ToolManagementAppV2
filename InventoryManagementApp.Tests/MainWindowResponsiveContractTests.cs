@@ -121,6 +121,29 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void MainWindow_CoalescesHighFrequencyAutoLogoutInputResets()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml.cs");
+
+            Assert.Contains("static readonly TimeSpan AutoLogoutInputResetInterval = TimeSpan.FromSeconds(1);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DateTime _lastAutoLogoutResetUtc = DateTime.MinValue;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("InputManager.Current.PreProcessInput += InputManager_PreProcessInput;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("InputManager.Current.PreProcessInput -= InputManager_PreProcessInput;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ResetAutoLogoutTimerForInput(force: false);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ResetAutoLogoutTimerForInput(force: true);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (e.StagingItem.Input is KeyboardEventArgs or MouseButtonEventArgs)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (e.StagingItem.Input is MouseEventArgs)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("void ResetAutoLogoutTimerForInput(bool force)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var now = DateTime.UtcNow;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!force && now - _lastAutoLogoutResetUtc < AutoLogoutInputResetInterval)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_lastAutoLogoutResetUtc = now;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_mainViewModel.ResetAutoLogoutTimer();", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("MouseMove += (_, __) => vm.ResetAutoLogoutTimer();", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("KeyDown += (_, __) => vm.ResetAutoLogoutTimer();", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("MouseDown += (_, __) => vm.ResetAutoLogoutTimer();", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void MainWindow_PreservesCoreNavigationSearchUserAndWorkflowBindings()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
