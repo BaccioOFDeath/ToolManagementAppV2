@@ -20,7 +20,39 @@
         </Setter>
     </Style>
 
+    <Style x:Key="ThemePopupComboBoxItemStyle" TargetType="ComboBoxItem" BasedOn="{StaticResource DropdownItemStyle}">
+        <Style.Resources>
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource Col.Accent}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="{DynamicResource Col.OnAccent}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="{DynamicResource Col.Fg}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.GrayTextBrushKey}" Color="{DynamicResource Col.FgMuted}"/>
+        </Style.Resources>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
+        <Setter Property="MaxWidth" Value="420"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="TextBlock.TextWrapping" Value="NoWrap"/>
+        <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}"/>
+                <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <Style x:Key="ThemePopupMenuItemStyle" TargetType="MenuItem">
+        <Style.Resources>
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource Col.Accent}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="{DynamicResource Col.OnAccent}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="{DynamicResource Col.Fg}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.GrayTextBrushKey}" Color="{DynamicResource Col.FgMuted}"/>
+        </Style.Resources>
         <Setter Property="Background" Value="{DynamicResource TransparentSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource ThemeTransparentBrush}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderlessThickness}"/>
@@ -28,26 +60,32 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
-        <Setter Property="MaxWidth" Value="360"/>
+        <Setter Property="MinWidth" Value="140"/>
+        <Setter Property="MaxWidth" Value="420"/>
         <Setter Property="Padding" Value="10,5"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="TextBlock.TextWrapping" Value="NoWrap"/>
+        <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}"/>
         <Style.Triggers>
             <Trigger Property="IsHighlighted" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ItemHoverForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsSubmenuOpen" Value="True">
                 <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundBrush}"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}"/>
                 <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
 
     <Style x:Key="ThemeResponsiveComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource ThemedComboBoxStyle}">
+        <Setter Property="ItemContainerStyle" Value="{StaticResource ThemePopupComboBoxItemStyle}"/>
         <Setter Property="MaxDropDownHeight" Value="320"/>
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
@@ -131,12 +169,14 @@
                                Focusable="False"
                                PopupAnimation="None">
                             <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                    MaxWidth="420"
                                     MaxHeight="{TemplateBinding MaxDropDownHeight}"
                                     Background="{DynamicResource ComboBoxPopupBackgroundBrush}"
                                     BorderBrush="{DynamicResource BorderBrushAlt}"
-                                    BorderThickness="1"
-                                    CornerRadius="{StaticResource RadiusSmall}"
-                                    SnapsToDevicePixels="True">
+                                    BorderThickness="{DynamicResource ThemeControlBorderThickness}"
+                                    CornerRadius="{DynamicResource ThemeInputCornerRadius}"
+                                    SnapsToDevicePixels="True"
+                                    UseLayoutRounding="True">
                                 <ScrollViewer MaxHeight="{TemplateBinding MaxDropDownHeight}"
                                               VerticalScrollBarVisibility="Auto"
                                               HorizontalScrollBarVisibility="Disabled"
@@ -154,7 +194,7 @@
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="ToggleButton" Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}"/>
                             <Setter TargetName="ToggleButton" Property="Background" Value="{DynamicResource DisabledBackgroundBrush}"/>
-                            <Setter TargetName="ToggleButton" Property="BorderBrush" Value="#333"/>
+                            <Setter TargetName="ToggleButton" Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
                             <Setter TargetName="ToggleButton" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
@@ -166,13 +206,22 @@
     </Style>
 
     <Style TargetType="ContextMenu">
-        <Setter Property="Background" Value="{DynamicResource ThemePopupSurfaceBrush}"/>
+        <Style.Resources>
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource Col.Accent}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="{DynamicResource Col.OnAccent}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="{DynamicResource Col.Fg}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.GrayTextBrushKey}" Color="{DynamicResource Col.FgMuted}"/>
+        </Style.Resources>
+        <Setter Property="Background" Value="{DynamicResource ThemeMenuDropDownBackgroundBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="MinWidth" Value="180"/>
+        <Setter Property="MaxWidth" Value="440"/>
         <Setter Property="MaxHeight" Value="420"/>
+        <Setter Property="Padding" Value="4"/>
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
@@ -180,9 +229,37 @@
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="UseLayoutRounding" Value="True"/>
         <Setter Property="Effect" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource ThemePanelCornerRadius}"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True"
+                            UseLayoutRounding="True">
+                        <ScrollViewer MaxHeight="{TemplateBinding MaxHeight}"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      CanContentScroll="True"
+                                      KeyboardNavigation.DirectionalNavigation="Contained">
+                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"
+                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style TargetType="Menu">
+        <Style.Resources>
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{DynamicResource Col.Accent}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="{DynamicResource Col.OnAccent}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="{DynamicResource Col.Fg}"/>
+            <SolidColorBrush x:Key="{x:Static SystemColors.GrayTextBrushKey}" Color="{DynamicResource Col.FgMuted}"/>
+        </Style.Resources>
         <Setter Property="Background" Value="{DynamicResource ThemeShellMenuBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
         <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
@@ -192,6 +269,7 @@
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
     </Style>
 
     <Style TargetType="ComboBox" BasedOn="{StaticResource ThemeResponsiveComboBoxStyle}"/>
@@ -200,7 +278,7 @@
     <Style TargetType="ToolTip">
         <Setter Property="Background" Value="{DynamicResource ThemePopupSurfaceBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
-        <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
+        <Setter Property="BorderThickness" Value="{DynamicResource ThemeControlBorderThickness}"/>
         <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeCaptionFontSize}"/>
@@ -208,6 +286,8 @@
         <Setter Property="Padding" Value="8,5"/>
         <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
         <Setter Property="HasDropShadow" Value="False"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
         <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
@@ -219,6 +299,8 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeCaptionFontSize}"/>
         <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="UseLayoutRounding" Value="True"/>
         <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 
@@ -227,6 +309,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource ThemeFontFamily}"/>
         <Setter Property="FontSize" Value="{DynamicResource ThemeCaptionFontSize}"/>
         <Setter Property="Padding" Value="8,2"/>
+        <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
     </Style>
 
     <Style TargetType="Separator" BasedOn="{StaticResource ThemePopupSeparatorStyle}"/>
