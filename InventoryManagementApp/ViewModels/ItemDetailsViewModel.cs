@@ -362,10 +362,7 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
-            var lines = logs
-                .OrderByDescending(log => log.Timestamp)
-                .Select(log => $"{log.Timestamp:yyyy-MM-dd HH:mm} - {ValueOrNotRecorded(log.UserName)} - {log.Action}");
-            await _dialogService.ShowInfoAsync(string.Join(Environment.NewLine, lines), $"Checkout History - {ValueOrNotRecorded(ItemModel.ItemNumber)}").ConfigureAwait(false);
+            _dialogService.ShowCheckoutHistory(ItemModel, logs);
         }
 
         async Task PlaceReservationAsync()

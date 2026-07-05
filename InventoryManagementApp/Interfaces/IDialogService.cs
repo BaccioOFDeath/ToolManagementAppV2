@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
+using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp.Interfaces
@@ -27,6 +29,17 @@ namespace InventoryManagementApp.Interfaces
 
         void ShowRentalsFilter(ManageRentalsViewModel viewModel);
         void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history);
+        void ShowCheckoutHistory(ItemModel item, IEnumerable<ActivityLog> logs)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            ArgumentNullException.ThrowIfNull(logs);
+
+            var rows = logs
+                .OrderByDescending(log => log.Timestamp)
+                .Take(500)
+                .Select(log => $"{log.Timestamp:yyyy-MM-dd HH:mm} - {(string.IsNullOrWhiteSpace(log.UserName) ? "Not recorded" : log.UserName)} - {log.Action}");
+            ShowInfo(string.Join(Environment.NewLine, rows), $"Checkout History - {(string.IsNullOrWhiteSpace(item.ItemNumber) ? "Not recorded" : item.ItemNumber)}");
+        }
         Dictionary<string, string>? ShowImportMapping(
             IEnumerable<string> headers,
             IEnumerable<string> properties,

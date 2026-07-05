@@ -197,6 +197,23 @@ namespace InventoryManagementApp.Services
             catch (Exception ex) { _logger.LogError(ex, "Failed to show RentalHistoryWindow"); }
         }
 
+        public void ShowCheckoutHistory(ItemModel item, IEnumerable<ActivityLog> logs)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            ArgumentNullException.ThrowIfNull(logs);
+            InvokeOnDispatcher(() => ShowCheckoutHistoryCore(item, logs));
+        }
+
+        void ShowCheckoutHistoryCore(ItemModel item, IEnumerable<ActivityLog> logs)
+        {
+            var win = new CheckoutHistoryWindow(item, logs)
+            {
+                Title = $"Checkout History - {item.ItemNumber}"
+            };
+            TrySetOwner(win);
+            ShowDialogSafe(win);
+        }
+
         public Dictionary<string, string>? ShowImportMapping(
             IEnumerable<string> headers,
             IEnumerable<string> propertyNames,

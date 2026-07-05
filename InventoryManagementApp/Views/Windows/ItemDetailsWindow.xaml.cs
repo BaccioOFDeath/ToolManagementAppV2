@@ -21,7 +21,7 @@ namespace InventoryManagementApp.Views.Windows
             ActivityLogService activityLogService)
         {
             InitializeComponent();
-            this.UseResponsiveDefaultSize(920, 820);
+            this.UseResponsiveDefaultSize(880, 760);
             DataContext = new ItemDetailsViewModel(item, itemService, customerService, rentalService, dialogService, () => Close(), reservationService, settingsService, activityLogService);
             this.DisposeDataContextOnUnload();
         }
