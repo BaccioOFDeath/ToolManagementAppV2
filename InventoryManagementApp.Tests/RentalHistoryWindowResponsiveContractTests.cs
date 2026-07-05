@@ -30,7 +30,8 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("<ColumnDefinition Width=\"*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel Grid.Column=\"1\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<pages:SearchBar Width=\"300\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<pages:SearchBar x:Name=\"HistorySearchBar\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Width=\"300\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"220\"", xaml, StringComparison.Ordinal);
             Assert.Contains("SearchCommand=\"{Binding SearchCommand}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ClearCommand=\"{Binding ClearSearchCommand}\"", xaml, StringComparison.Ordinal);
@@ -57,27 +58,37 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void RentalHistoryWindow_BoundsEmptyStateFilteringStateAndPaneText()
+        public void RentalHistoryWindow_BoundsEmptyFilteringAndOmittedRowStates()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalHistoryWindow.xaml");
 
             Assert.Contains("Style=\"{StaticResource Card}\" Padding=\"0\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Grid MinWidth=\"0\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<RowDefinition Height=\"Auto\"/>\n                    <RowDefinition Height=\"*\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("MaxWidth=\"520\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"2\" Margin=\"8,0,8,8\" MaxWidth=\"780\" HorizontalAlignment=\"Left\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Binding=\"{Binding HasOmittedHistoryRows}\" Value=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border MaxWidth=\"340\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Binding=\"{Binding HasNoResults}\" Value=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Binding=\"{Binding IsEmptyStateVisible}\" Value=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Text=\"{Binding EmptyStateTitle}\" Style=\"{StaticResource SectionHeader}\" TextAlignment=\"Center\" TextWrapping=\"Wrap\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Text=\"{Binding EmptyStateMessage}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border MaxWidth=\"300\" Margin=\"12\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Top\">", xaml, StringComparison.Ordinal);
             Assert.Contains("Binding=\"{Binding IsFiltering}\" Value=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Binding=\"{Binding HasNoResults}\" Value=\"True\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Width=\"360\" HorizontalAlignment=\"Center\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
-        public void RentalHistoryWindow_PreservesHistoryCommandsAndRowHandlers()
+        public void RentalHistoryWindow_PreservesHistoryCommandsShortcutsAndRowHandlers()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalHistoryWindow.xaml");
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalHistoryWindow.xaml.cs");
 
+            Assert.Contains("Key=\"D\" Modifiers=\"Control\" Command=\"{Binding OpenDetailsCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Key=\"E\" Modifiers=\"Control\" Command=\"{Binding ExportCsvCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Key=\"Escape\" Command=\"{Binding CloseCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("InputGestureText=\"Ctrl+D\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("InputGestureText=\"Ctrl+E\"", xaml, StringComparison.Ordinal);
             Assert.Contains("OpenDetailsCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("CloseCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("SearchCommand", xaml, StringComparison.Ordinal);
@@ -87,6 +98,66 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("HistoryRow_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
             Assert.Contains("Open Details", xaml, StringComparison.Ordinal);
             Assert.Contains("Export Current View", xaml, StringComparison.Ordinal);
+
+            Assert.Contains("PreviewKeyDown += RentalHistoryWindow_PreviewKeyDown;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("HistorySearchBar.Focus();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.D", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.E", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Escape", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void RentalHistoryWindow_BlocksStaleRowActionsWhileFiltering()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalHistoryWindow.xaml");
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalHistoryWindow.xaml.cs");
+
+            Assert.Contains("IsEnabled=\"{Binding IsHistoryActionReady}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsFiltering && IsRentalHistoryActionShortcut(e))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsRentalHistoryActionShortcut(KeyEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return e.Key is Key.D or Key.E;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Enter;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsFiltering)\n            {\n                e.Handled = true;\n                return;\n            }", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DataContext is RentalHistoryViewModel { IsFiltering: true }", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void RentalHistoryViewModel_CapsVisibleRowsAndReportsOmittedHistory()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "RentalHistoryViewModel.cs");
+
+            Assert.Contains("internal const int MaxVisibleHistoryRows = 500;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private int _matchedHistoryCount;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("_matchedHistoryCount = _allHistory.Count;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("History = new ObservableCollection<RentalModel>(_allHistory.Take(MaxVisibleHistoryRows).Select(r => r.Rental));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public int OmittedHistoryCount => Math.Max(0, _matchedHistoryCount - History.Count);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool HasOmittedHistoryRows => OmittedHistoryCount > 0;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("Showing first {History.Count} matches", viewModel, StringComparison.Ordinal);
+            Assert.Contains("Export {History.Count} visible record(s); {OmittedHistoryCount} row(s) are omitted", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (visibleRows.Count < MaxVisibleHistoryRows)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("return new FilteredHistoryResult(visibleRows, matchedCount);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private sealed record FilteredHistoryResult(IReadOnlyList<RentalModel> VisibleRows, int MatchedCount);", viewModel, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void RentalHistoryViewModel_DisablesActionsAndEmptyStateDuringFiltering()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "RentalHistoryViewModel.cs");
+
+            Assert.Contains("public bool IsEmptyStateVisible => HasNoResults && !IsFiltering;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanOpenDetails => SelectedEntry != null && !IsFiltering;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanExportHistory => History.Count > 0 && !IsFiltering;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanClearSearch => !IsFiltering && (HasActiveSearch || !string.IsNullOrWhiteSpace(SearchText));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool IsHistoryActionReady => !IsFiltering;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("ClearSearchCommand = new RelayCommand(ClearSearch, () => CanClearSearch);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OpenDetailsCommand = new RelayCommand(OpenDetails, () => CanOpenDetails);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("ExportCsvCommand = new RelayCommand(ExportCsv, () => CanExportHistory);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OpenDetailsCommand.NotifyCanExecuteChanged();", viewModel, StringComparison.Ordinal);
+            Assert.Contains("ClearSearchCommand.NotifyCanExecuteChanged();", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(IsHistoryActionReady));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (!CanOpenDetails || SelectedEntry == null)", viewModel, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)

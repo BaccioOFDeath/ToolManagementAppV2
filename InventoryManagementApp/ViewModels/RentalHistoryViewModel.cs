@@ -20,34 +20,71 @@ namespace InventoryManagementApp.ViewModels.Rental
 {
     public class RentalHistoryViewModel : ObservableObject, IDisposable
     {
+        internal const int MaxVisibleHistoryRows = 500;
+
         private readonly List<RentalHistorySearchRow> _allHistory;
         private readonly ILogger<RentalHistoryViewModel> _logger;
         private readonly IDialogService _dialogService;
         private CancellationTokenSource? _searchCts;
         private bool _disposed;
+        private int _matchedHistoryCount;
 
         public ObservableCollection<RentalModel> History { get; }
         public string ItemDisplayName { get; }
         public string WindowSummary => _allHistory.Count == 1
             ? "1 rental record loaded"
             : $"{_allHistory.Count} rental records loaded";
-        public string ResultsSummary => History.Count == _allHistory.Count
-            ? WindowSummary
-            : $"{History.Count} of {_allHistory.Count} records shown";
-        public string SearchStatus => IsFiltering
-            ? "Searching rental history..."
-            : HasActiveSearch
-                ? $"{ResultsSummary} for \"{AppliedSearchText}\""
-                : WindowSummary;
+        public string ResultsSummary
+        {
+            get
+            {
+                if (HasOmittedHistoryRows)
+                    return HasActiveSearch
+                        ? $"{History.Count} of {_matchedHistoryCount} matching records shown"
+                        : $"{History.Count} of {_matchedHistoryCount} loaded records shown";
+
+                if (HasActiveSearch)
+                    return $"{History.Count} of {_allHistory.Count} records shown";
+
+                return WindowSummary;
+            }
+        }
+        public string SearchStatus
+        {
+            get
+            {
+                if (IsFiltering)
+                    return "Searching rental history...";
+
+                if (HasOmittedHistoryRows)
+                    return HasActiveSearch
+                        ? $"Showing first {History.Count} matches for \"{AppliedSearchText}\"; refine search to review {OmittedHistoryCount} omitted row(s)."
+                        : $"Showing first {History.Count} rental records; search to narrow {OmittedHistoryCount} omitted row(s).";
+
+                return HasActiveSearch
+                    ? $"{ResultsSummary} for \"{AppliedSearchText}\""
+                    : WindowSummary;
+            }
+        }
+        public int VisibleHistoryCount => History.Count;
+        public int TotalHistoryCount => _allHistory.Count;
+        public int OmittedHistoryCount => Math.Max(0, _matchedHistoryCount - History.Count);
+        public bool HasOmittedHistoryRows => OmittedHistoryCount > 0;
         public bool HasActiveSearch => !string.IsNullOrWhiteSpace(AppliedSearchText);
         public bool HasNoResults => History.Count == 0;
+        public bool IsEmptyStateVisible => HasNoResults && !IsFiltering;
+        public bool CanOpenDetails => SelectedEntry != null && !IsFiltering;
         public bool CanExportHistory => History.Count > 0 && !IsFiltering;
+        public bool CanClearSearch => !IsFiltering && (HasActiveSearch || !string.IsNullOrWhiteSpace(SearchText));
+        public bool IsHistoryActionReady => !IsFiltering;
         public string EmptyStateTitle => HasActiveSearch ? "No matching rental records" : "No rental history records";
         public string EmptyStateMessage => HasActiveSearch
             ? "Clear the search or try a rental number, item number, customer, location, status, or date."
             : "Previous rental activity for this item will appear here once records exist.";
         public string ExportSummary => CanExportHistory
-            ? $"Export {History.Count} visible record(s) to CSV."
+            ? HasOmittedHistoryRows
+                ? $"Export {History.Count} visible record(s); {OmittedHistoryCount} row(s) are omitted from the current grid for responsiveness."
+                : $"Export {History.Count} visible record(s) to CSV."
             : IsFiltering
                 ? "Wait for search to finish before exporting."
                 : "No visible rental records to export.";
@@ -62,7 +99,11 @@ namespace InventoryManagementApp.ViewModels.Rental
             set
             {
                 if (SetProperty(ref _searchText, value))
+                {
                     OnPropertyChanged(nameof(SearchPrompt));
+                    OnPropertyChanged(nameof(CanClearSearch));
+                    ClearSearchCommand.NotifyCanExecuteChanged();
+                }
             }
         }
 
@@ -78,6 +119,8 @@ namespace InventoryManagementApp.ViewModels.Rental
                     OnPropertyChanged(nameof(SearchStatus));
                     OnPropertyChanged(nameof(EmptyStateTitle));
                     OnPropertyChanged(nameof(EmptyStateMessage));
+                    OnPropertyChanged(nameof(CanClearSearch));
+                    ClearSearchCommand.NotifyCanExecuteChanged();
                 }
             }
         }
@@ -91,9 +134,15 @@ namespace InventoryManagementApp.ViewModels.Rental
                 if (SetProperty(ref _isFiltering, value))
                 {
                     SearchCommand.NotifyCanExecuteChanged();
+                    ClearSearchCommand.NotifyCanExecuteChanged();
+                    OpenDetailsCommand.NotifyCanExecuteChanged();
                     ExportCsvCommand.NotifyCanExecuteChanged();
                     OnPropertyChanged(nameof(SearchStatus));
+                    OnPropertyChanged(nameof(IsEmptyStateVisible));
+                    OnPropertyChanged(nameof(CanOpenDetails));
                     OnPropertyChanged(nameof(CanExportHistory));
+                    OnPropertyChanged(nameof(CanClearSearch));
+                    OnPropertyChanged(nameof(IsHistoryActionReady));
                     OnPropertyChanged(nameof(ExportSummary));
                 }
             }
@@ -108,6 +157,7 @@ namespace InventoryManagementApp.ViewModels.Rental
                 if (SetProperty(ref _selectedEntry, value))
                 {
                     OnPropertyChanged(nameof(SelectedEntrySummary));
+                    OnPropertyChanged(nameof(CanOpenDetails));
                     OpenDetailsCommand.NotifyCanExecuteChanged();
                 }
             }
@@ -134,13 +184,14 @@ namespace InventoryManagementApp.ViewModels.Rental
                 .ThenByDescending(r => r.RentalID)
                 .Select(r => new RentalHistorySearchRow(r))
                 .ToList();
-            History = new ObservableCollection<RentalModel>(_allHistory.Select(r => r.Rental));
+            _matchedHistoryCount = _allHistory.Count;
+            History = new ObservableCollection<RentalModel>(_allHistory.Take(MaxVisibleHistoryRows).Select(r => r.Rental));
             _logger = logger ?? NullLogger<RentalHistoryViewModel>.Instance;
             _dialogService = dialogService;
 
             SearchCommand = new AsyncRelayCommand(ExecuteSearchAsync, () => !IsFiltering);
-            ClearSearchCommand = new RelayCommand(ClearSearch);
-            OpenDetailsCommand = new RelayCommand(OpenDetails, () => SelectedEntry != null);
+            ClearSearchCommand = new RelayCommand(ClearSearch, () => CanClearSearch);
+            OpenDetailsCommand = new RelayCommand(OpenDetails, () => CanOpenDetails);
             ExportCsvCommand = new RelayCommand(ExportCsv, () => CanExportHistory);
             CloseCommand = new RelayCommand(CloseWindow);
         }
@@ -162,7 +213,8 @@ namespace InventoryManagementApp.ViewModels.Rental
                     return;
 
                 var previousSelectionId = SelectedEntry?.RentalID;
-                History.ReplaceRange(results);
+                History.ReplaceRange(results.VisibleRows);
+                _matchedHistoryCount = results.MatchedCount;
                 AppliedSearchText = term;
                 RestoreSelection(previousSelectionId);
                 NotifyHistoryViewChanged();
@@ -192,27 +244,35 @@ namespace InventoryManagementApp.ViewModels.Rental
             ThrowIfDisposed();
 
             _searchCts?.Cancel();
+            if (IsFiltering)
+                return;
+
             SearchText = string.Empty;
             AppliedSearchText = string.Empty;
             var previousSelectionId = SelectedEntry?.RentalID;
-            History.ReplaceRange(_allHistory.Select(r => r.Rental));
+            _matchedHistoryCount = _allHistory.Count;
+            History.ReplaceRange(_allHistory.Take(MaxVisibleHistoryRows).Select(r => r.Rental));
             RestoreSelection(previousSelectionId);
             NotifyHistoryViewChanged();
         }
 
-        List<RentalModel> BuildFilteredHistory(string term, CancellationToken cancellationToken)
+        FilteredHistoryResult BuildFilteredHistory(string term, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(term))
-                return _allHistory.Select(r => r.Rental).ToList();
+            var visibleRows = new List<RentalModel>(MaxVisibleHistoryRows);
+            var matchedCount = 0;
 
-            return _allHistory
-                .Where(r =>
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    return r.Matches(term);
-                })
-                .Select(r => r.Rental)
-                .ToList();
+            foreach (var row in _allHistory)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!string.IsNullOrWhiteSpace(term) && !row.Matches(term))
+                    continue;
+
+                matchedCount++;
+                if (visibleRows.Count < MaxVisibleHistoryRows)
+                    visibleRows.Add(row.Rental);
+            }
+
+            return new FilteredHistoryResult(visibleRows, matchedCount);
         }
 
         void RestoreSelection(int? previousSelectionId)
@@ -226,17 +286,27 @@ namespace InventoryManagementApp.ViewModels.Rental
         {
             OnPropertyChanged(nameof(ResultsSummary));
             OnPropertyChanged(nameof(SearchStatus));
+            OnPropertyChanged(nameof(VisibleHistoryCount));
+            OnPropertyChanged(nameof(TotalHistoryCount));
+            OnPropertyChanged(nameof(OmittedHistoryCount));
+            OnPropertyChanged(nameof(HasOmittedHistoryRows));
             OnPropertyChanged(nameof(HasNoResults));
+            OnPropertyChanged(nameof(IsEmptyStateVisible));
+            OnPropertyChanged(nameof(CanOpenDetails));
             OnPropertyChanged(nameof(CanExportHistory));
+            OnPropertyChanged(nameof(CanClearSearch));
+            OnPropertyChanged(nameof(IsHistoryActionReady));
             OnPropertyChanged(nameof(EmptyStateTitle));
             OnPropertyChanged(nameof(EmptyStateMessage));
             OnPropertyChanged(nameof(ExportSummary));
+            ClearSearchCommand.NotifyCanExecuteChanged();
+            OpenDetailsCommand.NotifyCanExecuteChanged();
             ExportCsvCommand.NotifyCanExecuteChanged();
         }
 
         void OpenDetails()
         {
-            if (SelectedEntry == null)
+            if (!CanOpenDetails || SelectedEntry == null)
                 return;
 
             var returned = SelectedEntry.ReturnDate?.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) ?? "Not returned";
@@ -353,8 +423,11 @@ namespace InventoryManagementApp.ViewModels.Rental
 
             _searchCts?.Cancel();
             _searchCts?.Dispose();
+            _searchCts = null;
             _disposed = true;
         }
+
+        private sealed record FilteredHistoryResult(IReadOnlyList<RentalModel> VisibleRows, int MatchedCount);
 
         private sealed class RentalHistorySearchRow
         {
