@@ -5,11 +5,9 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
+
 namespace InventoryManagementApp.Views.Pages
 {
-    /// <summary>
-    /// Interaction logic for ManageRentalsPage.xaml
-    /// </summary>
     public partial class ManageRentalsPage : Page
     {
         const double CompactHeightThreshold = 650;
@@ -109,10 +107,11 @@ namespace InventoryManagementApp.Views.Pages
             if (SelectRowForContextMenu(sender, e) == null)
                 return;
 
+            e.Handled = true;
+
             if (DataContext is ManageRentalsViewModel vm && vm.OpenRentalDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Rentals", () => vm.OpenRentalDetailsCommand.Execute(null));
-                e.Handled = true;
             }
         }
 
@@ -132,10 +131,11 @@ namespace InventoryManagementApp.Views.Pages
             if (SelectRowForContextMenu(sender, e) == null)
                 return;
 
+            e.Handled = true;
+
             if (DataContext is ManageRentalsViewModel vm && vm.OpenRequestDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Rentals", () => vm.OpenRequestDetailsCommand.Execute(null));
-                e.Handled = true;
             }
         }
 
@@ -156,6 +156,9 @@ namespace InventoryManagementApp.Views.Pages
                 e.Handled = true;
                 return;
             }
+
+            if (IsTextEditingElement(e.OriginalSource) && IsRentalActionShortcut(e))
+                return;
 
             if (vm.IsLoading && IsRentalActionShortcut(e))
             {
@@ -246,6 +249,11 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete;
+        }
+
+        private static bool IsTextEditingElement(object? source)
+        {
+            return source is TextBox or ComboBox or DatePicker;
         }
 
         private void OpenFocusedDetails(ManageRentalsViewModel vm)
