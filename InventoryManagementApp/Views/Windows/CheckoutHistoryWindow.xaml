@@ -59,7 +59,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Style="{StaticResource InfoBanner}" Margin="0,0,0,8" Visibility="{Binding HasOmittedLogs, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Grid.Row="0" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Background="{DynamicResource ControlBackgroundBrush}" Padding="10,8" Margin="0,0,0,8" Visibility="{Binding HasOmittedLogs, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock Text="{Binding OmittedLogSummary}" TextWrapping="Wrap"/>
             </Border>
 
