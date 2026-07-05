@@ -249,10 +249,21 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (DataContext is not DashboardViewModel vm || !vm.OpenSelectedCommonItemCommand.CanExecute(null))
+            if (DataContext is not DashboardViewModel vm)
                 return;
 
+            var item = SelectInvokedDashboardRow<ItemModel>(sender, e);
+            if (item != null)
+                vm.SelectedCommonlyUsedItem = item;
+
+            if (!vm.OpenSelectedCommonItemCommand.CanExecute(null))
+            {
+                e.Handled = item != null;
+                return;
+            }
+
             UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedCommonItemCommand.Execute(null));
+            e.Handled = true;
         }
 
         private void CheckedOutItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -263,10 +274,21 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (DataContext is not DashboardViewModel vm || !vm.OpenSelectedCheckedOutItemCommand.CanExecute(null))
+            if (DataContext is not DashboardViewModel vm)
                 return;
 
+            var item = SelectInvokedDashboardRow<ItemModel>(sender, e);
+            if (item != null)
+                vm.SelectedCheckedOutItem = item;
+
+            if (!vm.OpenSelectedCheckedOutItemCommand.CanExecute(null))
+            {
+                e.Handled = item != null;
+                return;
+            }
+
             UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedCheckedOutItemCommand.Execute(null));
+            e.Handled = true;
         }
 
         private void RentedItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -277,10 +299,21 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (DataContext is not DashboardViewModel vm || !vm.OpenSelectedRentalCommand.CanExecute(null))
+            if (DataContext is not DashboardViewModel vm)
                 return;
 
+            var rental = SelectInvokedDashboardRow<RentalModel>(sender, e);
+            if (rental != null)
+                vm.SelectedRental = rental;
+
+            if (!vm.OpenSelectedRentalCommand.CanExecute(null))
+            {
+                e.Handled = rental != null;
+                return;
+            }
+
             UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedRentalCommand.Execute(null));
+            e.Handled = true;
         }
 
         private void RecentActivityGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -291,10 +324,21 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (DataContext is not DashboardViewModel vm || !vm.OpenActivityDestinationCommand.CanExecute(null))
+            if (DataContext is not DashboardViewModel vm)
                 return;
 
+            var activity = SelectInvokedDashboardRow<ActivityLog>(sender, e);
+            if (activity != null)
+                vm.SelectedActivity = activity;
+
+            if (!vm.OpenActivityDestinationCommand.CanExecute(null))
+            {
+                e.Handled = activity != null;
+                return;
+            }
+
             UiActionGuard.Run(this, "Dashboard", () => vm.OpenActivityDestinationCommand.Execute(null));
+            e.Handled = true;
         }
 
         private void IncompleteItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -305,10 +349,34 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (DataContext is not DashboardViewModel vm || !vm.OpenSelectedIncompleteItemCommand.CanExecute(null))
+            if (DataContext is not DashboardViewModel vm)
                 return;
 
+            var item = SelectInvokedDashboardRow<ItemModel>(sender, e);
+            if (item != null)
+                vm.SelectedIncompleteItem = item;
+
+            if (!vm.OpenSelectedIncompleteItemCommand.CanExecute(null))
+            {
+                e.Handled = item != null;
+                return;
+            }
+
             UiActionGuard.Run(this, "Dashboard", () => vm.OpenSelectedIncompleteItemCommand.Execute(null));
+            e.Handled = true;
+        }
+
+        private static T? SelectInvokedDashboardRow<T>(object sender, MouseButtonEventArgs e) where T : class
+        {
+            if (sender is not DataGrid grid)
+                return null;
+
+            var row = GridContextMenuSelection.FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
+            if (row?.Item is not T item)
+                return null;
+
+            grid.SelectedItem = item;
+            return item;
         }
 
         private void DashboardGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
