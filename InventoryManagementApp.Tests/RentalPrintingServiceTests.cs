@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -17,7 +18,7 @@ namespace InventoryManagementApp.Tests
         {
             var service = new RentalPrintingService();
             
-            Assert.Throws<ArgumentNullException>(() => service.GeneratePickingSlip(null!));
+            Assert.Throws<ArgumentNullException>(() => service.GeneratePickingSlip((Rental)null!));
         }
 
         [Fact]
@@ -90,7 +91,7 @@ namespace InventoryManagementApp.Tests
         {
             var service = new RentalPrintingService();
             
-            Assert.Throws<ArgumentNullException>(() => service.GenerateInvoice(null!));
+            Assert.Throws<ArgumentNullException>(() => service.GenerateInvoice((Rental)null!));
         }
 
         [Fact]
@@ -134,6 +135,73 @@ namespace InventoryManagementApp.Tests
 
             Assert.NotNull(doc);
             Assert.NotEmpty(doc.Blocks);
+        }
+
+        [Fact]
+        public void GeneratePickingSlip_WithMultipleRentals_IncludesEveryItem()
+        {
+            var service = new RentalPrintingService("Test Company");
+            var rentals = new[]
+            {
+                new Rental { RentalID = 2, ItemNumber = "T31", CustomerName = "E H Mechanical Services Limited", ItemLocation = "C3", RentalDate = DateTime.Today, DueDate = DateTime.Today.AddDays(3) },
+                new Rental { RentalID = 3, ItemNumber = "T205", CustomerName = "E H Mechanical Services Limited", ItemLocation = "B2", RentalDate = DateTime.Today, DueDate = DateTime.Today.AddDays(4) }
+            };
+
+            var doc = service.GeneratePickingSlip(rentals);
+            var text = ExtractText(doc);
+
+            Assert.Contains("2 (2 items)", text);
+            Assert.Contains("T31", text);
+            Assert.Contains("T205", text);
+            Assert.Contains("C3", text);
+            Assert.Contains("B2", text);
+        }
+
+        [Fact]
+        public void GenerateInvoice_WithMultipleRentals_IncludesEveryItemAndTotal()
+        {
+            var service = new RentalPrintingService("Test Company");
+            var rentals = new[]
+            {
+                new Rental { RentalID = 2, ItemNumber = "T31", CustomerName = "E H Mechanical Services Limited", RentalDate = DateTime.Today.AddDays(-1), DueDate = DateTime.Today.AddDays(3), ReturnDate = DateTime.Today },
+                new Rental { RentalID = 3, ItemNumber = "T205", CustomerName = "E H Mechanical Services Limited", RentalDate = DateTime.Today.AddDays(-2), DueDate = DateTime.Today.AddDays(4), ReturnDate = DateTime.Today }
+            };
+
+            var doc = service.GenerateInvoice(rentals, dailyRate: 25.00m, lateFee: 0);
+            var text = ExtractText(doc);
+
+            Assert.Contains("2 (2 items)", text);
+            Assert.Contains("Item: T31", text);
+            Assert.Contains("Item: T205", text);
+            Assert.Contains("$125.00", text);
+        }
+
+        static string ExtractText(FlowDocument doc)
+        {
+            var parts = doc.Blocks.SelectMany(ExtractBlockText);
+            return string.Join(" ", parts);
+        }
+
+        static IEnumerable<string> ExtractBlockText(Block block)
+        {
+            if (block is Paragraph paragraph)
+                return paragraph.Inlines.Select(ExtractInlineText);
+            if (block is Table table)
+                return table.RowGroups
+                    .SelectMany(group => group.Rows)
+                    .SelectMany(row => row.Cells)
+                    .SelectMany(cell => cell.Blocks)
+                    .SelectMany(ExtractBlockText);
+            return Enumerable.Empty<string>();
+        }
+
+        static string ExtractInlineText(Inline inline)
+        {
+            if (inline is Run run)
+                return run.Text;
+            if (inline is Span span)
+                return string.Concat(span.Inlines.Select(ExtractInlineText));
+            return string.Empty;
         }
     }
 }

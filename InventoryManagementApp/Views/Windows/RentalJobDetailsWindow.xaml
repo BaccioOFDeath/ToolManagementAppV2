@@ -1,10 +1,10 @@
 <Window x:Class="InventoryManagementApp.Views.Windows.RentalJobDetailsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{Binding SelectedRental.ItemNumber, StringFormat='Rental Job - {0}', TargetNullValue='Rental Job'}"
-        Width="900"
+        Title="{Binding SelectedRental.JobItemSummary, StringFormat='Rental Job - {0}', TargetNullValue='Rental Job'}"
+        Width="980"
         Height="720"
-        MinWidth="760"
+        MinWidth="820"
         MinHeight="560"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
@@ -49,7 +49,9 @@
                     <Button Style="{StaticResource GhostButton}" Content="SMS" Command="{Binding SmsRentalContactCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="Log Reply" Command="{Binding LogRentalContactResponseCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="Edit Customer" Command="{Binding EditRentalCustomerCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintRentalCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Print Summary" Command="{Binding PrintRentalCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Pick Slip All" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,6,6"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Invoice All" Command="{Binding PrintInvoiceCommand}" Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,0,6"/>
                 </WrapPanel>
             </Grid>
@@ -57,34 +59,50 @@
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="270"/>
+                <ColumnDefinition Width="360"/>
                 <ColumnDefinition Width="10"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource Card}" Padding="12">
                 <StackPanel>
-                    <Border Height="220"
-                            Background="{DynamicResource ControlBackgroundBrush}"
-                            BorderBrush="{DynamicResource BorderBrushAlt}"
-                            BorderThickness="1"
-                            Margin="0,0,0,12">
-                        <Image Source="{Binding SelectedRental, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                               Stretch="Uniform"
-                               Margin="8"/>
-                    </Border>
-
-                    <TextBlock Text="{Binding SelectedRental.Status, StringFormat='Status: {0}', TargetNullValue='Status: -'}"
+                    <TextBlock Text="{Binding SelectedRental.JobItemSummary, TargetNullValue='No rental selected'}"
                                Style="{StaticResource HeadingTextBlock}"
                                TextWrapping="Wrap"/>
-                    <TextBlock Text="{Binding SelectedRental.ItemLocation, StringFormat='Shelf: {0}', TargetNullValue='Shelf: Not recorded'}"
+                    <TextBlock Text="{Binding SelectedRental.JobItemCount, StringFormat='{}{0} item rental job'}"
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,4,0,0"/>
+                    <TextBlock Text="{Binding SelectedRental.Status, StringFormat='Status: {0}', TargetNullValue='Status: -'}"
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,2,0,0"/>
                     <TextBlock Text="{Binding SelectedRentalOpenRequestCount, StringFormat='Open requests: {0}'}"
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,2,0,12"/>
+
+                    <Border Style="{StaticResource DesktopNoteCard}" Padding="0" Margin="0,0,0,10">
+                        <DockPanel LastChildFill="True">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
+                                <TextBlock Text="Items In Job" Style="{StaticResource SectionHeader}"/>
+                            </Border>
+                            <DataGrid ItemsSource="{Binding SelectedRentalJobItems}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      MinHeight="180"
+                                      MaxHeight="280"
+                                      SelectionMode="Single"
+                                      Style="{StaticResource VirtualizedDataGridStyle}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="82"/>
+                                    <DataGridTextColumn Header="Shelf" Binding="{Binding ItemLocation}" Width="70"/>
+                                    <DataGridTextColumn Header="Due" Binding="{Binding DueDate, StringFormat={}{0:MM-dd HH:mm}}" Width="86"/>
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="72"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
 
                     <Border Style="{StaticResource DesktopNoteCard}" Padding="10" Margin="0,0,0,10">
                         <StackPanel>
@@ -99,7 +117,13 @@
 
             <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <UniformGrid Columns="3" Margin="0,0,0,10">
+                    <UniformGrid Columns="4" Margin="0,0,0,10">
+                        <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="Items" Style="{StaticResource LabelTextBlock}"/>
+                                <TextBlock Text="{Binding SelectedRental.JobItemCount}" Style="{StaticResource HeadingTextBlock}"/>
+                            </StackPanel>
+                        </Border>
                         <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,0">
                             <StackPanel>
                                 <TextBlock Text="Rental #" Style="{StaticResource LabelTextBlock}"/>
@@ -219,29 +243,6 @@
                             </Grid>
                         </DockPanel>
                     </Border>
-
-                    <Border Style="{StaticResource Card}" Padding="0">
-                        <DockPanel LastChildFill="True">
-                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
-                                <TextBlock Text="Job Items" Style="{StaticResource SectionHeader}"/>
-                            </Border>
-                            <DataGrid ItemsSource="{Binding SelectedRentalJobItems}"
-                                      AutoGenerateColumns="False"
-                                      IsReadOnly="True"
-                                      MinHeight="120"
-                                      MaxHeight="220"
-                                      SelectionMode="Single"
-                                      Style="{StaticResource VirtualizedDataGridStyle}">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="ID" Binding="{Binding RentalID}" Width="56"/>
-                                    <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="96"/>
-                                    <DataGridTextColumn Header="Shelf" Binding="{Binding ItemLocation}" Width="110"/>
-                                    <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="130"/>
-                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </DockPanel>
-                    </Border>
                 </StackPanel>
             </ScrollViewer>
         </Grid>
@@ -254,8 +255,8 @@
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"/>
                 <WrapPanel DockPanel.Dock="Right" Margin="12,0,0,0">
-                    <Button Style="{StaticResource GhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Pick Slip All" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,6,0"/>
+                    <Button Style="{StaticResource GhostButton}" Content="Invoice All" Command="{Binding PrintInvoiceCommand}" Margin="0,0,6,0"/>
                     <Button Style="{StaticResource PrimaryButton}" Content="Close" Click="Close_Click"/>
                 </WrapPanel>
             </DockPanel>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows;
@@ -40,6 +41,20 @@ namespace InventoryManagementApp.Services.Printing
             if (rental == null)
                 throw new ArgumentNullException(nameof(rental));
 
+            return GeneratePickingSlip(new[] { rental });
+        }
+
+        public FlowDocument GeneratePickingSlip(IEnumerable<Rental> rentals)
+        {
+            if (rentals == null)
+                throw new ArgumentNullException(nameof(rentals));
+
+            var jobItems = rentals.ToList();
+            if (jobItems.Count == 0)
+                throw new ArgumentException("At least one rental item is required.", nameof(rentals));
+
+            var rental = jobItems[0];
+
             var doc = new FlowDocument
             {
                 PagePadding = new Thickness(40),
@@ -68,7 +83,7 @@ namespace InventoryManagementApp.Services.Printing
             infoTable.RowGroups.Add(infoGroup);
 
             AddTableRow(infoGroup, "Date:", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
-            AddTableRow(infoGroup, "Rental ID:", rental.RentalID.ToString());
+            AddTableRow(infoGroup, "Rental Job:", BuildRentalJobLabel(jobItems));
             AddTableRow(infoGroup, "", "");
 
             AddTableRow(infoGroup, "Customer:", rental.CustomerName, true);
@@ -80,17 +95,16 @@ namespace InventoryManagementApp.Services.Printing
                 AddTableRow(infoGroup, "Email:", rental.CustomerEmail);
             AddTableRow(infoGroup, "", "");
 
-            AddTableRow(infoGroup, "Item Number:", rental.ItemNumber, true);
-            if (!string.IsNullOrWhiteSpace(rental.ItemLocation))
-                AddTableRow(infoGroup, "Location:", rental.ItemLocation);
             AddTableRow(infoGroup, "Rental Date:", rental.RentalDate.ToString("yyyy-MM-dd"));
-            AddTableRow(infoGroup, "Due Date:", rental.DueDate.ToString("yyyy-MM-dd"));
+            AddTableRow(infoGroup, "Due Date:", jobItems.Min(r => r.DueDate).ToString("yyyy-MM-dd"));
 
             var itemImage = CreateItemPhotoBlock(rental);
             if (itemImage != null)
                 doc.Blocks.Add(itemImage);
 
             doc.Blocks.Add(infoTable);
+
+            doc.Blocks.Add(CreatePickingItemsTable(jobItems));
 
             doc.Blocks.Add(new Paragraph(new Run(""))
             {
@@ -204,6 +218,20 @@ namespace InventoryManagementApp.Services.Printing
             if (rental == null)
                 throw new ArgumentNullException(nameof(rental));
 
+            return GenerateInvoice(new[] { rental }, dailyRate, lateFee);
+        }
+
+        public FlowDocument GenerateInvoice(IEnumerable<Rental> rentals, decimal dailyRate = 0, decimal lateFee = 0)
+        {
+            if (rentals == null)
+                throw new ArgumentNullException(nameof(rentals));
+
+            var jobItems = rentals.ToList();
+            if (jobItems.Count == 0)
+                throw new ArgumentException("At least one rental item is required.", nameof(rentals));
+
+            var rental = jobItems[0];
+
             var doc = new FlowDocument
             {
                 PagePadding = new Thickness(40),
@@ -253,7 +281,7 @@ namespace InventoryManagementApp.Services.Printing
 
             var row1 = new TableRow();
             var cell1 = new TableCell(new Paragraph(new Run($"Invoice Date: {DateTime.Now:yyyy-MM-dd}")));
-            var cell2 = new TableCell(new Paragraph(new Run($"Rental ID: {rental.RentalID}"))
+            var cell2 = new TableCell(new Paragraph(new Run($"Rental Job: {BuildRentalJobLabel(jobItems)}"))
             {
                 TextAlignment = TextAlignment.Right
             });
@@ -305,19 +333,24 @@ namespace InventoryManagementApp.Services.Printing
             var itemsBodyGroup = new TableRowGroup();
             itemsTable.RowGroups.Add(itemsBodyGroup);
 
-            var rentalDays = (rental.ReturnDate ?? DateTime.Today) - rental.RentalDate.Date;
-            var days = Math.Max(1, rentalDays.Days + 1);
-            var rentalAmount = dailyRate * days;
-
-            var itemRow = new TableRow();
-            itemRow.Cells.Add(new TableCell(new Paragraph(new Run($"Item: {rental.ItemNumber}"))));
-            itemRow.Cells.Add(new TableCell(new Paragraph(new Run($"{days} day(s)"))));
-            itemRow.Cells.Add(new TableCell(new Paragraph(new Run($"${dailyRate:F2}/day"))));
-            itemRow.Cells.Add(new TableCell(new Paragraph(new Run($"${rentalAmount:F2}"))
+            decimal rentalAmount = 0;
+            foreach (var item in jobItems)
             {
-                TextAlignment = TextAlignment.Right
-            }));
-            itemsBodyGroup.Rows.Add(itemRow);
+                var rentalDays = (item.ReturnDate ?? DateTime.Today) - item.RentalDate.Date;
+                var days = Math.Max(1, rentalDays.Days + 1);
+                var itemAmount = dailyRate * days;
+                rentalAmount += itemAmount;
+
+                var itemRow = new TableRow();
+                itemRow.Cells.Add(new TableCell(new Paragraph(new Run($"Item: {item.ItemNumber}"))));
+                itemRow.Cells.Add(new TableCell(new Paragraph(new Run($"{days} day(s)"))));
+                itemRow.Cells.Add(new TableCell(new Paragraph(new Run($"${dailyRate:F2}/day"))));
+                itemRow.Cells.Add(new TableCell(new Paragraph(new Run($"${itemAmount:F2}"))
+                {
+                    TextAlignment = TextAlignment.Right
+                }));
+                itemsBodyGroup.Rows.Add(itemRow);
+            }
 
             if (lateFee > 0)
             {
@@ -358,6 +391,56 @@ namespace InventoryManagementApp.Services.Printing
             });
 
             return doc;
+        }
+
+        private static Table CreatePickingItemsTable(IReadOnlyList<Rental> rentals)
+        {
+            var table = new Table
+            {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                CellSpacing = 0,
+                Margin = new Thickness(0, 16, 0, 0)
+            };
+            table.Columns.Add(new TableColumn { Width = new GridLength(90) });
+            table.Columns.Add(new TableColumn());
+            table.Columns.Add(new TableColumn { Width = new GridLength(120) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(120) });
+
+            var group = new TableRowGroup();
+            table.RowGroups.Add(group);
+            AddStaticTableRow(group, true, "Item #", "Description", "Location", "Due Date");
+
+            foreach (var rental in rentals)
+                AddStaticTableRow(group, false, rental.ItemNumber, rental.ItemNumber, rental.ItemLocation, rental.DueDate.ToString("yyyy-MM-dd"));
+
+            return table;
+        }
+
+        private static string BuildRentalJobLabel(IReadOnlyList<Rental> rentals)
+            => rentals.Count == 1
+                ? rentals[0].RentalID.ToString()
+                : $"{rentals[0].RentalID} ({rentals.Count} items)";
+
+        private static void AddStaticTableRow(TableRowGroup group, bool isHeader, params string[] values)
+        {
+            var row = new TableRow
+            {
+                Background = isHeader ? Brushes.LightGray : Brushes.Transparent
+            };
+
+            foreach (var value in values)
+            {
+                row.Cells.Add(new TableCell(new Paragraph(isHeader ? new Bold(new Run(value ?? string.Empty)) : new Run(value ?? string.Empty)))
+                {
+                    BorderBrush = Brushes.Gray,
+                    BorderThickness = new Thickness(0.5),
+                    Padding = new Thickness(3),
+                    FontSize = isHeader ? 10 : 9
+                });
+            }
+
+            group.Rows.Add(row);
         }
 
         private void AddTableRow(TableRowGroup group, string label, string value, bool boldValue = false)

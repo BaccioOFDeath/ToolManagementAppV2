@@ -82,6 +82,30 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task PrintDocumentCommands_UseRentalJobTitlesForGroupedItems()
+        {
+            var rentalDate = new DateTime(2026, 7, 6, 9, 0, 0);
+            var rentals = new List<RentalModel>
+            {
+                new RentalModel { RentalID = 2, ItemID = 31, CustomerID = 10, ItemNumber = "T31", CustomerName = "E H Mechanical Services Limited", RentalDate = rentalDate, DueDate = rentalDate.AddDays(3), Status = "Rented" },
+                new RentalModel { RentalID = 3, ItemID = 205, CustomerID = 10, ItemNumber = "T205", CustomerName = "E H Mechanical Services Limited", RentalDate = rentalDate.AddHours(1), DueDate = rentalDate.AddDays(4), Status = "Rented" }
+            };
+            var rentalService = new StubRentalService(rentals);
+            var dialogService = new StubDialogService();
+            var vm = new ManageRentalsViewModel(rentalService, dialogService);
+
+            await vm.LoadRentalsAsync();
+            vm.SelectedRental = vm.Rentals[0];
+
+            vm.PrintPickingSlipCommand.Execute(null);
+            vm.PrintInvoiceCommand.Execute(null);
+
+            Assert.Equal(2, dialogService.PrintPreviewCalls);
+            Assert.Contains("Picking Slip - Rental Job 2", dialogService.PrintPreviewTitles);
+            Assert.Contains("Invoice - Rental Job 2", dialogService.PrintPreviewTitles);
+        }
+
+        [Fact]
         public async Task CheckInCommand_PromptsBeforeReturningRental()
         {
             var rentals = new List<RentalModel>
@@ -205,6 +229,8 @@ namespace InventoryManagementApp.Tests
             public int ConfirmCalls { get; private set; }
             public string? LastConfirmTitle { get; private set; }
             public string? LastConfirmMessage { get; private set; }
+            public int PrintPreviewCalls { get; private set; }
+            public List<string> PrintPreviewTitles { get; } = new();
             public void ShowInfo(string message, string title) { }
             public Task ShowInfoAsync(string message, string title) => Task.CompletedTask;
             public bool ShowConfirmation(string message, string title)
@@ -225,7 +251,11 @@ namespace InventoryManagementApp.Tests
             public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
-            public void ShowPrintPreview(FlowDocument document, string title, string description) { }
+            public void ShowPrintPreview(FlowDocument document, string title, string description)
+            {
+                PrintPreviewCalls++;
+                PrintPreviewTitles.Add(title);
+            }
             public void ShowPrintLabelDialog() { }
         }
     }

@@ -1492,8 +1492,8 @@ Please reply if you need to arrange a return time or extension.";
             try
             {
                 var printService = new Services.Printing.RentalPrintingService("Equipment Rentals", "", "");
-                var doc = printService.GeneratePickingSlip(SelectedRental);
-                _dialogService.ShowPrintPreview(doc, $"Picking Slip - Rental {SelectedRental.RentalID}", string.Empty);
+                var doc = printService.GeneratePickingSlip(GetSelectedRentalDocumentItems());
+                _dialogService.ShowPrintPreview(doc, $"Picking Slip - Rental Job {SelectedRental.RentalID}", string.Empty);
             }
             catch (Exception ex)
             {
@@ -1509,14 +1509,24 @@ Please reply if you need to arrange a return time or extension.";
             try
             {
                 var printService = new Services.Printing.RentalPrintingService("Equipment Rentals", "", "");
-                var doc = printService.GenerateInvoice(SelectedRental, dailyRate: 25.00m, lateFee: 0);
-                _dialogService.ShowPrintPreview(doc, $"Invoice - Rental {SelectedRental.RentalID}", string.Empty);
+                var doc = printService.GenerateInvoice(GetSelectedRentalDocumentItems(), dailyRate: 25.00m, lateFee: 0);
+                _dialogService.ShowPrintPreview(doc, $"Invoice - Rental Job {SelectedRental.RentalID}", string.Empty);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to print invoice for rental {RentalID}", SelectedRental?.RentalID);
                 _dialogService.ShowInfo($"Failed to print invoice: {ex.Message}", "Error");
             }
+        }
+
+        IReadOnlyList<RentalModel> GetSelectedRentalDocumentItems()
+        {
+            if (SelectedRentalJobItems.Count > 0)
+                return SelectedRentalJobItems.ToList();
+
+            return SelectedRental == null
+                ? Array.Empty<RentalModel>()
+                : new[] { SelectedRental };
         }
 
         async Task DeleteRentalAsync()
