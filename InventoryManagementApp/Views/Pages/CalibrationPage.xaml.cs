@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,11 +15,14 @@ namespace InventoryManagementApp.Views.Pages
     {
         private Task? _loadCalibrationTask;
         private CalibrationManagementViewModel? _loadedViewModel;
+        private CancellationTokenSource? _startupLoadCancellation;
+        private int _startupLoadVersion;
 
         public CalibrationPage()
         {
             InitializeComponent();
             Loaded += CalibrationPage_Loaded;
+            Unloaded += CalibrationPage_Unloaded;
             DataContextChanged += CalibrationPage_DataContextChanged;
             PreviewKeyDown += CalibrationPage_PreviewKeyDown;
         }
@@ -33,10 +38,18 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
+        private void CalibrationPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            CancelStartupLoad();
+            _loadedViewModel = null;
+            _loadCalibrationTask = null;
+        }
+
         private void CalibrationPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (!ReferenceEquals(_loadedViewModel, e.NewValue))
             {
+                CancelStartupLoad();
                 _loadedViewModel = null;
                 _loadCalibrationTask = null;
             }
@@ -55,16 +68,51 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
+            CancelStartupLoad();
+            var cancellation = new CancellationTokenSource();
+            _startupLoadCancellation = cancellation;
+            var token = cancellation.Token;
+            var loadVersion = _startupLoadVersion;
             _loadedViewModel = vm;
-            await Dispatcher.Yield(DispatcherPriority.Background);
 
-            if (!ReferenceEquals(DataContext, vm) || !vm.LoadCalibrationCommand.CanExecute(null))
+            try
             {
-                return;
-            }
+                await Dispatcher.Yield(DispatcherPriority.Background);
+                token.ThrowIfCancellationRequested();
 
-            _loadCalibrationTask = vm.LoadCalibrationCommand.ExecuteAsync(null);
-            await _loadCalibrationTask;
+                if (loadVersion != _startupLoadVersion || !ReferenceEquals(DataContext, vm) || !vm.LoadCalibrationCommand.CanExecute(null))
+                {
+                    return;
+                }
+
+                _loadCalibrationTask = vm.LoadCalibrationCommand.ExecuteAsync(null);
+                await _loadCalibrationTask;
+                token.ThrowIfCancellationRequested();
+
+                if (loadVersion != _startupLoadVersion || !ReferenceEquals(DataContext, vm))
+                {
+                    return;
+                }
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested || !IsLoaded || !ReferenceEquals(DataContext, vm))
+            {
+            }
+            finally
+            {
+                if (ReferenceEquals(_startupLoadCancellation, cancellation))
+                {
+                    _startupLoadCancellation.Dispose();
+                    _startupLoadCancellation = null;
+                }
+            }
+        }
+
+        private void CancelStartupLoad()
+        {
+            _startupLoadVersion++;
+            _startupLoadCancellation?.Cancel();
+            _startupLoadCancellation?.Dispose();
+            _startupLoadCancellation = null;
         }
 
         private void CalibrationRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
