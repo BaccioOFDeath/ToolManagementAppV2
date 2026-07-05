@@ -131,10 +131,15 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("private Task? _loadCustomersTask;", source, StringComparison.Ordinal);
             Assert.Contains("private CustomerManagementViewModel? _loadedViewModel;", source, StringComparison.Ordinal);
+            Assert.Contains("private CancellationTokenSource? _loadCustomersCancellation;", source, StringComparison.Ordinal);
+            Assert.Contains("private int _loadCustomersVersion;", source, StringComparison.Ordinal);
+            Assert.Contains("Unloaded += CustomersPage_Unloaded;", source, StringComparison.Ordinal);
             Assert.Contains("DataContextChanged += CustomersPage_DataContextChanged;", source, StringComparison.Ordinal);
             Assert.Contains("FocusFirstSearchBox();\n\n            if (DataContext is CustomerManagementViewModel vm)", source, StringComparison.Ordinal);
+            Assert.Contains("private void CustomersPage_Unloaded(object sender, RoutedEventArgs e)", source, StringComparison.Ordinal);
+            Assert.Contains("CancelPageOwnedLoad();", source, StringComparison.Ordinal);
             Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", source, StringComparison.Ordinal);
-            Assert.Contains("if (!ReferenceEquals(DataContext, vm) || vm.IsCustomerDirectoryBusy)", source, StringComparison.Ordinal);
+            Assert.Contains("cancellationToken.IsCancellationRequested || loadVersion != _loadCustomersVersion || !ReferenceEquals(DataContext, vm) || vm.IsCustomerDirectoryBusy", source, StringComparison.Ordinal);
             Assert.Contains("_loadCustomersTask = vm.LoadCustomersAsync();", source, StringComparison.Ordinal);
             Assert.Contains("IsCompletedSuccessfully", source, StringComparison.Ordinal);
             Assert.Contains("_loadCustomersTask = null;", source, StringComparison.Ordinal);
@@ -152,9 +157,11 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", source, StringComparison.Ordinal);
             Assert.Contains("if (vm.IsCustomerDirectoryBusy && IsCustomerActionShortcut(e))", source, StringComparison.Ordinal);
             Assert.Contains("private static bool IsCustomerActionShortcut(KeyEventArgs e)", source, StringComparison.Ordinal);
-            Assert.Contains("e.Key is Key.N or Key.P or Key.C or Key.D", source, StringComparison.Ordinal);
+            Assert.Contains("e.Key is Key.N or Key.R or Key.E or Key.P or Key.C or Key.D", source, StringComparison.Ordinal);
             Assert.Contains("Keyboard.Modifiers == ModifierKeys.None && (e.Key is Key.Enter or Key.Delete)", source, StringComparison.Ordinal);
             Assert.Contains("Key == Key.N && vm.AddCustomerCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("Key == Key.R && vm.SearchCustomersCommand.CanExecute(null)", source, StringComparison.Ordinal);
+            Assert.Contains("Key == Key.E && vm.EditCustomerCommand.CanExecute(null)", source, StringComparison.Ordinal);
             Assert.Contains("Key == Key.P && vm.PrintCustomerDirectoryCommand.CanExecute(null)", source, StringComparison.Ordinal);
             Assert.Contains("Key == Key.Delete && vm.DeleteCustomerCommand.CanExecute(null)", source, StringComparison.Ordinal);
         }
