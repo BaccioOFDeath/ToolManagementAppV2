@@ -29,7 +29,7 @@
                 <ResourceDictionary Source="Resources/Theme.TextHierarchyOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.AdornerValidationOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Converters.xaml"/>
-                <ResourceDictionary Source="Resources/Templates.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/InventoryManagementApp;component/Resources/Templates.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <media:BitmapImage x:Key="WindowIcon" UriSource="pack://application:,,,/Resources/DefaultLogo.png"/>
         </ResourceDictionary>

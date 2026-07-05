@@ -9,6 +9,20 @@ namespace InventoryManagementApp.Tests
     public class ItemCardTemplateTests
     {
         [Fact]
+        public void AppResources_LoadsTemplatesWithAssemblyQualifiedPackUri()
+        {
+            var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "App.xaml"));
+            var doc = XDocument.Load(path);
+            XNamespace ns = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+
+            var templateDictionary = doc.Descendants(ns + "ResourceDictionary")
+                .Select(element => element.Attribute("Source")?.Value)
+                .FirstOrDefault(source => source?.Contains("Resources/Templates.xaml", StringComparison.OrdinalIgnoreCase) == true);
+
+            Assert.Equal("pack://application:,,,/InventoryManagementApp;component/Resources/Templates.xaml", templateDictionary);
+        }
+
+        [Fact]
         public void ItemCardTemplate_ShowsAvailabilityAndStatusBindings()
         {
             var path = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Resources", "Templates.xaml"));
