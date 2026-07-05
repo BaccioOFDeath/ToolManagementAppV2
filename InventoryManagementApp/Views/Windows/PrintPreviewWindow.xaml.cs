@@ -7,6 +7,8 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls; // WPF PrintDialog
+using System.Windows.Input;
+using System.Windows.Threading;
 using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Utilities.Printing;
@@ -21,6 +23,7 @@ namespace InventoryManagementApp.Views.Windows
         internal const double DefaultPreviewPageHeight = 1056;
         private const double MinimumPrintableExtent = 320;
         private static readonly Thickness PrintPagePadding = new(36, 36, 36, 36);
+        private static readonly Uri DefaultLogoUri = new("pack://application:,,,/Resources/DefaultLogo.png");
 
         private FlowDocument? _document;
         private string _title = string.Empty;
@@ -31,6 +34,7 @@ namespace InventoryManagementApp.Views.Windows
         {
             InitializeComponent();
             DataContext = new PrintPreviewViewModel(OnPageSetup, OnPrint, Close);
+            PreviewKeyDown += PrintPreviewWindow_PreviewKeyDown;
             this.DisposeDataContextOnUnload();
         }
 
@@ -44,20 +48,19 @@ namespace InventoryManagementApp.Views.Windows
             Title = $"Print Preview - {_title}";
             PreviewTitle.Text = _title;
             PreviewDescription.Text = _description;
-
-            var logoUri = ResolveLogoUri(_logoPath);
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.UriSource = logoUri;
-            bmp.EndInit();
-            bmp.Freeze();
-            PreviewLogo.Source = bmp;
+            SetPreviewLogo(DefaultLogoUri);
 
             ApplyDocumentPolish(_document, _title);
             ConfigureDocumentForPage(_document, DefaultPreviewPageWidth, DefaultPreviewPageHeight);
             ApplyTablePolish(_document);
             DocViewer.Document = _document;
+
+            if (DataContext is PrintPreviewViewModel vm)
+                vm.SetPreviewReady(_description);
+
+            Dispatcher.BeginInvoke(new Action(() => LoadLogoForPreview(_logoPath)), DispatcherPriority.Background);
+            Dispatcher.BeginInvoke(new Action(() => DocViewer.Focus()), DispatcherPriority.ContextIdle);
+
             Owner = System.Windows.Application.Current.MainWindow;
             ShowDialog();
         }
@@ -72,23 +75,68 @@ namespace InventoryManagementApp.Views.Windows
             ApplyTablePolish(document);
         }
 
-        private static Uri ResolveLogoUri(string path)
+        private void LoadLogoForPreview(string path)
         {
-            if (!string.IsNullOrWhiteSpace(path))
+            if (!TryResolveCustomLogoUri(path, out var logoUri))
+                return;
+
+            SetPreviewLogo(logoUri);
+        }
+
+        private static bool TryResolveCustomLogoUri(string path, out Uri logoUri)
+        {
+            logoUri = DefaultLogoUri;
+            if (string.IsNullOrWhiteSpace(path))
+                return false;
+
+            try
             {
-                try
+                var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path, true);
+                if (!string.IsNullOrEmpty(full) && File.Exists(full))
                 {
-                    var full = Utilities.Helpers.PathHelper.GetAbsolutePath(path, true);
-                    if (!string.IsNullOrEmpty(full) && File.Exists(full))
-                        return new Uri(full, UriKind.Absolute);
-                    System.Windows.MessageBox.Show("Logo path is invalid.", "Invalid Path");
-                }
-                catch (InvalidOperationException)
-                {
-                    System.Windows.MessageBox.Show("Logo path is invalid.", "Invalid Path");
+                    logoUri = new Uri(full, UriKind.Absolute);
+                    return true;
                 }
             }
-            return new Uri("pack://application:,,,/Resources/DefaultLogo.png");
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+            catch (UriFormatException)
+            {
+                return false;
+            }
+
+            return false;
+        }
+
+        private void SetPreviewLogo(Uri logoUri)
+        {
+            try
+            {
+                var bmp = new BitmapImage();
+                bmp.BeginInit();
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.UriSource = logoUri;
+                bmp.EndInit();
+                bmp.Freeze();
+                PreviewLogo.Source = bmp;
+            }
+            catch (IOException)
+            {
+                if (!Equals(logoUri, DefaultLogoUri))
+                    SetPreviewLogo(DefaultLogoUri);
+            }
+            catch (InvalidOperationException)
+            {
+                if (!Equals(logoUri, DefaultLogoUri))
+                    SetPreviewLogo(DefaultLogoUri);
+            }
+            catch (NotSupportedException)
+            {
+                if (!Equals(logoUri, DefaultLogoUri))
+                    SetPreviewLogo(DefaultLogoUri);
+            }
         }
 
         private static void ApplyDocumentPolish(FlowDocument document, string title)
@@ -260,27 +308,80 @@ namespace InventoryManagementApp.Views.Windows
 
         private void OnPageSetup()
         {
-            if (DocViewer.Document != null)
-            {
-                // FlowDocumentScrollViewer does not have ViewportWidth.
-                // Use a reasonable default or set PageWidth to the window/client width.
-                ConfigureDocumentForPage(DocViewer.Document, DocViewer.ActualWidth, Math.Max(DocViewer.ActualHeight, DefaultPreviewPageHeight));
-                ApplyTablePolish(DocViewer.Document);
-            }
+            if (DocViewer.Document == null || DataContext is not PrintPreviewViewModel vm || !vm.CanPreviewActions)
+                return;
+
+            var pageWidth = SafePreviewExtent(DocViewer.ActualWidth, DefaultPreviewPageWidth);
+            var pageHeight = SafePreviewExtent(DocViewer.ActualHeight, DefaultPreviewPageHeight);
+            ConfigureDocumentForPage(DocViewer.Document, pageWidth, pageHeight);
+            ApplyTablePolish(DocViewer.Document);
+            vm.SetPageSetupAdjusted();
         }
+
+        private static double SafePreviewExtent(double actualExtent, double fallbackExtent)
+            => double.IsFinite(actualExtent) && actualExtent >= MinimumPrintableExtent
+                ? actualExtent
+                : fallbackExtent;
 
         private void OnPrint()
         {
-            if (_document == null) return;
-            var dlg = new System.Windows.Controls.PrintDialog();
-            if (dlg.ShowDialog() == true)
-            {
-                ConfigureDocumentForPage(_document, dlg.PrintableAreaWidth, dlg.PrintableAreaHeight);
-                ApplyTablePolish(_document);
+            if (_document == null || DataContext is not PrintPreviewViewModel vm || !vm.TryBeginPrint())
+                return;
 
-                var paginator = ((IDocumentPaginatorSource)_document).DocumentPaginator;
-                paginator.PageSize = new Size(dlg.PrintableAreaWidth, dlg.PrintableAreaHeight);
-                dlg.PrintDocument(paginator, _title);
+            var printed = false;
+            try
+            {
+                var dlg = new System.Windows.Controls.PrintDialog();
+                if (dlg.ShowDialog() == true)
+                {
+                    ConfigureDocumentForPage(_document, dlg.PrintableAreaWidth, dlg.PrintableAreaHeight);
+                    ApplyTablePolish(_document);
+
+                    var paginator = ((IDocumentPaginatorSource)_document).DocumentPaginator;
+                    paginator.PageSize = new Size(dlg.PrintableAreaWidth, dlg.PrintableAreaHeight);
+                    dlg.PrintDocument(paginator, _title);
+                    printed = true;
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                System.Windows.MessageBox.Show($"Print preview could not send this document to the printer. {ex.Message}", "Print Preview");
+            }
+            catch (System.Printing.PrintSystemException ex)
+            {
+                System.Windows.MessageBox.Show($"Windows could not complete the print request. {ex.Message}", "Print Preview");
+            }
+            finally
+            {
+                vm.EndPrint(printed);
+            }
+        }
+
+        private void PrintPreviewWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (DataContext is not PrintPreviewViewModel vm)
+                return;
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
+            {
+                if (vm.PrintCommand.CanExecute(null))
+                    vm.PrintCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.P)
+            {
+                if (vm.PageSetupCommand.CanExecute(null))
+                    vm.PageSetupCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Escape && !vm.IsPrinting)
+            {
+                vm.CloseCommand.Execute(null);
+                e.Handled = true;
             }
         }
     }
