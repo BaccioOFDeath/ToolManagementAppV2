@@ -103,6 +103,7 @@ namespace InventoryManagementApp.Tests
             var dialogService = ReadRepoFile("InventoryManagementApp", "Services", "DialogService.cs");
             var dialogInterface = ReadRepoFile("InventoryManagementApp", "Interfaces", "IDialogService.cs");
 
+            Assert.Contains("_activityLogService.GetCheckoutHistoryForItemAsync(ItemModel.ItemID, ItemModel.ItemNumber)", viewModel, StringComparison.Ordinal);
             Assert.Contains("_dialogService.ShowCheckoutHistory(ItemModel, logs);", viewModel, StringComparison.Ordinal);
             Assert.DoesNotContain("string.Join(Environment.NewLine, lines)", viewModel, StringComparison.Ordinal);
             Assert.DoesNotContain("Select(log => $\"{log.Timestamp:yyyy-MM-dd HH:mm} -", viewModel, StringComparison.Ordinal);

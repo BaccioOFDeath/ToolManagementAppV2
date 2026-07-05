@@ -43,13 +43,21 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "CheckoutHistoryWindow.xaml");
 
             Assert.Contains("const int MaxVisibleHistoryRows = 500;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("const int MaxLoadedHistoryRows = MaxVisibleHistoryRows + 1;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("OrderByDescending(log => log.Timestamp)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains(".Take(MaxLoadedHistoryRows)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("orderedLogs.Take(MaxVisibleHistoryRows)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("OmittedLogCount = Math.Max(0, TotalLogCount - VisibleLogCount);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("HasOmittedLogs = TotalLogCount > VisibleLogCount;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("OmittedLogCount = HasOmittedLogs ? 1 : 0;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("OlderHistoryIndicator = HasOmittedLogs ? \"Yes\" : \"No\";", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("At least one older checkout history row exists", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Showing newest {VisibleLogCount:N0} checkout history rows", codeBehind, StringComparison.Ordinal);
             Assert.Contains("HasOmittedLogs", xaml, StringComparison.Ordinal);
             Assert.Contains("OmittedLogSummary", xaml, StringComparison.Ordinal);
+            Assert.Contains("OlderHistoryIndicator", xaml, StringComparison.Ordinal);
+            Assert.Contains("Older rows available", xaml, StringComparison.Ordinal);
             Assert.Contains("FooterStatusText", xaml, StringComparison.Ordinal);
-            Assert.Contains("Showing {VisibleLogCount:N0} of {TotalLogCount:N0}", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("Showing {VisibleLogCount:N0} of {TotalLogCount:N0}", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -61,7 +69,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<WrapPanel Grid.Row=\"1\" Margin=\"0,8,0,8\">", xaml, StringComparison.Ordinal);
             Assert.Contains("VisibleLogCount", xaml, StringComparison.Ordinal);
             Assert.Contains("TotalLogCount", xaml, StringComparison.Ordinal);
-            Assert.Contains("OmittedLogCount", xaml, StringComparison.Ordinal);
+            Assert.Contains("OlderHistoryIndicator", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel>", xaml, StringComparison.Ordinal);
             Assert.Contains("Esc closes this history window.", xaml, StringComparison.Ordinal);
         }

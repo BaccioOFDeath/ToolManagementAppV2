@@ -13,6 +13,7 @@ namespace InventoryManagementApp.Views.Windows
     public partial class CheckoutHistoryWindow : Window
     {
         const int MaxVisibleHistoryRows = 500;
+        const int MaxLoadedHistoryRows = MaxVisibleHistoryRows + 1;
 
         public CheckoutHistoryWindow(ItemModel item, IEnumerable<ActivityLog> logs)
         {
@@ -21,20 +22,24 @@ namespace InventoryManagementApp.Views.Windows
 
             var orderedLogs = logs
                 .OrderByDescending(log => log.Timestamp)
+                .Take(MaxLoadedHistoryRows)
                 .ToList();
 
             ItemSummaryText = BuildItemSummary(item);
             TotalLogCount = orderedLogs.Count;
             VisibleLogs = new ObservableCollection<ActivityLog>(orderedLogs.Take(MaxVisibleHistoryRows));
             VisibleLogCount = VisibleLogs.Count;
-            OmittedLogCount = Math.Max(0, TotalLogCount - VisibleLogCount);
-            HasOmittedLogs = OmittedLogCount > 0;
+            HasOmittedLogs = TotalLogCount > VisibleLogCount;
+            OmittedLogCount = HasOmittedLogs ? 1 : 0;
+            OlderHistoryIndicator = HasOmittedLogs ? "Yes" : "No";
             OmittedLogSummary = HasOmittedLogs
-                ? $"Showing the first {VisibleLogCount:N0} newest checkout history rows. {OmittedLogCount:N0} older rows are omitted from this dialog to keep review responsive."
+                ? $"Showing the newest {VisibleLogCount:N0} checkout history rows. At least one older checkout history row exists outside this responsive review set."
                 : string.Empty;
             FooterStatusText = TotalLogCount == 0
                 ? "No checkout or check-in history rows were returned for this item."
-                : $"Showing {VisibleLogCount:N0} of {TotalLogCount:N0} checkout history rows, newest first.";
+                : HasOmittedLogs
+                    ? $"Showing newest {VisibleLogCount:N0} checkout history rows; more older rows are available in the audit trail."
+                    : $"Showing {VisibleLogCount:N0} checkout history row{(VisibleLogCount == 1 ? string.Empty : "s")}, newest first.";
 
             InitializeComponent();
             this.UseResponsiveDefaultSize(820, 620);
@@ -47,6 +52,7 @@ namespace InventoryManagementApp.Views.Windows
         public int TotalLogCount { get; }
         public int VisibleLogCount { get; }
         public int OmittedLogCount { get; }
+        public string OlderHistoryIndicator { get; }
         public bool HasOmittedLogs { get; }
         public string OmittedLogSummary { get; }
         public string FooterStatusText { get; }
