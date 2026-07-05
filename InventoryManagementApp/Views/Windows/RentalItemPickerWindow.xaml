@@ -2,13 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Select Rental Item"
-        Width="720"
-        Height="560"
-        MinWidth="620"
-        MinHeight="460"
+        Width="760"
+        Height="540"
+        MinWidth="560"
+        MinHeight="420"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="12">
+    <Grid x:Name="RentalItemPickerRoot" Margin="10" MinWidth="0" ClipToBounds="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -16,47 +16,157 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,10">
-            <StackPanel>
-                <TextBlock x:Name="TitleText" Text="Select Rental Item" Style="{StaticResource PageTitleTextBlock}"/>
-                <TextBlock Text="Search available rental inventory, select a row, then confirm the item for this job." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-            </StackPanel>
+        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,8">
+            <DockPanel LastChildFill="True">
+                <Border x:Name="ResultSummaryBadge"
+                        DockPanel.Dock="Right"
+                        Style="{StaticResource DesktopSummaryCard}"
+                        Padding="8,6"
+                        MinWidth="132"
+                        MaxWidth="220"
+                        Margin="12,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Available" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBlock x:Name="ResultSummaryText"
+                                   Text="Ready"
+                                   Style="{StaticResource CaptionTextBlock}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+                <StackPanel MinWidth="0" MaxWidth="500">
+                    <TextBlock x:Name="TitleText"
+                               Text="Select Rental Item"
+                               Style="{StaticResource PageTitleTextBlock}"
+                               TextWrapping="Wrap"/>
+                    <TextBlock Text="Search available rental inventory, select a row, then confirm the item for this job."
+                               Style="{StaticResource CaptionTextBlock}"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+            </DockPanel>
         </Border>
 
         <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}" Margin="0,0,0,8">
             <DockPanel LastChildFill="True">
-                <Button DockPanel.Dock="Right" Style="{StaticResource PrimaryButton}" Content="Find" Click="Find_Click" Margin="8,0,0,0"/>
+                <WrapPanel DockPanel.Dock="Right"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           Margin="8,0,0,0">
+                    <Button x:Name="FindButton"
+                            Style="{StaticResource PrimaryButton}"
+                            Content="Find"
+                            Click="Find_Click"
+                            MinWidth="84"
+                            Margin="0,0,0,4"/>
+                </WrapPanel>
                 <TextBox x:Name="SearchBox"
-                         MinWidth="260"
+                         MinWidth="220"
+                         MaxWidth="360"
                          VerticalContentAlignment="Center"
                          TextChanged="SearchBox_TextChanged"
                          KeyDown="SearchBox_KeyDown"/>
             </DockPanel>
         </Border>
 
-        <DataGrid Grid.Row="2"
-                  x:Name="ItemsGrid"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  SelectionMode="Single"
-                  MouseDoubleClick="ItemsGrid_MouseDoubleClick"
-                  Style="{StaticResource VirtualizedDataGridStyle}">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="110"/>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="120"/>
-                <DataGridTextColumn Header="Available" Binding="{Binding QuantityOnHand}" Width="90"/>
-                <DataGridTextColumn Header="Brand" Binding="{Binding Brand}" Width="120"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" MinWidth="0" MinHeight="140">
+            <Grid MinWidth="0">
+                <DataGrid x:Name="ItemsGrid"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          SelectionMode="Single"
+                          SelectionUnit="FullRow"
+                          SelectionChanged="ItemsGrid_SelectionChanged"
+                          MouseDoubleClick="ItemsGrid_MouseDoubleClick"
+                          Style="{StaticResource VirtualizedDataGridStyle}"
+                          EnableRowVirtualization="True"
+                          EnableColumnVirtualization="True"
+                          ScrollViewer.CanContentScroll="True"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="104" MinWidth="82"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" MinWidth="150"/>
+                        <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="1.1*" MinWidth="112"/>
+                        <DataGridTextColumn Header="Available" Binding="{Binding QuantityOnHand}" Width="96" MinWidth="82"/>
+                        <DataGridTextColumn Header="Brand" Binding="{Binding Brand}" Width="1*" MinWidth="108"/>
+                    </DataGrid.Columns>
+                </DataGrid>
 
-        <Border Grid.Row="3" Style="{StaticResource DesktopSectionActionStrip}" Margin="0,10,0,0">
-            <DockPanel LastChildFill="False">
-                <TextBlock x:Name="StatusText" DockPanel.Dock="Left" Text="Enter a search term, or press Find to show available rental items." Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="12,0,0,0">
-                    <Button Style="{StaticResource GhostButton}" Content="Cancel" Click="Cancel_Click" Margin="0,0,6,0"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Use Item" Click="UseItem_Click"/>
-                </StackPanel>
+                <Border x:Name="EmptyStatePanel"
+                        Style="{StaticResource Card}"
+                        Padding="14"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        MaxWidth="340"
+                        MinHeight="112"
+                        Margin="12"
+                        Visibility="Collapsed"
+                        IsHitTestVisible="False">
+                    <StackPanel>
+                        <TextBlock x:Name="EmptyStateTitle"
+                                   Text="No available items"
+                                   Style="{StaticResource SectionHeader}"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock x:Name="EmptyStateMessage"
+                                   Text="Try a different search term or clear the search to browse available rental inventory."
+                                   Style="{StaticResource CaptionTextBlock}"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border x:Name="LoadingOverlay"
+                        Background="{DynamicResource SurfaceBrush}"
+                        BorderBrush="{DynamicResource BorderBrushBase}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="16"
+                        MaxWidth="360"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Visibility="Collapsed"
+                        IsHitTestVisible="True">
+                    <StackPanel>
+                        <TextBlock Text="Loading available rental items"
+                                   Style="{StaticResource SectionHeader}"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock x:Name="LoadingStatusText"
+                                   Text="Keeping the picker responsive while matching inventory is loaded."
+                                   Style="{StaticResource CaptionTextBlock}"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="3" Style="{StaticResource DesktopSectionActionStrip}" Margin="0,8,0,0">
+            <DockPanel LastChildFill="True">
+                <TextBlock x:Name="StatusText"
+                           DockPanel.Dock="Left"
+                           Text="Enter a search term, or press Find to show available rental items."
+                           Style="{StaticResource CaptionTextBlock}"
+                           TextWrapping="Wrap"
+                           MaxWidth="420"
+                           VerticalAlignment="Center"/>
+                <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="12,0,0,0">
+                    <Button Style="{StaticResource GhostButton}"
+                            Content="Cancel"
+                            Click="Cancel_Click"
+                            MinWidth="84"
+                            Margin="0,0,6,4"/>
+                    <Button x:Name="UseItemButton"
+                            Style="{StaticResource PrimaryButton}"
+                            Content="Use Item"
+                            Click="UseItem_Click"
+                            MinWidth="96"
+                            Margin="0,0,0,4"/>
+                </WrapPanel>
             </DockPanel>
         </Border>
     </Grid>
