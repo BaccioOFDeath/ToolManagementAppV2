@@ -90,7 +90,7 @@
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
                     <TextBlock Text="Find and filter" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <TextBox Width="240" MinWidth="190" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search kit number, name, category, or description"/>
+                        <TextBox x:Name="SearchTextBox" Width="240" MinWidth="190" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,4" ToolTip="Search kit number, name, category, or description"/>
                         <ComboBox Width="140" MinWidth="120" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Margin="0,0,6,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearSearchCommand}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,0,4,4"/>
