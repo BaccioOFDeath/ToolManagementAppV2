@@ -3,12 +3,12 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Print Preview"
-        Width="1120" Height="760"
-        MinWidth="760" MinHeight="560"
+        Width="1040" Height="720"
+        MinWidth="720" MinHeight="520"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundBrush}"
         FontFamily="{DynamicResource ThemeFontFamily}">
-    <Grid Style="{StaticResource ThemedWindowRoot}">
+    <Grid x:Name="PreviewRoot" Style="{StaticResource ThemedWindowRoot}" MinWidth="0" ClipToBounds="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -18,7 +18,7 @@
         <Border Grid.RowSpan="3" Style="{StaticResource ThemedWindowOverlay}"/>
 
         <Border Grid.Row="0" Style="{StaticResource ThemedWindowHeader}">
-            <Grid>
+            <Grid MinWidth="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MinWidth="0"/>
                     <ColumnDefinition Width="Auto"/>
@@ -26,7 +26,7 @@
 
                 <DockPanel Grid.Column="0" LastChildFill="True" MinWidth="0" Margin="0,0,12,0">
                     <Border DockPanel.Dock="Left"
-                            Width="42" Height="42"
+                            Width="38" Height="38"
                             Background="{DynamicResource SurfaceBrush}"
                             BorderBrush="{DynamicResource BorderBrushAlt}"
                             BorderThickness="{DynamicResource ThemeControlBorderThickness}"
@@ -34,51 +34,58 @@
                             Effect="{DynamicResource ThemeControlShadow}"
                             Margin="0,0,10,0">
                         <Image x:Name="PreviewLogo"
-                               Width="30" Height="30"
+                               Width="28" Height="28"
                                Stretch="Uniform"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Center"/>
                     </Border>
-                    <StackPanel VerticalAlignment="Center" MinWidth="0">
+                    <StackPanel VerticalAlignment="Center" MinWidth="0" MaxWidth="620">
                         <TextBlock Text="Preview Workstation" Style="{StaticResource CaptionTextBlock}"/>
                         <TextBlock x:Name="PreviewTitle"
                                    Style="{StaticResource HeadingTextBlock}"
                                    TextWrapping="Wrap"
                                    TextTrimming="CharacterEllipsis"
-                                   MaxWidth="520"/>
+                                   MaxWidth="560"/>
                         <TextBlock x:Name="PreviewDescription"
                                    Style="{StaticResource CaptionTextBlock}"
                                    TextWrapping="Wrap"
-                                   MaxWidth="560"
+                                   MaxWidth="600"
+                                   Margin="0,3,0,0"/>
+                        <TextBlock x:Name="PreviewStatus"
+                                   Text="{Binding PreviewStatus}"
+                                   Style="{StaticResource CaptionTextBlock}"
+                                   TextWrapping="Wrap"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxWidth="600"
                                    Margin="0,3,0,0"/>
                     </StackPanel>
                 </DockPanel>
 
-                <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" MaxWidth="330">
+                <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" MaxWidth="300">
                     <Button Style="{StaticResource GhostButton}"
                             Content="Page Setup"
                             Command="{Binding PageSetupCommand}"
-                            MinWidth="104"
+                            MinWidth="100"
                             Margin="0,0,6,6"/>
                     <Button Style="{StaticResource PrimaryButton}"
                             Content="Print"
                             Command="{Binding PrintCommand}"
-                            MinWidth="84"
+                            MinWidth="78"
                             Margin="0,0,6,6"/>
                     <Button Style="{StaticResource GhostButton}"
                             Content="Close"
                             Command="{Binding CloseCommand}"
-                            MinWidth="84"
+                            MinWidth="78"
                             Margin="0,0,0,6"/>
                 </WrapPanel>
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,10,0,10">
+        <Grid Grid.Row="1" Margin="0,8,0,8" MinWidth="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MinWidth="0"/>
-                <ColumnDefinition Width="6"/>
-                <ColumnDefinition Width="0.36*" MinWidth="240"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="0.32*" MinWidth="220"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Style="{StaticResource ThemedWindowPane}" MinWidth="0">
@@ -87,33 +94,34 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,10">
-                        <StackPanel DockPanel.Dock="Left" MinWidth="0" Margin="0,0,12,0">
+                    <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,8" MinWidth="0">
+                        <StackPanel DockPanel.Dock="Left" MinWidth="0" Margin="0,0,12,0" MaxWidth="520">
                             <TextBlock Text="Document Canvas" Style="{StaticResource SubheadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="Live preview of the printable content with the current app logo and report title." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Live preview of printable content with current branding, title, and page setup." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
                         <TextBlock DockPanel.Dock="Right" Text="Output Review" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                     </DockPanel>
 
-                    <Border Grid.Row="1" Style="{StaticResource ThemedDocumentCanvasFrame}" MinWidth="0">
+                    <Border Grid.Row="1" Style="{StaticResource ThemedDocumentCanvasFrame}" MinWidth="0" ClipToBounds="True">
                         <FlowDocumentScrollViewer x:Name="DocViewer"
                                                   Style="{StaticResource ThemedDocumentPreviewViewer}"
                                                   IsToolBarVisible="False"
                                                   VerticalScrollBarVisibility="Auto"
-                                                  HorizontalScrollBarVisibility="Auto"/>
+                                                  HorizontalScrollBarVisibility="Auto"
+                                                  Focusable="True"/>
                     </Border>
                 </Grid>
             </Border>
 
             <GridSplitter Grid.Column="1"
-                          Width="6"
+                          Width="5"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
                           Background="{DynamicResource BorderBrushBase}"/>
 
             <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MinWidth="0">
                 <StackPanel Margin="8,0,0,0" MinWidth="0">
-                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10" MinWidth="0">
+                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8" MinWidth="0">
                         <StackPanel>
                             <TextBlock Text="Print checklist" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
                             <TextBlock Text="1. Confirm the title and logo match the handoff." TextWrapping="Wrap" Margin="0,6,0,0"/>
@@ -122,10 +130,10 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10" MinWidth="0">
+                    <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8" MinWidth="0">
                         <StackPanel>
-                            <TextBlock Text="Branding confidence" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
-                            <TextBlock Text="This frame gives every directory, sheet, invoice, and handoff preview the same review surface before staff produce customer-facing output." TextWrapping="Wrap"/>
+                            <TextBlock Text="Fast review" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Ctrl+P prints, Ctrl+Shift+P reapplies page setup, and Esc closes the preview when no print job is active." TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
@@ -140,18 +148,20 @@
         </Grid>
 
         <Border Grid.Row="2" Style="{StaticResource ThemedWindowFooter}">
-            <DockPanel LastChildFill="True">
+            <DockPanel LastChildFill="True" MinWidth="0">
                 <TextBlock DockPanel.Dock="Left"
                            Text="Ready for final print review"
                            Style="{StaticResource CaptionTextBlock}"
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"
                            Margin="0,0,12,0"/>
-                <TextBlock Text="Preview footer status"
+                <TextBlock x:Name="PreviewFooterStatus"
+                           Text="{Binding FooterStatus}"
                            Style="{StaticResource CaptionTextBlock}"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"
-                           TextWrapping="Wrap"/>
+                           TextWrapping="Wrap"
+                           TextTrimming="CharacterEllipsis"/>
             </DockPanel>
         </Border>
     </Grid>
