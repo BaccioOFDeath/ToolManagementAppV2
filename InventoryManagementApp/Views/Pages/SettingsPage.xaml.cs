@@ -162,7 +162,7 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             _sensitiveFieldSyncQueued = true;
-            Dispatcher.BeginInvoke(() => SyncSensitiveFieldsFromViewModel(sourceViewModel), DispatcherPriority.Background);
+            Dispatcher.BeginInvoke(new Action(() => SyncSensitiveFieldsFromViewModel(sourceViewModel)), DispatcherPriority.Background);
         }
 
         private void SyncSensitiveFieldsFromViewModel(SettingsViewModel sourceViewModel)
