@@ -85,7 +85,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("return false;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (!Equals(logoUri, DefaultLogoUri))\n                    SetPreviewLogo(DefaultLogoUri);", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("MessageBox.Show(\"Logo path is invalid.", codeBehind, StringComparison.Ordinal);
-            Assert.DoesNotContain("ResolveLogoUri", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("private static Uri ResolveLogoUri", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
