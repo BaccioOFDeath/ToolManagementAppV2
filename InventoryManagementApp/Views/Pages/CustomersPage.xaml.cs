@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -113,7 +114,10 @@ namespace InventoryManagementApp.Views.Pages
             {
                 UiActionGuard.Run(this, "Customers", () => vm.OpenCustomerDetailsCommand.Execute(null));
                 e.Handled = true;
+                return;
             }
+
+            e.Handled = true;
         }
 
         private void CustomerRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -125,6 +129,14 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             GridContextMenuSelection.SelectRow(sender, e);
+        }
+
+        private void CustomerDataGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (DataContext is CustomerManagementViewModel { IsCustomerDirectoryBusy: true })
+            {
+                e.Handled = true;
+            }
         }
 
         private void CustomersPage_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -142,6 +154,11 @@ namespace InventoryManagementApp.Views.Pages
             if (vm.IsCustomerDirectoryBusy && IsCustomerActionShortcut(e))
             {
                 e.Handled = true;
+                return;
+            }
+
+            if (IsTextInputFocused() && IsCustomerActionShortcut(e))
+            {
                 return;
             }
 
@@ -180,7 +197,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (!IsTextInputFocused() && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C && vm.CopySelectedCustomerCommand.CanExecute(null))
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C && vm.CopySelectedCustomerCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Customers", () => vm.CopySelectedCustomerCommand.Execute(null));
                 e.Handled = true;
@@ -235,23 +252,42 @@ namespace InventoryManagementApp.Views.Pages
 
         private static bool IsTextInputFocused()
         {
-            return Keyboard.FocusedElement is TextBoxBase or PasswordBox;
+            return Keyboard.FocusedElement is TextBoxBase or PasswordBox or ComboBox;
         }
 
         private static T? FindDescendant<T>(DependencyObject current) where T : DependencyObject
         {
-            for (var index = 0; index < VisualTreeHelper.GetChildrenCount(current); index++)
-            {
-                var child = VisualTreeHelper.GetChild(current, index);
-                if (child is T match)
-                    return match;
+            var pending = new Stack<DependencyObject>();
+            pending.Push(current);
 
-                var nested = FindDescendant<T>(child);
-                if (nested != null)
-                    return nested;
+            while (pending.Count > 0)
+            {
+                var parent = pending.Pop();
+                var childCount = GetVisualChildCount(parent);
+
+                for (var index = 0; index < childCount; index++)
+                {
+                    var child = VisualTreeHelper.GetChild(parent, index);
+                    if (child is T match)
+                        return match;
+
+                    pending.Push(child);
+                }
             }
 
             return null;
+        }
+
+        private static int GetVisualChildCount(DependencyObject current)
+        {
+            try
+            {
+                return VisualTreeHelper.GetChildrenCount(current);
+            }
+            catch (System.InvalidOperationException)
+            {
+                return 0;
+            }
         }
     }
 }

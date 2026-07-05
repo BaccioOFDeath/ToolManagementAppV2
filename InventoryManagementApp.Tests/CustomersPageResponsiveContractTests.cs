@@ -167,6 +167,48 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void CustomersPage_PreservesTextEditingAndSuppressesBusyContextMenus()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml");
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml.cs");
+            var keyDown = ExtractSourceBlock(source, "private void CustomersPage_PreviewKeyDown", "private static bool IsCustomerActionShortcut");
+
+            Assert.Contains("ContextMenuOpening=\"CustomerDataGrid_ContextMenuOpening\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("private void CustomerDataGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)", source, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is CustomerManagementViewModel { IsCustomerDirectoryBusy: true })", source, StringComparison.Ordinal);
+            Assert.Contains("if (IsTextInputFocused() && IsCustomerActionShortcut(e))", keyDown, StringComparison.Ordinal);
+            Assert.Contains("return;", keyDown, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.FocusedElement is TextBoxBase or PasswordBox or ComboBox", source, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F", keyDown, StringComparison.Ordinal);
+            Assert.True(
+                keyDown.IndexOf("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F", StringComparison.Ordinal) <
+                keyDown.IndexOf("if (IsTextInputFocused() && IsCustomerActionShortcut(e))", StringComparison.Ordinal),
+                "Ctrl+F should keep focusing search before text-edit shortcuts are preserved.");
+            Assert.True(
+                keyDown.IndexOf("if (IsTextInputFocused() && IsCustomerActionShortcut(e))", StringComparison.Ordinal) <
+                keyDown.IndexOf("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N", StringComparison.Ordinal),
+                "Text-edit guard should run before customer action shortcuts dispatch.");
+        }
+
+        [Fact]
+        public void CustomersPage_HandlesUnavailableDoubleClicksAndUsesIterativeSearchBoxLookup()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml.cs");
+            var doubleClick = ExtractSourceBlock(source, "private void CustomerRow_MouseDoubleClick", "private void CustomerRow_PreviewMouseRightButtonDown");
+            var findDescendant = ExtractSourceBlock(source, "private static T? FindDescendant", "private static int GetVisualChildCount");
+
+            Assert.Contains("e.Handled = true;\n                return;", doubleClick, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;\n        }", doubleClick, StringComparison.Ordinal);
+            Assert.Contains("using System.Collections.Generic;", source, StringComparison.Ordinal);
+            Assert.Contains("var pending = new Stack<DependencyObject>();", findDescendant, StringComparison.Ordinal);
+            Assert.Contains("while (pending.Count > 0)", findDescendant, StringComparison.Ordinal);
+            Assert.Contains("pending.Push(child);", findDescendant, StringComparison.Ordinal);
+            Assert.DoesNotContain("var nested = FindDescendant<T>(child);", findDescendant, StringComparison.Ordinal);
+            Assert.Contains("private static int GetVisualChildCount(DependencyObject current)", source, StringComparison.Ordinal);
+            Assert.Contains("catch (System.InvalidOperationException)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void CustomerViewModel_GuardsBusyStateAndSelectedCommandAvailability()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CustomerManagementViewModel.cs");
@@ -248,8 +290,8 @@ namespace InventoryManagementApp.Tests
 
             return source[start..end];
         }
+
         static string NormalizeLineEndings(string text)
             => text.Replace("\r\n", "\n");
-
     }
 }
