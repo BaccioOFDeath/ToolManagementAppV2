@@ -274,7 +274,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var list = new List<ItemModel>();
-                await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending, isRentalItem: false)
+                await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending)
                     .WithCancellation(CancellationToken.None))
                     list.Add(item);
                 Items.ReplaceRange(list);
@@ -315,13 +315,13 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (!string.IsNullOrWhiteSpace(term))
                 {
-                    await foreach (var item in _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending, isRentalItem: false, cancellationToken: cancellationToken)
+                    await foreach (var item in _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
                         .WithCancellation(cancellationToken))
                         list.Add(item);
                 }
                 else
                 {
-                    await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending, isRentalItem: false, cancellationToken: cancellationToken)
+                    await foreach (var item in _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending, cancellationToken: cancellationToken)
                         .WithCancellation(cancellationToken))
                         list.Add(item);
                 }

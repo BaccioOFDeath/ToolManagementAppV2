@@ -17,10 +17,10 @@ namespace InventoryManagementApp.Tests
                 "ApplyFilter(selectedRentalId);",
                 "void ApplyFilter() => ApplyFilter(SelectedRental?.RentalID);",
                 "void ApplyFilter(int? selectedRentalId)",
-                "Rentals.ReplaceRange(filtered.ToList());",
+                "Rentals.ReplaceRange(BuildRentalJobRows(filtered));",
                 "RestoreSelectedRental(selectedRentalId);",
                 "void RestoreSelectedRental(int? selectedRentalId)",
-                "SelectedRental = Rentals.FirstOrDefault(r => r.RentalID == selectedRentalId.Value);");
+                "SelectedRental = FindVisibleRentalJobRow(selectedRentalId.Value);");
         }
 
         [Fact]

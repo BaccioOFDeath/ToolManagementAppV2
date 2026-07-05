@@ -74,16 +74,15 @@ namespace InventoryManagementApp.Views.Windows
                 var items = new List<ItemModel>();
                 var page = new ItemPage(1, 100);
                 var source = string.IsNullOrWhiteSpace(term)
-                    ? _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending, isRentalItem: true)
-                    : _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending, isRentalItem: true);
+                    ? _itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending)
+                    : _itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending);
 
                 await foreach (var item in source)
                 {
                     if (version != _loadVersion)
                         return;
 
-                    if (IsAvailableForRentalPick(item))
-                        items.Add(item);
+                    items.Add(item);
                 }
 
                 if (version != _loadVersion)
@@ -124,14 +123,14 @@ namespace InventoryManagementApp.Views.Windows
                 return;
             }
 
-            ResultSummaryText.Text = visibleItemCount == 1 ? "1 item" : $"{visibleItemCount} items";
+            ResultSummaryText.Text = visibleItemCount == 1 ? "1 result" : $"{visibleItemCount} results";
             if (showEmptyState)
-                StatusText.Text = "No available rental items match the current search.";
+                StatusText.Text = "No items match the current search.";
             else
-                StatusText.Text = visibleItemCount == 1 ? "1 available item shown." : $"{visibleItemCount} available items shown.";
+                StatusText.Text = visibleItemCount == 1 ? "1 item shown." : $"{visibleItemCount} items shown.";
 
-            EmptyStateTitle.Text = "No available items";
-            EmptyStateMessage.Text = "Try a different search term or clear the search to browse available rental inventory.";
+            EmptyStateTitle.Text = "No matching items";
+            EmptyStateMessage.Text = "Try a different search term or clear the search to browse inventory.";
         }
 
         private async void Find_Click(object sender, RoutedEventArgs e)
@@ -238,9 +237,12 @@ namespace InventoryManagementApp.Views.Windows
 
             if (ItemsGrid.SelectedItem is not ItemModel item)
             {
-                StatusText.Text = "Select an available item first.";
+                StatusText.Text = "Select an item first.";
                 return;
             }
+
+            if (!CanUseSelectedItem(item))
+                return;
 
             SelectedItem = item;
             DialogResult = true;
@@ -264,12 +266,39 @@ namespace InventoryManagementApp.Views.Windows
             return null;
         }
 
-        bool IsAvailableForRentalPick(ItemModel item)
+        bool CanUseSelectedItem(ItemModel item)
         {
-            return item.ItemID != _excludedItemId
-                && item.IsRentalItem
-                && !item.IsIncomplete
-                && item.QuantityOnHand > 0;
+            if (item.ItemID == _excludedItemId)
+            {
+                StatusText.Text = "Select a different item for this job.";
+                return false;
+            }
+
+            if (!item.IsRentalItem)
+            {
+                StatusText.Text = "This item is not marked as a rental item.";
+                MessageBox.Show(
+                    this,
+                    "This item is not marked as a rental item. See an admin user to make it a rental item if required.",
+                    "Rental Item Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return false;
+            }
+
+            if (item.IsIncomplete)
+            {
+                StatusText.Text = "This item is incomplete and cannot be added to a rental job.";
+                return false;
+            }
+
+            if (item.QuantityOnHand <= 0)
+            {
+                StatusText.Text = "This rental item has no on-hand stock available.";
+                return false;
+            }
+
+            return true;
         }
     }
 }

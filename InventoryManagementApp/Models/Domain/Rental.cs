@@ -115,5 +115,26 @@ namespace InventoryManagementApp.Models.Domain
             get => _itemLocation;
             set => SetProperty(ref _itemLocation, value);
         }
+
+        private int _jobItemCount = 1;
+        public int JobItemCount
+        {
+            get => _jobItemCount;
+            set => SetProperty(ref _jobItemCount, value);
+        }
+
+        private string _jobItemSummary = string.Empty;
+        public string JobItemSummary
+        {
+            get => string.IsNullOrWhiteSpace(_jobItemSummary) ? ItemNumber : _jobItemSummary;
+            set => SetProperty(ref _jobItemSummary, value);
+        }
+
+        private DateTime _jobDueDate;
+        public DateTime JobDueDate
+        {
+            get => _jobDueDate == default ? DueDate : _jobDueDate;
+            set => SetProperty(ref _jobDueDate, value);
+        }
     }
 }

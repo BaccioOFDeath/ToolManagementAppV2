@@ -197,9 +197,9 @@
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding RentalID}" Width="52"/>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="96" MinWidth="78"/>
+                            <DataGridTextColumn Header="Items" Binding="{Binding JobItemSummary}" Width="96" MinWidth="78"/>
                             <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="1.7*" MinWidth="130"/>
-                            <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="124" MinWidth="104"/>
+                            <DataGridTextColumn Header="Due Back" Binding="{Binding JobDueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="124" MinWidth="104"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" MinWidth="74"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>

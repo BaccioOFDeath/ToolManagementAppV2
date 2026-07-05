@@ -32,6 +32,56 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task LoadRentalsAsync_GroupsAdditionalItemsIntoSingleJobRow()
+        {
+            var rentalDate = new DateTime(2026, 7, 6, 9, 0, 0);
+            var rentals = new List<RentalModel>
+            {
+                new RentalModel { RentalID = 2, ItemID = 31, CustomerID = 10, ItemNumber = "T31", CustomerName = "E H Mechanical Services Limited", RentalDate = rentalDate, DueDate = rentalDate.AddDays(3), Status = "Rented" },
+                new RentalModel { RentalID = 3, ItemID = 205, CustomerID = 10, ItemNumber = "T205", CustomerName = "E H Mechanical Services Limited", RentalDate = rentalDate.AddHours(1), DueDate = rentalDate.AddDays(4), Status = "Rented" },
+                new RentalModel { RentalID = 4, ItemID = 30, CustomerID = 11, ItemNumber = "T30", CustomerName = "Pickerill Automotive And Tyres", RentalDate = rentalDate, DueDate = rentalDate.AddDays(1), Status = "Rented" }
+            };
+            var rentalService = new StubRentalService(rentals);
+            var dialogService = new StubDialogService();
+            var vm = new ManageRentalsViewModel(rentalService, dialogService);
+
+            await vm.LoadRentalsAsync();
+
+            Assert.Equal(2, vm.Rentals.Count);
+            var groupedJob = Assert.Single(vm.Rentals, r => r.CustomerID == 10);
+            Assert.Equal("T31 + 1", groupedJob.JobItemSummary);
+            Assert.Equal(2, groupedJob.JobItemCount);
+            Assert.Equal(rentalDate.AddDays(3), groupedJob.JobDueDate);
+
+            vm.SelectedRental = groupedJob;
+
+            Assert.Equal(2, vm.SelectedRentalJobItems.Count);
+            Assert.Contains(vm.SelectedRentalJobItems, r => r.ItemNumber == "T31");
+            Assert.Contains(vm.SelectedRentalJobItems, r => r.ItemNumber == "T205");
+        }
+
+        [Fact]
+        public async Task SearchText_WhenAdditionalItemMatches_ShowsOwningJobRow()
+        {
+            var rentalDate = new DateTime(2026, 7, 6, 9, 0, 0);
+            var rentals = new List<RentalModel>
+            {
+                new RentalModel { RentalID = 2, ItemID = 31, CustomerID = 10, ItemNumber = "T31", CustomerName = "E H Mechanical Services Limited", RentalDate = rentalDate, DueDate = rentalDate.AddDays(3), Status = "Rented" },
+                new RentalModel { RentalID = 3, ItemID = 205, CustomerID = 10, ItemNumber = "T205", CustomerName = "E H Mechanical Services Limited", RentalDate = rentalDate.AddHours(1), DueDate = rentalDate.AddDays(4), Status = "Rented" }
+            };
+            var rentalService = new StubRentalService(rentals);
+            var dialogService = new StubDialogService();
+            var vm = new ManageRentalsViewModel(rentalService, dialogService);
+
+            await vm.LoadRentalsAsync();
+            vm.SearchText = "T205";
+
+            var row = Assert.Single(vm.Rentals);
+            Assert.Equal(2, row.RentalID);
+            Assert.Equal("T31 + 1", row.JobItemSummary);
+        }
+
+        [Fact]
         public async Task CheckInCommand_PromptsBeforeReturningRental()
         {
             var rentals = new List<RentalModel>

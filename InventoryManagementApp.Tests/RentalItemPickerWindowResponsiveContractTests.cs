@@ -72,7 +72,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("MinHeight=\"112\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"LoadingOverlay\"", xaml, StringComparison.Ordinal);
             Assert.Contains("IsHitTestVisible=\"True\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Loading available rental items", xaml, StringComparison.Ordinal);
+            Assert.Contains("Loading items", xaml, StringComparison.Ordinal);
             Assert.Contains("Keeping the picker responsive", xaml, StringComparison.Ordinal);
             Assert.Contains("Visibility=\"Collapsed\"", xaml, StringComparison.Ordinal);
         }
@@ -125,18 +125,25 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void RentalItemPickerWindow_UsesSameStockAvailabilityRuleAsRentalService()
+        public void RentalItemPickerWindow_UsesSharedSearchAndValidatesRentalEligibilityOnSelection()
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalItemPickerWindow.xaml.cs");
             var rentalService = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
 
-            Assert.Contains("bool IsAvailableForRentalPick(ItemModel item)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("item.IsRentalItem", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("!item.IsIncomplete", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("item.QuantityOnHand > 0", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_itemService.GetItemsAsync(page, SortField.Name, SortDirection.Ascending)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_itemService.SearchItemsAsync(term, page, SortField.Name, SortDirection.Ascending)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("items.Add(item);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("bool CanUseSelectedItem(ItemModel item)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!item.IsRentalItem)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("See an admin user to make it a rental item if required.", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (item.IsIncomplete)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (item.QuantityOnHand <= 0)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("GetAvailableQuantityForExistingItemAsync(conn, tx, itemID)", rentalService, StringComparison.Ordinal);
             Assert.Contains("if (avail < 1)", rentalService, StringComparison.Ordinal);
+            Assert.DoesNotContain("isRentalItem: true", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (IsAvailableForRentalPick(item))", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("&& !item.IsCheckedOut", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("&& item.IsRentalItem", codeBehind, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)

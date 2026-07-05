@@ -147,7 +147,7 @@ namespace InventoryManagementApp.Tests
                     It.IsAny<ItemPage>(),
                     SortField.Name,
                     SortDirection.Ascending,
-                    false,
+                    null,
                     It.IsAny<CancellationToken>()))
                 .Returns(ToAsyncEnumerable(new[] { searchResult }));
             itemService

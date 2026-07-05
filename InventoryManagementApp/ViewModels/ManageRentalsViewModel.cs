@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,6 +39,7 @@ namespace InventoryManagementApp.ViewModels
         public ObservableCollection<RentalModel> ActiveRentals { get; } = new();
         public ObservableCollection<Reservation> PendingRequests { get; } = new();
         public ObservableCollection<RentalContactLog> SelectedRentalContactLogs { get; } = new();
+        public ObservableCollection<RentalModel> SelectedRentalJobItems { get; } = new();
 
         public string SearchSummary => $"{Rentals.Count} result{(Rentals.Count == 1 ? string.Empty : "s")} shown";
         public string CheckedOutSummary => $"{ActiveRentals.Count} item{(ActiveRentals.Count == 1 ? string.Empty : "s")} currently checked out";
@@ -146,6 +148,7 @@ namespace InventoryManagementApp.ViewModels
                     EmailRentalContactCommand.NotifyCanExecuteChanged();
                     SmsRentalContactCommand.NotifyCanExecuteChanged();
                     LogRentalContactResponseCommand.NotifyCanExecuteChanged();
+                    RefreshSelectedRentalJobItems();
                     _ = LoadSelectedRentalContactLogsAsync();
                     OnPropertyChanged(nameof(SelectedRentalOpenRequestCount));
                     OnPropertyChanged(nameof(SelectedRentalContactLogSummary));
@@ -354,7 +357,7 @@ namespace InventoryManagementApp.ViewModels
             if (!string.IsNullOrWhiteSpace(SelectedStatus) && SelectedStatus != "All")
                 filtered = filtered.Where(r => string.Equals(r.Status, SelectedStatus, StringComparison.OrdinalIgnoreCase));
 
-            Rentals.ReplaceRange(filtered.ToList());
+            Rentals.ReplaceRange(BuildRentalJobRows(filtered));
             RestoreSelectedRental(selectedRentalId);
             OnPropertyChanged(nameof(SearchSummary));
         }
@@ -366,7 +369,7 @@ namespace InventoryManagementApp.ViewModels
             FilterFrom = null;
             FilterTo = null;
             SelectedStatus = StatusOptions.First();
-            Rentals.ReplaceRange(_allRentals);
+            Rentals.ReplaceRange(BuildRentalJobRows(_allRentals));
             RestoreSelectedRental(selectedRentalId);
             OnPropertyChanged(nameof(SearchSummary));
         }
@@ -380,7 +383,80 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
-            SelectedRental = Rentals.FirstOrDefault(r => r.RentalID == selectedRentalId.Value);
+            SelectedRental = FindVisibleRentalJobRow(selectedRentalId.Value);
+        }
+
+        RentalModel? FindVisibleRentalJobRow(int selectedRentalId)
+        {
+            var selected = Rentals.FirstOrDefault(r => r.RentalID == selectedRentalId);
+            if (selected != null)
+                return selected;
+
+            var source = _allRentals.FirstOrDefault(r => r.RentalID == selectedRentalId);
+            if (source == null)
+                return null;
+
+            var key = GetRentalJobKey(source);
+            return Rentals.FirstOrDefault(r => string.Equals(GetRentalJobKey(r), key, StringComparison.Ordinal));
+        }
+
+        List<RentalModel> BuildRentalJobRows(IEnumerable<RentalModel> rentals)
+        {
+            var visibleKeys = rentals
+                .Select(GetRentalJobKey)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            var rows = new List<RentalModel>(visibleKeys.Count);
+            foreach (var key in visibleKeys)
+            {
+                var jobItems = _allRentals
+                    .Where(r => string.Equals(GetRentalJobKey(r), key, StringComparison.Ordinal))
+                    .OrderBy(r => r.RentalID)
+                    .ToList();
+                if (jobItems.Count == 0)
+                    continue;
+
+                var representative = jobItems[0];
+                ApplyRentalJobDisplay(representative, jobItems);
+                rows.Add(representative);
+            }
+
+            return rows
+                .OrderByDescending(IsRentalActive)
+                .ThenBy(r => r.JobDueDate)
+                .ThenBy(r => r.RentalID)
+                .ToList();
+        }
+
+        void RefreshSelectedRentalJobItems()
+        {
+            if (SelectedRental == null)
+            {
+                SelectedRentalJobItems.Clear();
+                return;
+            }
+
+            var key = GetRentalJobKey(SelectedRental);
+            var jobItems = _allRentals
+                .Where(r => string.Equals(GetRentalJobKey(r), key, StringComparison.Ordinal))
+                .OrderBy(r => r.RentalID)
+                .ToList();
+            ApplyRentalJobDisplay(SelectedRental, jobItems);
+            SelectedRentalJobItems.ReplaceRange(jobItems);
+        }
+
+        static void ApplyRentalJobDisplay(RentalModel representative, IReadOnlyCollection<RentalModel> jobItems)
+        {
+            representative.JobItemCount = Math.Max(1, jobItems.Count);
+            representative.JobItemSummary = representative.JobItemCount == 1
+                ? representative.ItemNumber
+                : $"{representative.ItemNumber} + {representative.JobItemCount - 1}";
+            representative.JobDueDate = jobItems
+                .Where(IsRentalActive)
+                .Select(r => r.DueDate)
+                .DefaultIfEmpty(jobItems.Max(r => r.DueDate))
+                .Min();
         }
 
         async Task CheckInAsync()
@@ -1506,6 +1582,14 @@ Please reply if you need to arrange a return time or extension.";
         static bool IsRentalActive(RentalModel rental)
         {
             return rental.ReturnDate == null && !string.Equals(rental.Status, "Returned", StringComparison.OrdinalIgnoreCase);
+        }
+
+        static string GetRentalJobKey(RentalModel rental)
+        {
+            var statusBucket = IsRentalActive(rental) ? "Active" : "Returned";
+            return string.Create(
+                CultureInfo.InvariantCulture,
+                $"{rental.CustomerID}|{rental.RentalDate.Date:yyyyMMdd}|{statusBucket}");
         }
 
         static string ValueOrNotRecorded(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;

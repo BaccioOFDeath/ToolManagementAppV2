@@ -579,7 +579,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public async Task LoadMoreAsync_ExcludesRentalItems()
+        public async Task LoadMoreAsync_IncludesRentalItems()
         {
             var itemService = new RentalFilteringItemService();
             var dialog = new DummyDialogService();
@@ -588,13 +588,13 @@ namespace InventoryManagementApp.Tests
             using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
             await vm.LoadMoreAsync();
-            Assert.Single(vm.Items);
-            Assert.False(vm.Items[0].IsRentalItem);
-            Assert.Equal(false, itemService.LastIsRentalItem);
+            Assert.Equal(2, vm.Items.Count);
+            Assert.Contains(vm.Items, item => item.IsRentalItem);
+            Assert.Null(itemService.LastIsRentalItem);
         }
 
         [Fact]
-        public async Task LoadMoreAsync_SearchExcludesRentalItems()
+        public async Task LoadMoreAsync_SearchIncludesRentalItems()
         {
             var itemService = new RentalFilteringItemService();
             var dialog = new DummyDialogService();
@@ -604,9 +604,9 @@ namespace InventoryManagementApp.Tests
             using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
             vm.Filter = "abc";
             await vm.LoadMoreAsync();
-            Assert.Single(vm.Items);
-            Assert.False(vm.Items[0].IsRentalItem);
-            Assert.Equal(false, itemService.LastIsRentalItem);
+            Assert.Equal(2, vm.Items.Count);
+            Assert.Contains(vm.Items, item => item.IsRentalItem);
+            Assert.Null(itemService.LastIsRentalItem);
         }
 
         [Fact]

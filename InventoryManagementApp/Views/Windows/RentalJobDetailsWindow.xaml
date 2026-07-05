@@ -29,7 +29,7 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" MinWidth="220" MaxWidth="360">
                         <TextBlock Text="Rental Job" Style="{StaticResource PageTitleTextBlock}"/>
-                        <TextBlock Text="{Binding SelectedRental.ItemNumber, StringFormat='{}{0}', TargetNullValue='No rental selected'}"
+                        <TextBlock Text="{Binding SelectedRental.JobItemSummary, StringFormat='{}{0}', TargetNullValue='No rental selected'}"
                                    Style="{StaticResource HeadingTextBlock}"
                                    TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding SelectedRental.CustomerName, StringFormat='Customer: {0}', TargetNullValue='Customer: Not recorded'}"
@@ -189,7 +189,7 @@
                         </DockPanel>
                     </Border>
 
-                    <Border Style="{StaticResource Card}" Padding="0">
+                    <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,10">
                         <DockPanel LastChildFill="True">
                             <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
                                 <TextBlock Text="Timing And Item" Style="{StaticResource SectionHeader}"/>
@@ -210,13 +210,36 @@
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedRental.RentalDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Margin="0,0,0,5"/>
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Due back" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
                                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedRental.DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Margin="0,0,0,5"/>
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Item #" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedRental.ItemNumber}" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Items" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedRental.JobItemSummary}" TextWrapping="Wrap" Margin="0,0,0,5"/>
                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Shelf" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,5"/>
                                 <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedRental.ItemLocation}" TextWrapping="Wrap" Margin="0,0,0,5"/>
                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Status" Style="{StaticResource LabelTextBlock}" Margin="0,0,8,0"/>
                                 <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedRental.Status}" TextWrapping="Wrap"/>
                             </Grid>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" Padding="0">
+                        <DockPanel LastChildFill="True">
+                            <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
+                                <TextBlock Text="Job Items" Style="{StaticResource SectionHeader}"/>
+                            </Border>
+                            <DataGrid ItemsSource="{Binding SelectedRentalJobItems}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      MinHeight="120"
+                                      MaxHeight="220"
+                                      SelectionMode="Single"
+                                      Style="{StaticResource VirtualizedDataGridStyle}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="ID" Binding="{Binding RentalID}" Width="56"/>
+                                    <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="96"/>
+                                    <DataGridTextColumn Header="Shelf" Binding="{Binding ItemLocation}" Width="110"/>
+                                    <DataGridTextColumn Header="Due Back" Binding="{Binding DueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="130"/>
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
                         </DockPanel>
                     </Border>
                 </StackPanel>

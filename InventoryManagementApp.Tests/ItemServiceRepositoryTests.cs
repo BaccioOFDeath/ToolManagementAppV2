@@ -135,7 +135,7 @@ public class ItemServiceRepositoryTests
         }
 
         var results = new List<ItemModel>();
-        await foreach (var item in service.SearchItemsAsync(searchTerm, new ItemPage(1, 20), isRentalItem: true))
+        await foreach (var item in service.SearchItemsAsync(searchTerm, new ItemPage(1, 20)))
             results.Add(item);
 
         var result = Assert.Single(results);
