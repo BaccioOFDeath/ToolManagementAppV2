@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
 
 namespace InventoryManagementApp.Views.Pages
@@ -22,6 +23,8 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void KitManagementPage_Loaded(object sender, RoutedEventArgs e)
         {
+            SearchTextBox.Focus();
+
             if (DataContext is KitManagementViewModel vm)
             {
                 await LoadKitsOnceForViewModelAsync(vm);
@@ -60,12 +63,56 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
-        private void KitManagementPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void KitManagementPage_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (DataContext is not KitManagementViewModel vm)
                 return;
 
-            if (e.Key == Key.Enter && vm.OpenKitDetailsCommand.CanExecute(null))
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                SearchTextBox.Focus();
+                SearchTextBox.SelectAll();
+                e.Handled = true;
+                return;
+            }
+
+            if (vm.IsKitItemInteractionBusy && IsManagedKitShortcut(e))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N && vm.AddKitCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Kit Management", async () => await vm.AddKitCommand.ExecuteAsync(null));
+                e.Handled = true;
+            }
+            else if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.E && vm.EditKitCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Kit Management", async () => await vm.EditKitCommand.ExecuteAsync(null));
+                e.Handled = true;
+            }
+            else if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.I && vm.AddKitItemCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Kit Management", async () => await vm.AddKitItemCommand.ExecuteAsync(null));
+                e.Handled = true;
+            }
+            else if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.E && vm.EditKitItemCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Kit Management", async () => await vm.EditKitItemCommand.ExecuteAsync(null));
+                e.Handled = true;
+            }
+            else if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift) && e.Key == Key.C && vm.CopySelectedKitCommand.CanExecute(null))
+            {
+                UiActionGuard.Run(this, "Kit Management", () => vm.CopySelectedKitCommand.Execute(null));
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Delete && vm.DeleteKitCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Kit Management", async () => await vm.DeleteKitCommand.ExecuteAsync(null));
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Enter && vm.OpenKitDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Kit Management", () => vm.OpenKitDetailsCommand.Execute(null));
                 e.Handled = true;
@@ -87,9 +134,32 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
+        private static bool IsManagedKitShortcut(KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter || e.Key == Key.F5 || e.Key == Key.Delete)
+                return true;
+
+            return Keyboard.Modifiers is ModifierKeys.Control or (ModifierKeys.Control | ModifierKeys.Shift)
+                && e.Key is Key.N or Key.E or Key.I or Key.C or Key.P or Key.D;
+        }
+
         private void KitRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is KitManagementViewModel vm && vm.OpenKitDetailsCommand.CanExecute(null))
+            if (DataContext is not KitManagementViewModel vm)
+                return;
+
+            if (vm.IsKitItemInteractionBusy)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (sender is FrameworkElement { DataContext: Kit kit })
+            {
+                vm.SelectedKit = kit;
+            }
+
+            if (vm.OpenKitDetailsCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Kit Management", () => vm.OpenKitDetailsCommand.Execute(null));
                 e.Handled = true;
@@ -98,7 +168,21 @@ namespace InventoryManagementApp.Views.Pages
 
         private void KitItemRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is KitManagementViewModel vm && vm.EditKitItemCommand.CanExecute(null))
+            if (DataContext is not KitManagementViewModel vm)
+                return;
+
+            if (vm.IsKitItemInteractionBusy)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (sender is FrameworkElement { DataContext: KitItem kitItem })
+            {
+                vm.SelectedKitItem = kitItem;
+            }
+
+            if (vm.EditKitItemCommand.CanExecute(null))
             {
                 UiActionGuard.RunAsync(this, "Kit Management", async () => await vm.EditKitItemCommand.ExecuteAsync(null));
                 e.Handled = true;
@@ -107,6 +191,12 @@ namespace InventoryManagementApp.Views.Pages
 
         private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (DataContext is KitManagementViewModel { IsKitItemInteractionBusy: true })
+            {
+                e.Handled = true;
+                return;
+            }
+
             GridContextMenuSelection.SelectRow(sender, e);
         }
     }
