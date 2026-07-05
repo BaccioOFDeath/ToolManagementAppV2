@@ -94,7 +94,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Border Grid.Column=\"0\" MaxWidth=\"330\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border MaxHeight=\"156\" Padding=\"0\" Margin=\"0,0,0,8\" ClipToBounds=\"True\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel Margin=\"0,4,0,0\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel>\n                            <Button Style=\"{StaticResource GhostButton}\" Content=\"History\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel>\n                            <Button Style=\"{StaticResource RentalBusyGhostButton}\" Content=\"History\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Column=\"0\" Width=\"320\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Columns=\"2\" Margin=\"0,4,0,0\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Columns=\"2\">", xaml, StringComparison.Ordinal);
@@ -166,6 +166,38 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("e.Handled = true;", selectionBlock, StringComparison.Ordinal);
             Assert.Contains("return row;", selectionBlock, StringComparison.Ordinal);
             Assert.DoesNotContain("private void SelectRowForContextMenu", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageRentalsPage_DisablesRentalActionsAndGridsDuringLoading()
+        {
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
+
+            Assert.Contains("<Style x:Key=\"RentalBusyPrimaryButton\" TargetType=\"Button\" BasedOn=\"{StaticResource PrimaryButton}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"RentalBusyGhostButton\" TargetType=\"Button\" BasedOn=\"{StaticResource GhostButton}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"RentalBusyDataGridStyle\" TargetType=\"DataGrid\" BasedOn=\"{StaticResource VirtualizedDataGridStyle}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<DataTrigger Binding=\"{Binding IsLoading}\" Value=\"True\">\n                    <Setter Property=\"IsEnabled\" Value=\"False\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"Opacity\" Value=\"0.72\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("Style=\"{StaticResource RentalBusyDataGridStyle}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Style=\"{StaticResource RentalBusyPrimaryButton}\" Content=\"Check In\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Style=\"{StaticResource RentalBusyGhostButton}\" Content=\"Print Queue\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Style=\"{StaticResource PrimaryButton}\" Content=\"Check In\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Style=\"{StaticResource VirtualizedDataGridStyle}\">", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageRentalsPage_SuppressesEmptyStatesAndShowsBoundedLoadingOverlaysDuringRefresh()
+        {
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
+
+            Assert.Contains("<MultiDataTrigger>\n                                        <MultiDataTrigger.Conditions>\n                                            <Condition Binding=\"{Binding Rentals.Count}\" Value=\"0\"/>\n                                            <Condition Binding=\"{Binding IsLoading}\" Value=\"False\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<MultiDataTrigger>\n                                        <MultiDataTrigger.Conditions>\n                                            <Condition Binding=\"{Binding PendingRequests.Count}\" Value=\"0\"/>\n                                            <Condition Binding=\"{Binding IsLoading}\" Value=\"False\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"360\" MinHeight=\"104\" Margin=\"12\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\" Visibility=\"{Binding IsLoading, Converter={StaticResource BoolToVis}}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Column=\"0\" MaxWidth=\"360\" MinHeight=\"104\" Margin=\"12\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\" Visibility=\"{Binding IsLoading, Converter={StaticResource BoolToVis}}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Refreshing rental desk\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Refreshing request queue\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Keeping the current rows visible while rental, request, and print actions pause until the refresh completes.", xaml, StringComparison.Ordinal);
+            Assert.Contains("Request rows remain visible while details, status changes, and print actions pause for the latest rental state.", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
