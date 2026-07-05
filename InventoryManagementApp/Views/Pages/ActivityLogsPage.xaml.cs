@@ -17,12 +17,14 @@ namespace InventoryManagementApp.Views.Pages
     {
         private const int MaxActivityPrintRows = 250;
         private bool _hasLoadedLogs;
+        private int _loadVersion;
         private ActivityLogsViewModel? _loadedViewModel;
 
         public ActivityLogsPage()
         {
             InitializeComponent();
             Loaded += ActivityLogsPage_Loaded;
+            Unloaded += ActivityLogsPage_Unloaded;
             DataContextChanged += ActivityLogsPage_DataContextChanged;
             PreviewKeyDown += ActivityLogsPage_PreviewKeyDown;
         }
@@ -40,16 +42,38 @@ namespace InventoryManagementApp.Views.Pages
             if (!vm.RefreshCommand.CanExecute(null))
                 return;
 
+            var loadVersion = _loadVersion;
             await Dispatcher.Yield(DispatcherPriority.Background);
-            if (!ReferenceEquals(DataContext, vm) || !vm.RefreshCommand.CanExecute(null))
+            if (!IsCurrentActivityLoad(vm, loadVersion) || !vm.RefreshCommand.CanExecute(null))
                 return;
 
             _loadedViewModel = vm;
-            _hasLoadedLogs = await vm.LoadLogsAsync();
+            var loaded = await vm.LoadLogsAsync();
+            if (!IsCurrentActivityLoad(vm, loadVersion))
+            {
+                if (ReferenceEquals(_loadedViewModel, vm))
+                    _hasLoadedLogs = false;
+                return;
+            }
+
+            _hasLoadedLogs = loaded;
+        }
+
+        private void ActivityLogsPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _loadVersion++;
+            _hasLoadedLogs = false;
+            _loadedViewModel = null;
+            if (DataContext is ActivityLogsViewModel vm)
+                vm.CancelPendingFilterRefresh();
         }
 
         private void ActivityLogsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            _loadVersion++;
+            if (e.OldValue is ActivityLogsViewModel oldVm && !ReferenceEquals(oldVm, e.NewValue))
+                oldVm.CancelPendingFilterRefresh();
+
             if (!ReferenceEquals(e.NewValue, _loadedViewModel))
             {
                 _hasLoadedLogs = false;
@@ -85,8 +109,12 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (DataContext is ActivityLogsViewModel vm && vm.RefreshCommand.CanExecute(null))
             {
+                var loadVersion = _loadVersion;
                 _hasLoadedLogs = false;
                 var loaded = await vm.LoadLogsAsync();
+                if (!IsCurrentActivityLoad(vm, loadVersion))
+                    return;
+
                 _hasLoadedLogs = loaded;
                 _loadedViewModel = vm;
             }
@@ -278,6 +306,11 @@ namespace InventoryManagementApp.Views.Pages
         }
 
         private bool IsActivityDirectoryBusy() => DataContext is ActivityLogsViewModel { IsBusy: true };
+
+        private bool IsCurrentActivityLoad(ActivityLogsViewModel vm, int loadVersion)
+        {
+            return loadVersion == _loadVersion && ReferenceEquals(DataContext, vm);
+        }
 
         private void RetargetActivitySelectionFromEvent(RoutedEventArgs e)
         {
