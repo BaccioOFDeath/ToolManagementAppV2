@@ -13,9 +13,12 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("PagePadding = new Thickness(36)", source, StringComparison.Ordinal);
             Assert.Contains("ColumnGap = 0", source, StringComparison.Ordinal);
-            Assert.Contains("BuildSummarySection(safeTitle, summary, lastRunText, safeLines.Count)", source, StringComparison.Ordinal);
+            Assert.Contains("BuildSummarySection(safeTitle, summary, lastRunText, totalLineCount, printedLineCount, omittedLineCount)", source, StringComparison.Ordinal);
             Assert.Contains("AddKeyValueRow(group, \"Report\", title)", source, StringComparison.Ordinal);
-            Assert.Contains("AddKeyValueRow(group, \"Action Rows\", lineCount.ToString())", source, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Total Action Rows\", totalLineCount.ToString())", source, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Printed Action Rows\", printedLineCount.ToString())", source, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Omitted Action Rows\", omittedLineCount == 0 ? \"None\" : $\"{omittedLineCount} rows omitted to keep preview responsive\")", source, StringComparison.Ordinal);
+            Assert.Contains("AddKeyValueRow(group, \"Large Report Limit\", $\"First {MaxReportPrintRows} action rows\")", source, StringComparison.Ordinal);
             Assert.Contains("AddKeyValueRow(group, \"Last Run\", ValueOrNotRecorded(lastRunText))", source, StringComparison.Ordinal);
             Assert.Contains("AddKeyValueRow(group, \"Summary\", ValueOrNotRecorded(summary))", source, StringComparison.Ordinal);
             Assert.Contains("Tag = \"KeyValue\"", source, StringComparison.Ordinal);
@@ -25,7 +28,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("AddCell(header, \"Report Detail\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Next Action\", true)", source, StringComparison.Ordinal);
             Assert.Contains("No report rows were available when this packet was prepared.", source, StringComparison.Ordinal);
-            Assert.Contains("Review each destination, source-page route, and next action", source, StringComparison.Ordinal);
+            Assert.Contains("Review each destination, source-page route, next action, and omitted-row count", source, StringComparison.Ordinal);
             Assert.Contains("ValueOrNotRecorded(line.Category)", source, StringComparison.Ordinal);
             Assert.Contains("ValueOrNotRecorded(line.DestinationName)", source, StringComparison.Ordinal);
             Assert.Contains("ValueOrNotRecorded(line.Text)", source, StringComparison.Ordinal);
@@ -42,7 +45,7 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml");
 
             Assert.Contains("new PrintPreviewWindow().ShowPreview(", source, StringComparison.Ordinal);
-            Assert.Contains("Review the report summary, destination routing, and next-action handoff before printing.", source, StringComparison.Ordinal);
+            Assert.Contains("Review the report summary, destination routing, next-action handoff, and any omitted rows before printing.", source, StringComparison.Ordinal);
             Assert.Contains("OpenSourcePage_Click", source, StringComparison.Ordinal);
             Assert.Contains("CopySelectedRow_Click", source, StringComparison.Ordinal);
             Assert.Contains("GridContextMenuSelection.SelectRow(sender, e)", source, StringComparison.Ordinal);
@@ -62,7 +65,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)
@@ -73,5 +76,8 @@ namespace InventoryManagementApp.Tests
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
         }
+        static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
+
     }
 }

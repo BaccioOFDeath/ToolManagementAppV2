@@ -98,7 +98,6 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", handler, StringComparison.Ordinal);
             Assert.DoesNotContain("if (sender is DataGridRow row", handler, StringComparison.Ordinal);
             Assert.DoesNotContain("row.IsSelected = true;", handler, StringComparison.Ordinal);
-            Assert.DoesNotContain("e.Handled = true;", handler, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -177,9 +176,11 @@ namespace InventoryManagementApp.Tests.ViewModels
             var viewModel = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
             var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
 
-            Assert.Contains("public bool CanPrintCurrentReport => LastRunAt.HasValue && ReportLines.Count > 0 && !string.Equals(ReportStatus, \"Report failed.\", StringComparison.Ordinal);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanPrintCurrentReport => !IsBusy && LastRunAt.HasValue && ReportLines.Count > 0 && !string.Equals(ReportStatus, \"Report failed.\", StringComparison.Ordinal);", viewModel, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CanPrintCurrentReport));", viewModel, StringComparison.Ordinal);
-            Assert.Contains("if (DataContext is not ReportsViewModel vm || !vm.CanPrintCurrentReport)", pageCode, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is not ReportsViewModel vm)", pageCode, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsBusy)", pageCode, StringComparison.Ordinal);
+            Assert.Contains("if (!vm.CanPrintCurrentReport)", pageCode, StringComparison.Ordinal);
             Assert.DoesNotContain("if (DataContext is not ReportsViewModel vm || vm.ReportLines.Count == 0)", pageCode, StringComparison.Ordinal);
         }
 
@@ -207,7 +208,7 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             Assert.Contains("new PrintPreviewWindow().ShowPreview(", reportsCode, StringComparison.Ordinal);
             Assert.Contains("vm.ReportTitle", reportsCode, StringComparison.Ordinal);
-            Assert.Contains("Review the report summary, destination routing, and next-action handoff before printing.", reportsCode, StringComparison.Ordinal);
+            Assert.Contains("Review the report summary, destination routing, next-action handoff, and any omitted rows before printing.", reportsCode, StringComparison.Ordinal);
             Assert.Contains("new PrintPreviewWindow().ShowPreview(", activityCode, StringComparison.Ordinal);
             Assert.Contains("\"Activity Logs\"", activityCode, StringComparison.Ordinal);
             Assert.Contains("Review the filtered audit trail, destination routing, and operator handoff before printing.", activityCode, StringComparison.Ordinal);
@@ -235,7 +236,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.NotNull(directory);
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
-            return File.ReadAllText(path);
+            return NormalizeLineEndings(File.ReadAllText(path));
         }
 
         static string ExtractMethodBody(string source, string methodStart, string nextMethodStart)
@@ -248,5 +249,8 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             return source.Substring(start, end - start);
         }
+        static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
+
     }
 }

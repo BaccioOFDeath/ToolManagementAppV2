@@ -39,7 +39,7 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml.cs");
 
-            Assert.Contains("BuildSummarySection(title, summary, safeLogs.Count, printedLogs.Count, omittedLogCount)", source, StringComparison.Ordinal);
+            Assert.Contains("BuildSummarySection(title, summary, safeLogs.Count, printedLogs.Count, omittedLogCount, truncatedPrintedLogCount)", source, StringComparison.Ordinal);
             Assert.Contains("AddKeyValueRow(group, \"Packet\", title)", source, StringComparison.Ordinal);
             Assert.Contains("AddKeyValueRow(group, \"Visible Log Rows\", logCount.ToString())", source, StringComparison.Ordinal);
             Assert.Contains("AddKeyValueRow(group, \"Printed Log Rows\", printedLogCount.ToString())", source, StringComparison.Ordinal);
@@ -49,7 +49,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.86, GridUnitType.Star) });", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Entry\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Operation Result\", true)", source, StringComparison.Ordinal);
-            Assert.Contains("Review skipped rows, failures, backup paths, restore notices, and omitted-row counts", source, StringComparison.Ordinal);
+            Assert.Contains("Review skipped rows, failures, backup paths, restore notices, omitted-row counts, and shortened-row counts", source, StringComparison.Ordinal);
             Assert.Contains("Review one selected data-operation result before copying, printing, or filing the handoff.", source, StringComparison.Ordinal);
             Assert.Contains("Review the current session's import, export, image, backup, and restore results before staff handoff.", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new GridLength(680)", source, StringComparison.Ordinal);
@@ -88,7 +88,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("var totalVisibleCount = ViewModel.Users.Count;", source, StringComparison.Ordinal);
             Assert.Contains("var printRows = ViewModel.Users.Take(MaxUsersPrintRows).ToList();", source, StringComparison.Ordinal);
             Assert.Contains("BuildPrintDocument(printRows, totalVisibleCount, summary)", source, StringComparison.Ordinal);
-            Assert.Contains("Review the current account directory, access coverage, lockout state, and any omitted rows before filing an admin handoff.", source, StringComparison.Ordinal);
+            Assert.Contains("Review the current account directory, access coverage, lockout state, active state, contact handoff details, and any omitted rows before filing an admin packet.", source, StringComparison.Ordinal);
             Assert.Contains("BuildSummarySection(summary, totalVisibleCount, users.Count, Math.Max(0, totalVisibleCount - users.Count))", source, StringComparison.Ordinal);
             Assert.Contains("AddSummaryLine(group, \"Total Visible Rows\"", source, StringComparison.Ordinal);
             Assert.Contains("AddSummaryLine(group, \"Omitted Rows\"", source, StringComparison.Ordinal);
@@ -98,7 +98,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("AddCell(header, \"Security\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Access\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Contact\", true)", source, StringComparison.Ordinal);
-            Assert.Contains("Review access coverage, lockout state, disabled accounts, and any omitted rows", source, StringComparison.Ordinal);
+            Assert.Contains("Review access coverage, lockout state, disabled accounts, contact handoff details, and any omitted rows", source, StringComparison.Ordinal);
             Assert.DoesNotContain("BuildPrintDocument(ViewModel.Users.ToList()", source, StringComparison.Ordinal);
             Assert.DoesNotContain("foreach (var width in new[] { 55.0, 130.0, 95.0, 250.0, 190.0, 90.0, 80.0 })", source, StringComparison.Ordinal);
         }
@@ -147,7 +147,7 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml.cs");
 
-            Assert.Contains("BuildCheckedOutPrintDocument(title, items)", source, StringComparison.Ordinal);
+            Assert.Contains("BuildCheckedOutPrintDocument(title, items, totalCount, omittedCount)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Identifiers\")", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Out Since\")", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Stock\")", source, StringComparison.Ordinal);
@@ -193,7 +193,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("string? description = null, string? logoPath = null", previewSource, StringComparison.Ordinal);
             Assert.Contains("PreviewDescription.Text = _description", previewSource, StringComparison.Ordinal);
             Assert.Contains("_logoPath = logoPath ?? string.Empty", previewSource, StringComparison.Ordinal);
-            Assert.Contains("ResolveLogoUri(_logoPath)", previewSource, StringComparison.Ordinal);
+            Assert.Contains("TryResolveCustomLogoUri(path, out var logoUri)", previewSource, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"PreviewDescription\"", previewXaml, StringComparison.Ordinal);
         }
 
@@ -265,7 +265,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)
@@ -276,5 +276,8 @@ namespace InventoryManagementApp.Tests
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
         }
+        static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
+
     }
 }

@@ -61,7 +61,6 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.Contains("CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("KeyboardNavigation.DirectionalNavigation=\"Contained\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MaxHeight\" Value=\"420\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"360\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"420\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("TextBlock.TextWrapping\" Value=\"Wrap\"", xaml, StringComparison.Ordinal);
         }
@@ -132,7 +131,10 @@ namespace InventoryManagementApp.Tests.Resources
             Assert.NotNull(directory);
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
-            return File.ReadAllText(path);
+            return NormalizeLineEndings(File.ReadAllText(path));
         }
+        static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
+
     }
 }

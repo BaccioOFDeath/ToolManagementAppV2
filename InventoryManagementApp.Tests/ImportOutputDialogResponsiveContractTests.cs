@@ -12,18 +12,18 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "PrintLabelWindow.xaml");
             var codeBehind = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "PrintLabelWindow.xaml.cs");
 
-            Assert.Contains("Width=\"820\" Height=\"540\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"700\" MinHeight=\"480\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("this.UseResponsiveDefaultSize(820, 540);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Width=\"760\" Height=\"520\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"560\" MinHeight=\"420\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("this.UseResponsiveDefaultSize(760, 520);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel>", xaml, StringComparison.Ordinal);
             Assert.Contains("EnableRowVirtualization=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("EnableColumnVirtualization=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectionUnit=\"FullRow\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Width=\"1.2*\" MinWidth=\"140\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Width=\"2*\" MinWidth=\"140\"", xaml, StringComparison.Ordinal);
             Assert.Contains("QueueStatusText", xaml, StringComparison.Ordinal);
-            Assert.Contains("PrintReadinessText", xaml, StringComparison.Ordinal);
+            Assert.Contains("LabelActionStatusText", xaml, StringComparison.Ordinal);
             Assert.Contains("EmptyQueueVisibility", xaml, StringComparison.Ordinal);
             Assert.Contains("No labels queued", xaml, StringComparison.Ordinal);
             Assert.Contains("PreviewCommand", xaml, StringComparison.Ordinal);
@@ -42,8 +42,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("public Visibility EmptyQueueVisibility => HasItems ? Visibility.Collapsed : Visibility.Visible;", source, StringComparison.Ordinal);
             Assert.Contains("public int VisibleLabelCount => Math.Min(Items.Count, MaxPrintableLabels);", source, StringComparison.Ordinal);
             Assert.Contains("public int OmittedLabelCount => Math.Max(0, Items.Count - MaxPrintableLabels);", source, StringComparison.Ordinal);
-            Assert.Contains("PreviewCommand = new RelayCommand(Preview, () => HasItems);", source, StringComparison.Ordinal);
-            Assert.Contains("PrintCommand = new RelayCommand(Print, () => HasItems);", source, StringComparison.Ordinal);
+            Assert.Contains("PreviewCommand = new RelayCommand(Preview, () => CanGenerateLabels);", source, StringComparison.Ordinal);
+            Assert.Contains("PrintCommand = new RelayCommand(Print, () => CanGenerateLabels);", source, StringComparison.Ordinal);
             Assert.Contains("Items.CollectionChanged += Items_CollectionChanged;", source, StringComparison.Ordinal);
             Assert.Contains("PreviewCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
             Assert.Contains("PrintCommand.NotifyCanExecuteChanged();", source, StringComparison.Ordinal);
@@ -123,7 +123,10 @@ namespace InventoryManagementApp.Tests
             Assert.NotNull(directory);
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
-            return File.ReadAllText(path);
+            return NormalizeLineEndings(File.ReadAllText(path));
         }
+        static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
+
     }
 }

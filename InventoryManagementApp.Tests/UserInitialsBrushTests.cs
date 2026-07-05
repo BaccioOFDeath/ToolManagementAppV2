@@ -40,9 +40,12 @@ namespace InventoryManagementApp.Tests
                     var svc = new StubUserService(users);
                     var vm = new UserManagementViewModel(svc, new DummyFileDialogService(), new DummyDialogService());
                     vm.LoadUsersAsync().GetAwaiter().GetResult();
-                    Assert.NotEqual(vm.Users[0].InitialsBrush, vm.Users[1].InitialsBrush);
+                    var john = vm.Users.Single(user => user.UserName == "John Doe");
+                    var jane = vm.Users.Single(user => user.UserName == "Jane Doe");
+                    var alice = vm.Users.Single(user => user.UserName == "Alice Smith");
+                    Assert.NotEqual(john.InitialsBrush, jane.InitialsBrush);
                     var defaultBrush = Application.Current.TryFindResource("ForegroundBrush") as Brush;
-                    Assert.Equal(defaultBrush, vm.Users[2].InitialsBrush);
+                    Assert.Equal(defaultBrush, alice.InitialsBrush);
                 }
                 catch (Exception ex)
                 {

@@ -7,28 +7,30 @@ namespace InventoryManagementApp.Tests
     public class CategoryManagementWorkflowContractTests
     {
         [Fact]
-        public void CategoryLoadFailuresClearStaleRowsSelectionAndEditState()
+        public void CategoryLoadFailuresPreserveRowsWhenAvailableAndClearRowsDuringRecoveryFallback()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CategoryManagementViewModel.cs");
 
             AssertContainsAll(
                 source,
-                "ClearCategoryStateAfterLoadFailure();",
-                "Categories could not be loaded. Category rows were cleared until reload succeeds.",
+                "_saveCommand = new AsyncCommand(SaveAsync, () => !IsCategoryInteractionBusy && SelectedCategory != null && !string.IsNullOrWhiteSpace(CategoryName));",
+                "_deleteCommand = new AsyncCommand(DeleteAsync, () => !IsCategoryInteractionBusy && SelectedCategory != null);",
+                "if (_schemaInitialized)",
+                "await _service.EnsureInventoryAsync(SelectedInventoryId, \"Main\");",
+                "StatusMessage = Categories.Count == 0",
+                "? \"Categories could not be loaded. Retry refresh before creating or printing category rows.\"",
+                ": \"Category refresh failed. Existing category rows were kept so current work can continue.\";",
+                "RaiseDirectoryProperties();",
+                "private void ShowCategoryLoadFailureDialogOnce()",
+                "if (_loadFailureDialogShown) return;",
+                "_loadFailureDialogShown = false;",
+                "WpfMessageBox.Show(\"Categories could not be refreshed. Existing category rows were kept when available; retry refresh or check the application log.",
                 "private void ClearCategoryStateAfterLoadFailure()",
                 "Categories.Clear();",
                 "FilteredCategories.Clear();",
                 "SelectedCategory = null;",
                 "CategoryName = \"\";",
-                "RaiseDirectoryProperties();",
-                "_saveCommand = new AsyncCommand(SaveAsync, () => !IsCategoryInteractionBusy && SelectedCategory != null && !string.IsNullOrWhiteSpace(CategoryName));",
-                "_deleteCommand = new AsyncCommand(DeleteAsync, () => !IsCategoryInteractionBusy && SelectedCategory != null);",
-                "if (_schemaInitialized)",
-                "await _service.EnsureInventoryAsync(SelectedInventoryId, \"Main\");",
-                "private void ShowCategoryLoadFailureDialogOnce()",
-                "if (_loadFailureDialogShown) return;",
-                "_loadFailureDialogShown = false;",
-                "WpfMessageBox.Show(\"Categories could not be loaded. Category rows were cleared until reload succeeds. Please retry or check the application log.");
+                "RaiseDirectoryProperties();");
             Assert.DoesNotContain("Categories could not be loaded. Review logs or retry refresh.\";\n                WpfMessageBox.Show(\"Categories could not be loaded. Please retry", NormalizeNewlines(source), StringComparison.Ordinal);
         }
 
@@ -72,11 +74,17 @@ namespace InventoryManagementApp.Tests
 
             AssertContainsAll(
                 pageSource,
-                "private bool _hasInitialized;",
-                "if (_hasInitialized) return;",
-                "_hasInitialized = true;",
-                "vm.SelectedInventoryId = inventoryId;",
-                "await vm.InitializeAsync().ConfigureAwait(false);");
+                "private Task? _initializeCategoriesTask;",
+                "private CategoryManagementViewModel? _initializedViewModel;",
+                "DataContextChanged += CategoriesPage_DataContextChanged;",
+                "private async Task InitializeCategoriesOnceAsync(CategoryManagementViewModel vm)",
+                "if (ReferenceEquals(_initializedViewModel, vm) && _initializeCategoriesTask is { IsCompleted: false })",
+                "if (ReferenceEquals(_initializedViewModel, vm) && _initializeCategoriesTask is { IsCompletedSuccessfully: true })",
+                "_initializedViewModel = vm;",
+                "vm.SelectedInventoryId = _inventoryId;",
+                "await Dispatcher.Yield(DispatcherPriority.Background);",
+                "_initializeCategoriesTask = vm.InitializeAsync();",
+                "await _initializeCategoriesTask;");
 
             Assert.DoesNotContain("await vm.InitializeAsync();", openCategoriesCommand, StringComparison.Ordinal);
         }
@@ -110,7 +118,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)
@@ -121,5 +129,8 @@ namespace InventoryManagementApp.Tests
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
         }
+        static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
+
     }
 }

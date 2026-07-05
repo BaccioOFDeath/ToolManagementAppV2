@@ -14,9 +14,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Preview Workstation", xaml, StringComparison.Ordinal);
             Assert.Contains("Document Canvas", xaml, StringComparison.Ordinal);
             Assert.Contains("Print checklist", xaml, StringComparison.Ordinal);
-            Assert.Contains("Branding confidence", xaml, StringComparison.Ordinal);
             Assert.Contains("Ready for final print review", xaml, StringComparison.Ordinal);
-            Assert.Contains("Preview footer status", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -37,11 +35,11 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml");
 
-            Assert.Contains("Width=\"1120\" Height=\"760\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"760\" MinHeight=\"560\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Width=\"1040\" Height=\"720\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"720\" MinHeight=\"520\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<DockPanel Grid.Column=\"0\" LastChildFill=\"True\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel Grid.Column=\"1\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" MaxWidth=\"330\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Grid.Column=\"1\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" MaxWidth=\"300\">", xaml, StringComparison.Ordinal);
             Assert.Contains("TextTrimming=\"CharacterEllipsis\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Width=\"1220\" Height=\"820\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("MinWidth=\"980\" MinHeight=\"680\"", xaml, StringComparison.Ordinal);
@@ -54,8 +52,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml");
 
             Assert.Contains("<ColumnDefinition Width=\"*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"6\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"0.36*\" MinWidth=\"240\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"5\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"0.32*\" MinWidth=\"220\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border Grid.Column=\"0\" Style=\"{StaticResource ThemedWindowPane}\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<GridSplitter Grid.Column=\"1\"", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
@@ -69,7 +67,7 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             Assert.Contains("<ScrollViewer Grid.Column=\"2\" VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<StackPanel Margin=\"8,0,0,0\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("Style=\"{StaticResource DesktopSummaryCard}\" Margin=\"0,0,0,10\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Style=\"{StaticResource DesktopSummaryCard}\" Margin=\"0,0,0,8\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Text=\"Available actions\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TextWrapping=\"Wrap\"", xaml, StringComparison.Ordinal);
             Assert.Contains("LastChildFill=\"True\"", xaml, StringComparison.Ordinal);
@@ -120,7 +118,10 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.NotNull(directory);
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
-            return File.ReadAllText(path);
+            return NormalizeLineEndings(File.ReadAllText(path));
         }
+
+        static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
     }
 }

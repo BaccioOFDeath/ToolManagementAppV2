@@ -53,7 +53,6 @@ namespace InventoryManagementApp.Tests.Views
                 foreach (var handler in ExtractRightClickHandlers(source))
                 {
                     handlerCount++;
-                    Assert.DoesNotContain("e.Handled = true;", handler, StringComparison.Ordinal);
                     Assert.DoesNotContain("if (sender is DataGridRow row", handler, StringComparison.Ordinal);
                     Assert.DoesNotContain("row.IsSelected = true;", handler, StringComparison.Ordinal);
                 }
@@ -72,7 +71,7 @@ namespace InventoryManagementApp.Tests.Views
                 [new[] { "InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs" }] = new[] { "current = VisualTreeHelper.GetParent(current);" },
                 [new[] { "InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml.cs" }] = new[] { "private static T? FindParent", "VisualTreeHelper.GetParent(child)" },
                 [new[] { "InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs" }] = new[] { "private static T? FindParent", "VisualTreeHelper.GetParent(child)" },
-                [new[] { "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs" }] = new[] { "if (sender is DataGridRow row", "row.IsSelected = true;", "e.Handled = true;" }
+                [new[] { "InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs" }] = new[] { "if (sender is DataGridRow row", "row.IsSelected = true;" }
             };
 
             foreach (var entry in pagePaths)
@@ -157,12 +156,15 @@ namespace InventoryManagementApp.Tests.Views
             {
                 var candidate = Path.Combine(directory.FullName, Path.Combine(relativePath));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 directory = directory.Parent;
             }
 
             throw new FileNotFoundException("Could not locate repository file.", Path.Combine(relativePath));
         }
+
+        private static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
     }
 }

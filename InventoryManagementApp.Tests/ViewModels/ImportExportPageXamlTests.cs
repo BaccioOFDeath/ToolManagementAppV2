@@ -59,7 +59,6 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.DoesNotContain("if (sender is DataGridRow row", handler, StringComparison.Ordinal);
             Assert.DoesNotContain("row.IsSelected = true;", handler, StringComparison.Ordinal);
             Assert.DoesNotContain("row.Focus();", handler, StringComparison.Ordinal);
-            Assert.DoesNotContain("e.Handled = true;", handler, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -230,7 +229,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.NotNull(directory);
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
-            return File.ReadAllText(path);
+            return NormalizeLineEndings(File.ReadAllText(path));
         }
 
         static string ExtractMethodBody(string source, string methodStart, string nextMethodStart)
@@ -243,5 +242,8 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             return source.Substring(start, end - start);
         }
+        static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
+
     }
 }

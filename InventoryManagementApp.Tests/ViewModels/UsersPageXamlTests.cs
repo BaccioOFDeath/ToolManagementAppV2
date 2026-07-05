@@ -29,6 +29,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         public void UsersPage_PreservesDirectoryHooksAndHandoffActions()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
+            var viewModel = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "UserManagementViewModel.cs");
 
             Assert.Contains("UserStatCard", xaml, StringComparison.Ordinal);
             Assert.Contains("DesktopPaneHeader", xaml, StringComparison.Ordinal);
@@ -36,14 +37,15 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("DesktopNoteCard", xaml, StringComparison.Ordinal);
             Assert.Contains("Access And Security Handoff", xaml, StringComparison.Ordinal);
             Assert.Contains("Admin Next Step", xaml, StringComparison.Ordinal);
-            Assert.Contains("No users match this filter", xaml, StringComparison.Ordinal);
+            Assert.Contains("UserEmptyStateTitle", xaml, StringComparison.Ordinal);
+            Assert.Contains("No users match this filter", viewModel, StringComparison.Ordinal);
             Assert.Contains("UserRow_MouseDoubleClick", xaml, StringComparison.Ordinal);
             Assert.Contains("UserRow_PreviewMouseRightButtonDown", xaml, StringComparison.Ordinal);
             Assert.Contains("OpenSelectedUser_Click", xaml, StringComparison.Ordinal);
             Assert.Contains("CopySelectedUser_Click", xaml, StringComparison.Ordinal);
             Assert.Contains("ResetSelectedUser_Click", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintUsers_Click", xaml, StringComparison.Ordinal);
-            Assert.Contains("Admin desk ready", xaml, StringComparison.Ordinal);
+            Assert.Contains("Admin desk ready", viewModel, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -69,7 +71,10 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.NotNull(directory);
             var path = Path.Combine(directory!.FullName, Path.Combine(relativePathParts));
             Assert.True(File.Exists(path), $"Expected repository file at {path}");
-            return File.ReadAllText(path);
+            return NormalizeLineEndings(File.ReadAllText(path));
         }
+        static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
+
     }
 }

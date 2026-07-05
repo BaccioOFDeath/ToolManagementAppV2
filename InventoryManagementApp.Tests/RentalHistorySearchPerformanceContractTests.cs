@@ -43,7 +43,8 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "RentalHistoryViewModel.cs");
 
-            Assert.Contains("public string SearchStatus => IsFiltering", source, StringComparison.Ordinal);
+            Assert.Contains("public string SearchStatus", source, StringComparison.Ordinal);
+            Assert.Contains("if (IsFiltering)", source, StringComparison.Ordinal);
             Assert.Contains("public bool HasActiveSearch => !string.IsNullOrWhiteSpace(AppliedSearchText);", source, StringComparison.Ordinal);
             Assert.Contains("public bool HasNoResults => History.Count == 0;", source, StringComparison.Ordinal);
             Assert.Contains("public bool CanExportHistory => History.Count > 0 && !IsFiltering;", source, StringComparison.Ordinal);
@@ -86,7 +87,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)
@@ -97,5 +98,8 @@ namespace InventoryManagementApp.Tests
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
         }
+
+        private static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
     }
 }
