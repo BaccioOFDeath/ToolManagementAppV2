@@ -107,17 +107,41 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("Task? _loadRentalsTask;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ManageRentalsViewModel? _loadedViewModel;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("int _loadVersion;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("DataContextChanged += ManageRentalsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Unloaded += ManageRentalsPage_Unloaded;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("SearchTextBox.Focus();", codeBehind, StringComparison.Ordinal);
             Assert.Contains("UpdateCompactHeightMode();", codeBehind, StringComparison.Ordinal);
             Assert.Contains("await LoadRentalsOnceAsync(vm);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (ReferenceEquals(_loadedViewModel, vm) && _loadRentalsTask is { IsCompleted: false })", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (ReferenceEquals(_loadedViewModel, vm) && _loadRentalsTask is { IsCompletedSuccessfully: true })", codeBehind, StringComparison.Ordinal);
             Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("if (!ReferenceEquals(DataContext, vm) || vm.IsLoading)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!IsCurrentLoad(vm, loadVersion) || vm.IsLoading)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("_loadRentalsTask = vm.LoadRentalsAsync();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!IsCurrentLoad(vm, loadVersion))\n                    _loadRentalsTask = null;", NormalizeNewlines(codeBehind), StringComparison.Ordinal);
             Assert.Contains("_loadRentalsTask = null;", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("if (!ReferenceEquals(DataContext, vm) || vm.IsLoading)", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("if (DataContext is ManageRentalsViewModel vm && !ReferenceEquals(_loadedViewModel, vm))", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageRentalsPage_InvalidatesStartupLoadsOnUnloadAndDataContextReplacement()
+        {
+            var codeBehind = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs"));
+            var unloadBlock = ExtractSourceBlock(codeBehind, "private void ManageRentalsPage_Unloaded", "private void ManageRentalsPage_DataContextChanged");
+            var dataContextBlock = ExtractSourceBlock(codeBehind, "private void ManageRentalsPage_DataContextChanged", "private async Task LoadRentalsOnceAsync");
+            var loadBlock = ExtractSourceBlock(codeBehind, "private async Task LoadRentalsOnceAsync", "private bool IsCurrentLoad");
+            var currentLoadBlock = ExtractSourceBlock(codeBehind, "private bool IsCurrentLoad", "private void ManageRentalsPage_SizeChanged");
+
+            Assert.Contains("_loadVersion++;", unloadBlock, StringComparison.Ordinal);
+            Assert.Contains("_loadedViewModel = null;", unloadBlock, StringComparison.Ordinal);
+            Assert.Contains("_loadRentalsTask = null;", unloadBlock, StringComparison.Ordinal);
+            Assert.Contains("_loadVersion++;", dataContextBlock, StringComparison.Ordinal);
+            Assert.Contains("var loadVersion = _loadVersion;", loadBlock, StringComparison.Ordinal);
+            Assert.Contains("if (!IsCurrentLoad(vm, loadVersion) || vm.IsLoading)", loadBlock, StringComparison.Ordinal);
+            Assert.Contains("finally", loadBlock, StringComparison.Ordinal);
+            Assert.Contains("if (!IsCurrentLoad(vm, loadVersion))\n                    _loadRentalsTask = null;", loadBlock, StringComparison.Ordinal);
+            Assert.Contains("return loadVersion == _loadVersion && ReferenceEquals(DataContext, vm);", currentLoadBlock, StringComparison.Ordinal);
         }
 
         [Fact]

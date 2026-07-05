@@ -14,11 +14,13 @@ namespace InventoryManagementApp.Views.Pages
         bool _isCompactHeight;
         Task? _loadRentalsTask;
         ManageRentalsViewModel? _loadedViewModel;
+        int _loadVersion;
 
         public ManageRentalsPage()
         {
             InitializeComponent();
             Loaded += ManageRentalsPage_Loaded;
+            Unloaded += ManageRentalsPage_Unloaded;
             DataContextChanged += ManageRentalsPage_DataContextChanged;
             SizeChanged += ManageRentalsPage_SizeChanged;
             PreviewKeyDown += ManageRentalsPage_PreviewKeyDown;
@@ -37,10 +39,18 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
+        private void ManageRentalsPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _loadVersion++;
+            _loadedViewModel = null;
+            _loadRentalsTask = null;
+        }
+
         private void ManageRentalsPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (!ReferenceEquals(e.NewValue, _loadedViewModel))
             {
+                _loadVersion++;
                 _loadedViewModel = null;
                 _loadRentalsTask = null;
             }
@@ -48,6 +58,8 @@ namespace InventoryManagementApp.Views.Pages
 
         private async Task LoadRentalsOnceAsync(ManageRentalsViewModel vm)
         {
+            var loadVersion = _loadVersion;
+
             if (ReferenceEquals(_loadedViewModel, vm) && _loadRentalsTask is { IsCompleted: false })
             {
                 await _loadRentalsTask;
@@ -62,13 +74,26 @@ namespace InventoryManagementApp.Views.Pages
             _loadedViewModel = vm;
             await Dispatcher.Yield(DispatcherPriority.Background);
 
-            if (!ReferenceEquals(DataContext, vm) || vm.IsLoading)
+            if (!IsCurrentLoad(vm, loadVersion) || vm.IsLoading)
             {
                 return;
             }
 
             _loadRentalsTask = vm.LoadRentalsAsync();
-            await _loadRentalsTask;
+            try
+            {
+                await _loadRentalsTask;
+            }
+            finally
+            {
+                if (!IsCurrentLoad(vm, loadVersion))
+                    _loadRentalsTask = null;
+            }
+        }
+
+        private bool IsCurrentLoad(ManageRentalsViewModel vm, int loadVersion)
+        {
+            return loadVersion == _loadVersion && ReferenceEquals(DataContext, vm);
         }
 
         private void ManageRentalsPage_SizeChanged(object sender, SizeChangedEventArgs e)
