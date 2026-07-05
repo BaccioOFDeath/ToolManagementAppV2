@@ -46,9 +46,9 @@
             </Border>
             <Border Style="{StaticResource DesktopSummaryCard}" MinWidth="150" MaxWidth="240" Margin="0,0,8,8">
                 <StackPanel>
-                    <TextBlock Text="Omitted" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding OmittedLogCount}" Style="{StaticResource HeadingTextBlock}"/>
-                    <TextBlock Text="Rows held back for responsiveness" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="More" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding OlderHistoryIndicator}" Style="{StaticResource HeadingTextBlock}"/>
+                    <TextBlock Text="Older rows available" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
         </WrapPanel>
