@@ -538,12 +538,10 @@ namespace InventoryManagementApp.ViewModels
             {
                 var plural = LabelProvider.Instance.ItemLabelPlural;
                 var page = new ManageItemsPage { Title = $"Manage {plural}" };
-                var vm = (ItemsViewModel)page.DataContext;
                 try
                 {
-                    await vm.InitializeAsync();
-                    await vm.LoadMoreAsync();
                     CurrentPage = page;
+                    await Task.Yield();
                 }
                 catch (Exception ex)
                 {

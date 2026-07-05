@@ -167,8 +167,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("button.IsEnabled = isEnabled;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("case MenuItem menuItem:", codeBehind, StringComparison.Ordinal);
             Assert.Contains("menuItem.IsEnabled = isEnabled;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("VisualTreeHelper.GetChildrenCount(parent)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("foreach (var descendant in EnumerateVisualDescendants(child))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("VisualTreeHelper.GetChildrenCount(current)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("pending.Push(child);", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("foreach (var descendant in EnumerateVisualDescendants(child))", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]

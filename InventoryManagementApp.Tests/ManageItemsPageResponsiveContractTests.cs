@@ -131,6 +131,18 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void MainViewModel_NavigatesToManageItemsBeforeDirectoryRowsLoad()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "MainViewModel.cs");
+            var command = ExtractBlock(source, "OpenManageItemsCommand = new AsyncRelayCommand", "OpenRentalsCommand = new AsyncRelayCommand");
+
+            Assert.Contains("CurrentPage = page;", command, StringComparison.Ordinal);
+            Assert.Contains("await Task.Yield();", command, StringComparison.Ordinal);
+            Assert.DoesNotContain("await vm.InitializeAsync();", command, StringComparison.Ordinal);
+            Assert.DoesNotContain("await vm.LoadMoreAsync();", command, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ManageItemsPage_ProvidesKeyboardShortcutsThroughCommandAvailability()
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml.cs");
@@ -177,6 +189,15 @@ namespace InventoryManagementApp.Tests
             }
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
+        }
+
+        private static string ExtractBlock(string source, string start, string end)
+        {
+            var startIndex = source.IndexOf(start, StringComparison.Ordinal);
+            Assert.True(startIndex >= 0, $"Could not find start marker: {start}");
+            var endIndex = source.IndexOf(end, startIndex + start.Length, StringComparison.Ordinal);
+            Assert.True(endIndex > startIndex, $"Could not find end marker: {end}");
+            return source[startIndex..endIndex];
         }
     }
 }
