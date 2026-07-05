@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,11 +14,14 @@ namespace InventoryManagementApp.Views.Pages
     {
         private Task? _loadCustomersTask;
         private CustomerManagementViewModel? _loadedViewModel;
+        private CancellationTokenSource? _loadCustomersCancellation;
+        private int _loadCustomersVersion;
 
         public CustomersPage()
         {
             InitializeComponent();
             Loaded += CustomersPage_Loaded;
+            Unloaded += CustomersPage_Unloaded;
             DataContextChanged += CustomersPage_DataContextChanged;
             PreviewKeyDown += CustomersPage_PreviewKeyDown;
         }
@@ -33,10 +37,16 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
+        private void CustomersPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            CancelPageOwnedLoad();
+        }
+
         private void CustomersPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (!ReferenceEquals(_loadedViewModel, e.NewValue))
             {
+                CancelPageOwnedLoad();
                 _loadedViewModel = null;
                 _loadCustomersTask = null;
             }
@@ -55,16 +65,34 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
+            CancelPageOwnedLoad();
             _loadedViewModel = vm;
+            var loadVersion = ++_loadCustomersVersion;
+            _loadCustomersCancellation = new CancellationTokenSource();
+            var cancellationToken = _loadCustomersCancellation.Token;
+
             await Dispatcher.Yield(DispatcherPriority.Background);
 
-            if (!ReferenceEquals(DataContext, vm) || vm.IsCustomerDirectoryBusy)
+            if (cancellationToken.IsCancellationRequested || loadVersion != _loadCustomersVersion || !ReferenceEquals(DataContext, vm) || vm.IsCustomerDirectoryBusy)
             {
                 return;
             }
 
             _loadCustomersTask = vm.LoadCustomersAsync();
             await _loadCustomersTask;
+
+            if (cancellationToken.IsCancellationRequested || loadVersion != _loadCustomersVersion || !ReferenceEquals(DataContext, vm))
+            {
+                return;
+            }
+        }
+
+        private void CancelPageOwnedLoad()
+        {
+            _loadCustomersVersion++;
+            _loadCustomersCancellation?.Cancel();
+            _loadCustomersCancellation?.Dispose();
+            _loadCustomersCancellation = null;
         }
 
         private void CustomerRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -124,6 +152,20 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R && vm.SearchCustomersCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Customers", async () => await vm.SearchCustomersCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.E && vm.EditCustomerCommand.CanExecute(null))
+            {
+                UiActionGuard.RunAsync(this, "Customers", async () => await vm.EditCustomerCommand.ExecuteAsync(null));
+                e.Handled = true;
+                return;
+            }
+
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P && vm.PrintCustomerDirectoryCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Customers", () => vm.PrintCustomerDirectoryCommand.Execute(null));
@@ -170,7 +212,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (Keyboard.Modifiers == ModifierKeys.Control)
             {
-                return e.Key is Key.N or Key.P or Key.C or Key.D;
+                return e.Key is Key.N or Key.R or Key.E or Key.P or Key.C or Key.D;
             }
 
             if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
