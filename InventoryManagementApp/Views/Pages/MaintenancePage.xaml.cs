@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,11 +15,14 @@ namespace InventoryManagementApp.Views.Pages
     {
         private Task? _loadMaintenanceTask;
         private MaintenanceManagementViewModel? _loadedViewModel;
+        private CancellationTokenSource? _startupLoadCancellation;
+        private int _startupLoadVersion;
 
         public MaintenancePage()
         {
             InitializeComponent();
             Loaded += MaintenancePage_Loaded;
+            Unloaded += MaintenancePage_Unloaded;
             DataContextChanged += MaintenancePage_DataContextChanged;
             PreviewKeyDown += MaintenancePage_PreviewKeyDown;
         }
@@ -33,10 +38,18 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
+        private void MaintenancePage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            CancelStartupLoad();
+            _loadedViewModel = null;
+            _loadMaintenanceTask = null;
+        }
+
         private void MaintenancePage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (!ReferenceEquals(_loadedViewModel, e.NewValue))
             {
+                CancelStartupLoad();
                 _loadedViewModel = null;
                 _loadMaintenanceTask = null;
             }
@@ -55,16 +68,51 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
+            CancelStartupLoad();
+            var cancellation = new CancellationTokenSource();
+            _startupLoadCancellation = cancellation;
+            var token = cancellation.Token;
+            var loadVersion = _startupLoadVersion;
             _loadedViewModel = vm;
-            await Dispatcher.Yield(DispatcherPriority.Background);
 
-            if (!ReferenceEquals(DataContext, vm) || !vm.LoadMaintenanceCommand.CanExecute(null))
+            try
             {
-                return;
-            }
+                await Dispatcher.Yield(DispatcherPriority.Background);
+                token.ThrowIfCancellationRequested();
 
-            _loadMaintenanceTask = vm.LoadMaintenanceCommand.ExecuteAsync(null);
-            await _loadMaintenanceTask;
+                if (loadVersion != _startupLoadVersion || !ReferenceEquals(DataContext, vm) || !vm.LoadMaintenanceCommand.CanExecute(null))
+                {
+                    return;
+                }
+
+                _loadMaintenanceTask = vm.LoadMaintenanceCommand.ExecuteAsync(null);
+                await _loadMaintenanceTask;
+                token.ThrowIfCancellationRequested();
+
+                if (loadVersion != _startupLoadVersion || !ReferenceEquals(DataContext, vm))
+                {
+                    return;
+                }
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested || !IsLoaded || !ReferenceEquals(DataContext, vm))
+            {
+            }
+            finally
+            {
+                if (ReferenceEquals(_startupLoadCancellation, cancellation))
+                {
+                    _startupLoadCancellation.Dispose();
+                    _startupLoadCancellation = null;
+                }
+            }
+        }
+
+        private void CancelStartupLoad()
+        {
+            _startupLoadVersion++;
+            _startupLoadCancellation?.Cancel();
+            _startupLoadCancellation?.Dispose();
+            _startupLoadCancellation = null;
         }
 
         private void MaintenanceRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
