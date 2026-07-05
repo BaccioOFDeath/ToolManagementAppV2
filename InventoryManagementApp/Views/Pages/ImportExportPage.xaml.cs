@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -19,16 +20,73 @@ namespace InventoryManagementApp.Views.Pages
         public ImportExportPage()
         {
             InitializeComponent();
+            PreviewKeyDown += ImportExportPage_PreviewKeyDown;
         }
 
         private void ImportExportLogGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            if (IsDataOperationBusy())
+            {
+                e.Handled = true;
+                return;
+            }
+
+            RetargetLogSelectionFromEvent(e);
             OpenSelectedLog_Click(sender, e);
+            e.Handled = true;
         }
 
         private void ImportExportLogRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (IsDataOperationBusy())
+            {
+                e.Handled = true;
+                return;
+            }
+
             GridContextMenuSelection.SelectRow(sender, e);
+        }
+
+        private void ImportExportPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (IsTextEditingElement(e.OriginalSource))
+                return;
+
+            if (IsDataOperationBusy())
+            {
+                if (IsRunLogShortcut(e))
+                    e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.D && CanReviewSelectedLog())
+            {
+                OpenSelectedLog_Click(sender, e);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C && CanReviewSelectedLog())
+            {
+                CopySelectedLog_Click(sender, e);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P && CanPrintImportExportLogs())
+            {
+                PrintLogs_Click(sender, e);
+                e.Handled = true;
+                return;
+            }
+
+            if (Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete && CanClearImportExportLogs())
+            {
+                if (DataContext is ImportExportViewModel vm)
+                    vm.ClearImportExportLogsCommand.Execute(null);
+
+                e.Handled = true;
+            }
         }
 
         private void OpenSelectedLog_Click(object sender, RoutedEventArgs e)
@@ -93,6 +151,15 @@ namespace InventoryManagementApp.Views.Pages
         private bool IsDataOperationBusy() =>
             DataContext is ImportExportViewModel vm && vm.IsDataOperationBusy;
 
+        private bool CanReviewSelectedLog() =>
+            DataContext is ImportExportViewModel { CanReviewSelectedLog: true };
+
+        private bool CanPrintImportExportLogs() =>
+            DataContext is ImportExportViewModel { CanPrintImportExportLogs: true };
+
+        private bool CanClearImportExportLogs() =>
+            DataContext is ImportExportViewModel vm && vm.ClearImportExportLogsCommand.CanExecute(null);
+
         private void PrintLogs_Click(object sender, RoutedEventArgs e)
         {
             UiActionGuard.Run(this, "Import / Export", () =>
@@ -123,6 +190,43 @@ namespace InventoryManagementApp.Views.Pages
                 var document = BuildPrintDocument(vm.ImportExportLogs.ToList(), vm.LogSummary);
                 new PrintPreviewWindow().ShowPreview(document, "Import / Export Log", "Review the current session's import, export, image, backup, and restore results before staff handoff.");
             });
+        }
+
+        private string RetargetLogSelectionFromEvent(MouseButtonEventArgs e)
+        {
+            var row = FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject);
+            if (row?.Item is string log && !string.IsNullOrWhiteSpace(log))
+            {
+                ImportExportLogGrid.SelectedItem = log;
+                return log;
+            }
+
+            return GetSelectedLogForAction();
+        }
+
+        private static bool IsRunLogShortcut(KeyEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+                return e.Key is Key.C or Key.D or Key.P;
+
+            return Keyboard.Modifiers == ModifierKeys.None && e.Key == Key.Delete;
+        }
+
+        private static bool IsTextEditingElement(object? source) =>
+            source is TextBoxBase or PasswordBox;
+
+        private static T? FindAncestor<T>(DependencyObject? current)
+            where T : DependencyObject
+        {
+            while (current != null)
+            {
+                if (current is T match)
+                    return match;
+
+                current = VisualTreeHelper.GetParent(current);
+            }
+
+            return null;
         }
 
         private static FlowDocument BuildPrintDocument(
