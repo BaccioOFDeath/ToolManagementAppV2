@@ -17,10 +17,12 @@ namespace InventoryManagementApp
     {
         const double CompactShellHeightThreshold = 820;
         const double CompactShellWidthThreshold = 1120;
+        static readonly TimeSpan AutoLogoutInputResetInterval = TimeSpan.FromSeconds(1);
         readonly IDatabaseService? _ownedDb;
         MainViewModel? _mainViewModel;
         bool? _isCompactShellLayout;
         double? _lastAdaptiveResourceScale;
+        DateTime _lastAutoLogoutResetUtc = DateTime.MinValue;
         readonly Dictionary<string, double> _baseAdaptiveDoubleResources = new(StringComparer.Ordinal);
         readonly Dictionary<string, Thickness> _baseAdaptiveThicknessResources = new(StringComparer.Ordinal);
 
@@ -55,9 +57,6 @@ namespace InventoryManagementApp
             {
                 _mainViewModel = vm;
                 _mainViewModel.PropertyChanged += MainViewModel_PropertyChanged;
-                MouseMove += (_, __) => vm.ResetAutoLogoutTimer();
-                KeyDown += (_, __) => vm.ResetAutoLogoutTimer();
-                MouseDown += (_, __) => vm.ResetAutoLogoutTimer();
                 InputManager.Current.PreProcessInput += InputManager_PreProcessInput;
             }
         }
@@ -189,12 +188,31 @@ namespace InventoryManagementApp
 
             if (e.StagingItem.Input is MouseWheelEventArgs wheelArgs && SmoothMouseWheelScroll.TryHandle(wheelArgs))
             {
-                _mainViewModel.ResetAutoLogoutTimer();
+                ResetAutoLogoutTimerForInput(force: false);
                 return;
             }
 
-            if (e.StagingItem.Input is MouseEventArgs or KeyboardEventArgs)
-                _mainViewModel.ResetAutoLogoutTimer();
+            if (e.StagingItem.Input is KeyboardEventArgs or MouseButtonEventArgs)
+            {
+                ResetAutoLogoutTimerForInput(force: true);
+                return;
+            }
+
+            if (e.StagingItem.Input is MouseEventArgs)
+                ResetAutoLogoutTimerForInput(force: false);
+        }
+
+        void ResetAutoLogoutTimerForInput(bool force)
+        {
+            if (_mainViewModel == null)
+                return;
+
+            var now = DateTime.UtcNow;
+            if (!force && now - _lastAutoLogoutResetUtc < AutoLogoutInputResetInterval)
+                return;
+
+            _lastAutoLogoutResetUtc = now;
+            _mainViewModel.ResetAutoLogoutTimer();
         }
 
         void SectionMenuItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
