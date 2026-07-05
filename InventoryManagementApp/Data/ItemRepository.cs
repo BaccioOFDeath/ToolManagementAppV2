@@ -325,10 +325,14 @@ public sealed class ItemRepository : IItemRepository
             var tokens = filter.Search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             for (var i = 0; i < tokens.Length; i++)
             {
-                conditions.Add("(ItemNumber LIKE @ItemNumberPrefix" + i + " COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring" + i + " COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring" + i + " COLLATE NOCASE_NOACCENT OR Notes LIKE @NotesSubstring" + i + " COLLATE NOCASE_NOACCENT OR Keywords LIKE @KeywordsSubstring" + i + " COLLATE NOCASE_NOACCENT)");
+                conditions.Add("(ItemNumber LIKE @ItemNumberPrefix" + i + " COLLATE NOCASE_NOACCENT OR ItemNumber LIKE @ItemNumberSubstring" + i + " COLLATE NOCASE_NOACCENT OR NameDescription LIKE @NameSubstring" + i + " COLLATE NOCASE_NOACCENT OR Location LIKE @LocationSubstring" + i + " COLLATE NOCASE_NOACCENT OR Brand LIKE @BrandSubstring" + i + " COLLATE NOCASE_NOACCENT OR PartNumber LIKE @PartNumberSubstring" + i + " COLLATE NOCASE_NOACCENT OR Supplier LIKE @SupplierSubstring" + i + " COLLATE NOCASE_NOACCENT OR Notes LIKE @NotesSubstring" + i + " COLLATE NOCASE_NOACCENT OR Keywords LIKE @KeywordsSubstring" + i + " COLLATE NOCASE_NOACCENT)");
                 parameters.Add("ItemNumberPrefix" + i, tokens[i] + "%");
                 parameters.Add("ItemNumberSubstring" + i, "%" + tokens[i] + "%");
                 parameters.Add("NameSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("LocationSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("BrandSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("PartNumberSubstring" + i, "%" + tokens[i] + "%");
+                parameters.Add("SupplierSubstring" + i, "%" + tokens[i] + "%");
                 parameters.Add("NotesSubstring" + i, "%" + tokens[i] + "%");
                 parameters.Add("KeywordsSubstring" + i, "%" + tokens[i] + "%");
             }

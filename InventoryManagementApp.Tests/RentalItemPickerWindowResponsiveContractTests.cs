@@ -124,6 +124,21 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void RentalItemPickerWindow_UsesSameStockAvailabilityRuleAsRentalService()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "RentalItemPickerWindow.xaml.cs");
+            var rentalService = ReadRepoFile("InventoryManagementApp", "Services", "Rentals", "RentalService.cs");
+
+            Assert.Contains("bool IsAvailableForRentalPick(ItemModel item)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("item.IsRentalItem", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("!item.IsIncomplete", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("item.QuantityOnHand > 0", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GetAvailableQuantityForExistingItemAsync(conn, tx, itemID)", rentalService, StringComparison.Ordinal);
+            Assert.Contains("if (avail < 1)", rentalService, StringComparison.Ordinal);
+            Assert.DoesNotContain("&& !item.IsCheckedOut", codeBehind, StringComparison.Ordinal);
+        }
+
         private static string ReadRepoFile(params string[] parts)
         {
             var directory = AppContext.BaseDirectory;

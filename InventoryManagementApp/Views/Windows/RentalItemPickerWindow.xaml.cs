@@ -269,7 +269,6 @@ namespace InventoryManagementApp.Views.Windows
             return item.ItemID != _excludedItemId
                 && item.IsRentalItem
                 && !item.IsIncomplete
-                && !item.IsCheckedOut
                 && item.QuantityOnHand > 0;
         }
     }

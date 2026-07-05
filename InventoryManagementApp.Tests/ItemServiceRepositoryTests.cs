@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
+using System.IO;
+using Microsoft.Data.Sqlite;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Data;
@@ -86,5 +89,56 @@ public class ItemServiceRepositoryTests
         Assert.Equal(1, repo.UpdateImageCalls);
         Assert.Equal(5, repo.LastImageItemId);
         Assert.Equal("img.png", repo.LastImagePath);
+    }
+
+    [Theory]
+    [InlineData("bay-7")]
+    [InlineData("dti")]
+    [InlineData("kit-77")]
+    [InlineData("supplier-alpha")]
+    public async Task SearchItemsAsync_FindsRentalItemsByVisibleIdentifierFields(string searchTerm)
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.db");
+        await using var db = new DatabaseService(dbPath);
+        var repository = new ItemRepository(new SqliteConnectionFactory(db.ConnectionString));
+        var service = new ItemService(db, repository);
+
+        await using (var connection = db.CreateConnection())
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = @"
+                INSERT INTO Items (
+                    ItemNumber,
+                    NameDescription,
+                    Location,
+                    Brand,
+                    PartNumber,
+                    Supplier,
+                    AvailableQuantity,
+                    RentedQuantity,
+                    IsRentalItem,
+                    IsCheckedOut,
+                    IsPowered)
+                VALUES (
+                    'A-100',
+                    'Diagnostic interface',
+                    'Bay-7',
+                    'DTI',
+                    'KIT-77',
+                    'Supplier-Alpha',
+                    1,
+                    0,
+                    1,
+                    1,
+                    0);";
+            await command.ExecuteNonQueryAsync();
+        }
+
+        var results = new List<ItemModel>();
+        await foreach (var item in service.SearchItemsAsync(searchTerm, new ItemPage(1, 20), isRentalItem: true))
+            results.Add(item);
+
+        var result = Assert.Single(results);
+        Assert.Equal("A-100", result.ItemNumber);
     }
 }
