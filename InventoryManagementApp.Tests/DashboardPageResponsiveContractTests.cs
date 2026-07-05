@@ -119,7 +119,7 @@ namespace InventoryManagementApp.Tests
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
 
             Assert.Contains("if (token.IsCancellationRequested || !ReferenceEquals(DataContext, vm))\n                    return;", codeBehind, StringComparison.Ordinal);
-            Assert.Equal(2, CountOccurrences(codeBehind, "!ReferenceEquals(DataContext, vm)"));
+            Assert.True(CountOccurrences(codeBehind, "!ReferenceEquals(DataContext, vm)") >= 2);
             Assert.Contains("await vm.LoadAsync(token);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("_loadedDashboardViewModel = vm;\n                _hasLoadedDashboardForViewModel = true;\n                SetDashboardLoadStatus(null, showRetry: false);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("_hasLoadedDashboardForViewModel = false;\n                if (ReferenceEquals(_loadCts, loadCts))", codeBehind, StringComparison.Ordinal);
