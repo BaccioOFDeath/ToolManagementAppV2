@@ -19,6 +19,7 @@ namespace InventoryManagementApp.Views.Pages
         private bool _isLoadingDashboard;
         private DashboardViewModel? _loadedDashboardViewModel;
         private bool _hasLoadedDashboardForViewModel;
+        private bool _isUnloadingDashboard;
 
         public DashboardPage()
         {
@@ -31,6 +32,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void DashboardPage_Loaded(object sender, RoutedEventArgs e)
         {
+            _isUnloadingDashboard = false;
             Focus();
 
             if (DataContext is not DashboardViewModel vm)
@@ -40,7 +42,6 @@ namespace InventoryManagementApp.Views.Pages
                 return;
 
             _loadedDashboardViewModel = vm;
-            _hasLoadedDashboardForViewModel = true;
             await LoadDashboardAsync("Loading dashboard data...");
         }
 
@@ -55,6 +56,9 @@ namespace InventoryManagementApp.Views.Pages
 
         private async void DashboardLoadRetryButton_Click(object sender, RoutedEventArgs e)
         {
+            if (DataContext is DashboardViewModel vm)
+                _loadedDashboardViewModel = vm;
+
             _hasLoadedDashboardForViewModel = false;
             await LoadDashboardAsync("Refreshing dashboard data...");
         }
@@ -68,8 +72,9 @@ namespace InventoryManagementApp.Views.Pages
             SetDashboardInteractiveActionsEnabled(false);
             _loadCts?.Cancel();
             _loadCts?.Dispose();
-            _loadCts = new CancellationTokenSource();
-            var token = _loadCts.Token;
+            var loadCts = new CancellationTokenSource();
+            _loadCts = loadCts;
+            var token = loadCts.Token;
             var previousCursor = Cursor;
 
             SetDashboardLoadStatus(loadingMessage, showRetry: false);
@@ -78,24 +83,45 @@ namespace InventoryManagementApp.Views.Pages
             try
             {
                 await Dispatcher.Yield(DispatcherPriority.Background);
+
+                if (token.IsCancellationRequested || !ReferenceEquals(DataContext, vm))
+                    return;
+
                 await vm.LoadAsync(token);
+
+                if (token.IsCancellationRequested || !ReferenceEquals(DataContext, vm))
+                    return;
+
+                _loadedDashboardViewModel = vm;
+                _hasLoadedDashboardForViewModel = true;
                 SetDashboardLoadStatus(null, showRetry: false);
             }
             catch (OperationCanceledException)
             {
-                if (IsLoaded)
+                if (IsLoaded && !_isUnloadingDashboard && ReferenceEquals(_loadCts, loadCts))
                     SetDashboardLoadStatus("Dashboard refresh was cancelled before it finished.", showRetry: true);
             }
             catch (Exception)
             {
-                SetDashboardLoadStatus("Dashboard data could not be loaded. Check the database connection, then retry.", showRetry: true);
+                _hasLoadedDashboardForViewModel = false;
+                if (ReferenceEquals(_loadCts, loadCts))
+                    SetDashboardLoadStatus("Dashboard data could not be loaded. Check the database connection, then retry.", showRetry: true);
             }
             finally
             {
-                Cursor = previousCursor;
-                _isLoadingDashboard = false;
-                SetDashboardInteractiveActionsEnabled(true);
-                DashboardLoadRetryButton.IsEnabled = DashboardLoadRetryButton.Visibility == Visibility.Visible;
+                if (ReferenceEquals(_loadCts, loadCts))
+                {
+                    Cursor = previousCursor;
+                    _isLoadingDashboard = false;
+                    SetDashboardInteractiveActionsEnabled(true);
+                    DashboardLoadRetryButton.IsEnabled = DashboardLoadRetryButton.Visibility == Visibility.Visible;
+                    _loadCts?.Dispose();
+                    _loadCts = null;
+                }
+                else
+                {
+                    loadCts.Dispose();
+                }
             }
         }
 
@@ -142,6 +168,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void DashboardPage_Unloaded(object sender, RoutedEventArgs e)
         {
+            _isUnloadingDashboard = true;
             _loadCts?.Cancel();
             _loadCts?.Dispose();
             _loadCts = null;

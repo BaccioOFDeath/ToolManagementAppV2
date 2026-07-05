@@ -107,11 +107,48 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("DataContextChanged += DashboardPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ReferenceEquals(_loadedDashboardViewModel, vm) && _hasLoadedDashboardForViewModel", codeBehind, StringComparison.Ordinal);
             Assert.Contains("_loadedDashboardViewModel = vm;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("_hasLoadedDashboardForViewModel = true;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("private void DashboardPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("_loadedDashboardViewModel = e.NewValue as DashboardViewModel;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("_hasLoadedDashboardForViewModel = false;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("DashboardLoadRetryButton_Click", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("_hasLoadedDashboardForViewModel = true;\n            await LoadDashboardAsync(\"Loading dashboard data...\");", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void DashboardPage_MarksStartupLoadCompleteOnlyAfterActiveViewModelFinishes()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
+
+            Assert.Contains("if (token.IsCancellationRequested || !ReferenceEquals(DataContext, vm))\n                    return;", codeBehind, StringComparison.Ordinal);
+            Assert.True(CountOccurrences(codeBehind, "!ReferenceEquals(DataContext, vm)") >= 2);
+            Assert.Contains("await vm.LoadAsync(token);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadedDashboardViewModel = vm;\n                _hasLoadedDashboardForViewModel = true;\n                SetDashboardLoadStatus(null, showRetry: false);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_hasLoadedDashboardForViewModel = false;\n                if (ReferenceEquals(_loadCts, loadCts))", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void DashboardPage_KeepsStaleCancelledLoadsFromReenablingActions()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
+
+            Assert.Contains("var loadCts = new CancellationTokenSource();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadCts = loadCts;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (IsLoaded && !_isUnloadingDashboard && ReferenceEquals(_loadCts, loadCts))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (ReferenceEquals(_loadCts, loadCts))\n                {\n                    Cursor = previousCursor;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("SetDashboardInteractiveActionsEnabled(true);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadCts?.Dispose();\n                    _loadCts = null;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("loadCts.Dispose();", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void DashboardPage_UnloadSuppressesCancelledRetryNoise()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
+
+            Assert.Contains("private bool _isUnloadingDashboard;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_isUnloadingDashboard = false;\n            Focus();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_isUnloadingDashboard = true;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("!_isUnloadingDashboard", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadCts?.Cancel();\n            _loadCts?.Dispose();\n            _loadCts = null;", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
