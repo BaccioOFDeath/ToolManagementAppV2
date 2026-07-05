@@ -102,12 +102,41 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("DataContextChanged += ActivityLogsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Unloaded += ActivityLogsPage_Unloaded;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ReferenceEquals(_loadedViewModel, vm)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ActivitySearchBox.Focus();", codeBehind, StringComparison.Ordinal);
             Assert.Contains("!vm.RefreshCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("DataContext is ActivityLogsViewModel { IsBusy: true }", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (vm.IsBusy)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("vm.PrintStatusText", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsPage_CodeBehindInvalidatesStaleStartupLoads()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+
+            Assert.Contains("private int _loadVersion;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var loadVersion = _loadVersion;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!IsCurrentActivityLoad(vm, loadVersion) || !vm.RefreshCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var loaded = await vm.LoadLogsAsync();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!IsCurrentActivityLoad(vm, loadVersion))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private bool IsCurrentActivityLoad(ActivityLogsViewModel vm, int loadVersion)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return loadVersion == _loadVersion && ReferenceEquals(DataContext, vm);", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsPage_CodeBehindCancelsStaleWorkOnUnloadAndDataContextChange()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+
+            Assert.Contains("private void ActivityLogsPage_Unloaded", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadVersion++;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_hasLoadedLogs = false;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_loadedViewModel = null;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("vm.CancelPendingFilterRefresh();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (e.OldValue is ActivityLogsViewModel oldVm && !ReferenceEquals(oldVm, e.NewValue))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("oldVm.CancelPendingFilterRefresh();", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -158,6 +187,20 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("await Task.Run(() => rows.Where", viewModel, StringComparison.Ordinal);
             Assert.Contains("PreserveActivityLogRowsAfterLoadFailure", viewModel, StringComparison.Ordinal);
             Assert.DoesNotContain("ClearActivityLogRowsAfterLoadFailure", viewModel, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsViewModel_CancelsPendingFilterRefreshWhenPageContextExpires()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
+
+            Assert.Contains("public void CancelPendingFilterRefresh()", viewModel, StringComparison.Ordinal);
+            Assert.Contains("var cts = Interlocked.Exchange(ref _filterRefreshCts, null);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("cts?.Cancel();", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (IsFiltering)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("IsFiltering = false;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("Activity filtering was canceled before rows were loaded.", viewModel, StringComparison.Ordinal);
+            Assert.Contains("NotifyActivityStateChanged();", viewModel, StringComparison.Ordinal);
         }
 
         [Fact]

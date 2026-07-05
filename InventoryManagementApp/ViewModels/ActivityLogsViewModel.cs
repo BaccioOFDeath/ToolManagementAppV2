@@ -298,6 +298,21 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        public void CancelPendingFilterRefresh()
+        {
+            var cts = Interlocked.Exchange(ref _filterRefreshCts, null);
+            cts?.Cancel();
+
+            if (IsFiltering)
+            {
+                IsFiltering = false;
+                StatusMessage = Logs.Count == 0
+                    ? "Activity filtering was canceled before rows were loaded."
+                    : $"{FilteredLogs.Count} visible activity row(s).";
+                NotifyActivityStateChanged();
+            }
+        }
+
         private void PreserveActivityLogRowsAfterLoadFailure(string message)
         {
             if (Logs.Count == 0)
