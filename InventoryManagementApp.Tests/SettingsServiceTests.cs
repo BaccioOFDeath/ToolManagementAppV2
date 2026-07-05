@@ -97,11 +97,11 @@ public class SettingsServiceTests
         await using var db = new DatabaseService(dbPath);
         var service = new SettingsService(db);
 
-        await service.SaveItemLabelSingularAsync("  Tool  ");
-        await service.SaveItemLabelPluralAsync("  Tools  ");
+        await service.SaveItemLabelSingularAsync("  Asset  ");
+        await service.SaveItemLabelPluralAsync("  Assets  ");
 
-        Assert.Equal("Tool", await service.GetItemLabelSingularAsync());
-        Assert.Equal("Tools", await service.GetItemLabelPluralAsync());
+        Assert.Equal("Asset", await service.GetItemLabelSingularAsync());
+        Assert.Equal("Assets", await service.GetItemLabelPluralAsync());
 
         await service.SaveItemLabelSingularAsync("   ");
         await service.SaveItemLabelPluralAsync("\t");

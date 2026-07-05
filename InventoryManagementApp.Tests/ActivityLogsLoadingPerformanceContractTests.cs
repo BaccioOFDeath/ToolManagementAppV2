@@ -28,12 +28,20 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
 
             Assert.Contains("private bool _hasLoadedLogs;", source, StringComparison.Ordinal);
+            Assert.Contains("private int _loadVersion;", source, StringComparison.Ordinal);
             Assert.Contains("private ActivityLogsViewModel? _loadedViewModel;", source, StringComparison.Ordinal);
             Assert.Contains("if (DataContext is not ActivityLogsViewModel vm)", source, StringComparison.Ordinal);
             Assert.Contains("if (_hasLoadedLogs && ReferenceEquals(_loadedViewModel, vm))", source, StringComparison.Ordinal);
+            Assert.Contains("if (!vm.RefreshCommand.CanExecute(null))", source, StringComparison.Ordinal);
+            Assert.Contains("var loadVersion = _loadVersion;", source, StringComparison.Ordinal);
             Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", source, StringComparison.Ordinal);
-            Assert.Contains("_hasLoadedLogs = await vm.LoadLogsAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("if (!IsCurrentActivityLoad(vm, loadVersion) || !vm.RefreshCommand.CanExecute(null))", source, StringComparison.Ordinal);
+            Assert.Contains("var loaded = await vm.LoadLogsAsync();", source, StringComparison.Ordinal);
+            Assert.Contains("if (!IsCurrentActivityLoad(vm, loadVersion))", source, StringComparison.Ordinal);
+            Assert.Contains("_hasLoadedLogs = loaded;", source, StringComparison.Ordinal);
             Assert.Contains("ActivityLogsPage_DataContextChanged", source, StringComparison.Ordinal);
+            Assert.Contains("ActivityLogsPage_Unloaded", source, StringComparison.Ordinal);
+            Assert.Contains("private bool IsCurrentActivityLoad(ActivityLogsViewModel vm, int loadVersion)", source, StringComparison.Ordinal);
             Assert.Contains("private async void RefreshLogs_Click", source, StringComparison.Ordinal);
             Assert.Contains("await vm.LoadLogsAsync();", source, StringComparison.Ordinal);
             Assert.DoesNotContain("Loaded += async", source, StringComparison.Ordinal);

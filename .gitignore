@@ -138,14 +138,14 @@ _ReSharper*/
 # TeamCity is a build add-in
 _TeamCity*
 
-# DotCover is a Code Coverage Tool
+# DotCover is a code coverage utility
 *.dotCover
 
-# AxoCover is a Code Coverage Tool
+# AxoCover is a code coverage utility
 .axoCover/*
 !.axoCover/settings.json
 
-# Coverlet is a free, cross platform Code Coverage Tool
+# Coverlet is a free, cross platform code coverage utility
 coverage*.json
 coverage*.xml
 coverage*.info
@@ -353,7 +353,7 @@ ASALocalRun/
 # NVidia Nsight GPU debugger configuration file
 *.nvuser
 
-# MFractors (Xamarin productivity tool) working folder
+# MFractors (Xamarin productivity add-in) working folder
 .mfractor/
 
 # Local History for Visual Studio
@@ -362,7 +362,7 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
-# Backup folder for Package Reference Convert tool in Visual Studio 2017
+# Backup folder for Package Reference Convert utility in Visual Studio 2017
 MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder

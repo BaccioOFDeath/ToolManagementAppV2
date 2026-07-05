@@ -26,8 +26,8 @@ instructions: |
   9. Merge only when the merge gate below passes.
 
   PRODUCT DIRECTION
-  Build features that naturally progress a professional tool crib/workshop inventory app:
-  - Tool inventory and item lifecycle
+  Build features that naturally progress a professional workshop inventory app:
+  - Item inventory and item lifecycle
   - Check-in/check-out workflows
   - Staff/customer assignment
   - Reservations and conflict detection
