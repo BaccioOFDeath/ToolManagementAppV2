@@ -196,13 +196,28 @@ namespace InventoryManagementApp.Tests
 
             Assert.True(CountOccurrences(codeBehind, "if (_isLoadingDashboard)") >= 7);
             Assert.True(CountOccurrences(codeBehind, "e.Handled = true;\n                return;") >= 7);
-            Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedCommonItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedCheckedOutItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedRentalCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenActivityDestinationCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("DataContext is not DashboardViewModel vm || !vm.OpenSelectedIncompleteItemCommand.CanExecute(null)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is not DashboardViewModel vm)\n                return;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private static T? SelectInvokedDashboardRow<T>(object sender, MouseButtonEventArgs e) where T : class", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.FindAncestor<DataGridRow>(e.OriginalSource as DependencyObject)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("grid.SelectedItem = item;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("private void DashboardGrid_PreviewMouseRightButtonDown", codeBehind, StringComparison.Ordinal);
             Assert.Contains("GridContextMenuSelection.SelectRow(sender, e)", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void DashboardPage_RetargetsInvokedDoubleClickRowsBeforeOpeningWorkflows()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
+
+            Assert.Contains("var item = SelectInvokedDashboardRow<ItemModel>(sender, e);\n            if (item != null)\n                vm.SelectedCommonlyUsedItem = item;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var item = SelectInvokedDashboardRow<ItemModel>(sender, e);\n            if (item != null)\n                vm.SelectedCheckedOutItem = item;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var rental = SelectInvokedDashboardRow<RentalModel>(sender, e);\n            if (rental != null)\n                vm.SelectedRental = rental;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var activity = SelectInvokedDashboardRow<ActivityLog>(sender, e);\n            if (activity != null)\n                vm.SelectedActivity = activity;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var item = SelectInvokedDashboardRow<ItemModel>(sender, e);\n            if (item != null)\n                vm.SelectedIncompleteItem = item;", codeBehind, StringComparison.Ordinal);
+            Assert.True(CountOccurrences(codeBehind, "e.Handled = true;") >= 13);
+            Assert.True(CountOccurrences(codeBehind, "e.Handled = item != null;") >= 3);
+            Assert.Contains("e.Handled = rental != null;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = activity != null;", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
