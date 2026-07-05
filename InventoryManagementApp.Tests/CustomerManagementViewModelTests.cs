@@ -5,8 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using InventoryManagementApp.Interfaces;
-using InventoryManagementApp.ViewModels;
 using InventoryManagementApp.Models.ImportExport;
+using InventoryManagementApp.ViewModels;
 using Xunit;
 
 namespace InventoryManagementApp.Tests
@@ -102,7 +102,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public async Task LoadCustomersAsync_WhenRefreshFails_ClearsStaleRowsSelectionAndExplainsState()
+        public async Task LoadCustomersAsync_WhenRefreshFails_PreservesRowsSelectionAndExplainsState()
         {
             var service = new StubCustomerService();
             service.Customers.Add(new CustomerModel { CustomerID = 1, Company = "Alpha", Contact = "Alex" });
@@ -115,21 +115,21 @@ namespace InventoryManagementApp.Tests
             service.ThrowOnGetAllCustomers = true;
             await vm.LoadCustomersAsync();
 
-            Assert.Empty(vm.Customers);
-            Assert.Null(vm.SelectedCustomer);
-            Assert.Equal("0 customers shown", vm.CustomerResultsSummary);
+            Assert.Single(vm.Customers);
+            Assert.Equal(1, vm.SelectedCustomer?.CustomerID);
+            Assert.Equal("1 customer shown", vm.CustomerResultsSummary);
             Assert.Equal("Showing all customers", vm.CustomerFilterStatus);
-            Assert.Equal("No printable customer rows yet", vm.CustomerPrintSummary);
-            Assert.Equal(string.Empty, vm.NewCustomerName);
-            Assert.False(vm.UpdateCustomerCommand.CanExecute(null));
-            Assert.False(vm.PrintSelectedCustomerCommand.CanExecute(null));
-            Assert.False(vm.PrintCustomerDirectoryCommand.CanExecute(null));
+            Assert.Contains("1 visible customer ready", vm.CustomerPrintSummary);
+            Assert.Equal("Alpha", vm.NewCustomerName);
+            Assert.True(vm.UpdateCustomerCommand.CanExecute(null));
+            Assert.True(vm.PrintSelectedCustomerCommand.CanExecute(null));
+            Assert.True(vm.PrintCustomerDirectoryCommand.CanExecute(null));
             Assert.Equal("Customer Load Failed", dialog.LastInfoTitle);
-            Assert.Contains("Customer rows were cleared until reload succeeds.", dialog.LastInfoMessage);
+            Assert.Contains("Existing customer rows were kept when available", dialog.LastInfoMessage);
         }
 
         [Fact]
-        public async Task SearchCustomersCommand_WhenRefreshFails_ClearsStaleRowsSelectionAndExplainsState()
+        public async Task SearchCustomersCommand_WhenRefreshFails_PreservesRowsSelectionAndExplainsState()
         {
             var service = new StubCustomerService();
             service.Customers.Add(new CustomerModel { CustomerID = 1, Company = "Alpha", Contact = "Alex" });
@@ -137,20 +137,21 @@ namespace InventoryManagementApp.Tests
             var dialog = new StubDialogService();
             var vm = new CustomerManagementViewModel(service, dialog);
             await vm.LoadCustomersAsync();
+            vm.SelectedCustomer = vm.Customers.First(c => c.CustomerID == 2);
             vm.CustomerSearchTerm = "Alpha";
 
             service.ThrowOnSearchCustomers = true;
             await vm.SearchCustomersCommand.ExecuteAsync(null);
 
-            Assert.Empty(vm.Customers);
-            Assert.Null(vm.SelectedCustomer);
-            Assert.Equal("0 customers shown for \"Alpha\"", vm.CustomerResultsSummary);
+            Assert.Equal(2, vm.Customers.Count);
+            Assert.Equal(2, vm.SelectedCustomer?.CustomerID);
+            Assert.Equal("2 customers shown for \"Alpha\"", vm.CustomerResultsSummary);
             Assert.Equal("Filtered by \"Alpha\"", vm.CustomerFilterStatus);
-            Assert.False(vm.OpenCustomerDetailsCommand.CanExecute(null));
-            Assert.False(vm.CopySelectedCustomerCommand.CanExecute(null));
-            Assert.False(vm.PrintCustomerDirectoryCommand.CanExecute(null));
+            Assert.True(vm.OpenCustomerDetailsCommand.CanExecute(null));
+            Assert.True(vm.CopySelectedCustomerCommand.CanExecute(null));
+            Assert.True(vm.PrintCustomerDirectoryCommand.CanExecute(null));
             Assert.Equal("Customer Search Failed", dialog.LastInfoTitle);
-            Assert.Contains("Customer rows were cleared until reload succeeds.", dialog.LastInfoMessage);
+            Assert.Contains("Existing customer rows were kept when available", dialog.LastInfoMessage);
         }
 
         [Fact]
@@ -247,6 +248,7 @@ namespace InventoryManagementApp.Tests
                     ? Task.FromException(new InvalidOperationException("add handoff failed"))
                     : Task.CompletedTask;
             }
+
             public Task UpdateCustomerAsync(CustomerModel customer, CancellationToken cancellationToken = default)
             {
                 var idx = Customers.FindIndex(c => c.CustomerID == customer.CustomerID);
@@ -256,6 +258,7 @@ namespace InventoryManagementApp.Tests
                     ? Task.FromException(new InvalidOperationException("update handoff failed"))
                     : Task.CompletedTask;
             }
+
             public Task DeleteCustomerAsync(int customerID, CancellationToken cancellationToken = default)
             {
                 Customers.RemoveAll(c => c.CustomerID == customerID);
@@ -263,8 +266,10 @@ namespace InventoryManagementApp.Tests
                     ? Task.FromException(new InvalidOperationException("delete handoff failed"))
                     : Task.CompletedTask;
             }
+
             public Task<CustomerModel?> GetCustomerByIDAsync(int customerID, CancellationToken cancellationToken = default)
                 => Task.FromResult<CustomerModel?>(Customers.First(c => c.CustomerID == customerID));
+
             public Task<List<CustomerModel>> GetAllCustomersAsync(CancellationToken cancellationToken = default)
             {
                 if (ThrowOnGetAllCustomers)
@@ -272,8 +277,10 @@ namespace InventoryManagementApp.Tests
 
                 return Task.FromResult(Customers.ToList());
             }
+
             public Task<int> CountCustomersAsync(CancellationToken cancellationToken = default)
                 => Task.FromResult(Customers.Count);
+
             public Task<List<CustomerModel>> SearchCustomersAsync(string searchTerm, CancellationToken cancellationToken = default)
             {
                 SearchCustomersCallCount++;
@@ -290,12 +297,16 @@ namespace InventoryManagementApp.Tests
                     Contains(c.Mobile, searchTerm) ||
                     Contains(c.Address, searchTerm)).ToList());
             }
+
             public Task<CustomerImportResult> ImportCustomersFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken = default)
                 => Task.FromResult(new CustomerImportResult());
+
             public Task ExportCustomersToCsvAsync(string filePath, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
+
             public Task<int> ImportCustomersAsync(string filePath, IDataImporter<CustomerModel> importer, CancellationToken cancellationToken = default)
                 => Task.FromResult(0);
+
             public Task ExportCustomersAsync(string filePath, IDataExporter<CustomerModel> exporter, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
 
@@ -312,17 +323,20 @@ namespace InventoryManagementApp.Tests
             public FlowDocument? LastPrintPreviewDocument { get; private set; }
             public string? LastPrintPreviewTitle { get; private set; }
             public string? LastPrintPreviewDescription { get; private set; }
+
             public void ShowInfo(string message, string title)
             {
                 LastInfoMessage = message;
                 LastInfoTitle = title;
             }
+
             public Task ShowInfoAsync(string message, string title)
             {
                 LastInfoMessage = message;
                 LastInfoTitle = title;
                 return Task.CompletedTask;
             }
+
             public bool ShowConfirmation(string message, string title) => true;
             public Task<bool> ShowConfirmationAsync(string message, string title) => Task.FromResult(true);
             public ItemModel? ShowEditItemDialog(ItemModel item) => null;
@@ -335,12 +349,14 @@ namespace InventoryManagementApp.Tests
             public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
             public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
             public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
+
             public void ShowPrintPreview(FlowDocument document, string title, string description)
             {
                 LastPrintPreviewDocument = document;
                 LastPrintPreviewTitle = title;
                 LastPrintPreviewDescription = description;
             }
+
             public void ShowPrintLabelDialog() { }
         }
     }
