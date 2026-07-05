@@ -10,9 +10,12 @@ namespace InventoryManagementApp.Tests
         public void ItemDetailsWindow_UsesScaledDesktopSafeWindowSizing()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "ItemDetailsWindow.xaml");
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "ItemDetailsWindow.xaml.cs");
 
             Assert.Contains("Width=\"880\" Height=\"760\" MinWidth=\"700\" MinHeight=\"560\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("this.UseResponsiveDefaultSize(880, 760);", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("Width=\"920\" Height=\"820\" MinWidth=\"780\" MinHeight=\"620\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("UseResponsiveDefaultSize(920, 820)", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -91,6 +94,22 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("OpenCheckoutHistoryCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("OpenRentalHistoryCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("CloseCommand", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ItemDetailsViewModel_RoutesCheckoutHistoryToStructuredDialog()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemDetailsViewModel.cs");
+            var dialogService = ReadRepoFile("InventoryManagementApp", "Services", "DialogService.cs");
+            var dialogInterface = ReadRepoFile("InventoryManagementApp", "Interfaces", "IDialogService.cs");
+
+            Assert.Contains("_dialogService.ShowCheckoutHistory(ItemModel, logs);", viewModel, StringComparison.Ordinal);
+            Assert.DoesNotContain("string.Join(Environment.NewLine, lines)", viewModel, StringComparison.Ordinal);
+            Assert.DoesNotContain("Select(log => $\"{log.Timestamp:yyyy-MM-dd HH:mm} -", viewModel, StringComparison.Ordinal);
+            Assert.Contains("void ShowCheckoutHistory(ItemModel item, IEnumerable<ActivityLog> logs)", dialogInterface, StringComparison.Ordinal);
+            Assert.Contains("public void ShowCheckoutHistory(ItemModel item, IEnumerable<ActivityLog> logs)", dialogService, StringComparison.Ordinal);
+            Assert.Contains("new CheckoutHistoryWindow(item, logs)", dialogService, StringComparison.Ordinal);
+            Assert.Contains("InvokeOnDispatcher(() => ShowCheckoutHistoryCore(item, logs));", dialogService, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)
