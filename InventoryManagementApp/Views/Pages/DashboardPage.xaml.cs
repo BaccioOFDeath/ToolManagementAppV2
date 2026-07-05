@@ -28,6 +28,7 @@ namespace InventoryManagementApp.Views.Pages
             Unloaded += DashboardPage_Unloaded;
             DataContextChanged += DashboardPage_DataContextChanged;
             PreviewKeyDown += DashboardPage_PreviewKeyDown;
+            AddHandler(ContextMenuService.ContextMenuOpeningEvent, new ContextMenuEventHandler(DashboardPage_ContextMenuOpening), true);
         }
 
         private async void DashboardPage_Loaded(object sender, RoutedEventArgs e)
@@ -155,14 +156,20 @@ namespace InventoryManagementApp.Views.Pages
 
         private static IEnumerable<DependencyObject> EnumerateVisualDescendants(DependencyObject parent)
         {
-            var childCount = VisualTreeHelper.GetChildrenCount(parent);
-            for (var index = 0; index < childCount; index++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, index);
-                yield return child;
+            var pending = new Stack<DependencyObject>();
+            pending.Push(parent);
 
-                foreach (var descendant in EnumerateVisualDescendants(child))
-                    yield return descendant;
+            while (pending.Count > 0)
+            {
+                var current = pending.Pop();
+                var childCount = VisualTreeHelper.GetChildrenCount(current);
+
+                for (var index = childCount - 1; index >= 0; index--)
+                {
+                    var child = VisualTreeHelper.GetChild(current, index);
+                    pending.Push(child);
+                    yield return child;
+                }
             }
         }
 
@@ -174,7 +181,16 @@ namespace InventoryManagementApp.Views.Pages
             _loadCts = null;
             _isLoadingDashboard = false;
             SetDashboardInteractiveActionsEnabled(true);
+            SetDashboardLoadStatus(null, showRetry: false);
             Cursor = null;
+        }
+
+        private void DashboardPage_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (_isLoadingDashboard)
+            {
+                e.Handled = true;
+            }
         }
 
         private void DashboardPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
