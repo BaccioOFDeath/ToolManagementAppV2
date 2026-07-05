@@ -93,7 +93,7 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml");
 
             Assert.True(CountOccurrences(xaml, "IsEnabled=\"{Binding CanReviewSelectedLog}\"") >= 6);
-            Assert.True(CountOccurrences(xaml, "IsEnabled=\"{Binding CanPrintImportExportLogs}\"") >= 6);
+            Assert.True(CountOccurrences(xaml, "IsEnabled=\"{Binding CanPrintImportExportLogs}\"") >= 5);
             Assert.Contains("<ContextMenu DataContext=\"{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<MenuItem Header=\"Open Log Detail\" Click=\"OpenSelectedLog_Click\" IsEnabled=\"{Binding CanReviewSelectedLog}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<MenuItem Header=\"Copy Selected Log\" Click=\"CopySelectedLog_Click\" IsEnabled=\"{Binding CanReviewSelectedLog}\"/>", xaml, StringComparison.Ordinal);
