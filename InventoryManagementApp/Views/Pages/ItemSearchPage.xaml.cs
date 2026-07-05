@@ -5,8 +5,10 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
@@ -38,6 +40,8 @@ namespace InventoryManagementApp.Views.Pages
             UnavailableDemandGrid.ItemsSource = _unavailableDemand;
             ResultsGrid.PreviewMouseRightButtonDown += ItemGrid_PreviewMouseRightButtonDown;
             CheckedOutGrid.PreviewMouseRightButtonDown += ItemGrid_PreviewMouseRightButtonDown;
+            RecentSearchGrid.PreviewMouseRightButtonDown += SearchIntelligenceGrid_PreviewMouseRightButtonDown;
+            UnavailableDemandGrid.PreviewMouseRightButtonDown += SearchIntelligenceGrid_PreviewMouseRightButtonDown;
             DataContextChanged += ItemSearchPage_DataContextChanged;
             PreviewKeyDown += ItemSearchPage_PreviewKeyDown;
             UpdateSearchIntelligenceSummary();
@@ -46,7 +50,7 @@ namespace InventoryManagementApp.Views.Pages
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateState();
-            Focus();
+            FocusFirstSearchBox();
             if (DataContext is not ItemManagementViewModel vm)
                 return;
 
@@ -103,17 +107,23 @@ namespace InventoryManagementApp.Views.Pages
 
         private void ItemGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is not ItemManagementViewModel vm || sender is not WpfDataGrid grid || grid.SelectedItem is not ItemModel item)
+            if (DataContext is not ItemManagementViewModel vm || sender is not WpfDataGrid grid)
                 return;
 
             if (IsSearchBusy(vm))
             {
+                e.Handled = true;
                 ShowBusyInfo("Wait for the item search to finish before opening item details.");
                 return;
             }
 
+            var item = SelectInvokedItem(grid, e) ?? grid.SelectedItem as ItemModel;
+            if (item == null)
+                return;
+
             vm.SelectedItem = item;
             UiActionGuard.Run(this, "Item Search", () => OpenSelectedItemDetails(vm));
+            e.Handled = true;
         }
 
         private void ItemGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -137,9 +147,30 @@ namespace InventoryManagementApp.Views.Pages
                 rowVm.SelectedItem = item;
         }
 
+        private void SearchIntelligenceGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is ItemManagementViewModel vm && IsSearchBusy(vm))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            GridContextMenuSelection.SelectRow(sender, e);
+        }
+
         private void ItemSearchPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (DataContext is not ItemManagementViewModel vm)
+                return;
+
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F)
+            {
+                FocusFirstSearchBox();
+                e.Handled = true;
+                return;
+            }
+
+            if (IsTextEditingTarget(e.OriginalSource))
                 return;
 
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.P)
@@ -327,7 +358,15 @@ namespace InventoryManagementApp.Views.Pages
 
         private void RecentSearchGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            RepeatSearch(RecentSearchGrid.SelectedItem as SearchHistoryEntry);
+            if (DataContext is ItemManagementViewModel vm && IsSearchBusy(vm))
+            {
+                e.Handled = true;
+                ShowBusyInfo("Wait for the current search to finish before repeating another search.");
+                return;
+            }
+
+            RepeatSearch(SelectInvokedSearchHistory(e) ?? RecentSearchGrid.SelectedItem as SearchHistoryEntry);
+            e.Handled = true;
         }
 
         private void RepeatSearch(SearchHistoryEntry? entry)
@@ -355,7 +394,15 @@ namespace InventoryManagementApp.Views.Pages
 
         private void UnavailableDemandGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            OpenDemandItem(UnavailableDemandGrid.SelectedItem as UnavailableDemandEntry);
+            if (DataContext is ItemManagementViewModel vm && IsSearchBusy(vm))
+            {
+                e.Handled = true;
+                ShowBusyInfo("Wait for the item search to finish before opening unavailable-demand details.");
+                return;
+            }
+
+            OpenDemandItem(SelectInvokedDemand(e) ?? UnavailableDemandGrid.SelectedItem as UnavailableDemandEntry);
+            e.Handled = true;
         }
 
         private void OpenDemandItem(UnavailableDemandEntry? entry)
@@ -723,6 +770,88 @@ namespace InventoryManagementApp.Views.Pages
         private void ShowBusyInfo(string message)
         {
             ShowInfo(message, "Item Search");
+        }
+
+        private void FocusFirstSearchBox()
+        {
+            var searchBox = FindVisualChild<TextBox>(this);
+            if (searchBox == null)
+            {
+                Focus();
+                return;
+            }
+
+            searchBox.Focus();
+            searchBox.SelectAll();
+        }
+
+        private static ItemModel? SelectInvokedItem(WpfDataGrid grid, MouseButtonEventArgs e)
+        {
+            var row = FindVisualParent<DataGridRow>(e.OriginalSource as DependencyObject);
+            if (row?.Item is not ItemModel item)
+                return null;
+
+            grid.SelectedItem = item;
+            return item;
+        }
+
+        private SearchHistoryEntry? SelectInvokedSearchHistory(MouseButtonEventArgs e)
+        {
+            var row = FindVisualParent<DataGridRow>(e.OriginalSource as DependencyObject);
+            if (row?.Item is not SearchHistoryEntry entry)
+                return null;
+
+            RecentSearchGrid.SelectedItem = entry;
+            return entry;
+        }
+
+        private UnavailableDemandEntry? SelectInvokedDemand(MouseButtonEventArgs e)
+        {
+            var row = FindVisualParent<DataGridRow>(e.OriginalSource as DependencyObject);
+            if (row?.Item is not UnavailableDemandEntry entry)
+                return null;
+
+            UnavailableDemandGrid.SelectedItem = entry;
+            return entry;
+        }
+
+        private static bool IsTextEditingTarget(object source)
+        {
+            if (source is not DependencyObject dependencyObject)
+                return false;
+
+            return FindVisualParent<TextBoxBase>(dependencyObject) != null
+                || FindVisualParent<PasswordBox>(dependencyObject) != null
+                || FindVisualParent<ComboBox>(dependencyObject) != null;
+        }
+
+        private static T? FindVisualParent<T>(DependencyObject? current) where T : DependencyObject
+        {
+            while (current != null)
+            {
+                if (current is T match)
+                    return match;
+
+                current = VisualTreeHelper.GetParent(current);
+            }
+
+            return null;
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, index);
+                if (child is T match)
+                    return match;
+
+                var descendant = FindVisualChild<T>(child);
+                if (descendant != null)
+                    return descendant;
+            }
+
+            return null;
         }
 
         private static bool IsSearchBusy(ItemManagementViewModel vm)
