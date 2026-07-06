@@ -200,6 +200,40 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("var nested = FindVisualChild<T>(child);", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void SettingsPage_CodeBehindAddsCtrlFFocusForActiveTabEditableFields()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml.cs");
+
+            Assert.Contains("PreviewKeyDown += SettingsPage_PreviewKeyDown;", source, StringComparison.Ordinal);
+            Assert.Contains("private void SettingsPage_PreviewKeyDown(object sender, KeyEventArgs e)", source, StringComparison.Ordinal);
+            Assert.Contains("e.Key != Key.F || (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control", source, StringComparison.Ordinal);
+            Assert.Contains("var target = FindFirstEditableTextBoxInActiveTab() ?? FindFirstEditableTextBox(this);", source, StringComparison.Ordinal);
+            Assert.Contains("target.Focus();", source, StringComparison.Ordinal);
+            Assert.Contains("target.SelectAll();", source, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", source, StringComparison.Ordinal);
+            Assert.Contains("private TextBox? FindFirstEditableTextBoxInActiveTab()", source, StringComparison.Ordinal);
+            Assert.Contains("tabControl?.SelectedContent is DependencyObject selectedContent", source, StringComparison.Ordinal);
+            Assert.Contains("tabControl?.SelectedItem is TabItem { Content: DependencyObject selectedTabContent }", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void SettingsPage_CodeBehindFiltersFocusTargetsWithoutRecursiveTraversal()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml.cs");
+
+            Assert.Contains("private static TextBox? FindFirstEditableTextBox(DependencyObject parent)", source, StringComparison.Ordinal);
+            Assert.Contains("var pending = new Stack<DependencyObject>();", source, StringComparison.Ordinal);
+            Assert.Contains("if (current is TextBox textBox && IsUsableFocusTarget(textBox))", source, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsUsableFocusTarget(TextBox textBox)", source, StringComparison.Ordinal);
+            Assert.Contains("textBox.IsVisible", source, StringComparison.Ordinal);
+            Assert.Contains("textBox.IsEnabled", source, StringComparison.Ordinal);
+            Assert.Contains("!textBox.IsReadOnly", source, StringComparison.Ordinal);
+            Assert.Contains("textBox.Focusable", source, StringComparison.Ordinal);
+            Assert.Contains("pending.Push(VisualTreeHelper.GetChild(current, i));", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("FindFirstEditableTextBox(child)", source, StringComparison.Ordinal);
+        }
+
         private static int CountOccurrences(string text, string value)
         {
             var count = 0;
