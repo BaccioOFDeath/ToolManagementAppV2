@@ -205,6 +205,12 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
+            if (vm.IsLoading && IsTextEditingElement(e.OriginalSource) && e.Key is not Key.Tab and not Key.Escape)
+            {
+                e.Handled = true;
+                return;
+            }
+
             if (IsTextEditingElement(e.OriginalSource) && IsRentalActionShortcut(e))
                 return;
 
