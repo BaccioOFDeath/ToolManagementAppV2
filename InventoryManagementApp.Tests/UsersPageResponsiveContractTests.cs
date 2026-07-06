@@ -72,6 +72,7 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("UserDirectoryStatusText", xaml, StringComparison.Ordinal);
             Assert.Contains("UserFilterStatusText", xaml, StringComparison.Ordinal);
+            Assert.Contains("UserWindowStatusText", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedAccessStatusText", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedSecurityStatusText", xaml, StringComparison.Ordinal);
             Assert.Contains("UserEmptyStateTitle", xaml, StringComparison.Ordinal);
@@ -80,6 +81,42 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("CanUseUserActions", xaml, StringComparison.Ordinal);
             Assert.Contains("CanUseSelectedUserActions", xaml, StringComparison.Ordinal);
             Assert.Contains("CanPrintUsers", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void UsersPage_ViewModelCapsLiveDirectoryRowsAndReportsOmittedMatches()
+        {
+            var code = ReadRepoFile("InventoryManagementApp", "ViewModels", "UserManagementViewModel.cs");
+
+            Assert.Contains("public const int MaxVisibleUserRows = 500;", code, StringComparison.Ordinal);
+            Assert.Contains("public int MatchedUserCount => _matchedUserCount;", code, StringComparison.Ordinal);
+            Assert.Contains("public int OmittedUserCount => Math.Max(0, MatchedUserCount - VisibleUserCount);", code, StringComparison.Ordinal);
+            Assert.Contains("public bool IsUserWindowLimited => OmittedUserCount > 0;", code, StringComparison.Ordinal);
+            Assert.Contains("var visibleUsers = matchedUsers.Take(MaxVisibleUserRows).ToList();", code, StringComparison.Ordinal);
+            Assert.Contains("if (!AreSameVisibleRows(visibleUsers))", code, StringComparison.Ordinal);
+            Assert.Contains("Users.ReplaceRange(visibleUsers);", code, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(MatchedUserCount));", code, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(OmittedUserCount));", code, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(UserWindowStatusText));", code, StringComparison.Ordinal);
+            Assert.DoesNotContain("Users.ReplaceRange(FilterUsers(_allUsers));", code, StringComparison.Ordinal);
+            Assert.DoesNotContain("Users.ReplaceRange(_allUsers);", code, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void UsersPage_PrintPreviewAccountsForMatchedVisibleHiddenAndPrintedRows()
+        {
+            var code = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml.cs");
+
+            Assert.Contains("var totalMatchedCount = ViewModel.MatchedUserCount;", code, StringComparison.Ordinal);
+            Assert.Contains("var hiddenFromGridCount = ViewModel.OmittedUserCount;", code, StringComparison.Ordinal);
+            Assert.Contains("Matched users: {totalMatchedCount}; visible rows: {totalVisibleCount}; printed rows: {printRows.Count}; hidden from grid: {hiddenFromGridCount}; print omitted rows: {printOmittedCount}", code, StringComparison.Ordinal);
+            Assert.Contains("BuildPrintDocument(printRows, totalMatchedCount, totalVisibleCount, hiddenFromGridCount, summary)", code, StringComparison.Ordinal);
+            Assert.Contains("Matched Accounts", code, StringComparison.Ordinal);
+            Assert.Contains("Visible Grid Rows", code, StringComparison.Ordinal);
+            Assert.Contains("Hidden From Grid", code, StringComparison.Ordinal);
+            Assert.Contains("Live Grid Limit", code, StringComparison.Ordinal);
+            Assert.Contains("UserManagementViewModel.MaxVisibleUserRows", code, StringComparison.Ordinal);
+            Assert.Contains("Print Limit", code, StringComparison.Ordinal);
         }
 
         [Fact]
