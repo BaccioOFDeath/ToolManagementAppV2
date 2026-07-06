@@ -24,6 +24,8 @@ namespace InventoryManagementApp.Views.Pages
             DataContextChanged += ManageRentalsPage_DataContextChanged;
             SizeChanged += ManageRentalsPage_SizeChanged;
             PreviewKeyDown += ManageRentalsPage_PreviewKeyDown;
+            RentalDeskGrid.ContextMenuOpening += RentalDeskGrid_ContextMenuOpening;
+            RequestQueueGrid.ContextMenuOpening += RequestQueueGrid_ContextMenuOpening;
         }
 
         private async void ManageRentalsPage_Loaded(object sender, RoutedEventArgs e)
@@ -169,6 +171,27 @@ namespace InventoryManagementApp.Views.Pages
             SelectRowForContextMenu(sender, e);
         }
 
+        private void RentalDeskGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            SuppressContextMenuDuringLoading(e);
+        }
+
+        private void RequestQueueGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            SuppressContextMenuDuringLoading(e);
+        }
+
+        private bool SuppressContextMenuDuringLoading(ContextMenuEventArgs e)
+        {
+            if (DataContext is ManageRentalsViewModel { IsLoading: true })
+            {
+                e.Handled = true;
+                return true;
+            }
+
+            return false;
+        }
+
         private void ManageRentalsPage_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (DataContext is not ManageRentalsViewModel vm)
@@ -278,7 +301,16 @@ namespace InventoryManagementApp.Views.Pages
 
         private static bool IsTextEditingElement(object? source)
         {
-            return source is TextBox or ComboBox or DatePicker;
+            if (source is TextBox or ComboBox or DatePicker or PasswordBox)
+                return true;
+
+            if (source is not DependencyObject element)
+                return false;
+
+            return GridContextMenuSelection.FindAncestor<TextBox>(element) != null
+                || GridContextMenuSelection.FindAncestor<ComboBox>(element) != null
+                || GridContextMenuSelection.FindAncestor<DatePicker>(element) != null
+                || GridContextMenuSelection.FindAncestor<PasswordBox>(element) != null;
         }
 
         private void OpenFocusedDetails(ManageRentalsViewModel vm)
