@@ -22,6 +22,45 @@ namespace InventoryManagementApp.ViewModels
         public User EditingUser { get; }
 
         private readonly IFileDialogService _fileDialog;
+        private readonly Func<Task> _onSave;
+
+        private bool _isSaving;
+        public bool IsSaving
+        {
+            get => _isSaving;
+            private set
+            {
+                if (SetProperty(ref _isSaving, value))
+                {
+                    NotifySaveStateChanged();
+                    NotifyEditorCommandStatesChanged();
+                }
+            }
+        }
+
+        public bool CanEditProfile => !IsSaving;
+
+        public bool CanSaveUserProfile =>
+            !IsSaving && !string.IsNullOrWhiteSpace(EditingUser.UserName);
+
+        public string SaveStatusText
+        {
+            get
+            {
+                if (IsSaving)
+                    return "Saving user profile - account actions are paused until the update finishes.";
+
+                if (string.IsNullOrWhiteSpace(EditingUser.UserName))
+                    return "Enter a username before saving this profile.";
+
+                if (!EditingUser.IsAdmin && !GetAllowedPermissionLabels().Any())
+                    return "Ready to save with no app sections assigned; confirm this limited account is intentional.";
+
+                return "User profile ready - save applies identity, photo, status, and permission changes.";
+            }
+        }
+
+        public bool HasSaveStatus => !string.IsNullOrWhiteSpace(SaveStatusText);
 
         public string AccessSummary => EditingUser.AccessSummary;
 
@@ -91,49 +130,60 @@ namespace InventoryManagementApp.ViewModels
             EditingUser = user ?? new User();
             EditingUser.PropertyChanged += EditingUser_PropertyChanged;
             _fileDialog = fileDialog;
+            _onSave = onSave;
             Title = (EditingUser.UserID == 0) ? "Add User" : "Edit User";
-            BrowseImageCommand = new RelayCommand(BrowseImage);
-            RemoveImageCommand = new RelayCommand(RemoveImage);
-            SaveCommand = new AsyncRelayCommand(onSave);
-            CancelCommand = new RelayCommand(onCancel);
+            BrowseImageCommand = new RelayCommand(BrowseImage, () => CanEditProfile);
+            RemoveImageCommand = new RelayCommand(RemoveImage, () => CanEditProfile);
+            SaveCommand = new AsyncRelayCommand(SaveAsync, () => CanSaveUserProfile);
+            CancelCommand = new RelayCommand(onCancel, () => CanEditProfile);
             SelectAdvisorPresetCommand = new RelayCommand(() => ApplyPreset(
                 User.PermissionRentals,
                 User.PermissionCustomers,
                 User.PermissionReservations,
                 User.PermissionKits,
                 User.PermissionPrintLabels,
-                User.PermissionReports));
+                User.PermissionReports), () => CanEditProfile);
             SelectTechnicianPresetCommand = new RelayCommand(() => ApplyPreset(
                 User.PermissionRentals,
                 User.PermissionMaintenance,
                 User.PermissionCalibration,
                 User.PermissionKits,
                 User.PermissionCategories,
-                User.PermissionPrintLabels));
+                User.PermissionPrintLabels), () => CanEditProfile);
             SelectAdminPresetCommand = new RelayCommand(() =>
             {
                 EditingUser.IsAdmin = true;
                 NotifyAllPermissionProperties();
-            });
-            ClearPermissionsCommand = new RelayCommand(() => ApplyPreset(Array.Empty<string>()));
+            }, () => CanEditProfile);
+            ClearPermissionsCommand = new RelayCommand(() => ApplyPreset(Array.Empty<string>()), () => CanEditProfile);
         }
 
         void EditingUser_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(User.IsAdmin) || e.PropertyName == nameof(User.Permissions) || e.PropertyName == nameof(User.UserName))
+            {
                 NotifyAllPermissionProperties();
+                NotifySaveStateChanged();
+                SaveCommand.NotifyCanExecuteChanged();
+            }
         }
 
         bool Has(string permissionKey) => EditingUser.HasPermission(permissionKey);
 
         void Set(string permissionKey, bool allowed)
         {
+            if (IsSaving)
+                return;
+
             EditingUser.SetPermission(permissionKey, allowed);
             NotifyAllPermissionProperties();
         }
 
         void ApplyPreset(params string[] permissionKeys)
         {
+            if (IsSaving)
+                return;
+
             EditingUser.IsAdmin = false;
             EditingUser.Permissions = User.BuildPermissions(permissionKeys);
             NotifyAllPermissionProperties();
@@ -204,6 +254,22 @@ namespace InventoryManagementApp.ViewModels
             return list.Count == 0 ? emptyText : string.Join(Environment.NewLine, list.Select(line => $"- {line}"));
         }
 
+        async Task SaveAsync()
+        {
+            if (!CanSaveUserProfile)
+                return;
+
+            IsSaving = true;
+            try
+            {
+                await _onSave();
+            }
+            finally
+            {
+                IsSaving = false;
+            }
+        }
+
         void NotifyAllPermissionProperties()
         {
             OnPropertyChanged(nameof(CanManageItems));
@@ -227,10 +293,34 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(WorkflowImpactSummary));
             OnPropertyChanged(nameof(GuardedActionSummary));
             OnPropertyChanged(nameof(AdminNextStepSummary));
+            NotifySaveStateChanged();
+        }
+
+        void NotifySaveStateChanged()
+        {
+            OnPropertyChanged(nameof(CanEditProfile));
+            OnPropertyChanged(nameof(CanSaveUserProfile));
+            OnPropertyChanged(nameof(SaveStatusText));
+            OnPropertyChanged(nameof(HasSaveStatus));
+        }
+
+        void NotifyEditorCommandStatesChanged()
+        {
+            BrowseImageCommand.NotifyCanExecuteChanged();
+            RemoveImageCommand.NotifyCanExecuteChanged();
+            SaveCommand.NotifyCanExecuteChanged();
+            CancelCommand.NotifyCanExecuteChanged();
+            SelectAdvisorPresetCommand.NotifyCanExecuteChanged();
+            SelectTechnicianPresetCommand.NotifyCanExecuteChanged();
+            SelectAdminPresetCommand.NotifyCanExecuteChanged();
+            ClearPermissionsCommand.NotifyCanExecuteChanged();
         }
 
         void BrowseImage()
         {
+            if (IsSaving)
+                return;
+
             var path = _fileDialog.OpenFile("Image Files|*.png;*.jpg;*.jpeg;*.bmp|All Files|*.*");
             if (string.IsNullOrEmpty(path))
             {
@@ -242,6 +332,9 @@ namespace InventoryManagementApp.ViewModels
 
         void RemoveImage()
         {
+            if (IsSaving)
+                return;
+
             EditingUser.UserPhotoPath = string.Empty;
             var brush = Application.Current?.TryFindResource("ForegroundBrush") as MediaBrush;
             EditingUser.InitialsBrush = brush ?? MediaBrushes.Black;
