@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,6 +26,7 @@ namespace InventoryManagementApp.Views.Pages
             Unloaded += CalibrationPage_Unloaded;
             DataContextChanged += CalibrationPage_DataContextChanged;
             PreviewKeyDown += CalibrationPage_PreviewKeyDown;
+            CalibrationGrid.ContextMenuOpening += CalibrationGrid_ContextMenuOpening;
         }
 
         private async void CalibrationPage_Loaded(object sender, RoutedEventArgs e)
@@ -130,7 +132,10 @@ namespace InventoryManagementApp.Views.Pages
             {
                 UiActionGuard.Run(this, "Calibration", () => vm.OpenCalibrationDetailsCommand.Execute(null));
                 e.Handled = true;
+                return;
             }
+
+            e.Handled = true;
         }
 
         private void CalibrationRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -144,6 +149,14 @@ namespace InventoryManagementApp.Views.Pages
             GridContextMenuSelection.SelectRow(sender, e);
         }
 
+        private void CalibrationGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (DataContext is CalibrationManagementViewModel { IsLoading: true })
+            {
+                e.Handled = true;
+            }
+        }
+
         private void CalibrationPage_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (DataContext is not CalibrationManagementViewModel vm)
@@ -153,6 +166,11 @@ namespace InventoryManagementApp.Views.Pages
             {
                 FocusFirstSearchBox();
                 e.Handled = true;
+                return;
+            }
+
+            if (IsTextInputFocused() && IsCalibrationActionShortcut(e))
+            {
                 return;
             }
 
@@ -190,7 +208,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (!IsTextInputFocused() && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C && vm.CopySelectedCalibrationCommand.CanExecute(null))
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C && vm.CopySelectedCalibrationCommand.CanExecute(null))
             {
                 UiActionGuard.Run(this, "Calibration", () => vm.CopySelectedCalibrationCommand.Execute(null));
                 e.Handled = true;
@@ -252,23 +270,42 @@ namespace InventoryManagementApp.Views.Pages
 
         private static bool IsTextInputFocused()
         {
-            return Keyboard.FocusedElement is TextBoxBase or PasswordBox;
+            return Keyboard.FocusedElement is TextBoxBase or PasswordBox or ComboBox;
         }
 
         private static T? FindDescendant<T>(DependencyObject current) where T : DependencyObject
         {
-            for (var index = 0; index < VisualTreeHelper.GetChildrenCount(current); index++)
-            {
-                var child = VisualTreeHelper.GetChild(current, index);
-                if (child is T match)
-                    return match;
+            var pending = new Stack<DependencyObject>();
+            pending.Push(current);
 
-                var nested = FindDescendant<T>(child);
-                if (nested != null)
-                    return nested;
+            while (pending.Count > 0)
+            {
+                var parent = pending.Pop();
+                var childCount = GetVisualChildCount(parent);
+
+                for (var index = childCount - 1; index >= 0; index--)
+                {
+                    var child = VisualTreeHelper.GetChild(parent, index);
+                    if (child is T match)
+                        return match;
+
+                    pending.Push(child);
+                }
             }
 
             return null;
+        }
+
+        private static int GetVisualChildCount(DependencyObject current)
+        {
+            try
+            {
+                return VisualTreeHelper.GetChildrenCount(current);
+            }
+            catch (InvalidOperationException)
+            {
+                return 0;
+            }
         }
     }
 }
