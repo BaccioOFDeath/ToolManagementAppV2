@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -16,10 +17,12 @@ namespace InventoryManagementApp.Views.Pages
         private SettingsViewModel? _settingsViewModel;
         private bool _themeDesignerTabAdded;
         private bool _themeDesignerTabRetryQueued;
+        private bool _isLoaded;
         private bool _sensitiveFieldSyncQueued;
         private Task? _initializeSettingsTask;
         private CancellationTokenSource? _initializeSettingsCts;
         private int _initializeSettingsVersion;
+        private int _themeDesignerTabVersion;
 
         public SettingsPage()
         {
@@ -31,6 +34,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
         {
+            _isLoaded = true;
             AddThemeDesignerTab();
             AttachViewModel(DataContext as SettingsViewModel);
             QueueSensitiveFieldSync(_settingsViewModel);
@@ -39,6 +43,10 @@ namespace InventoryManagementApp.Views.Pages
 
         private void SettingsPage_Unloaded(object sender, RoutedEventArgs e)
         {
+            _isLoaded = false;
+            _themeDesignerTabVersion++;
+            _themeDesignerTabRetryQueued = false;
+            _sensitiveFieldSyncQueued = false;
             CancelSettingsInitialization();
             AttachViewModel(null);
         }
@@ -52,7 +60,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void AddThemeDesignerTab()
         {
-            if (_themeDesignerTabAdded)
+            if (_themeDesignerTabAdded || !_isLoaded)
                 return;
 
             var tabControl = FindVisualChild<TabControl>(this);
@@ -77,11 +85,21 @@ namespace InventoryManagementApp.Views.Pages
 
         private void QueueThemeDesignerTabRetry()
         {
-            if (_themeDesignerTabRetryQueued)
+            if (_themeDesignerTabRetryQueued || !_isLoaded)
                 return;
 
             _themeDesignerTabRetryQueued = true;
-            Dispatcher.BeginInvoke(AddThemeDesignerTab, DispatcherPriority.Loaded);
+            var version = ++_themeDesignerTabVersion;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!_isLoaded || version != _themeDesignerTabVersion)
+                {
+                    _themeDesignerTabRetryQueued = false;
+                    return;
+                }
+
+                AddThemeDesignerTab();
+            }), DispatcherPriority.Loaded);
         }
 
         private static void RenumberTabs(TabControl tabControl)
@@ -101,18 +119,36 @@ namespace InventoryManagementApp.Views.Pages
 
         private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
-            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                if (child is T typed)
-                    return typed;
+            var pending = new Stack<DependencyObject>();
+            pending.Push(parent);
 
-                var nested = FindVisualChild<T>(child);
-                if (nested != null)
-                    return nested;
+            while (pending.Count > 0)
+            {
+                var current = pending.Pop();
+                var childCount = GetVisualChildrenCount(current);
+                for (var i = childCount - 1; i >= 0; i--)
+                {
+                    var child = VisualTreeHelper.GetChild(current, i);
+                    if (child is T typed)
+                        return typed;
+
+                    pending.Push(child);
+                }
             }
 
             return null;
+        }
+
+        private static int GetVisualChildrenCount(DependencyObject parent)
+        {
+            try
+            {
+                return VisualTreeHelper.GetChildrenCount(parent);
+            }
+            catch (InvalidOperationException)
+            {
+                return 0;
+            }
         }
 
         private void AttachViewModel(SettingsViewModel? viewModel)
@@ -145,6 +181,23 @@ namespace InventoryManagementApp.Views.Pages
             _initializeSettingsTask = null;
         }
 
+        private void CompleteSettingsInitialization(SettingsViewModel viewModel, int version)
+        {
+            if (!IsCurrentSettingsInitialization(viewModel, version))
+                return;
+
+            _initializeSettingsCts?.Dispose();
+            _initializeSettingsCts = null;
+            _initializeSettingsTask = null;
+        }
+
+        private bool IsCurrentSettingsInitialization(SettingsViewModel viewModel, int version)
+        {
+            return _isLoaded
+                && ReferenceEquals(_settingsViewModel, viewModel)
+                && version == _initializeSettingsVersion;
+        }
+
         private void SettingsViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName is nameof(SettingsViewModel.SmtpPassword) or nameof(SettingsViewModel.SmsApiKey)
@@ -156,7 +209,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void QueueSensitiveFieldSync(SettingsViewModel? sourceViewModel)
         {
-            if (sourceViewModel == null || _sensitiveFieldSyncQueued || !ReferenceEquals(_settingsViewModel, sourceViewModel))
+            if (!_isLoaded || sourceViewModel == null || _sensitiveFieldSyncQueued || !ReferenceEquals(_settingsViewModel, sourceViewModel))
             {
                 return;
             }
@@ -169,7 +222,7 @@ namespace InventoryManagementApp.Views.Pages
         {
             _sensitiveFieldSyncQueued = false;
 
-            if (!ReferenceEquals(_settingsViewModel, sourceViewModel))
+            if (!_isLoaded || !ReferenceEquals(_settingsViewModel, sourceViewModel))
             {
                 return;
             }
@@ -187,7 +240,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void StartSettingsInitialization()
         {
-            if (_settingsViewModel == null || _initializeSettingsTask != null)
+            if (!_isLoaded || _settingsViewModel == null || _initializeSettingsTask != null)
             {
                 return;
             }
@@ -204,19 +257,20 @@ namespace InventoryManagementApp.Views.Pages
             {
                 await Dispatcher.Yield(DispatcherPriority.Background);
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!ReferenceEquals(_settingsViewModel, viewModel) || version != _initializeSettingsVersion)
+                if (!IsCurrentSettingsInitialization(viewModel, version))
                 {
                     return;
                 }
 
                 await viewModel.InitializeAsync().ConfigureAwait(true);
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!ReferenceEquals(_settingsViewModel, viewModel) || version != _initializeSettingsVersion)
+                if (!IsCurrentSettingsInitialization(viewModel, version))
                 {
                     return;
                 }
 
                 QueueSensitiveFieldSync(viewModel);
+                CompleteSettingsInitialization(viewModel, version);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -224,9 +278,9 @@ namespace InventoryManagementApp.Views.Pages
             }
             catch (Exception ex)
             {
-                _initializeSettingsTask = null;
+                CompleteSettingsInitialization(viewModel, version);
 
-                if (!ReferenceEquals(_settingsViewModel, viewModel) || version != _initializeSettingsVersion)
+                if (!IsCurrentSettingsInitialization(viewModel, version))
                 {
                     return;
                 }
