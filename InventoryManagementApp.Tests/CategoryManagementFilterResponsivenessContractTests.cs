@@ -23,13 +23,13 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void CategoryViewModel_UsesFullMatchCountsForAvailabilityEmptyAndPrintState()
+        public void CategoryViewModel_UsesCappedCountsForProfessionalPrintMessaging()
         {
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CategoryManagementViewModel.cs");
 
-            Assert.Contains("public bool IsDirectoryPrintAvailable => !IsCategoryInteractionBusy && FullFilteredCategoryCount > 0;", source, StringComparison.Ordinal);
-            Assert.Contains("public bool IsCategoryEmptyStateVisible => !IsCategoryInteractionBusy && FullFilteredCategoryCount == 0;", source, StringComparison.Ordinal);
-            Assert.Contains("if (FullFilteredCategoryCount == 0) return \"Print is available after categories are loaded or the filter has matches.\";", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsDirectoryPrintAvailable => !IsCategoryInteractionBusy && FilteredCategories.Count > 0;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsCategoryEmptyStateVisible => !IsCategoryInteractionBusy && FilteredCategories.Count == 0;", source, StringComparison.Ordinal);
+            Assert.Contains("if (FilteredCategories.Count == 0) return \"Print is available after categories are loaded or the filter has matches.\";", source, StringComparison.Ordinal);
             Assert.Contains("var printableRows = Math.Min(FilteredCategories.Count, 250);", source, StringComparison.Ordinal);
             Assert.Contains("var omittedFromPrint = Math.Max(0, FullFilteredCategoryCount - printableRows);", source, StringComparison.Ordinal);
             Assert.Contains("Ready to print the first {printableRows} of {FullFilteredCategoryCount}", source, StringComparison.Ordinal);
