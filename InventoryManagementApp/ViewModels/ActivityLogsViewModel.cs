@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -23,6 +24,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly ILogger<ActivityLogsViewModel> _logger;
         private CancellationTokenSource? _filterRefreshCts;
         private bool _suppressFilterRefresh;
+        private IReadOnlyList<ActivityLogSearchRow> _searchRows = Array.Empty<ActivityLogSearchRow>();
 
         public ObservableCollection<ActivityLog> Logs { get; } = new();
         public ObservableCollection<ActivityLog> FilteredLogs { get; } = new();
@@ -276,9 +278,14 @@ namespace InventoryManagementApp.ViewModels
                     .ThenBy(log => SafeText(log.Action), StringComparer.OrdinalIgnoreCase)
                     .ToList();
 
+                var refreshedSearchRows = refreshedRows
+                    .Select(ActivityLogSearchRow.Create)
+                    .ToList();
+
                 Logs.Clear();
                 foreach (var log in refreshedRows)
                     Logs.Add(log);
+                _searchRows = refreshedSearchRows;
 
                 LastLoadedAt = DateTime.Now;
                 RebuildFilterLists();
@@ -302,6 +309,7 @@ namespace InventoryManagementApp.ViewModels
         {
             var cts = Interlocked.Exchange(ref _filterRefreshCts, null);
             cts?.Cancel();
+            cts?.Dispose();
 
             if (IsFiltering)
             {
@@ -318,6 +326,7 @@ namespace InventoryManagementApp.ViewModels
             if (Logs.Count == 0)
             {
                 FilteredLogs.Clear();
+                _searchRows = Array.Empty<ActivityLogSearchRow>();
                 SelectedLog = null;
                 LastLoadedAt = null;
                 RebuildFilterLists();
@@ -329,6 +338,9 @@ namespace InventoryManagementApp.ViewModels
 
         private void ClearFilters()
         {
+            if (IsLoading)
+                return;
+
             _suppressFilterRefresh = true;
             SearchText = string.Empty;
             SelectedUserFilter = AllUsersFilter;
@@ -346,14 +358,16 @@ namespace InventoryManagementApp.ViewModels
 
         private void RebuildFilterLists()
         {
+            var searchRows = GetSearchRowsSnapshot();
+
             UserFilters.Clear();
             UserFilters.Add(AllUsersFilter);
-            foreach (var userName in Logs.Select(l => l.UserName).Where(u => !string.IsNullOrWhiteSpace(u)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(u => u))
+            foreach (var userName in searchRows.Select(l => l.UserName).Where(u => !string.IsNullOrWhiteSpace(u)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(u => u))
                 UserFilters.Add(userName);
 
             ActionFilters.Clear();
             ActionFilters.Add(AllActionsFilter);
-            foreach (var actionGroup in Logs.Select(l => ClassifyAction(l.Action)).Distinct().OrderBy(g => g))
+            foreach (var actionGroup in searchRows.Select(l => l.ActionGroup).Distinct().OrderBy(g => g))
                 ActionFilters.Add(actionGroup);
 
             if (!UserFilters.Contains(SelectedUserFilter))
@@ -396,28 +410,15 @@ namespace InventoryManagementApp.ViewModels
                 var selectedUserFilter = SelectedUserFilter;
                 var selectedActionFilter = SelectedActionFilter;
                 var previousSelection = SelectedLog;
-                var rows = Logs.ToList();
+                var rows = GetSearchRowsSnapshot();
 
-                var filtered = await Task.Run(() => rows.Where(log =>
-                    (selectedUserFilter == AllUsersFilter || string.Equals(log.UserName, selectedUserFilter, StringComparison.OrdinalIgnoreCase)) &&
-                    (selectedActionFilter == AllActionsFilter || string.Equals(ClassifyAction(log.Action), selectedActionFilter, StringComparison.OrdinalIgnoreCase)) &&
-                    (string.IsNullOrWhiteSpace(search) ||
-                        SafeText(log.UserName).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        SafeText(log.Action).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        ClassifyAction(log.Action).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        BuildDestinationName(BuildDestinationKey(log.Action)).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        log.UserID.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        log.Timestamp.ToString("g").Contains(search, StringComparison.OrdinalIgnoreCase)))
+                var filtered = await Task.Run(() => rows
+                    .Where(row => row.Matches(selectedUserFilter, selectedActionFilter, search))
+                    .Select(row => row.Log)
                     .ToList(), cts.Token);
 
                 cts.Token.ThrowIfCancellationRequested();
-                FilteredLogs.Clear();
-                foreach (var log in filtered)
-                    FilteredLogs.Add(log);
-
-                SelectedLog = previousSelection != null && FilteredLogs.Contains(previousSelection)
-                    ? previousSelection
-                    : FilteredLogs.FirstOrDefault();
+                ReplaceFilteredLogs(filtered, previousSelection);
 
                 NotifyActivityStateChanged();
                 StatusMessage = HasActiveFilter()
@@ -438,6 +439,43 @@ namespace InventoryManagementApp.ViewModels
 
                 cts.Dispose();
             }
+        }
+
+        private IReadOnlyList<ActivityLogSearchRow> GetSearchRowsSnapshot()
+        {
+            if (_searchRows.Count == Logs.Count)
+                return _searchRows;
+
+            _searchRows = Logs.Select(ActivityLogSearchRow.Create).ToList();
+            return _searchRows;
+        }
+
+        private void ReplaceFilteredLogs(IReadOnlyList<ActivityLog> filtered, ActivityLog? previousSelection)
+        {
+            if (!HasSameRows(FilteredLogs, filtered))
+            {
+                FilteredLogs.Clear();
+                foreach (var log in filtered)
+                    FilteredLogs.Add(log);
+            }
+
+            SelectedLog = previousSelection != null && FilteredLogs.Contains(previousSelection)
+                ? previousSelection
+                : FilteredLogs.FirstOrDefault();
+        }
+
+        private static bool HasSameRows(IReadOnlyList<ActivityLog> currentRows, IReadOnlyList<ActivityLog> nextRows)
+        {
+            if (currentRows.Count != nextRows.Count)
+                return false;
+
+            for (var i = 0; i < currentRows.Count; i++)
+            {
+                if (!ReferenceEquals(currentRows[i], nextRows[i]))
+                    return false;
+            }
+
+            return true;
         }
 
         private void NotifyActivityStateChanged()
@@ -539,6 +577,48 @@ namespace InventoryManagementApp.ViewModels
         private static string SafeText(string? text, string fallback = "")
         {
             return string.IsNullOrWhiteSpace(text) ? fallback : text.Trim();
+        }
+
+        private sealed class ActivityLogSearchRow
+        {
+            private ActivityLogSearchRow(ActivityLog log, string userName, string actionGroup, string searchText)
+            {
+                Log = log;
+                UserName = userName;
+                ActionGroup = actionGroup;
+                SearchText = searchText;
+            }
+
+            public ActivityLog Log { get; }
+            public string UserName { get; }
+            public string ActionGroup { get; }
+            private string SearchText { get; }
+
+            public static ActivityLogSearchRow Create(ActivityLog log)
+            {
+                var userName = SafeText(log.UserName);
+                var action = SafeText(log.Action);
+                var actionGroup = ClassifyAction(action);
+                var destinationName = BuildDestinationName(BuildDestinationKey(action));
+                var searchText = string.Join("\n", new[]
+                {
+                    userName,
+                    action,
+                    actionGroup,
+                    destinationName,
+                    log.UserID.ToString(),
+                    log.Timestamp.ToString("g")
+                });
+
+                return new ActivityLogSearchRow(log, userName, actionGroup, searchText);
+            }
+
+            public bool Matches(string selectedUserFilter, string selectedActionFilter, string search)
+            {
+                return (selectedUserFilter == AllUsersFilter || string.Equals(UserName, selectedUserFilter, StringComparison.OrdinalIgnoreCase))
+                    && (selectedActionFilter == AllActionsFilter || string.Equals(ActionGroup, selectedActionFilter, StringComparison.OrdinalIgnoreCase))
+                    && (string.IsNullOrWhiteSpace(search) || SearchText.Contains(search, StringComparison.OrdinalIgnoreCase));
+            }
         }
     }
 }
