@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
@@ -19,11 +20,14 @@ namespace InventoryManagementApp.ViewModels
         private const int MaxDirectoryPrintRows = 250;
         private const int MaxSelectedKitHandoffRows = 100;
         private const int MaxSelectedKitPrintRows = 250;
+        private const int MaxVisibleFilteredKitRows = 500;
         private readonly KitService _kitService;
         private readonly IDialogService _dialogService;
         private bool _isLoadingKits;
         private bool _isLoadingKitItems;
         private int _kitItemLoadVersion;
+        private int _matchedKitCount;
+        private int _omittedFilteredKitCount;
 
         public ObservableCollection<Kit> Kits { get; }
         public ObservableCollection<Kit> FilteredKits { get; }
@@ -65,6 +69,24 @@ namespace InventoryManagementApp.ViewModels
 
         public bool IsKitDirectoryPrintAvailable => !IsKitInteractionBusy && FilteredKits.Count > 0;
 
+        public int FullFilteredKitCount => _matchedKitCount;
+
+        public int FilteredKitOmittedCount => _omittedFilteredKitCount;
+
+        public bool IsKitFilterWindowCapped => FilteredKitOmittedCount > 0;
+
+        public string KitVisibleWindowSummary
+        {
+            get
+            {
+                if (IsLoadingKits) return "Kit rows are loading; the visible grid window will refresh shortly.";
+                if (FilteredKits.Count == 0) return "No kit rows match the current search and status filter.";
+                if (!IsKitFilterWindowCapped) return "All matching kit rows are visible in the grid.";
+
+                return $"Showing first {FilteredKits.Count} of {FullFilteredKitCount} matching kit rows; {FilteredKitOmittedCount} held out of the grid for responsiveness.";
+            }
+        }
+
         public string KitResultsSummary
         {
             get
@@ -72,7 +94,9 @@ namespace InventoryManagementApp.ViewModels
                 if (IsLoadingKits) return "Loading kit directory...";
                 var active = Kits.Count(k => k.IsActive);
                 var inactive = Kits.Count - active;
-                return $"{FilteredKits.Count} kit{(FilteredKits.Count == 1 ? string.Empty : "s")} shown | {active} active | {inactive} inactive";
+                var matched = FullFilteredKitCount;
+                var window = IsKitFilterWindowCapped ? $" first {FilteredKits.Count} shown" : $" {FilteredKits.Count} shown";
+                return $"{matched} matching kit{(matched == 1 ? string.Empty : "s")} |{window} | {active} active | {inactive} inactive";
             }
         }
 
@@ -83,9 +107,13 @@ namespace InventoryManagementApp.ViewModels
                 if (IsLoadingKits) return "Filter and search are paused while kit rows load.";
 
                 var status = SelectedFilter == "All" ? "all kits" : SelectedFilter.ToLowerInvariant() + " kits";
-                return string.IsNullOrWhiteSpace(SearchText)
+                var prefix = string.IsNullOrWhiteSpace(SearchText)
                     ? $"Showing {status}."
                     : $"Showing {status} matching \"{SearchText.Trim()}\".";
+
+                return IsKitFilterWindowCapped
+                    ? $"{prefix} Showing the first {FilteredKits.Count} matches so the grid stays responsive."
+                    : prefix;
             }
         }
 
@@ -96,11 +124,14 @@ namespace InventoryManagementApp.ViewModels
                 if (IsLoadingKits) return "Print is paused while kit rows are loading.";
                 if (FilteredKits.Count == 0) return "Print is available after kits are loaded or the filter has matches.";
 
-                var visible = FilteredKits.Count;
-                var printed = Math.Min(visible, MaxDirectoryPrintRows);
-                var omitted = visible - printed;
-                var suffix = omitted > 0 ? $" First {printed} will print; {omitted} omitted for preview speed." : string.Empty;
-                return $"Ready to print {visible} visible kit row{(visible == 1 ? string.Empty : "s")}.{suffix}";
+                var printableRows = Math.Min(FilteredKits.Count, MaxDirectoryPrintRows);
+                var omittedFromPrint = Math.Max(0, FullFilteredKitCount - printableRows);
+                if (omittedFromPrint > 0)
+                {
+                    return $"Ready to print the first {printableRows} of {FullFilteredKitCount} matching kit rows; {omittedFromPrint} omitted for preview speed.";
+                }
+
+                return $"Ready to print {FullFilteredKitCount} visible kit row{(FullFilteredKitCount == 1 ? string.Empty : "s")}.";
             }
         }
 
@@ -360,6 +391,8 @@ namespace InventoryManagementApp.ViewModels
         private void ClearKitStateAfterLoadFailure()
         {
             Kits.Clear();
+            _matchedKitCount = 0;
+            _omittedFilteredKitCount = 0;
             FilteredKits.Clear();
             SelectedKit = null;
             SelectedKitItem = null;
@@ -702,18 +735,18 @@ namespace InventoryManagementApp.ViewModels
             {
                 var visibleKits = FilteredKits.ToList();
                 var printedKits = visibleKits.Take(MaxDirectoryPrintRows).ToList();
-                var omittedCount = visibleKits.Count - printedKits.Count;
+                var omittedCount = Math.Max(0, FullFilteredKitCount - printedKits.Count);
                 var filterContext = string.IsNullOrWhiteSpace(SearchText)
                     ? $"Status filter: {SelectedFilter}"
                     : $"Status filter: {SelectedFilter} | Search: {SearchText.Trim()}";
 
                 var doc = CreateKitDocument("Kit Directory", fontSize: 11);
-                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Visible {visibleKits.Count} | Printed {printedKits.Count} | Omitted {omittedCount} | {filterContext}"))
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Matched {FullFilteredKitCount} | Grid window {visibleKits.Count} | Printed {printedKits.Count} | Omitted {omittedCount} | {filterContext}"))
                 {
                     FontSize = 10,
                     Margin = new Thickness(0, 0, 0, 8)
                 });
-                doc.Blocks.Add(new Paragraph(new Run("Review active status, category, and descriptions before staging grouped item sets. Large filtered directories print the first 250 visible rows to keep preview responsive."))
+                doc.Blocks.Add(new Paragraph(new Run("Review active status, category, and descriptions before staging grouped item sets. Large filtered directories print the first 250 matching rows to keep preview responsive."))
                 {
                     FontSize = 10,
                     Margin = new Thickness(0, 0, 0, 10)
@@ -861,8 +894,6 @@ namespace InventoryManagementApp.ViewModels
 
         private void ApplyFilter(int? preferredKitId = null)
         {
-            FilteredKits.Clear();
-
             var filtered = Kits.AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(SearchText))
@@ -882,10 +913,15 @@ namespace InventoryManagementApp.ViewModels
                 _ => filtered
             };
 
-            foreach (var kit in filtered.OrderByDescending(k => k.IsActive).ThenBy(k => k.Name).ThenBy(k => k.KitNumber))
-            {
-                FilteredKits.Add(kit);
-            }
+            var matched = filtered
+                .OrderByDescending(k => k.IsActive)
+                .ThenBy(k => k.Name)
+                .ThenBy(k => k.KitNumber)
+                .ToList();
+            _matchedKitCount = matched.Count;
+            var visible = matched.Take(MaxVisibleFilteredKitRows).ToList();
+            _omittedFilteredKitCount = Math.Max(0, matched.Count - visible.Count);
+            ReplaceFilteredKits(visible);
 
             var selectedKit = preferredKitId.HasValue
                 ? FilteredKits.FirstOrDefault(k => k.KitID == preferredKitId.Value)
@@ -894,6 +930,30 @@ namespace InventoryManagementApp.ViewModels
 
             RaiseDirectoryStateChanged();
             RaiseCommandStates();
+        }
+
+        private void ReplaceFilteredKits(IReadOnlyList<Kit> visibleKits)
+        {
+            var unchanged = FilteredKits.Count == visibleKits.Count;
+            if (unchanged)
+            {
+                for (var i = 0; i < visibleKits.Count; i++)
+                {
+                    if (!ReferenceEquals(FilteredKits[i], visibleKits[i]))
+                    {
+                        unchanged = false;
+                        break;
+                    }
+                }
+            }
+
+            if (unchanged) return;
+
+            FilteredKits.Clear();
+            foreach (var kit in visibleKits)
+            {
+                FilteredKits.Add(kit);
+            }
         }
 
         private void RefreshKitItemSummaries()
@@ -914,6 +974,10 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(IsKitInteractionBusy));
             OnPropertyChanged(nameof(IsKitDirectoryEmptyVisible));
             OnPropertyChanged(nameof(IsKitDirectoryPrintAvailable));
+            OnPropertyChanged(nameof(FullFilteredKitCount));
+            OnPropertyChanged(nameof(FilteredKitOmittedCount));
+            OnPropertyChanged(nameof(IsKitFilterWindowCapped));
+            OnPropertyChanged(nameof(KitVisibleWindowSummary));
             OnPropertyChanged(nameof(KitResultsSummary));
             OnPropertyChanged(nameof(KitFilterSummary));
             OnPropertyChanged(nameof(KitPrintSummary));
