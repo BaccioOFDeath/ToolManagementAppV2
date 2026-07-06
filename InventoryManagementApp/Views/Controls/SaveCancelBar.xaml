@@ -2,10 +2,10 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              MinHeight="56">
-    <Border Style="{StaticResource ToolbarCard}" Margin="0,10,0,0" Padding="10,8">
-        <Grid>
+    <Border Style="{StaticResource ToolbarCard}" Margin="0,8,0,0" Padding="10,8" ClipToBounds="True">
+        <Grid MinWidth="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*" MinWidth="0"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
@@ -13,19 +13,22 @@
                        Style="{StaticResource CaptionTextBlock}"
                        VerticalAlignment="Center"
                        TextWrapping="Wrap"
+                       TextTrimming="CharacterEllipsis"
+                       MaxHeight="42"
                        Margin="0,0,12,0"/>
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Button Style="{StaticResource PrimaryButton}"
-                        Width="104"
+                        MinWidth="96"
                         Content="Save"
                         Command="{Binding SaveCommand}"
-                        Margin="0,0,8,0"/>
+                        Margin="0,0,8,4"/>
                 <Button Style="{StaticResource GhostButton}"
-                        Width="104"
+                        MinWidth="96"
                         Content="Cancel"
-                        Command="{Binding CancelCommand}"/>
-            </StackPanel>
+                        Command="{Binding CancelCommand}"
+                        Margin="0,0,0,4"/>
+            </WrapPanel>
         </Grid>
     </Border>
 </UserControl>
