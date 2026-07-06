@@ -15,7 +15,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Setter Property=\"MinWidth\" Value=\"160\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"250\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("CustomerStatValueText", xaml, StringComparison.Ordinal);
-            Assert.Contains("CustomerFilterStatus", xaml, StringComparison.Ordinal);
+            Assert.Contains("CustomerDirectoryVisibleCount", xaml, StringComparison.Ordinal);
+            Assert.Contains("CustomerDirectoryMatchCount", xaml, StringComparison.Ordinal);
+            Assert.Contains("CustomerVisibleWindowSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("CustomerPrintSummary", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Grid Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"1.35*\"/>", xaml, StringComparison.Ordinal);
@@ -243,6 +245,43 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("OnPropertyChanged(nameof(CustomerPrintSummary));", source, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CustomerOperationsSummary));", source, StringComparison.Ordinal);
             Assert.Contains("NotifyCustomerAvailabilityStateChanged();", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomerViewModel_BoundsVisibleRowsAndTracksFullDirectoryCounts()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CustomerManagementViewModel.cs");
+
+            Assert.Contains("private const int MaxCustomerDirectoryVisibleRows = 500;", source, StringComparison.Ordinal);
+            Assert.Contains("public int CustomerDirectoryMatchCount => _customerDirectoryMatchCount;", source, StringComparison.Ordinal);
+            Assert.Contains("public int CustomerDirectoryVisibleCount => Customers.Count;", source, StringComparison.Ordinal);
+            Assert.Contains("public int CustomerDirectoryOmittedCount => Math.Max(0, CustomerDirectoryMatchCount - CustomerDirectoryVisibleCount);", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsCustomerDirectoryWindowCapped => CustomerDirectoryOmittedCount > 0;", source, StringComparison.Ordinal);
+            Assert.Contains("public string CustomerVisibleWindowSummary", source, StringComparison.Ordinal);
+            Assert.Contains("ApplyCustomerDirectoryWindow(OrderCustomersForDirectory(all), preferredCustomerId);", source, StringComparison.Ordinal);
+            Assert.Contains("ApplyCustomerDirectoryWindow(all, preferredCustomerId);", source, StringComparison.Ordinal);
+            Assert.Contains("orderedCustomers.Take(MaxCustomerDirectoryVisibleRows).ToList();", source, StringComparison.Ordinal);
+            Assert.Contains("IsSameVisibleCustomerWindow", source, StringComparison.Ordinal);
+            Assert.Contains("Customers.ReplaceRange(visibleCustomers);", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CustomerDirectoryMatchCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CustomerDirectoryVisibleCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CustomerDirectoryOmittedCount));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(IsCustomerDirectoryWindowCapped));", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(CustomerVisibleWindowSummary));", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CustomerViewModel_PrintDirectoryUsesFullMatchAndVisibleWindowAccounting()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "CustomerManagementViewModel.cs");
+            var printBlock = ExtractSourceBlock(source, "void PrintCustomerDirectory()", "void PrintSelectedCustomer()");
+
+            Assert.Contains("var matchCount = Math.Max(CustomerDirectoryMatchCount, Customers.Count);", printBlock, StringComparison.Ordinal);
+            Assert.Contains("var hiddenFromGridCount = Math.Max(0, matchCount - visibleCount);", printBlock, StringComparison.Ordinal);
+            Assert.Contains("Matched: {matchCount} | Visible: {visibleCount} | Printed: {printableCustomers.Count} | Omitted: {omittedCount}", printBlock, StringComparison.Ordinal);
+            Assert.Contains("additional matching customers are outside the live grid", printBlock, StringComparison.Ordinal);
+            Assert.Contains("matched-row count, visible-row window, and omitted-row count", printBlock, StringComparison.Ordinal);
+            Assert.Contains("matched-row counts, visible-row windows, and large-directory limits", printBlock, StringComparison.Ordinal);
         }
 
         [Fact]
