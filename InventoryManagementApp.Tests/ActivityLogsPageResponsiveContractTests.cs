@@ -233,7 +233,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains(".Select(ActivityLogSearchRow.Create)", viewModel, StringComparison.Ordinal);
             Assert.Contains("_searchRows = refreshedSearchRows;", viewModel, StringComparison.Ordinal);
             Assert.Contains("private IReadOnlyList<ActivityLogSearchRow> GetSearchRowsSnapshot()", viewModel, StringComparison.Ordinal);
-            Assert.Contains("if (_searchRows.Count == Logs.Count)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (SearchRowsMatchLogs())", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private bool SearchRowsMatchLogs()", viewModel, StringComparison.Ordinal);
+            Assert.Contains("!ReferenceEquals(_searchRows[i].Log, Logs[i])", viewModel, StringComparison.Ordinal);
             Assert.Contains("_searchRows = Logs.Select(ActivityLogSearchRow.Create).ToList();", viewModel, StringComparison.Ordinal);
             Assert.Contains("private sealed class ActivityLogSearchRow", viewModel, StringComparison.Ordinal);
             Assert.Contains("public bool Matches(string selectedUserFilter, string selectedActionFilter, string search)", viewModel, StringComparison.Ordinal);
