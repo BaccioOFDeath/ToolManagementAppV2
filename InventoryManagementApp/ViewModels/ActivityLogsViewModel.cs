@@ -443,11 +443,25 @@ namespace InventoryManagementApp.ViewModels
 
         private IReadOnlyList<ActivityLogSearchRow> GetSearchRowsSnapshot()
         {
-            if (_searchRows.Count == Logs.Count)
+            if (SearchRowsMatchLogs())
                 return _searchRows;
 
             _searchRows = Logs.Select(ActivityLogSearchRow.Create).ToList();
             return _searchRows;
+        }
+
+        private bool SearchRowsMatchLogs()
+        {
+            if (_searchRows.Count != Logs.Count)
+                return false;
+
+            for (var i = 0; i < Logs.Count; i++)
+            {
+                if (!ReferenceEquals(_searchRows[i].Log, Logs[i]))
+                    return false;
+            }
+
+            return true;
         }
 
         private void ReplaceFilteredLogs(IReadOnlyList<ActivityLog> filtered, ActivityLog? previousSelection)
