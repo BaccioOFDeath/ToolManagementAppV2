@@ -94,11 +94,57 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(1, service.SearchCustomersCallCount);
             Assert.Equal("555", service.LastSearchTerm);
             Assert.Equal(2, vm.Customers.Count);
+            Assert.Equal(2, vm.CustomerDirectoryMatchCount);
+            Assert.Equal(0, vm.CustomerDirectoryOmittedCount);
+            Assert.False(vm.IsCustomerDirectoryWindowCapped);
             Assert.Equal("Beta Builders", vm.Customers[0].Company);
             Assert.Equal("Gamma Tools", vm.Customers[1].Company);
             Assert.Equal("Filtered by \"555\"", vm.CustomerFilterStatus);
             Assert.Contains("2 visible customers ready", vm.CustomerPrintSummary);
             Assert.True(vm.PrintCustomerDirectoryCommand.CanExecute(null));
+        }
+
+        [Fact]
+        public async Task LoadCustomersAsync_BoundsLargeCustomerDirectoryAndKeepsFullMatchContext()
+        {
+            var service = new StubCustomerService();
+            for (var i = 1; i <= 620; i++)
+            {
+                service.Customers.Add(new CustomerModel
+                {
+                    CustomerID = i,
+                    Company = $"Customer {i:000}",
+                    Contact = $"Contact {i:000}",
+                    Phone = $"555-{i:0000}",
+                    Email = $"customer{i:000}@example.test"
+                });
+            }
+
+            var dialog = new StubDialogService();
+            var vm = new CustomerManagementViewModel(service, dialog);
+
+            await vm.LoadCustomersAsync();
+
+            Assert.Equal(500, vm.Customers.Count);
+            Assert.Equal(620, vm.CustomerDirectoryMatchCount);
+            Assert.Equal(500, vm.CustomerDirectoryVisibleCount);
+            Assert.Equal(120, vm.CustomerDirectoryOmittedCount);
+            Assert.True(vm.IsCustomerDirectoryWindowCapped);
+            Assert.Equal("500 of 620 customers shown", vm.CustomerResultsSummary);
+            Assert.Contains("first 500 of 620 shown", vm.CustomerFilterStatus);
+            Assert.Contains("Showing first 500 of 620 matching customers", vm.CustomerVisibleWindowSummary);
+            Assert.Contains("Print preview includes the first 250 of 500 shown customers; 620 matched", vm.CustomerPrintSummary);
+            Assert.DoesNotContain(vm.Customers, c => c.CustomerID == 620);
+
+            vm.PrintCustomerDirectoryCommand.Execute(null);
+
+            var text = new TextRange(dialog.LastPrintPreviewDocument!.ContentStart, dialog.LastPrintPreviewDocument.ContentEnd).Text;
+            Assert.Contains("Matched: 620", text);
+            Assert.Contains("Visible: 500", text);
+            Assert.Contains("Printed: 250", text);
+            Assert.Contains("Omitted: 370", text);
+            Assert.Contains("120 additional matching customers are outside the live grid", text);
+            Assert.DoesNotContain("Customer 620", text);
         }
 
         [Fact]
@@ -182,6 +228,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("large-directory limits", dialog.LastPrintPreviewDescription);
             Assert.NotNull(dialog.LastPrintPreviewDocument);
             var text = new TextRange(dialog.LastPrintPreviewDocument!.ContentStart, dialog.LastPrintPreviewDocument.ContentEnd).Text;
+            Assert.Contains("Matched: 260", text);
             Assert.Contains("Visible: 260", text);
             Assert.Contains("Printed: 250", text);
             Assert.Contains("Omitted: 10", text);
