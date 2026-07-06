@@ -124,9 +124,9 @@ namespace InventoryManagementApp.ViewModels
 
         public bool IsSelectedCategoryActionAvailable => !IsCategoryInteractionBusy && SelectedCategory != null;
 
-        public bool IsDirectoryPrintAvailable => !IsCategoryInteractionBusy && FullFilteredCategoryCount > 0;
+        public bool IsDirectoryPrintAvailable => !IsCategoryInteractionBusy && FilteredCategories.Count > 0;
 
-        public bool IsCategoryEmptyStateVisible => !IsCategoryInteractionBusy && FullFilteredCategoryCount == 0;
+        public bool IsCategoryEmptyStateVisible => !IsCategoryInteractionBusy && FilteredCategories.Count == 0;
 
         public int FullFilteredCategoryCount => _matchedCategoryCount;
 
@@ -187,7 +187,7 @@ namespace InventoryManagementApp.ViewModels
             get
             {
                 if (IsCategoryInteractionBusy) return "Print is paused while category rows are loading.";
-                if (FullFilteredCategoryCount == 0) return "Print is available after categories are loaded or the filter has matches.";
+                if (FilteredCategories.Count == 0) return "Print is available after categories are loaded or the filter has matches.";
 
                 var printableRows = Math.Min(FilteredCategories.Count, 250);
                 var omittedFromPrint = Math.Max(0, FullFilteredCategoryCount - printableRows);
