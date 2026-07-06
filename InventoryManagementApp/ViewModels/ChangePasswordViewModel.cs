@@ -14,7 +14,10 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _newPassword, value))
+                {
                     ValidationMessage = string.Empty;
+                    NotifyPasswordEntryStateChanged();
+                }
             }
         }
 
@@ -25,7 +28,10 @@ namespace InventoryManagementApp.ViewModels
             set
             {
                 if (SetProperty(ref _confirmPassword, value))
+                {
                     ValidationMessage = string.Empty;
+                    NotifyPasswordEntryStateChanged();
+                }
             }
         }
 
@@ -33,7 +39,39 @@ namespace InventoryManagementApp.ViewModels
         public string ValidationMessage
         {
             get => _validationMessage;
-            private set => SetProperty(ref _validationMessage, value);
+            private set
+            {
+                if (SetProperty(ref _validationMessage, value))
+                {
+                    OnPropertyChanged(nameof(HasValidationMessage));
+                    OnPropertyChanged(nameof(PasswordReadinessSummary));
+                }
+            }
+        }
+
+        public bool HasValidationMessage => !string.IsNullOrWhiteSpace(ValidationMessage);
+
+        public bool CanAttemptSave =>
+            !string.IsNullOrWhiteSpace(NewPassword) && !string.IsNullOrWhiteSpace(ConfirmPassword);
+
+        public string PasswordReadinessSummary
+        {
+            get
+            {
+                if (HasValidationMessage)
+                    return ValidationMessage;
+
+                if (string.IsNullOrWhiteSpace(NewPassword) && string.IsNullOrWhiteSpace(ConfirmPassword))
+                    return "Enter and confirm the new password to enable Save Password.";
+
+                if (string.IsNullOrWhiteSpace(NewPassword))
+                    return "Enter the new password before saving.";
+
+                if (string.IsNullOrWhiteSpace(ConfirmPassword))
+                    return "Confirm the new password before saving.";
+
+                return "Ready to validate and save the new password.";
+            }
         }
 
         public IRelayCommand SaveCommand { get; }
@@ -57,8 +95,15 @@ namespace InventoryManagementApp.ViewModels
 
                 ValidationMessage = string.Empty;
                 onSave();
-            });
+            }, () => CanAttemptSave);
             CancelCommand = new RelayCommand(onCancel);
+        }
+
+        private void NotifyPasswordEntryStateChanged()
+        {
+            OnPropertyChanged(nameof(CanAttemptSave));
+            OnPropertyChanged(nameof(PasswordReadinessSummary));
+            SaveCommand.NotifyCanExecuteChanged();
         }
     }
 }
