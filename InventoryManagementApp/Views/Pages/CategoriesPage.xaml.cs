@@ -36,6 +36,7 @@ namespace InventoryManagementApp.Views.Pages
             Loaded += CategoriesPage_Loaded;
             Unloaded += CategoriesPage_Unloaded;
             DataContextChanged += CategoriesPage_DataContextChanged;
+            CategoryGrid.ContextMenuOpening += CategoryGrid_ContextMenuOpening;
         }
 
         private CategoryManagementViewModel? ViewModel => DataContext as CategoryManagementViewModel;
