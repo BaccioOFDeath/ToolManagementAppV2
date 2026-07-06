@@ -168,6 +168,38 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("_loadCalibrationTask = null;", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void CalibrationPage_PreservesTextEditingSuppressesBusyMenusAndUsesIterativeLookup()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CalibrationPage.xaml.cs");
+            var keyHandler = ExtractSourceBlock(source, "private void CalibrationPage_PreviewKeyDown", "private static bool IsCalibrationActionShortcut");
+            var doubleClick = ExtractSourceBlock(source, "private void CalibrationRow_MouseDoubleClick", "private void CalibrationRow_PreviewMouseRightButtonDown");
+            var findDescendant = ExtractSourceBlock(source, "private static T? FindDescendant", "private static int GetVisualChildCount");
+
+            Assert.Contains("CalibrationGrid.ContextMenuOpening += CalibrationGrid_ContextMenuOpening;", source, StringComparison.Ordinal);
+            Assert.Contains("private void CalibrationGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)", source, StringComparison.Ordinal);
+            Assert.Contains("CalibrationManagementViewModel { IsLoading: true }", source, StringComparison.Ordinal);
+            Assert.Contains("if (IsTextInputFocused() && IsCalibrationActionShortcut(e))", keyHandler, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.FocusedElement is TextBoxBase or PasswordBox or ComboBox", source, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F", keyHandler, StringComparison.Ordinal);
+            Assert.True(
+                keyHandler.IndexOf("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F", StringComparison.Ordinal) <
+                keyHandler.IndexOf("if (IsTextInputFocused() && IsCalibrationActionShortcut(e))", StringComparison.Ordinal),
+                "Ctrl+F should keep focusing search before text-edit shortcuts are preserved.");
+            Assert.True(
+                keyHandler.IndexOf("if (IsTextInputFocused() && IsCalibrationActionShortcut(e))", StringComparison.Ordinal) <
+                keyHandler.IndexOf("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N", StringComparison.Ordinal),
+                "Text-edit guard should run before calibration action shortcuts dispatch.");
+            Assert.Contains("e.Handled = true;\n        }", doubleClick, StringComparison.Ordinal);
+            Assert.Contains("using System.Collections.Generic;", source, StringComparison.Ordinal);
+            Assert.Contains("var pending = new Stack<DependencyObject>();", findDescendant, StringComparison.Ordinal);
+            Assert.Contains("while (pending.Count > 0)", findDescendant, StringComparison.Ordinal);
+            Assert.Contains("pending.Push(child);", findDescendant, StringComparison.Ordinal);
+            Assert.DoesNotContain("var nested = FindDescendant<T>(child);", findDescendant, StringComparison.Ordinal);
+            Assert.Contains("private static int GetVisualChildCount(DependencyObject current)", source, StringComparison.Ordinal);
+            Assert.Contains("catch (InvalidOperationException)", source, StringComparison.Ordinal);
+        }
+
         private static string ReadRepoFile(params string[] parts)
         {
             var directory = AppContext.BaseDirectory;
@@ -176,7 +208,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)
@@ -198,5 +230,8 @@ namespace InventoryManagementApp.Tests
 
             return source[start..end];
         }
+
+        private static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
     }
 }
