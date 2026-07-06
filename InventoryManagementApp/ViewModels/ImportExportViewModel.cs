@@ -32,6 +32,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly ILogger<ImportExportViewModel> _logger;
         private readonly IUserContext _userContext;
         private readonly RentalConfigurationService? _rentalConfigService;
+        private readonly IAsyncRelayCommand _openImageImportMappingWindowCommand;
         private int _activeDataOperationCount;
         private int _omittedImportExportLogCount;
         private string? _currentDataOperation;
@@ -52,13 +53,15 @@ namespace InventoryManagementApp.ViewModels
         public bool HasOmittedImportExportLogs => _omittedImportExportLogCount > 0;
         public bool IsDataOperationBusy => _activeDataOperationCount > 0;
         public bool IsDataOperationReady => !IsDataOperationBusy;
+        public bool CanOpenImageImportMapping => CanImportImages && !IsDataOperationBusy;
         public bool CanReviewSelectedLog => !IsDataOperationBusy && !string.IsNullOrWhiteSpace(SelectedImportExportLog);
         public bool CanPrintImportExportLogs => !IsDataOperationBusy && HasLogEntries;
+        public string ActiveDataOperationName => ValueOrDefault(_currentDataOperation, "Data operation");
         public string DataOperationStatus => IsDataOperationBusy
-            ? $"{ValueOrDefault(_currentDataOperation, "Data operation")} running"
+            ? $"{ActiveDataOperationName} running"
             : "Data desk ready";
         public string DataOperationSummary => IsDataOperationBusy
-            ? "Finish or cancel the current data operation before starting another import, export, backup, restore, copy, or print handoff."
+            ? "Finish or cancel the current data operation before starting another import, export, backup, restore, image mapping, copy, or print handoff."
             : "Ready for the next import, export, backup, restore, image mapping, copy, or print handoff.";
         public string LogSummary
         {
@@ -85,12 +88,22 @@ namespace InventoryManagementApp.ViewModels
         public string CustomerDataSummary =>
             "Import customers from mapped CSV, JSON, or XML. Export the customer directory to CSV, JSON, or XML for advisor handoff or cleanup.";
 
-        public string ImageImportSummary => CanImportImages
-            ? $"Image import is available for matching photos to {LabelProvider.Instance.ItemLabelPlural}."
-            : $"Image import requires the {User.PermissionLabels[User.PermissionImportExport]} permission. Ask an admin to grant it before mapping photos to {LabelProvider.Instance.ItemLabelPlural}.";
+        public string ImageImportSummary
+        {
+            get
+            {
+                if (IsDataOperationBusy)
+                    return $"Image mapping is paused while {ActiveDataOperationName.ToLowerInvariant()} is running so heavy data workflows do not overlap.";
 
-        public string BackupSummary =>
-            "Create or restore a full recovery package containing the database and app assets.";
+                return CanImportImages
+                    ? $"Image import is available for matching photos to {LabelProvider.Instance.ItemLabelPlural}."
+                    : $"Image import requires the {User.PermissionLabels[User.PermissionImportExport]} permission. Ask an admin to grant it before mapping photos to {LabelProvider.Instance.ItemLabelPlural}.";
+            }
+        }
+
+        public string BackupSummary => IsDataOperationBusy
+            ? $"Backup and restore are paused while {ActiveDataOperationName.ToLowerInvariant()} is running."
+            : "Create or restore a full recovery package containing the database and app assets.";
 
         private string? _selectedImportExportLog;
         public string? SelectedImportExportLog
@@ -149,13 +162,15 @@ namespace InventoryManagementApp.ViewModels
             _databaseService = databaseService;
             _dialogService = dialogService;
             _logger = logger ?? NullLogger<ImportExportViewModel>.Instance;
-            OpenImageImportMappingWindowCommand = openImageImportMappingWindowCommand ?? new AsyncRelayCommand(ct => Task.CompletedTask);
+            _openImageImportMappingWindowCommand = openImageImportMappingWindowCommand ?? new AsyncRelayCommand(ct => Task.CompletedTask);
             _userContext = userContext ?? new DummyUserContext();
             _userContext.UserChanged += (_, _) =>
             {
                 OnPropertyChanged(nameof(CanImportImages));
                 OnPropertyChanged(nameof(IsCurrentUserAdmin));
+                OnPropertyChanged(nameof(CanOpenImageImportMapping));
                 OnPropertyChanged(nameof(ImageImportSummary));
+                OpenImageImportMappingWindowCommand.NotifyCanExecuteChanged();
             };
             _rentalConfigService = rentalConfigService;
             ImportExportLogs.CollectionChanged += (_, _) =>
@@ -197,6 +212,7 @@ namespace InventoryManagementApp.ViewModels
             ExportCustomersCommand = new AsyncRelayCommand(ct => ExportCustomersAsync(ct), CanStartDataOperation);
             BackupDatabaseCommand = new AsyncRelayCommand(ct => BackupDatabaseAsync(ct), CanStartDataOperation);
             RestoreBackupCommand = new AsyncRelayCommand(ct => RestoreBackupAsync(ct), CanStartDataOperation);
+            OpenImageImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImageImportMappingAsync(ct), () => CanOpenImageImportMapping);
             ClearImportExportLogsCommand = new RelayCommand(ClearImportExportLogs, () => HasLogEntries && !IsDataOperationBusy);
         }
 
@@ -248,10 +264,14 @@ namespace InventoryManagementApp.ViewModels
         {
             OnPropertyChanged(nameof(IsDataOperationBusy));
             OnPropertyChanged(nameof(IsDataOperationReady));
+            OnPropertyChanged(nameof(CanOpenImageImportMapping));
             OnPropertyChanged(nameof(CanReviewSelectedLog));
             OnPropertyChanged(nameof(CanPrintImportExportLogs));
+            OnPropertyChanged(nameof(ActiveDataOperationName));
             OnPropertyChanged(nameof(DataOperationStatus));
             OnPropertyChanged(nameof(DataOperationSummary));
+            OnPropertyChanged(nameof(ImageImportSummary));
+            OnPropertyChanged(nameof(BackupSummary));
             ImportItemsCommand.NotifyCanExecuteChanged();
             CancelImportItemsCommand.NotifyCanExecuteChanged();
             ExportItemsCommand.NotifyCanExecuteChanged();
@@ -259,6 +279,7 @@ namespace InventoryManagementApp.ViewModels
             ExportCustomersCommand.NotifyCanExecuteChanged();
             BackupDatabaseCommand.NotifyCanExecuteChanged();
             RestoreBackupCommand.NotifyCanExecuteChanged();
+            OpenImageImportMappingWindowCommand.NotifyCanExecuteChanged();
             ClearImportExportLogsCommand.NotifyCanExecuteChanged();
         }
 
@@ -296,6 +317,23 @@ namespace InventoryManagementApp.ViewModels
         {
             AddLog(message);
             await _dialogService.ShowInfoAsync(message, title);
+        }
+
+        async Task OpenImageImportMappingAsync(CancellationToken cancellationToken)
+        {
+            if (!CanOpenImageImportMapping)
+                return;
+
+            if (!_openImageImportMappingWindowCommand.CanExecute(null))
+            {
+                const string message = "Image mapping is not available from the current data desk state.";
+                AddLog(message);
+                await _dialogService.ShowInfoAsync(message, "Image Mapping");
+                return;
+            }
+
+            AddLog("Opening image mapping workspace...");
+            await _openImageImportMappingWindowCommand.ExecuteAsync(null);
         }
 
         async Task ImportItemsAsync(CancellationToken cancellationToken)
