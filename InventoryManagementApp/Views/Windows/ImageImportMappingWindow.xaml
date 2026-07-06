@@ -5,11 +5,11 @@
         xmlns:controls="clr-namespace:InventoryManagementApp.Controls"
         xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
         Title="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Import {0} Pictures'}"
-        Width="720" Height="620"
-        MinWidth="600" MinHeight="500"
+        Width="680" Height="560"
+        MinWidth="520" MinHeight="420"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BackgroundBrush}">
-    <Grid Margin="14">
+    <Grid x:Name="ImageImportMappingRoot" Margin="10" MinWidth="0" ClipToBounds="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -18,20 +18,20 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,8">
-            <Grid>
+        <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0,0,0,8" MinWidth="0">
+            <Grid MinWidth="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MinWidth="0"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel MinWidth="0">
+                <StackPanel MinWidth="0" MaxWidth="480">
                     <TextBlock Text="Picture Matching Setup" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Choose which item fields can match incoming image filenames during photo import so pictures attach to the right inventory records."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,2,0,0"/>
                 </StackPanel>
-                <Border Grid.Column="1" Style="{StaticResource DesktopNoteCard}" Padding="10,7" Margin="12,0,0,0" VerticalAlignment="Center" MaxWidth="170">
+                <Border Grid.Column="1" Style="{StaticResource DesktopNoteCard}" Padding="10,7" Margin="10,0,0,0" VerticalAlignment="Center" MaxWidth="150">
                     <StackPanel>
                         <TextBlock Text="Photo Import" Style="{StaticResource LabelTextBlock}"/>
                         <TextBlock Text="Filename matching" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
@@ -40,8 +40,8 @@
             </Grid>
         </Border>
 
-        <WrapPanel Grid.Row="1" Margin="0,0,0,8">
-            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8" MinWidth="170" MaxWidth="250">
+        <WrapPanel Grid.Row="1" Margin="0,0,0,6">
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8" MinWidth="145" MaxWidth="220">
                 <StackPanel>
                     <TextBlock Text="01 Identifier" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="Item number" Style="{StaticResource SectionHeader}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
@@ -50,7 +50,7 @@
                                TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8" MinWidth="170" MaxWidth="250">
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8" MinWidth="145" MaxWidth="220">
                 <StackPanel>
                     <TextBlock Text="02 Supplier Code" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="Part number" Style="{StaticResource SectionHeader}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
@@ -59,7 +59,7 @@
                                TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
-            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8" MinWidth="170" MaxWidth="250">
+            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,8,8" MinWidth="145" MaxWidth="220">
                 <StackPanel>
                     <TextBlock Text="03 Human Label" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="Name" Style="{StaticResource SectionHeader}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
@@ -70,30 +70,21 @@
             </Border>
         </WrapPanel>
 
-        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" MinHeight="240" MinWidth="0">
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0" MinHeight="210" MinWidth="0">
             <Grid MinWidth="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" MinWidth="0"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                    <DockPanel LastChildFill="True">
+                        <TextBlock DockPanel.Dock="Right" Text="Enable expected filename identifiers." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" MaxWidth="220" Margin="12,0,0,0"/>
                         <TextBlock Text="Match Images By" Style="{StaticResource SectionHeader}" Margin="0" TextWrapping="Wrap"/>
-                        <TextBlock Grid.Column="1" Text="Enable expected filename identifiers." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" MaxWidth="260" Margin="12,0,0,0"/>
-                    </Grid>
+                    </DockPanel>
                 </Border>
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <Grid Margin="12" MinHeight="170" MinWidth="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1.25*" MinWidth="0"/>
-                            <ColumnDefinition Width="8"/>
-                            <ColumnDefinition Width="*" MinWidth="0"/>
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Style="{StaticResource DesktopInsetCard}" Padding="12,10" MinWidth="0">
+                    <WrapPanel Margin="10">
+                        <Border Style="{StaticResource DesktopInsetCard}" Padding="12,10" MinWidth="220" MaxWidth="320" Margin="0,0,10,10">
                             <StackPanel>
                                 <TextBlock Text="Identifier Rules" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
                                 <TextBlock Text="More than one matching rule can be selected. Start with the most unique identifier and add fallbacks only when filenames are consistent."
@@ -113,7 +104,7 @@
                                           FontWeight="SemiBold"/>
                             </StackPanel>
                         </Border>
-                        <Border Grid.Column="2" Style="{StaticResource AdminHandoffCard}" Margin="0" MinWidth="0">
+                        <Border Style="{StaticResource AdminHandoffCard}" Margin="0,0,10,10" MinWidth="220" MaxWidth="320">
                             <StackPanel>
                                 <TextBlock Text="Import Confidence" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
                                 <TextBlock Text="Pick the most reliable filename identifiers first, then review mapped photos in the data operations workflow before trusting the batch."
@@ -123,7 +114,19 @@
                                 <TextBlock Text="A narrower rule set usually creates fewer accidental image matches." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
-                    </Grid>
+                        <Border Style="{StaticResource DesktopNoteCard}" Padding="12,10" MinWidth="220" MaxWidth="320" Margin="0,0,10,10">
+                            <StackPanel>
+                                <TextBlock Text="Mapping Readiness" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedRuleCount, StringFormat='{}{0} rules selected'}"
+                                           Style="{StaticResource LabelTextBlock}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,3,0,6"/>
+                                <TextBlock Text="{Binding MappingReadinessText}"
+                                           Style="{StaticResource CaptionTextBlock}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
                 </ScrollViewer>
             </Grid>
         </Border>
@@ -137,11 +140,11 @@
 
         <Border Grid.Row="4" Style="{StaticResource DesktopStatusFooter}" Margin="0,8,0,0">
             <WrapPanel>
-                <TextBlock Text="Image matching setup ready" FontSize="11" VerticalAlignment="Center" Margin="0,0,12,4"/>
+                <TextBlock Text="{Binding MappingReadinessText}" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="240" Margin="0,0,12,4"/>
                 <TextBlock Text="Image matching rules are applied after OK is selected; cancel returns without changing the import setup."
                            Style="{StaticResource CaptionTextBlock}"
                            TextWrapping="Wrap"
-                           MaxWidth="560"
+                           MaxWidth="500"
                            Margin="0,0,0,4"
                            VerticalAlignment="Center"/>
             </WrapPanel>

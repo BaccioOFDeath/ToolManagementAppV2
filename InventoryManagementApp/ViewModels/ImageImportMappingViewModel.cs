@@ -9,20 +9,50 @@ namespace InventoryManagementApp.ViewModels
     public class ImageImportMappingViewModel : ObservableObject
     {
         bool _useItemNumber = true;
-        public bool UseItemNumber { get => _useItemNumber; set => SetProperty(ref _useItemNumber, value); }
+        public bool UseItemNumber
+        {
+            get => _useItemNumber;
+            set
+            {
+                if (SetProperty(ref _useItemNumber, value))
+                    RefreshMappingReadiness();
+            }
+        }
 
         bool _usePartNumber;
-        public bool UsePartNumber { get => _usePartNumber; set => SetProperty(ref _usePartNumber, value); }
+        public bool UsePartNumber
+        {
+            get => _usePartNumber;
+            set
+            {
+                if (SetProperty(ref _usePartNumber, value))
+                    RefreshMappingReadiness();
+            }
+        }
 
         bool _useName;
-        public bool UseName { get => _useName; set => SetProperty(ref _useName, value); }
+        public bool UseName
+        {
+            get => _useName;
+            set
+            {
+                if (SetProperty(ref _useName, value))
+                    RefreshMappingReadiness();
+            }
+        }
+
+        public int SelectedRuleCount => (UseItemNumber ? 1 : 0) + (UsePartNumber ? 1 : 0) + (UseName ? 1 : 0);
+        public bool CanConfirmMapping => SelectedRuleCount > 0;
+        public string MappingReadinessText => CanConfirmMapping
+            ? $"Ready with {SelectedRuleCount} filename matching rule{(SelectedRuleCount == 1 ? string.Empty : "s")}."
+            : "Choose at least one filename matching rule before continuing.";
 
         public IRelayCommand OkCommand { get; }
         public IRelayCommand CancelCommand { get; }
 
         public ImageImportMappingViewModel(Action onOk, Action onCancel)
         {
-            OkCommand = new RelayCommand(onOk);
+            OkCommand = new RelayCommand(onOk, () => CanConfirmMapping);
             CancelCommand = new RelayCommand(onCancel);
         }
 
@@ -39,6 +69,14 @@ namespace InventoryManagementApp.ViewModels
                     keys.Add(t.Name.Trim().ToUpperInvariant());
                 return keys;
             };
+        }
+
+        void RefreshMappingReadiness()
+        {
+            OnPropertyChanged(nameof(SelectedRuleCount));
+            OnPropertyChanged(nameof(CanConfirmMapping));
+            OnPropertyChanged(nameof(MappingReadinessText));
+            OkCommand.NotifyCanExecuteChanged();
         }
     }
 }
