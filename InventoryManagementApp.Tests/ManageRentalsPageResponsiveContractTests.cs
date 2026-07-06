@@ -174,6 +174,38 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ManageRentalsPage_SuppressesGridContextMenusDuringLoading()
+        {
+            var codeBehind = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs"));
+            var helperBlock = ExtractSourceBlock(codeBehind, "private bool SuppressContextMenuDuringLoading", "private void ManageRentalsPage_PreviewKeyDown");
+
+            Assert.Contains("RentalDeskGrid.ContextMenuOpening += RentalDeskGrid_ContextMenuOpening;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("RequestQueueGrid.ContextMenuOpening += RequestQueueGrid_ContextMenuOpening;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private void RentalDeskGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private void RequestQueueGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("SuppressContextMenuDuringLoading(e);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (DataContext is ManageRentalsViewModel { IsLoading: true })", helperBlock, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", helperBlock, StringComparison.Ordinal);
+            Assert.Contains("return true;", helperBlock, StringComparison.Ordinal);
+            Assert.Contains("return false;", helperBlock, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageRentalsPage_TextEditingShortcutGuardIncludesNestedEditors()
+        {
+            var codeBehind = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs"));
+            var editBlock = ExtractSourceBlock(codeBehind, "private static bool IsTextEditingElement", "private void OpenFocusedDetails");
+
+            Assert.Contains("if (source is TextBox or ComboBox or DatePicker or PasswordBox)", editBlock, StringComparison.Ordinal);
+            Assert.Contains("if (source is not DependencyObject element)", editBlock, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.FindAncestor<TextBox>(element) != null", editBlock, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.FindAncestor<ComboBox>(element) != null", editBlock, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.FindAncestor<DatePicker>(element) != null", editBlock, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.FindAncestor<PasswordBox>(element) != null", editBlock, StringComparison.Ordinal);
+            Assert.DoesNotContain("return source is TextBox or ComboBox or DatePicker;", editBlock, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ManageRentalsPage_RowGesturesSelectInvokedRowsAndStopDuringLoading()
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml.cs");
