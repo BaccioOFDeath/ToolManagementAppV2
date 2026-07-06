@@ -149,8 +149,8 @@
                                 <TextBlock Text="Due dates needing follow-up." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
-                                <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedRentalCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Return" Command="{Binding ReturnSelectedRentalCommand}" Margin="0,0,0,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedRentalCommand}" IsEnabled="{Binding HasSelectedRental}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Return" Command="{Binding ReturnSelectedRentalCommand}" IsEnabled="{Binding HasSelectedRental}" Margin="0,0,0,4"/>
                             </WrapPanel>
                         </DockPanel>
                     </Border>
@@ -193,8 +193,8 @@
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
-                                <MenuItem Header="Open Rentals Workflow" Command="{Binding PlacementTarget.DataContext.OpenSelectedRentalCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                <MenuItem Header="Return Rental" Command="{Binding PlacementTarget.DataContext.ReturnSelectedRentalCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Header="Open Rentals Workflow" Command="{Binding PlacementTarget.DataContext.OpenSelectedRentalCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" IsEnabled="{Binding PlacementTarget.DataContext.HasSelectedRental, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Header="Return Rental" Command="{Binding PlacementTarget.DataContext.ReturnSelectedRentalCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" IsEnabled="{Binding PlacementTarget.DataContext.HasSelectedRental, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Print Dashboard Snapshot" Command="{Binding PlacementTarget.DataContext.PrintDashboardSnapshotCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>
@@ -213,8 +213,8 @@
                                 <TextBlock Text="Away from shelf with holder context." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
-                                <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCheckedOutItemCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Check In" Command="{Binding CheckInSelectedItemCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCheckedOutItemCommand}" IsEnabled="{Binding HasSelectedCheckedOutItem}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Check In" Command="{Binding CheckInSelectedItemCommand}" IsEnabled="{Binding HasSelectedCheckedOutItem}" Margin="0,0,4,4"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintCheckedOutItemsCommand}" Margin="0,0,0,4"/>
                             </WrapPanel>
                         </DockPanel>
@@ -260,8 +260,8 @@
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
-                                <MenuItem Header="Open Item Workflow" Command="{Binding PlacementTarget.DataContext.OpenSelectedCheckedOutItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                <MenuItem Header="Check In" Command="{Binding PlacementTarget.DataContext.CheckInSelectedItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Header="Open Item Workflow" Command="{Binding PlacementTarget.DataContext.OpenSelectedCheckedOutItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" IsEnabled="{Binding PlacementTarget.DataContext.HasSelectedCheckedOutItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Header="Check In" Command="{Binding PlacementTarget.DataContext.CheckInSelectedItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" IsEnabled="{Binding PlacementTarget.DataContext.HasSelectedCheckedOutItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Print Checked-Out Items" Command="{Binding PlacementTarget.DataContext.PrintCheckedOutItemsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Print Dashboard Snapshot" Command="{Binding PlacementTarget.DataContext.PrintDashboardSnapshotCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                             </ContextMenu>
@@ -280,7 +280,7 @@
                                         <TextBlock Text="Audit Trail" Style="{StaticResource SubheadingTextBlock}" TextTrimming="CharacterEllipsis"/>
                                         <TextBlock Text="Open the selected activity workflow." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                                     </StackPanel>
-                                    <Button Style="{StaticResource GhostButton}" Content="Open Related" Command="{Binding OpenActivityDestinationCommand}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Open Related" Command="{Binding OpenActivityDestinationCommand}" IsEnabled="{Binding HasSelectedActivity}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
                             <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneSubheader}" Margin="0">
@@ -309,7 +309,7 @@
                                 </DataGrid.Columns>
                                 <DataGrid.ContextMenu>
                                     <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
-                                        <MenuItem Header="Open Related Workflow" Command="{Binding PlacementTarget.DataContext.OpenActivityDestinationCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                        <MenuItem Header="Open Related Workflow" Command="{Binding PlacementTarget.DataContext.OpenActivityDestinationCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" IsEnabled="{Binding PlacementTarget.DataContext.HasSelectedActivity, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                         <MenuItem Header="Print Dashboard Snapshot" Command="{Binding PlacementTarget.DataContext.PrintDashboardSnapshotCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
@@ -324,7 +324,7 @@
                                         <TextBlock Text="Needs Attention" Style="{StaticResource SubheadingTextBlock}" TextTrimming="CharacterEllipsis"/>
                                         <TextBlock Text="Incomplete records and missing-component notes for follow-up." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                                     </StackPanel>
-                                    <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedIncompleteItemCommand}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                                    <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedIncompleteItemCommand}" IsEnabled="{Binding HasSelectedIncompleteItem}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
                             <DataGrid x:Name="IncompleteItemsGrid"
@@ -350,7 +350,7 @@
                                 </DataGrid.Columns>
                                 <DataGrid.ContextMenu>
                                     <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
-                                        <MenuItem Header="Open Item Workflow" Command="{Binding PlacementTarget.DataContext.OpenSelectedIncompleteItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                        <MenuItem Header="Open Item Workflow" Command="{Binding PlacementTarget.DataContext.OpenSelectedIncompleteItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" IsEnabled="{Binding PlacementTarget.DataContext.HasSelectedIncompleteItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                         <MenuItem Header="Print Dashboard Snapshot" Command="{Binding PlacementTarget.DataContext.PrintDashboardSnapshotCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
@@ -366,8 +366,8 @@
                                         <TextBlock Text="High-frequency counter items." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                     <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
-                                        <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCommonItemCommand}" Margin="0,0,4,4"/>
-                                        <Button Style="{StaticResource GhostButton}" Content="Check Out / In" Command="{Binding ToggleSelectedCommonItemCommand}" Margin="0,0,0,4"/>
+                                        <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCommonItemCommand}" IsEnabled="{Binding HasSelectedCommonItem}" Margin="0,0,4,4"/>
+                                        <Button Style="{StaticResource GhostButton}" Content="Check Out / In" Command="{Binding ToggleSelectedCommonItemCommand}" IsEnabled="{Binding HasSelectedCommonItem}" Margin="0,0,0,4"/>
                                     </WrapPanel>
                                 </DockPanel>
                             </Border>
@@ -421,8 +421,8 @@
                                 </DataGrid.Columns>
                                 <DataGrid.ContextMenu>
                                     <ContextMenu Style="{StaticResource {x:Type ContextMenu}}">
-                                        <MenuItem Header="Open Item Workflow" Command="{Binding PlacementTarget.DataContext.OpenSelectedCommonItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                                        <MenuItem Header="Check Out / In" Command="{Binding PlacementTarget.DataContext.ToggleSelectedCommonItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                        <MenuItem Header="Open Item Workflow" Command="{Binding PlacementTarget.DataContext.OpenSelectedCommonItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" IsEnabled="{Binding PlacementTarget.DataContext.HasSelectedCommonItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                        <MenuItem Header="Check Out / In" Command="{Binding PlacementTarget.DataContext.ToggleSelectedCommonItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" IsEnabled="{Binding PlacementTarget.DataContext.HasSelectedCommonItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                         <MenuItem Header="Print Dashboard Snapshot" Command="{Binding PlacementTarget.DataContext.PrintDashboardSnapshotCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
