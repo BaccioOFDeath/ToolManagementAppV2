@@ -32,7 +32,7 @@ namespace InventoryManagementApp.Views.Windows
             if (DataContext is not RentalHistoryViewModel vm)
                 return;
 
-            if (vm.IsFiltering && IsRentalHistoryActionShortcut(e))
+            if (!vm.IsHistoryActionReady && IsRentalHistoryActionShortcut(e))
             {
                 e.Handled = true;
                 return;
@@ -75,7 +75,7 @@ namespace InventoryManagementApp.Views.Windows
             if (DataContext is not RentalHistoryViewModel vm)
                 return;
 
-            if (vm.IsFiltering)
+            if (!vm.IsHistoryActionReady)
             {
                 e.Handled = true;
                 return;
@@ -90,7 +90,7 @@ namespace InventoryManagementApp.Views.Windows
 
         private void HistoryRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (DataContext is RentalHistoryViewModel { IsFiltering: true })
+            if (DataContext is RentalHistoryViewModel { IsHistoryActionReady: false })
             {
                 e.Handled = true;
                 return;
