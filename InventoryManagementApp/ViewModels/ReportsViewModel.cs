@@ -13,7 +13,11 @@ namespace InventoryManagementApp.ViewModels
 {
     public class ReportsViewModel : ObservableObject
     {
+        internal const int MaxVisibleReportRows = 500;
+
         private readonly ReportService _reportService;
+        private int _totalReportLineCount;
+        private int _omittedReportLineCount;
 
         public ObservableCollection<string> ReportTypes { get; }
         public ObservableCollection<ReportLine> ReportLines { get; } = new();
@@ -110,8 +114,14 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public string LastRunText => LastRunAt.HasValue ? LastRunAt.Value.ToString("g") : "Not run";
-        public int ReportLineCount => ReportLines.Count;
-        public bool CanPrintCurrentReport => !IsBusy && LastRunAt.HasValue && ReportLines.Count > 0 && !string.Equals(ReportStatus, "Report failed.", StringComparison.Ordinal);
+        public int ReportLineCount => _totalReportLineCount;
+        public int VisibleReportLineCount => ReportLines.Count;
+        public int OmittedReportLineCount => _omittedReportLineCount;
+        public bool HasOmittedReportRows => _omittedReportLineCount > 0;
+        public string ReportLineWindowSummary => HasOmittedReportRows
+            ? $"Showing first {VisibleReportLineCount} of {ReportLineCount} action row(s)"
+            : $"{ReportLineCount} action row(s)";
+        public bool CanPrintCurrentReport => !IsBusy && LastRunAt.HasValue && ReportLineCount > 0 && ReportLines.Count > 0 && !string.Equals(ReportStatus, "Report failed.", StringComparison.Ordinal);
         public bool CanUseReportRows => !IsBusy && ReportLines.Count > 0;
         public string ReportOperatorPath => string.IsNullOrWhiteSpace(SelectedReport)
             ? "Choose a report, run it, then open the source page from any row that needs follow-up."
@@ -205,10 +215,8 @@ namespace InventoryManagementApp.ViewModels
                 ReportSummary = ex.Message;
                 ReportStatus = "Report failed.";
                 LastRunAt = null;
-                OnPropertyChanged(nameof(ReportLineCount));
-                OnPropertyChanged(nameof(CanPrintCurrentReport));
-                OnPropertyChanged(nameof(CanUseReportRows));
-                OnPropertyChanged(nameof(ReportOperatorPath));
+                SetReportLineCounts(0, 0);
+                NotifyReportOutputChanged();
                 ClearReportCommand.NotifyCanExecuteChanged();
             }
             finally
@@ -232,29 +240,27 @@ namespace InventoryManagementApp.ViewModels
             ReportSubtitle = BuildSubtitle(SelectedReport);
 
             var detailLines = lines.Skip(1).ToList();
-            for (var i = 0; i < detailLines.Count; i++)
+            SetReportLineCounts(detailLines.Count, Math.Max(0, detailLines.Count - MaxVisibleReportRows));
+
+            var visibleLines = detailLines.Take(MaxVisibleReportRows).ToList();
+            for (var i = 0; i < visibleLines.Count; i++)
             {
-                var category = ClassifyLine(detailLines[i]);
+                var category = ClassifyLine(visibleLines[i]);
                 ReportLines.Add(new ReportLine(
                     i + 1,
                     category,
-                    detailLines[i],
-                    BuildActionHint(detailLines[i]),
+                    visibleLines[i],
+                    BuildActionHint(visibleLines[i]),
                     BuildDestinationKey(SelectedReport, category),
                     BuildDestinationName(SelectedReport, category)));
             }
 
             LastRunAt = DateTime.Now;
             ReportSummary = BuildSummary(detailLines);
-            ReportStatus = ReportLines.Count == 0
-                ? $"{SelectedReport} completed with no rows to action."
-                : $"{SelectedReport} completed with {ReportLines.Count} line(s). Select a row or open the source page.";
+            ReportStatus = BuildCompletedStatus();
             if (ReportLines.Count > 0)
                 SelectedReportLine = ReportLines[0];
-            OnPropertyChanged(nameof(ReportLineCount));
-            OnPropertyChanged(nameof(CanPrintCurrentReport));
-            OnPropertyChanged(nameof(CanUseReportRows));
-            OnPropertyChanged(nameof(ReportOperatorPath));
+            NotifyReportOutputChanged();
             ClearReportCommand.NotifyCanExecuteChanged();
         }
 
@@ -262,6 +268,7 @@ namespace InventoryManagementApp.ViewModels
         {
             ReportLines.Clear();
             SelectedReportLine = null;
+            SetReportLineCounts(0, 0);
             ReportTitle = string.IsNullOrWhiteSpace(reportName) ? "Reports" : reportName;
             ReportSubtitle = string.IsNullOrWhiteSpace(reportName)
                 ? "Run operational reports for inventory, rentals, maintenance, reservations, and usage."
@@ -270,10 +277,7 @@ namespace InventoryManagementApp.ViewModels
                 ? "No report has been run yet."
                 : $"Run {reportName} to refresh report rows.";
             LastRunAt = null;
-            OnPropertyChanged(nameof(ReportLineCount));
-            OnPropertyChanged(nameof(CanPrintCurrentReport));
-            OnPropertyChanged(nameof(CanUseReportRows));
-            OnPropertyChanged(nameof(ReportOperatorPath));
+            NotifyReportOutputChanged();
             ClearReportCommand.NotifyCanExecuteChanged();
         }
 
@@ -281,16 +285,43 @@ namespace InventoryManagementApp.ViewModels
         {
             ReportLines.Clear();
             SelectedReportLine = null;
+            SetReportLineCounts(0, 0);
             ReportTitle = "Reports";
             ReportSubtitle = "Run operational reports for inventory, rentals, maintenance, reservations, and usage.";
             ReportSummary = "No report has been run yet.";
             ReportStatus = "Report cleared.";
             LastRunAt = null;
+            NotifyReportOutputChanged();
+            ClearReportCommand.NotifyCanExecuteChanged();
+        }
+
+        private void SetReportLineCounts(int totalLineCount, int omittedLineCount)
+        {
+            _totalReportLineCount = Math.Max(0, totalLineCount);
+            _omittedReportLineCount = Math.Max(0, omittedLineCount);
+        }
+
+        private string BuildCompletedStatus()
+        {
+            if (ReportLineCount == 0)
+                return $"{SelectedReport} completed with no rows to action.";
+
+            if (HasOmittedReportRows)
+                return $"{SelectedReport} completed with {ReportLineCount} line(s); showing first {VisibleReportLineCount} so the results grid stays responsive.";
+
+            return $"{SelectedReport} completed with {ReportLineCount} line(s). Select a row or open the source page.";
+        }
+
+        private void NotifyReportOutputChanged()
+        {
             OnPropertyChanged(nameof(ReportLineCount));
+            OnPropertyChanged(nameof(VisibleReportLineCount));
+            OnPropertyChanged(nameof(OmittedReportLineCount));
+            OnPropertyChanged(nameof(HasOmittedReportRows));
+            OnPropertyChanged(nameof(ReportLineWindowSummary));
             OnPropertyChanged(nameof(CanPrintCurrentReport));
             OnPropertyChanged(nameof(CanUseReportRows));
             OnPropertyChanged(nameof(ReportOperatorPath));
-            ClearReportCommand.NotifyCanExecuteChanged();
         }
 
         private static string BuildSubtitle(string reportName)

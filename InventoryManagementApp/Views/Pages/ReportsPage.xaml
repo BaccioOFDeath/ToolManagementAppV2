@@ -57,7 +57,7 @@
                     <Border Style="{StaticResource ReportsStatCard}">
                         <StackPanel>
                             <TextBlock Text="ROWS" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding ReportLineCount, StringFormat={}{0} action row(s)}"
+                            <TextBlock Text="{Binding ReportLineWindowSummary}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
@@ -142,7 +142,7 @@
                                 <TextBlock Text="01 Report Results" Style="{StaticResource SectionHeader}" Margin="0"/>
                                 <TextBlock Text="Review generated report lines, priority wording, destination, and next action before opening the source workflow." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding ReportLineCount, StringFormat={}{0} row(s)}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ReportLineWindowSummary}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
 

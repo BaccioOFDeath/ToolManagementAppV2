@@ -15,9 +15,11 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"240\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"1.15*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding ReportLineWindowSummary}\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Grid.Column=\"2\" Columns=\"4\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"2*\" MinWidth=\"390\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"3*\" MinWidth=\"540\"/>", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("ReportLineCount, StringFormat={}{0} action row(s)", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -89,7 +91,7 @@ namespace InventoryManagementApp.Tests
             var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
 
             Assert.Contains("public bool CanUseReportRows => !IsBusy && ReportLines.Count > 0;", viewModel, StringComparison.Ordinal);
-            Assert.Contains("public bool CanPrintCurrentReport => !IsBusy && LastRunAt.HasValue", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanPrintCurrentReport => !IsBusy && LastRunAt.HasValue && ReportLineCount > 0 && ReportLines.Count > 0", viewModel, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CanPrintCurrentReport));", viewModel, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CanUseReportRows));", viewModel, StringComparison.Ordinal);
             Assert.Contains("IsEnabled=\"{Binding CanUseReportRows}\"", xaml, StringComparison.Ordinal);
@@ -104,12 +106,53 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ReportsViewModel_CapsVisibleReportRowsAndTracksFullCounts()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml");
+
+            Assert.Contains("internal const int MaxVisibleReportRows = 500;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private int _totalReportLineCount;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private int _omittedReportLineCount;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public int ReportLineCount => _totalReportLineCount;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public int VisibleReportLineCount => ReportLines.Count;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public int OmittedReportLineCount => _omittedReportLineCount;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool HasOmittedReportRows => _omittedReportLineCount > 0;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public string ReportLineWindowSummary => HasOmittedReportRows", viewModel, StringComparison.Ordinal);
+            Assert.Contains("SetReportLineCounts(detailLines.Count, Math.Max(0, detailLines.Count - MaxVisibleReportRows));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("var visibleLines = detailLines.Take(MaxVisibleReportRows).ToList();", viewModel, StringComparison.Ordinal);
+            Assert.Contains("for (var i = 0; i < visibleLines.Count; i++)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("BuildSummary(detailLines)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("showing first {VisibleReportLineCount} so the results grid stays responsive", viewModel, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding ReportLineWindowSummary}\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("for (var i = 0; i < detailLines.Count; i++)", viewModel, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ReportsViewModel_ResetsAndNotifiesBoundedReportCountState()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
+
+            Assert.Contains("SetReportLineCounts(0, 0);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private void SetReportLineCounts(int totalLineCount, int omittedLineCount)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("_totalReportLineCount = Math.Max(0, totalLineCount);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("_omittedReportLineCount = Math.Max(0, omittedLineCount);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private void NotifyReportOutputChanged()", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReportLineCount));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(VisibleReportLineCount));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(OmittedReportLineCount));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(HasOmittedReportRows));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ReportLineWindowSummary));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("NotifyReportOutputChanged();", viewModel, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ReportsPage_BoundsPrintPreviewRowsAndReportsOmittedRows()
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
 
             Assert.Contains("private const int MaxReportPrintRows = 250;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("var totalLineCount = vm.ReportLines.Count;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var totalLineCount = vm.ReportLineCount;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("var printRows = vm.ReportLines.Take(MaxReportPrintRows).ToList();", codeBehind, StringComparison.Ordinal);
             Assert.Contains("BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, printRows, totalLineCount)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("Large reports print the first 250 rows so preview stays responsive.", codeBehind, StringComparison.Ordinal);
@@ -119,6 +162,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("AddKeyValueRow(group, \"Omitted Action Rows\"", codeBehind, StringComparison.Ordinal);
             Assert.Contains("AddKeyValueRow(group, \"Large Report Limit\"", codeBehind, StringComparison.Ordinal);
             Assert.Contains("Review each destination, source-page route, next action, and omitted-row count", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("var totalLineCount = vm.ReportLines.Count;", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, vm.ReportLines.ToList())", codeBehind, StringComparison.Ordinal);
         }
 
