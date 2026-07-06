@@ -89,7 +89,78 @@ namespace InventoryManagementApp.Tests
             Assert.True(vm.CanPrintUsers);
             Assert.Equal(2, vm.VisibleUserCount);
             Assert.Equal(2, vm.TotalUserCount);
+            Assert.Equal(2, vm.MatchedUserCount);
+            Assert.Equal(0, vm.OmittedUserCount);
             Assert.Equal(new[] { "alpha", "bravo" }, vm.Users.Select(user => user.UserName).ToArray());
+        }
+
+        [Fact]
+        public async Task LoadUsersAsync_BoundsVisibleRowsAndTracksFullMatchCounts()
+        {
+            var service = new StubUserService();
+            for (var i = 1; i <= UserManagementViewModel.MaxVisibleUserRows + 25; i++)
+            {
+                service.Users.Add(new UserModel
+                {
+                    UserID = i,
+                    UserName = $"user{i:000}",
+                    Role = "Workshop Staff",
+                    IsActive = true
+                });
+            }
+
+            var vm = new UserManagementViewModel(service, new StubFileDialogService(), new StubDialogService());
+            await vm.LoadUsersAsync();
+
+            Assert.Equal(UserManagementViewModel.MaxVisibleUserRows + 25, vm.TotalUserCount);
+            Assert.Equal(UserManagementViewModel.MaxVisibleUserRows + 25, vm.MatchedUserCount);
+            Assert.Equal(UserManagementViewModel.MaxVisibleUserRows, vm.VisibleUserCount);
+            Assert.Equal(25, vm.OmittedUserCount);
+            Assert.True(vm.IsUserWindowLimited);
+            Assert.Equal("user001", vm.Users.First().UserName);
+            Assert.Equal("user500", vm.Users.Last().UserName);
+            Assert.DoesNotContain(vm.Users, user => user.UserName == "user501");
+            Assert.Contains("showing first 500 of 525", vm.UserDirectoryStatusText);
+            Assert.Contains("refine search", vm.UserWindowStatusText);
+
+            vm.UserSearchText = "user52";
+            vm.SearchUsersCommand.Execute(null);
+
+            Assert.Equal(6, vm.MatchedUserCount);
+            Assert.Equal(6, vm.VisibleUserCount);
+            Assert.Equal(0, vm.OmittedUserCount);
+            Assert.False(vm.IsUserWindowLimited);
+            Assert.Equal(new[] { "user520", "user521", "user522", "user523", "user524", "user525" }, vm.Users.Select(user => user.UserName).ToArray());
+            Assert.Contains("6 matches", vm.UserFilterStatusText);
+        }
+
+        [Fact]
+        public async Task DeleteUserFromRowCommand_ReplenishesVisibleWindowAfterVisibleDelete()
+        {
+            var service = new StubUserService();
+            for (var i = 1; i <= UserManagementViewModel.MaxVisibleUserRows + 1; i++)
+            {
+                service.Users.Add(new UserModel
+                {
+                    UserID = i,
+                    UserName = $"user{i:000}",
+                    Role = "Workshop Staff",
+                    IsActive = true
+                });
+            }
+
+            var vm = new UserManagementViewModel(service, new StubFileDialogService(), new StubDialogService());
+            await vm.LoadUsersAsync();
+            var deletedUser = vm.Users.First();
+
+            await vm.DeleteUserFromRowCommand.ExecuteAsync(deletedUser);
+
+            Assert.Equal(UserManagementViewModel.MaxVisibleUserRows, vm.TotalUserCount);
+            Assert.Equal(UserManagementViewModel.MaxVisibleUserRows, vm.MatchedUserCount);
+            Assert.Equal(UserManagementViewModel.MaxVisibleUserRows, vm.VisibleUserCount);
+            Assert.Equal(0, vm.OmittedUserCount);
+            Assert.DoesNotContain(vm.Users, user => user.UserID == deletedUser.UserID);
+            Assert.Contains(vm.Users, user => user.UserName == "user501");
         }
 
         [Fact]
@@ -119,16 +190,20 @@ namespace InventoryManagementApp.Tests
             vm.SearchUsersCommand.Execute(null);
             var userById = Assert.Single(vm.Users);
             Assert.Equal("scheduler", userById.UserName);
+            Assert.Equal(1, vm.MatchedUserCount);
+            Assert.Equal(0, vm.OmittedUserCount);
 
             vm.UserSearchText = "failed login";
             vm.SearchUsersCommand.Execute(null);
             var userByLockout = Assert.Single(vm.Users);
             Assert.Equal("locked", userByLockout.UserName);
+            Assert.Equal(1, vm.MatchedUserCount);
 
             vm.UserSearchText = "Reservations";
             vm.SearchUsersCommand.Execute(null);
             var userByAccess = Assert.Single(vm.Users);
             Assert.Equal("scheduler", userByAccess.UserName);
+            Assert.Equal(1, vm.MatchedUserCount);
         }
 
         [Fact]
@@ -194,6 +269,8 @@ namespace InventoryManagementApp.Tests
 
             Assert.Empty(vm.Users);
             Assert.Null(vm.SelectedUser);
+            Assert.Equal(0, vm.MatchedUserCount);
+            Assert.Equal(0, vm.OmittedUserCount);
             Assert.False(vm.UpdateUserCommand.CanExecute(null));
             Assert.False(vm.EditUserCommand.CanExecute(null));
             Assert.Equal("Error", dialog.LastTitle);
