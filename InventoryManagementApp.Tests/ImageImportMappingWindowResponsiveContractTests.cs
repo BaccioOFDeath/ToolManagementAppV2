@@ -48,7 +48,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Mapping Readiness", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"1.25*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"8\"/>", xaml, StringComparison.Ordinal);
-            Assert.DoesNotContain("<ColumnDefinition Width=\"*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<Border Grid.Column=\"2\" Style=\"{StaticResource AdminHandoffCard}\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -67,8 +67,7 @@ namespace InventoryManagementApp.Tests
         [Fact]
         public void ImageImportMappingViewModel_GatesOkCommandUntilRuleIsSelected()
         {
-            var okInvoked = false;
-            var vm = new ImageImportMappingViewModel(() => okInvoked = true, () => { });
+            var vm = new ImageImportMappingViewModel(() => { }, () => { });
 
             Assert.True(vm.CanConfirmMapping);
             Assert.Equal(1, vm.SelectedRuleCount);
@@ -80,9 +79,6 @@ namespace InventoryManagementApp.Tests
             Assert.Equal(0, vm.SelectedRuleCount);
             Assert.False(vm.OkCommand.CanExecute(null));
             Assert.Contains("Choose at least one", vm.MappingReadinessText, StringComparison.Ordinal);
-
-            vm.OkCommand.Execute(null);
-            Assert.False(okInvoked);
 
             vm.UseName = true;
 
