@@ -88,7 +88,7 @@ namespace InventoryManagementApp.Views.Pages
                     return;
                 }
 
-                var totalLineCount = vm.ReportLines.Count;
+                var totalLineCount = vm.ReportLineCount;
                 var printRows = vm.ReportLines.Take(MaxReportPrintRows).ToList();
                 var document = BuildReportDocument(vm.ReportTitle, vm.ReportSummary, vm.LastRunText, printRows, totalLineCount);
                 new PrintPreviewWindow().ShowPreview(
