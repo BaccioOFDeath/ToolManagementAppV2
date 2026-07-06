@@ -105,7 +105,7 @@ public class CustomerEditViewModelTests
     }
 
     [Fact]
-    public void CustomerFieldChangeClearsValidationMessageAndRefreshesStatus()
+    public void CustomerFieldChangeRefreshesReadinessAndCommandState()
     {
         var customer = new CustomerModel
         {
@@ -114,9 +114,7 @@ public class CustomerEditViewModelTests
         };
         var vm = new CustomerEditViewModel(customer, () => { }, () => { });
 
-        vm.SaveCommand.Execute(null);
-
-        Assert.True(vm.HasValidationMessage);
+        Assert.False(vm.SaveCommand.CanExecute(null));
         Assert.Contains("phone or mobile", vm.StatusMessage);
 
         customer.Phone = "078472255";
