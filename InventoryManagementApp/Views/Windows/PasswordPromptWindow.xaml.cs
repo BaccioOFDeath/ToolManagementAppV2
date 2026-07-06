@@ -1,4 +1,4 @@
-﻿// Views/PasswordPromptWindow.xaml.cs
+// Views/PasswordPromptWindow.xaml.cs
 using System;
 using System.Windows;
 using System.Windows.Input;
@@ -15,6 +15,8 @@ namespace InventoryManagementApp.Views.Windows
         private const int MaxAttempts = 2;
         private int _attemptCount;
         private readonly IDialogService _dialogService;
+        private DispatcherOperation? _pendingFocusOperation;
+        private bool _isUnloaded;
 
         public PasswordPromptViewModel VM => (PasswordPromptViewModel)DataContext;
         public string EnteredPassword => VM.EnteredPassword;
@@ -46,16 +48,19 @@ namespace InventoryManagementApp.Views.Windows
             this.DisposeDataContextOnUnload();
             Loaded += OnLoaded;
             Activated += OnActivated;
+            Unloaded += OnUnloaded;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            _isUnloaded = false;
+
             if (SelectedUser != null)
                 PromptTextBlock.Text = $"{SelectedUser.UserName}, please enter your password:";
             else
                 PromptTextBlock.Text = "Please enter your password:";
 
-            FocusPasswordBox();
+            FocusPasswordBox(selectAll: true);
         }
 
         private void OnActivated(object? sender, EventArgs e)
@@ -63,23 +68,70 @@ namespace InventoryManagementApp.Views.Windows
             FocusPasswordBox();
         }
 
-        private void FocusPasswordBox()
+        private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            PasswordBox.Dispatcher.BeginInvoke(() =>
+            _isUnloaded = true;
+            AbortPendingFocus();
+        }
+
+        private void FocusPasswordBox(bool selectAll = false)
+        {
+            if (_isUnloaded || !IsLoaded)
+                return;
+
+            AbortPendingFocus();
+            _pendingFocusOperation = PasswordBox.Dispatcher.BeginInvoke(() =>
             {
+                _pendingFocusOperation = null;
+
+                if (_isUnloaded || !IsLoaded)
+                    return;
+
                 PasswordBox.Focus();
                 Keyboard.Focus(PasswordBox);
+
+                if (selectAll)
+                    PasswordBox.SelectAll();
             }, DispatcherPriority.Input);
+        }
+
+        private void AbortPendingFocus()
+        {
+            if (_pendingFocusOperation is { Status: DispatcherOperationStatus.Pending })
+                _pendingFocusOperation.Abort();
+
+            _pendingFocusOperation = null;
         }
 
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
         {
             VM.EnteredPassword = PasswordBox.Password;
+            VM.ClearPasswordFeedback();
+
+            if (!string.IsNullOrEmpty(PasswordBox.Password))
+                ErrorTextBlock.Visibility = Visibility.Collapsed;
+        }
+
+        private void PasswordBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && VM.OkCommand.CanExecute(null))
+            {
+                VM.OkCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.Escape && VM.CancelCommand.CanExecute(null))
+            {
+                VM.CancelCommand.Execute(null);
+                e.Handled = true;
+            }
         }
 
         private void ShowError(string message)
         {
             _attemptCount++;
+            VM.RegisterFailedAttempt(_attemptCount, MaxAttempts);
             ErrorTextBlock.Text = message;
             ErrorTextBlock.Visibility = Visibility.Visible;
 
