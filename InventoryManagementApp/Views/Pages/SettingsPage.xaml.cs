@@ -90,6 +90,7 @@ namespace InventoryManagementApp.Views.Pages
 
             _themeDesignerTabRetryQueued = true;
             var version = ++_themeDesignerTabVersion;
+            Action AddThemeDesignerTab = this.AddThemeDesignerTab;
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 if (!_isLoaded || version != _themeDesignerTabVersion)
@@ -98,7 +99,7 @@ namespace InventoryManagementApp.Views.Pages
                     return;
                 }
 
-                AddThemeDesignerTab();
+                Dispatcher.BeginInvoke(AddThemeDesignerTab, DispatcherPriority.Loaded);
             }), DispatcherPriority.Loaded);
         }
 

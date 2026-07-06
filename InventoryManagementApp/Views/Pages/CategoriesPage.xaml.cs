@@ -92,6 +92,9 @@ namespace InventoryManagementApp.Views.Pages
 
             if (!IsCurrentCategoryInitialization(vm, loadVersion, cancellationToken) || vm.IsCategoryInteractionBusy)
             {
+                if (!ReferenceEquals(DataContext, vm) || vm.IsCategoryInteractionBusy)
+                    return;
+
                 return;
             }
 

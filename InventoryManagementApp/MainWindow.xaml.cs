@@ -186,20 +186,25 @@ namespace InventoryManagementApp
             if (_mainViewModel == null)
                 return;
 
-            if (e.StagingItem.Input is MouseWheelEventArgs wheelArgs && SmoothMouseWheelScroll.TryHandle(wheelArgs))
+            if (e.StagingItem.Input is MouseEventArgs or KeyboardEventArgs)
             {
-                ResetAutoLogoutTimerForInput(force: false);
+                if (e.StagingItem.Input is MouseWheelEventArgs wheelArgs && SmoothMouseWheelScroll.TryHandle(wheelArgs))
+                {
+                    ResetAutoLogoutTimerForInput(force: false);
+                    return;
+                }
+
+                if (e.StagingItem.Input is KeyboardEventArgs or MouseButtonEventArgs)
+                {
+                    ResetAutoLogoutTimerForInput(force: true);
+                    return;
+                }
+
+                if (e.StagingItem.Input is MouseEventArgs)
+                    ResetAutoLogoutTimerForInput(force: false);
+
                 return;
             }
-
-            if (e.StagingItem.Input is KeyboardEventArgs or MouseButtonEventArgs)
-            {
-                ResetAutoLogoutTimerForInput(force: true);
-                return;
-            }
-
-            if (e.StagingItem.Input is MouseEventArgs)
-                ResetAutoLogoutTimerForInput(force: false);
         }
 
         void ResetAutoLogoutTimerForInput(bool force)

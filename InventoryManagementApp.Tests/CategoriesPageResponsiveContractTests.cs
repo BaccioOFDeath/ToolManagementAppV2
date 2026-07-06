@@ -180,7 +180,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", rightClick, StringComparison.Ordinal);
             Assert.Contains("ViewModel.IsCategoryInteractionBusy && IsCategoryActionShortcut(e)", keyHandler, StringComparison.Ordinal);
             Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R", keyHandler, StringComparison.Ordinal);
-            Assert.Contains("!IsTextInputFocused() && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C", keyHandler, StringComparison.Ordinal);
+            Assert.Contains("if (IsTextInputFocused() && IsCategoryActionShortcut(e))", keyHandler, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C", keyHandler, StringComparison.Ordinal);
             Assert.Contains("e.Key is Key.R or Key.S or Key.P or Key.C", busyShortcut, StringComparison.Ordinal);
             Assert.Contains("return Keyboard.Modifiers == ModifierKeys.None && e.Key is Key.Enter or Key.Delete;", busyShortcut, StringComparison.Ordinal);
         }
