@@ -53,6 +53,9 @@ namespace InventoryManagementApp.ViewModels.Rental
         {
             get
             {
+                if (IsExportingCsv)
+                    return $"Exporting {History.Count} visible rental record(s) to CSV...";
+
                 if (IsFiltering)
                     return "Searching rental history...";
 
@@ -72,22 +75,37 @@ namespace InventoryManagementApp.ViewModels.Rental
         public bool HasOmittedHistoryRows => OmittedHistoryCount > 0;
         public bool HasActiveSearch => !string.IsNullOrWhiteSpace(AppliedSearchText);
         public bool HasNoResults => History.Count == 0;
-        public bool IsEmptyStateVisible => HasNoResults && !IsFiltering;
-        public bool CanOpenDetails => SelectedEntry != null && !IsFiltering;
-        public bool CanExportHistory => History.Count > 0 && !IsFiltering;
-        public bool CanClearSearch => !IsFiltering && (HasActiveSearch || !string.IsNullOrWhiteSpace(SearchText));
-        public bool IsHistoryActionReady => !IsFiltering;
+        public bool IsHistoryBusy => IsFiltering || IsExportingCsv;
+        public bool IsEmptyStateVisible => HasNoResults && !IsHistoryBusy;
+        public bool CanOpenDetails => SelectedEntry != null && !IsHistoryBusy;
+        public bool CanExportHistory => History.Count > 0 && !IsHistoryBusy;
+        public bool CanClearSearch => !IsHistoryBusy && (HasActiveSearch || !string.IsNullOrWhiteSpace(SearchText));
+        public bool IsHistoryActionReady => !IsHistoryBusy;
+        public string HistoryBusyStatus => IsExportingCsv
+            ? $"Preparing a CSV export for {History.Count} visible rental record(s). The dialog remains responsive while the file is written."
+            : "Searching rental history off the UI path...";
         public string EmptyStateTitle => HasActiveSearch ? "No matching rental records" : "No rental history records";
         public string EmptyStateMessage => HasActiveSearch
             ? "Clear the search or try a rental number, item number, customer, location, status, or date."
             : "Previous rental activity for this item will appear here once records exist.";
-        public string ExportSummary => CanExportHistory
-            ? HasOmittedHistoryRows
-                ? $"Export {History.Count} visible record(s); {OmittedHistoryCount} row(s) are omitted from the current grid for responsiveness."
-                : $"Export {History.Count} visible record(s) to CSV."
-            : IsFiltering
-                ? "Wait for search to finish before exporting."
-                : "No visible rental records to export.";
+        public string ExportSummary
+        {
+            get
+            {
+                if (IsExportingCsv)
+                    return $"Exporting {History.Count} visible record(s); actions are paused until the CSV is ready.";
+
+                if (IsFiltering)
+                    return "Wait for search to finish before exporting.";
+
+                if (History.Count == 0)
+                    return "No visible rental records to export.";
+
+                return HasOmittedHistoryRows
+                    ? $"Export {History.Count} visible record(s); {OmittedHistoryCount} row(s) are omitted from the current grid for responsiveness."
+                    : $"Export {History.Count} visible record(s) to CSV.";
+            }
+        }
         public string SelectedEntrySummary => SelectedEntry == null
             ? "Select a rental row to see holder, dates, and status. Double-click any row for details."
             : $"Rental #{SelectedEntry.RentalID} | {SelectedEntry.ItemNumber} | {SelectedEntry.CustomerName} | {SelectedEntry.Status}";
@@ -132,19 +150,18 @@ namespace InventoryManagementApp.ViewModels.Rental
             private set
             {
                 if (SetProperty(ref _isFiltering, value))
-                {
-                    SearchCommand.NotifyCanExecuteChanged();
-                    ClearSearchCommand.NotifyCanExecuteChanged();
-                    OpenDetailsCommand.NotifyCanExecuteChanged();
-                    ExportCsvCommand.NotifyCanExecuteChanged();
-                    OnPropertyChanged(nameof(SearchStatus));
-                    OnPropertyChanged(nameof(IsEmptyStateVisible));
-                    OnPropertyChanged(nameof(CanOpenDetails));
-                    OnPropertyChanged(nameof(CanExportHistory));
-                    OnPropertyChanged(nameof(CanClearSearch));
-                    OnPropertyChanged(nameof(IsHistoryActionReady));
-                    OnPropertyChanged(nameof(ExportSummary));
-                }
+                    NotifyBusyStateChanged();
+            }
+        }
+
+        private bool _isExportingCsv;
+        public bool IsExportingCsv
+        {
+            get => _isExportingCsv;
+            private set
+            {
+                if (SetProperty(ref _isExportingCsv, value))
+                    NotifyBusyStateChanged();
             }
         }
 
@@ -170,7 +187,7 @@ namespace InventoryManagementApp.ViewModels.Rental
         public IAsyncRelayCommand SearchCommand { get; }
         public IRelayCommand ClearSearchCommand { get; }
         public IRelayCommand OpenDetailsCommand { get; }
-        public IRelayCommand ExportCsvCommand { get; }
+        public IAsyncRelayCommand ExportCsvCommand { get; }
         public IRelayCommand CloseCommand { get; }
 
         public RentalHistoryViewModel(ItemModel? item, IEnumerable<RentalModel>? history, IDialogService dialogService, ILogger<RentalHistoryViewModel>? logger = null)
@@ -189,10 +206,10 @@ namespace InventoryManagementApp.ViewModels.Rental
             _logger = logger ?? NullLogger<RentalHistoryViewModel>.Instance;
             _dialogService = dialogService;
 
-            SearchCommand = new AsyncRelayCommand(ExecuteSearchAsync, () => !IsFiltering);
+            SearchCommand = new AsyncRelayCommand(ExecuteSearchAsync, () => !IsHistoryBusy);
             ClearSearchCommand = new RelayCommand(ClearSearch, () => CanClearSearch);
             OpenDetailsCommand = new RelayCommand(OpenDetails, () => CanOpenDetails);
-            ExportCsvCommand = new RelayCommand(ExportCsv, () => CanExportHistory);
+            ExportCsvCommand = new AsyncRelayCommand(ExportCsvAsync, () => CanExportHistory);
             CloseCommand = new RelayCommand(CloseWindow);
         }
 
@@ -244,7 +261,7 @@ namespace InventoryManagementApp.ViewModels.Rental
             ThrowIfDisposed();
 
             _searchCts?.Cancel();
-            if (IsFiltering)
+            if (IsHistoryBusy)
                 return;
 
             SearchText = string.Empty;
@@ -282,6 +299,23 @@ namespace InventoryManagementApp.ViewModels.Rental
                 : History.FirstOrDefault();
         }
 
+        void NotifyBusyStateChanged()
+        {
+            SearchCommand.NotifyCanExecuteChanged();
+            ClearSearchCommand.NotifyCanExecuteChanged();
+            OpenDetailsCommand.NotifyCanExecuteChanged();
+            ExportCsvCommand.NotifyCanExecuteChanged();
+            OnPropertyChanged(nameof(SearchStatus));
+            OnPropertyChanged(nameof(IsHistoryBusy));
+            OnPropertyChanged(nameof(HistoryBusyStatus));
+            OnPropertyChanged(nameof(IsEmptyStateVisible));
+            OnPropertyChanged(nameof(CanOpenDetails));
+            OnPropertyChanged(nameof(CanExportHistory));
+            OnPropertyChanged(nameof(CanClearSearch));
+            OnPropertyChanged(nameof(IsHistoryActionReady));
+            OnPropertyChanged(nameof(ExportSummary));
+        }
+
         void NotifyHistoryViewChanged()
         {
             OnPropertyChanged(nameof(ResultsSummary));
@@ -291,6 +325,8 @@ namespace InventoryManagementApp.ViewModels.Rental
             OnPropertyChanged(nameof(OmittedHistoryCount));
             OnPropertyChanged(nameof(HasOmittedHistoryRows));
             OnPropertyChanged(nameof(HasNoResults));
+            OnPropertyChanged(nameof(IsHistoryBusy));
+            OnPropertyChanged(nameof(HistoryBusyStatus));
             OnPropertyChanged(nameof(IsEmptyStateVisible));
             OnPropertyChanged(nameof(CanOpenDetails));
             OnPropertyChanged(nameof(CanExportHistory));
@@ -299,6 +335,7 @@ namespace InventoryManagementApp.ViewModels.Rental
             OnPropertyChanged(nameof(EmptyStateTitle));
             OnPropertyChanged(nameof(EmptyStateMessage));
             OnPropertyChanged(nameof(ExportSummary));
+            SearchCommand.NotifyCanExecuteChanged();
             ClearSearchCommand.NotifyCanExecuteChanged();
             OpenDetailsCommand.NotifyCanExecuteChanged();
             ExportCsvCommand.NotifyCanExecuteChanged();
@@ -326,8 +363,10 @@ namespace InventoryManagementApp.ViewModels.Rental
             _dialogService.ShowInfo(details, "Rental History Details");
         }
 
-        void ExportCsv()
+        async Task ExportCsvAsync()
         {
+            ThrowIfDisposed();
+
             if (!CanExportHistory)
                 return;
 
@@ -353,9 +392,32 @@ namespace InventoryManagementApp.ViewModels.Rental
 
             path ??= Path.Combine(Environment.CurrentDirectory, BuildExportFileName());
 
+            var visibleRows = History.ToList();
+            var filteredView = SearchStatus;
+            IsExportingCsv = true;
+
+            try
+            {
+                var csv = await Task.Run(() => BuildCsv(visibleRows, filteredView));
+                await File.WriteAllTextAsync(path, csv, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                _dialogService.ShowInfo($"Exported {visibleRows.Count} rental record(s) to {path}.", "Rental History Export");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to export rental history to {Path}", path);
+                _dialogService.ShowInfo($"Failed to export rental history: {ex.Message}", "Error");
+            }
+            finally
+            {
+                IsExportingCsv = false;
+            }
+        }
+
+        static string BuildCsv(IReadOnlyList<RentalModel> rows, string filteredView)
+        {
             var sb = new StringBuilder();
             sb.AppendLine("RentalID,ItemNumber,ItemLocation,CustomerName,RentalDate,DueDate,ReturnDate,Status,FilteredView");
-            foreach (var r in History)
+            foreach (var r in rows)
             {
                 sb.AppendLine(string.Join(',',
                     r.RentalID.ToString(CultureInfo.InvariantCulture),
@@ -366,19 +428,10 @@ namespace InventoryManagementApp.ViewModels.Rental
                     r.DueDate.ToString("o", CultureInfo.InvariantCulture),
                     r.ReturnDate?.ToString("o", CultureInfo.InvariantCulture) ?? string.Empty,
                     Escape(r.Status),
-                    Escape(SearchStatus)));
+                    Escape(filteredView)));
             }
 
-            try
-            {
-                File.WriteAllText(path, sb.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
-                _dialogService.ShowInfo($"Exported {History.Count} rental record(s) to {path}.", "Rental History Export");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to export rental history to {Path}", path);
-                _dialogService.ShowInfo($"Failed to export rental history: {ex.Message}", "Error");
-            }
+            return sb.ToString();
         }
 
         string BuildExportFileName()

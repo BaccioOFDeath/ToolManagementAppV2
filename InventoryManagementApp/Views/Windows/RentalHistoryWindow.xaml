@@ -25,7 +25,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="10">
+    <Grid x:Name="RentalHistoryRoot" Margin="10" MinWidth="0" ClipToBounds="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -90,7 +90,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Rental Records" Style="{StaticResource SectionHeader}" Margin="0" TextWrapping="Wrap"/>
-                        <TextBlock Grid.Column="1" Text="Search runs off the UI path and matches rental #, item, customer, location, status, and rental dates."
+                        <TextBlock Grid.Column="1" Text="Search and CSV export run off the UI path; row actions pause while work is active."
                                    Style="{StaticResource CaptionTextBlock}"
                                    HorizontalAlignment="Right"
                                    TextWrapping="Wrap"
@@ -111,7 +111,7 @@
                                          SearchLabel=""
                                          Margin="0,0,10,6"/>
                         <TextBlock Text="{Binding SearchStatus}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="360" Margin="0,0,10,6"/>
-                        <Button Style="{StaticResource PrimaryButton}" MinWidth="104" Content="Export CSV" Command="{Binding ExportCsvCommand}" ToolTip="Export the visible history rows (Ctrl+E)" Margin="0,0,0,6"/>
+                        <Button Style="{StaticResource PrimaryButton}" MinWidth="104" Content="Export CSV" Command="{Binding ExportCsvCommand}" ToolTip="{Binding ExportSummary}" Margin="0,0,0,6"/>
                     </WrapPanel>
                 </Border>
 
@@ -133,6 +133,7 @@
                     <DataGrid x:Name="RentalHistoryDataGrid"
                               ItemsSource="{Binding History}"
                               SelectedItem="{Binding SelectedEntry}"
+                              IsEnabled="{Binding IsHistoryActionReady}"
                               IsReadOnly="True"
                               AutoGenerateColumns="False"
                               EnableRowVirtualization="True"
@@ -188,18 +189,21 @@
                                        Margin="0,4,0,0"/>
                         </StackPanel>
                     </Border>
-                    <Border MaxWidth="300" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Top">
+                    <Border MaxWidth="340" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Top" IsHitTestVisible="True">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource AdminHandoffCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsFiltering}" Value="True">
+                                    <DataTrigger Binding="{Binding IsHistoryBusy}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
-                        <TextBlock Text="{Binding SearchStatus}" Style="{StaticResource CaptionTextBlock}" TextAlignment="Center" TextWrapping="Wrap"/>
+                        <StackPanel>
+                            <TextBlock Text="Working on rental history" Style="{StaticResource SectionHeader}" TextAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding HistoryBusyStatus}" Style="{StaticResource CaptionTextBlock}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
                     </Border>
                 </Grid>
             </Grid>
@@ -214,7 +218,7 @@
                 <TextBlock Grid.Column="0" Text="{Binding SearchStatus}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,12,4"/>
                 <WrapPanel Grid.Column="1" HorizontalAlignment="Right">
                     <Button Style="{StaticResource PrimaryButton}" MinWidth="86" Content="Details" Command="{Binding OpenDetailsCommand}" ToolTip="Open selected rental details (Ctrl+D)" Margin="0,0,6,4"/>
-                    <Button Style="{StaticResource GhostButton}" MinWidth="104" Content="Export CSV" Command="{Binding ExportCsvCommand}" ToolTip="Export the visible history rows (Ctrl+E)" Margin="0,0,6,4"/>
+                    <Button Style="{StaticResource GhostButton}" MinWidth="104" Content="Export CSV" Command="{Binding ExportCsvCommand}" ToolTip="{Binding ExportSummary}" Margin="0,0,6,4"/>
                     <Button Style="{StaticResource GhostButton}" MinWidth="86" Content="Close" Command="{Binding CloseCommand}" ToolTip="Close rental history (Esc)" Margin="0,0,0,4"/>
                 </WrapPanel>
             </Grid>
