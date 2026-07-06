@@ -184,7 +184,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("CancellationTokenSource? _filterRefreshCts", viewModel, StringComparison.Ordinal);
             Assert.Contains("Interlocked.Exchange(ref _filterRefreshCts, cts)", viewModel, StringComparison.Ordinal);
             Assert.Contains("await Task.Delay(FilterDebounceMilliseconds, cts.Token);", viewModel, StringComparison.Ordinal);
-            Assert.Contains("await Task.Run(() => rows.Where", viewModel, StringComparison.Ordinal);
+            Assert.Contains("await Task.Run(() => rows", viewModel, StringComparison.Ordinal);
             Assert.Contains("PreserveActivityLogRowsAfterLoadFailure", viewModel, StringComparison.Ordinal);
             Assert.DoesNotContain("ClearActivityLogRowsAfterLoadFailure", viewModel, StringComparison.Ordinal);
         }
@@ -197,6 +197,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("public void CancelPendingFilterRefresh()", viewModel, StringComparison.Ordinal);
             Assert.Contains("var cts = Interlocked.Exchange(ref _filterRefreshCts, null);", viewModel, StringComparison.Ordinal);
             Assert.Contains("cts?.Cancel();", viewModel, StringComparison.Ordinal);
+            Assert.Contains("cts?.Dispose();", viewModel, StringComparison.Ordinal);
             Assert.Contains("if (IsFiltering)", viewModel, StringComparison.Ordinal);
             Assert.Contains("IsFiltering = false;", viewModel, StringComparison.Ordinal);
             Assert.Contains("Activity filtering was canceled before rows were loaded.", viewModel, StringComparison.Ordinal);
@@ -219,8 +220,43 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("public string ActivityEmptyStateTitle", viewModel, StringComparison.Ordinal);
             Assert.Contains("public string ActivityEmptyStateMessage", viewModel, StringComparison.Ordinal);
             Assert.Contains("public string PrintStatusText", viewModel, StringComparison.Ordinal);
-            Assert.Contains("log.UserID.ToString().Contains(search, StringComparison.OrdinalIgnoreCase)", viewModel, StringComparison.Ordinal);
             Assert.Contains("OrderByDescending(log => log.Timestamp)", viewModel, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsViewModel_CachesSearchRowsForFastFilterPasses()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
+
+            Assert.Contains("private IReadOnlyList<ActivityLogSearchRow> _searchRows = Array.Empty<ActivityLogSearchRow>();", viewModel, StringComparison.Ordinal);
+            Assert.Contains("var refreshedSearchRows = refreshedRows", viewModel, StringComparison.Ordinal);
+            Assert.Contains(".Select(ActivityLogSearchRow.Create)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("_searchRows = refreshedSearchRows;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private IReadOnlyList<ActivityLogSearchRow> GetSearchRowsSnapshot()", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (SearchRowsMatchLogs())", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private bool SearchRowsMatchLogs()", viewModel, StringComparison.Ordinal);
+            Assert.Contains("!ReferenceEquals(_searchRows[i].Log, Logs[i])", viewModel, StringComparison.Ordinal);
+            Assert.Contains("_searchRows = Logs.Select(ActivityLogSearchRow.Create).ToList();", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private sealed class ActivityLogSearchRow", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool Matches(string selectedUserFilter, string selectedActionFilter, string search)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("SearchText.Contains(search, StringComparison.OrdinalIgnoreCase)", viewModel, StringComparison.Ordinal);
+            Assert.DoesNotContain("SafeText(log.UserName).Contains(search, StringComparison.OrdinalIgnoreCase)", viewModel, StringComparison.Ordinal);
+            Assert.DoesNotContain("BuildDestinationName(BuildDestinationKey(log.Action)).Contains(search, StringComparison.OrdinalIgnoreCase)", viewModel, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsViewModel_ReusesFilteredRowsAndPreservesSelectionWhenFilterOutputIsSame()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
+
+            Assert.Contains("ReplaceFilteredLogs(filtered, previousSelection);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private void ReplaceFilteredLogs(IReadOnlyList<ActivityLog> filtered, ActivityLog? previousSelection)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (!HasSameRows(FilteredLogs, filtered))", viewModel, StringComparison.Ordinal);
+            Assert.Contains("SelectedLog = previousSelection != null && FilteredLogs.Contains(previousSelection)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private static bool HasSameRows(IReadOnlyList<ActivityLog> currentRows, IReadOnlyList<ActivityLog> nextRows)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (!ReferenceEquals(currentRows[i], nextRows[i]))", viewModel, StringComparison.Ordinal);
+            Assert.Contains("previousCts?.Dispose();", viewModel, StringComparison.Ordinal);
+            Assert.Contains("_searchRows = Array.Empty<ActivityLogSearchRow>();", viewModel, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)
