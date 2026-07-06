@@ -62,7 +62,7 @@
                 <StackPanel>
                     <TextBlock Text="Visible Users" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding VisibleUserCount}" Style="{StaticResource UserStatValueText}"/>
-                    <TextBlock Text="{Binding UserDirectoryStatusText}" Style="{StaticResource UserDetailText}"/>
+                    <TextBlock Text="{Binding UserWindowStatusText}" Style="{StaticResource UserDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource UserStatCard}">
@@ -375,7 +375,7 @@
                            FontSize="11"
                            VerticalAlignment="Center"/>
                 <TextBlock DockPanel.Dock="Right"
-                           Text="Select a row, then edit access, reset password, copy handoff, upload photo, or print the filtered directory."
+                           Text="{Binding UserWindowStatusText}"
                            Style="{StaticResource CaptionTextBlock}"
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"/>

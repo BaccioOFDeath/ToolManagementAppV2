@@ -24,6 +24,8 @@ namespace InventoryManagementApp.ViewModels
 {
     public class UserManagementViewModel : ObservableObject
     {
+        public const int MaxVisibleUserRows = 500;
+
         private readonly IUserService _userService;
         private readonly IFileDialogService _fileDialogService;
         private readonly IDialogService _dialogService;
@@ -32,6 +34,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IServiceProvider? _serviceProvider;
 
         private List<UserModel> _allUsers = new();
+        private int _matchedUserCount;
         private bool _hasLoadedUsers;
 
         public ObservableCollection<UserModel> Users { get; } = new();
@@ -76,8 +79,11 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public int TotalUserCount => _allUsers.Count;
+        public int MatchedUserCount => _matchedUserCount;
         public int VisibleUserCount => Users.Count;
+        public int OmittedUserCount => Math.Max(0, MatchedUserCount - VisibleUserCount);
         public bool HasUserFilter => !string.IsNullOrWhiteSpace(UserSearchText);
+        public bool IsUserWindowLimited => OmittedUserCount > 0;
         public bool CanUseUserActions => !IsLoadingUsers;
         public bool CanUseSelectedUserActions => !IsLoadingUsers && SelectedUser != null;
         public bool CanPrintUsers => !IsLoadingUsers && Users.Count > 0;
@@ -91,12 +97,15 @@ namespace InventoryManagementApp.ViewModels
                         ? $"Refreshing account directory - keeping {Users.Count} current rows visible"
                         : "Loading account directory";
 
-                if (Users.Count == 0)
+                if (MatchedUserCount == 0)
                     return HasUserFilter
                         ? $"No users match \"{UserSearchText.Trim()}\""
                         : "No user accounts are available";
 
-                return $"Admin desk ready - {Users.Count} visible of {_allUsers.Count} accounts";
+                if (IsUserWindowLimited)
+                    return $"Admin desk ready - showing first {VisibleUserCount} of {MatchedUserCount} matching accounts ({OmittedUserCount} hidden from the live grid)";
+
+                return $"Admin desk ready - {VisibleUserCount} visible of {TotalUserCount} accounts";
             }
         }
 
@@ -107,11 +116,21 @@ namespace InventoryManagementApp.ViewModels
                 if (IsLoadingUsers)
                     return "Search pauses until account rows finish loading";
 
-                return HasUserFilter
-                    ? $"Filter: {UserSearchText.Trim()}"
+                if (HasUserFilter)
+                    return IsUserWindowLimited
+                        ? $"Filter: {UserSearchText.Trim()} - {MatchedUserCount} matches, first {VisibleUserCount} shown"
+                        : $"Filter: {UserSearchText.Trim()} - {MatchedUserCount} matches";
+
+                return IsUserWindowLimited
+                    ? $"All accounts - first {VisibleUserCount} of {MatchedUserCount} shown"
                     : "All accounts";
             }
         }
+
+        public string UserWindowStatusText =>
+            IsUserWindowLimited
+                ? $"Showing first {VisibleUserCount} accounts to keep the grid responsive; refine search to reach {OmittedUserCount} more matches."
+                : "All matching accounts are visible in the live grid.";
 
         public string SelectedAccessStatusText =>
             IsLoadingUsers
@@ -212,13 +231,43 @@ namespace InventoryManagementApp.ViewModels
             _hasLoadedUsers = true;
 
             AssignInitialsBrushes(_allUsers);
-            Users.ReplaceRange(FilterUsers(_allUsers));
+            ApplyFilteredUserRows();
+        }
+
+        private void ApplyFilteredUserRows()
+        {
+            var matchedUsers = FilterUsers(_allUsers).ToList();
+            var visibleUsers = matchedUsers.Take(MaxVisibleUserRows).ToList();
+            _matchedUserCount = matchedUsers.Count;
+
+            if (!AreSameVisibleRows(visibleUsers))
+                Users.ReplaceRange(visibleUsers);
+
+            if (SelectedUser != null && !Users.Any(user => user.UserID == SelectedUser.UserID))
+                SelectedUser = null;
+
             NotifyUserDirectoryStateChanged();
+            NotifyUserCommandStatesChanged();
+        }
+
+        private bool AreSameVisibleRows(IReadOnlyList<UserModel> visibleUsers)
+        {
+            if (Users.Count != visibleUsers.Count)
+                return false;
+
+            for (var i = 0; i < visibleUsers.Count; i++)
+            {
+                if (!ReferenceEquals(Users[i], visibleUsers[i]))
+                    return false;
+            }
+
+            return true;
         }
 
         private void ClearUsersAfterLoadFailure()
         {
             _allUsers.Clear();
+            _matchedUserCount = 0;
             _hasLoadedUsers = false;
             Users.Clear();
             SelectedUser = null;
@@ -344,11 +393,9 @@ namespace InventoryManagementApp.ViewModels
                 await _userService.UpdateUserAsync(SelectedUser);
                 var idxAll = _allUsers.IndexOf(SelectedUser);
                 if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
-                var idx = Users.IndexOf(SelectedUser);
-                if (idx >= 0) Users[idx] = SelectedUser;
+                ApplyFilteredUserRows();
                 if (_userContext?.CurrentUser?.UserID == SelectedUser.UserID)
                     _userContext.CurrentUser = SelectedUser;
-                NotifyUserDirectoryStateChanged();
             }
             catch (UnauthorizedAccessException)
             {
@@ -370,11 +417,9 @@ namespace InventoryManagementApp.ViewModels
                 await _userService.UpdateUserAsync(SelectedUser);
                 var idxAll = _allUsers.IndexOf(SelectedUser);
                 if (idxAll >= 0) _allUsers[idxAll] = SelectedUser;
-                var idx = Users.IndexOf(SelectedUser);
-                if (idx >= 0) Users[idx] = SelectedUser;
+                ApplyFilteredUserRows();
                 if (_userContext?.CurrentUser?.UserID == SelectedUser.UserID)
                     _userContext.CurrentUser = SelectedUser;
-                NotifyUserDirectoryStateChanged();
             }
             catch (UnauthorizedAccessException)
             {
@@ -495,8 +540,7 @@ namespace InventoryManagementApp.ViewModels
         void SearchUsers()
         {
             if (!CanUseUserActions) return;
-            Users.ReplaceRange(FilterUsers(_allUsers));
-            NotifyUserDirectoryStateChanged();
+            ApplyFilteredUserRows();
         }
 
         private IEnumerable<UserModel> FilterUsers(IEnumerable<UserModel> users)
@@ -523,8 +567,7 @@ namespace InventoryManagementApp.ViewModels
         {
             if (!CanUseUserActions) return;
             UserSearchText = string.Empty;
-            Users.ReplaceRange(_allUsers);
-            NotifyUserDirectoryStateChanged();
+            ApplyFilteredUserRows();
         }
 
         public async Task EditUserAsync(UserModel? user)
@@ -575,13 +618,12 @@ namespace InventoryManagementApp.ViewModels
                     try
                     {
                         await _userService.UpdateUserAsync(clone);
-                        var idx = Users.IndexOf(user);
-                        if (idx >= 0) Users[idx] = clone;
                         var idxAll = _allUsers.IndexOf(user);
                         if (idxAll >= 0) _allUsers[idxAll] = clone;
                         AssignInitialsBrushes(_allUsers);
-                        NotifyUserDirectoryStateChanged();
-                        if (ReferenceEquals(SelectedUser, user)) SelectedUser = clone;
+                        ApplyFilteredUserRows();
+                        if (Users.Any(visibleUser => visibleUser.UserID == clone.UserID))
+                            SelectedUser = clone;
                         if (_userContext?.CurrentUser?.UserID == clone.UserID)
                             _userContext.CurrentUser = clone;
                         if (win != null)
@@ -665,11 +707,9 @@ namespace InventoryManagementApp.ViewModels
                 var deleted = await _userService.TryDeleteUserAsync(user.UserID);
                 if (deleted)
                 {
-                    _allUsers.Remove(user);
-                    Users.Remove(user);
+                    _allUsers.RemoveAll(existing => existing.UserID == user.UserID);
                     if (ReferenceEquals(SelectedUser, user)) SelectedUser = null;
-                    NotifyUserDirectoryStateChanged();
-                    NotifyUserCommandStatesChanged();
+                    ApplyFilteredUserRows();
                 }
                 else
                 {
@@ -692,13 +732,17 @@ namespace InventoryManagementApp.ViewModels
         private void NotifyUserDirectoryStateChanged()
         {
             OnPropertyChanged(nameof(TotalUserCount));
+            OnPropertyChanged(nameof(MatchedUserCount));
             OnPropertyChanged(nameof(VisibleUserCount));
+            OnPropertyChanged(nameof(OmittedUserCount));
             OnPropertyChanged(nameof(HasUserFilter));
+            OnPropertyChanged(nameof(IsUserWindowLimited));
             OnPropertyChanged(nameof(CanUseUserActions));
             OnPropertyChanged(nameof(CanUseSelectedUserActions));
             OnPropertyChanged(nameof(CanPrintUsers));
             OnPropertyChanged(nameof(UserDirectoryStatusText));
             OnPropertyChanged(nameof(UserFilterStatusText));
+            OnPropertyChanged(nameof(UserWindowStatusText));
             OnPropertyChanged(nameof(UserEmptyStateTitle));
             OnPropertyChanged(nameof(UserEmptyStateMessage));
             OnPropertyChanged(nameof(SelectedAccessStatusText));

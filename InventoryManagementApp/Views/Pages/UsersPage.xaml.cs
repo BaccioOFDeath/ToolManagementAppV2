@@ -138,11 +138,14 @@ namespace InventoryManagementApp.Views.Pages
                     return;
                 }
 
+                var totalMatchedCount = ViewModel.MatchedUserCount;
                 var totalVisibleCount = ViewModel.Users.Count;
+                var hiddenFromGridCount = ViewModel.OmittedUserCount;
                 var printRows = ViewModel.Users.Take(MaxUsersPrintRows).ToList();
-                var summary = $"Visible users: {totalVisibleCount}; printed rows: {printRows.Count}; omitted rows: {Math.Max(0, totalVisibleCount - printRows.Count)}";
-                var document = BuildPrintDocument(printRows, totalVisibleCount, summary);
-                ShowPrintPreview(document, "User Directory", "Review the current account directory, access coverage, lockout state, active state, contact handoff details, and any omitted rows before filing an admin packet.");
+                var printOmittedCount = Math.Max(0, totalVisibleCount - printRows.Count);
+                var summary = $"Matched users: {totalMatchedCount}; visible rows: {totalVisibleCount}; printed rows: {printRows.Count}; hidden from grid: {hiddenFromGridCount}; print omitted rows: {printOmittedCount}";
+                var document = BuildPrintDocument(printRows, totalMatchedCount, totalVisibleCount, hiddenFromGridCount, summary);
+                ShowPrintPreview(document, "User Directory", "Review the current account directory, access coverage, lockout state, active state, contact handoff details, hidden grid matches, and any omitted print rows before filing an admin packet.");
             });
         }
 
@@ -164,7 +167,7 @@ namespace InventoryManagementApp.Views.Pages
                    "Next steps: edit profile details, tick the app sections this user can access, upload a current photo, reset the password if the user is blocked, or review activity logs for recent account actions.";
         }
 
-        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<UserModel> users, int totalVisibleCount, string summary)
+        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<UserModel> users, int totalMatchedCount, int totalVisibleCount, int hiddenFromGridCount, string summary)
         {
             var document = new FlowDocument
             {
@@ -185,7 +188,7 @@ namespace InventoryManagementApp.Views.Pages
                 Margin = new Thickness(0, 0, 0, 8)
             });
 
-            document.Blocks.Add(BuildSummarySection(summary, totalVisibleCount, users.Count, Math.Max(0, totalVisibleCount - users.Count)));
+            document.Blocks.Add(BuildSummarySection(summary, totalMatchedCount, totalVisibleCount, users.Count, hiddenFromGridCount, Math.Max(0, totalVisibleCount - users.Count)));
 
             if (users.Count == 0)
             {
@@ -235,7 +238,7 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             document.Blocks.Add(table);
-            document.Blocks.Add(new Paragraph(new Run("Review access coverage, lockout state, disabled accounts, contact handoff details, and any omitted rows before changing permissions or filing this directory packet."))
+            document.Blocks.Add(new Paragraph(new Run("Review access coverage, lockout state, disabled accounts, contact handoff details, hidden grid matches, and any omitted print rows before changing permissions or filing this directory packet."))
             {
                 FontSize = 10,
                 FontStyle = FontStyles.Italic,
@@ -245,7 +248,7 @@ namespace InventoryManagementApp.Views.Pages
             return document;
         }
 
-        private static Table BuildSummarySection(string summary, int totalVisibleCount, int printedRowCount, int omittedRowCount)
+        private static Table BuildSummarySection(string summary, int totalMatchedCount, int totalVisibleCount, int printedRowCount, int hiddenFromGridCount, int printOmittedRowCount)
         {
             var table = new Table { CellSpacing = 0, Margin = new Thickness(0, 0, 0, 10) };
             table.Columns.Add(new TableColumn { Width = new GridLength(0.25, GridUnitType.Star) });
@@ -254,10 +257,13 @@ namespace InventoryManagementApp.Views.Pages
             var group = new TableRowGroup();
             table.RowGroups.Add(group);
             AddSummaryLine(group, "Print Packet", summary);
-            AddSummaryLine(group, "Total Visible Rows", totalVisibleCount.ToString());
+            AddSummaryLine(group, "Matched Accounts", totalMatchedCount.ToString());
+            AddSummaryLine(group, "Visible Grid Rows", totalVisibleCount.ToString());
             AddSummaryLine(group, "Printed Rows", printedRowCount.ToString());
-            AddSummaryLine(group, "Omitted Rows", omittedRowCount == 0 ? "None" : $"{omittedRowCount} rows omitted to keep preview responsive");
-            AddSummaryLine(group, "Large Directory Limit", $"First {MaxUsersPrintRows} visible rows");
+            AddSummaryLine(group, "Hidden From Grid", hiddenFromGridCount == 0 ? "None" : $"{hiddenFromGridCount} matching accounts hidden from the live grid; refine search to print them");
+            AddSummaryLine(group, "Print Omitted Rows", printOmittedRowCount == 0 ? "None" : $"{printOmittedRowCount} visible rows omitted to keep preview responsive");
+            AddSummaryLine(group, "Live Grid Limit", $"First {UserManagementViewModel.MaxVisibleUserRows} matching accounts");
+            AddSummaryLine(group, "Print Limit", $"First {MaxUsersPrintRows} visible rows");
 
             return table;
         }
