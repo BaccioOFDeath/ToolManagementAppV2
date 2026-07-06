@@ -30,6 +30,7 @@ namespace InventoryManagementApp.Views.Pages
             Loaded += SettingsPage_Loaded;
             Unloaded += SettingsPage_Unloaded;
             DataContextChanged += SettingsPage_DataContextChanged;
+            PreviewKeyDown += SettingsPage_PreviewKeyDown;
         }
 
         private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
@@ -56,6 +57,71 @@ namespace InventoryManagementApp.Views.Pages
             AttachViewModel(e.NewValue as SettingsViewModel);
             QueueSensitiveFieldSync(_settingsViewModel);
             StartSettingsInitialization();
+        }
+
+        private void SettingsPage_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.F || (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
+            {
+                return;
+            }
+
+            var target = FindFirstEditableTextBoxInActiveTab() ?? FindFirstEditableTextBox(this);
+            if (target == null)
+            {
+                return;
+            }
+
+            target.Focus();
+            target.SelectAll();
+            e.Handled = true;
+        }
+
+        private TextBox? FindFirstEditableTextBoxInActiveTab()
+        {
+            var tabControl = FindVisualChild<TabControl>(this);
+            if (tabControl?.SelectedContent is DependencyObject selectedContent)
+            {
+                return FindFirstEditableTextBox(selectedContent);
+            }
+
+            if (tabControl?.SelectedItem is TabItem { Content: DependencyObject selectedTabContent })
+            {
+                return FindFirstEditableTextBox(selectedTabContent);
+            }
+
+            return null;
+        }
+
+        private static TextBox? FindFirstEditableTextBox(DependencyObject parent)
+        {
+            var pending = new Stack<DependencyObject>();
+            pending.Push(parent);
+
+            while (pending.Count > 0)
+            {
+                var current = pending.Pop();
+                if (current is TextBox textBox && IsUsableFocusTarget(textBox))
+                {
+                    return textBox;
+                }
+
+                var childCount = GetVisualChildrenCount(current);
+                for (var i = childCount - 1; i >= 0; i--)
+                {
+                    pending.Push(VisualTreeHelper.GetChild(current, i));
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsUsableFocusTarget(TextBox textBox)
+        {
+            return textBox.IsVisible
+                && textBox.IsEnabled
+                && !textBox.IsReadOnly
+                && textBox.Focusable;
         }
 
         private void AddThemeDesignerTab()
