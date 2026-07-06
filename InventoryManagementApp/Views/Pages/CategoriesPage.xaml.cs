@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,6 +23,8 @@ namespace InventoryManagementApp.Views.Pages
         private readonly int _inventoryId;
         private Task? _initializeCategoriesTask;
         private CategoryManagementViewModel? _initializedViewModel;
+        private CancellationTokenSource? _initializeCategoriesCancellation;
+        private int _initializeCategoriesVersion;
 
         public CategoriesPage(int inventoryId)
         {
@@ -31,6 +34,7 @@ namespace InventoryManagementApp.Views.Pages
             var vm = sp.GetRequiredService<CategoryManagementViewModel>();
             DataContext = vm;
             Loaded += CategoriesPage_Loaded;
+            Unloaded += CategoriesPage_Unloaded;
             DataContextChanged += CategoriesPage_DataContextChanged;
         }
 
@@ -48,10 +52,16 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
+        private void CategoriesPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            CancelPageOwnedInitialization();
+        }
+
         private void CategoriesPage_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (!ReferenceEquals(_initializedViewModel, e.NewValue))
             {
+                CancelPageOwnedInitialization();
                 _initializedViewModel = null;
                 _initializeCategoriesTask = null;
             }
@@ -70,17 +80,42 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
+            CancelPageOwnedInitialization();
             _initializedViewModel = vm;
             vm.SelectedInventoryId = _inventoryId;
+            var loadVersion = ++_initializeCategoriesVersion;
+            _initializeCategoriesCancellation = new CancellationTokenSource();
+            var cancellationToken = _initializeCategoriesCancellation.Token;
+
             await Dispatcher.Yield(DispatcherPriority.Background);
 
-            if (!ReferenceEquals(DataContext, vm) || vm.IsCategoryInteractionBusy)
+            if (!IsCurrentCategoryInitialization(vm, loadVersion, cancellationToken) || vm.IsCategoryInteractionBusy)
             {
                 return;
             }
 
             _initializeCategoriesTask = vm.InitializeAsync();
             await _initializeCategoriesTask;
+
+            if (!IsCurrentCategoryInitialization(vm, loadVersion, cancellationToken))
+            {
+                return;
+            }
+        }
+
+        private bool IsCurrentCategoryInitialization(CategoryManagementViewModel vm, int loadVersion, CancellationToken cancellationToken)
+        {
+            return !cancellationToken.IsCancellationRequested &&
+                   loadVersion == _initializeCategoriesVersion &&
+                   ReferenceEquals(DataContext, vm);
+        }
+
+        private void CancelPageOwnedInitialization()
+        {
+            _initializeCategoriesVersion++;
+            _initializeCategoriesCancellation?.Cancel();
+            _initializeCategoriesCancellation?.Dispose();
+            _initializeCategoriesCancellation = null;
         }
 
         private void Page_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -109,6 +144,11 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
+            if (IsTextInputFocused() && IsCategoryActionShortcut(e))
+            {
+                return;
+            }
+
             if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.R && ViewModel.RefreshCommand.CanExecute(null))
             {
                 ViewModel.RefreshCommand.Execute(null);
@@ -130,7 +170,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (!IsTextInputFocused() && Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.C)
             {
                 CopyCategory_Click(sender, e);
                 e.Handled = true;
@@ -144,7 +184,7 @@ namespace InventoryManagementApp.Views.Pages
                 return;
             }
 
-            if (e.Key == Key.Enter && !IsTextInputFocused())
+            if (e.Key == Key.Enter)
             {
                 OpenCategoryDetail_Click(sender, e);
                 e.Handled = true;
@@ -190,6 +230,14 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             GridContextMenuSelection.SelectRow(sender, e);
+        }
+
+        private void CategoryGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (ViewModel is { IsCategoryInteractionBusy: true })
+            {
+                e.Handled = true;
+            }
         }
 
         private void OpenCategoryDetail_Click(object sender, RoutedEventArgs e)
