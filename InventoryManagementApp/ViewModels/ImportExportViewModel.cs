@@ -21,6 +21,9 @@ namespace InventoryManagementApp.ViewModels
 {
     public class ImportExportViewModel : ObservableObject
     {
+        private const int MaxVisibleImportExportLogRows = 500;
+        private const int MaxSelectedLogDetailCharacters = 1800;
+
         private readonly IItemService _itemService;
         private readonly ICustomerService _customerService;
         private readonly IFileDialogService _fileDialogService;
@@ -30,6 +33,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IUserContext _userContext;
         private readonly RentalConfigurationService? _rentalConfigService;
         private int _activeDataOperationCount;
+        private int _omittedImportExportLogCount;
         private string? _currentDataOperation;
 
         public IAsyncRelayCommand ImportItemsCommand { get; }
@@ -43,6 +47,9 @@ namespace InventoryManagementApp.ViewModels
         public bool CanImportImages => _userContext.IsAdmin || _userContext.CurrentUser?.HasPermission(User.PermissionImportExport) == true;
         public bool IsCurrentUserAdmin => CanImportImages;
         public bool HasLogEntries => ImportExportLogs.Count > 0;
+        public int VisibleImportExportLogCount => ImportExportLogs.Count;
+        public int OmittedImportExportLogCount => _omittedImportExportLogCount;
+        public bool HasOmittedImportExportLogs => _omittedImportExportLogCount > 0;
         public bool IsDataOperationBusy => _activeDataOperationCount > 0;
         public bool IsDataOperationReady => !IsDataOperationBusy;
         public bool CanReviewSelectedLog => !IsDataOperationBusy && !string.IsNullOrWhiteSpace(SelectedImportExportLog);
@@ -53,9 +60,24 @@ namespace InventoryManagementApp.ViewModels
         public string DataOperationSummary => IsDataOperationBusy
             ? "Finish or cancel the current data operation before starting another import, export, backup, restore, copy, or print handoff."
             : "Ready for the next import, export, backup, restore, image mapping, copy, or print handoff.";
-        public string LogSummary => HasLogEntries
-            ? $"{ImportExportLogs.Count} operation log entr{(ImportExportLogs.Count == 1 ? "y" : "ies")} recorded this session."
-            : "No import, export, image, or backup operations have been run in this session.";
+        public string LogSummary
+        {
+            get
+            {
+                if (!HasLogEntries)
+                    return "No import, export, image, or backup operations have been run in this session.";
+
+                var visibleCount = VisibleImportExportLogCount;
+                var totalCount = visibleCount + OmittedImportExportLogCount;
+                var entryText = totalCount == 1 ? "entry" : "entries";
+                if (HasOmittedImportExportLogs)
+                {
+                    return $"{visibleCount} visible of {totalCount} operation log {entryText} are available this session. {OmittedImportExportLogCount} older entr{(OmittedImportExportLogCount == 1 ? "y was" : "ies were")} kept out of the grid for responsiveness.";
+                }
+
+                return $"{visibleCount} operation log entr{(visibleCount == 1 ? "y" : "ies")} recorded this session.";
+            }
+        }
 
         public string ItemDataSummary =>
             $"Import {LabelProvider.Instance.ItemLabelPlural} from CSV with mapping, JSON, or XML. Export the current item catalog to CSV, JSON, or XML.";
@@ -91,7 +113,7 @@ namespace InventoryManagementApp.ViewModels
 
         public string SelectedLogDetail => string.IsNullOrWhiteSpace(SelectedImportExportLog)
             ? "Run an import, export, image import, or backup action. Select a log row to copy or print the exact result."
-            : SelectedImportExportLog;
+            : BuildSelectedLogDetailPreview(SelectedImportExportLog);
 
         /// <summary>
         /// Command that triggers an asynchronous database backup.
@@ -139,6 +161,7 @@ namespace InventoryManagementApp.ViewModels
             ImportExportLogs.CollectionChanged += (_, _) =>
             {
                 OnPropertyChanged(nameof(HasLogEntries));
+                OnPropertyChanged(nameof(VisibleImportExportLogCount));
                 OnPropertyChanged(nameof(LogSummary));
                 OnPropertyChanged(nameof(CanPrintImportExportLogs));
             };
@@ -241,8 +264,17 @@ namespace InventoryManagementApp.ViewModels
 
         void AddLog(string message)
         {
+            while (ImportExportLogs.Count >= MaxVisibleImportExportLogRows)
+            {
+                ImportExportLogs.RemoveAt(0);
+                _omittedImportExportLogCount++;
+            }
+
             ImportExportLogs.Add(message);
             SelectedImportExportLog = message;
+            OnPropertyChanged(nameof(OmittedImportExportLogCount));
+            OnPropertyChanged(nameof(HasOmittedImportExportLogs));
+            OnPropertyChanged(nameof(LogSummary));
             ClearImportExportLogsCommand.NotifyCanExecuteChanged();
         }
 
@@ -252,7 +284,11 @@ namespace InventoryManagementApp.ViewModels
                 return;
 
             ImportExportLogs.Clear();
+            _omittedImportExportLogCount = 0;
             SelectedImportExportLog = null;
+            OnPropertyChanged(nameof(OmittedImportExportLogCount));
+            OnPropertyChanged(nameof(HasOmittedImportExportLogs));
+            OnPropertyChanged(nameof(LogSummary));
             ClearImportExportLogsCommand.NotifyCanExecuteChanged();
         }
 
@@ -685,6 +721,20 @@ namespace InventoryManagementApp.ViewModels
             {
                 EndDataOperation();
             }
+        }
+
+        private static string BuildSelectedLogDetailPreview(string? value)
+        {
+            var text = ValueOrDefault(value, "Not recorded");
+            if (text.Length <= MaxSelectedLogDetailCharacters)
+                return text;
+
+            var visibleText = text.Substring(0, MaxSelectedLogDetailCharacters).TrimEnd();
+            var omittedCharacters = text.Length - visibleText.Length;
+            return string.Join(Environment.NewLine,
+                visibleText,
+                string.Empty,
+                $"... {omittedCharacters:N0} characters omitted from this inline preview. Use Copy Result or Open Log Detail for the complete operation text.");
         }
 
         private static string ValueOrDefault(string? value, string fallback) =>
