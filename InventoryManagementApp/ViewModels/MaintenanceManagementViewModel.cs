@@ -15,17 +15,52 @@ namespace InventoryManagementApp.ViewModels
 {
     public class MaintenanceManagementViewModel : ObservableObject
     {
+        private const int MaxMaintenanceVisibleRows = 500;
         private const int MaxMaintenancePrintRows = 250;
 
         private readonly MaintenanceService _maintenanceService;
         private readonly IDialogService _dialogService;
+        private int _maintenanceMatchCount;
 
         public ObservableCollection<MaintenanceRecord> MaintenanceRecords { get; }
         public ObservableCollection<MaintenanceRecord> FilteredMaintenanceRecords { get; }
 
+        public int MaintenanceMatchCount => _maintenanceMatchCount;
+
+        public int MaintenanceVisibleCount => FilteredMaintenanceRecords.Count;
+
+        public int MaintenanceOmittedCount => Math.Max(0, MaintenanceMatchCount - MaintenanceVisibleCount);
+
+        public bool IsMaintenanceWindowCapped => MaintenanceOmittedCount > 0;
+
+        public string MaintenanceVisibleWindowSummary
+        {
+            get
+            {
+                if (IsLoading)
+                {
+                    return "Maintenance row window is updating";
+                }
+
+                if (MaintenanceMatchCount == 0)
+                {
+                    return "No maintenance rows visible";
+                }
+
+                if (IsMaintenanceWindowCapped)
+                {
+                    return $"Showing first {MaintenanceVisibleCount} of {MaintenanceMatchCount} matching maintenance rows; refine search or filters to view the rest";
+                }
+
+                return $"Showing all {MaintenanceVisibleCount} matching maintenance row{(MaintenanceVisibleCount == 1 ? string.Empty : "s")}";
+            }
+        }
+
         public string MaintenanceResultsSummary => IsLoading
             ? "Loading maintenance records..."
-            : $"{FilteredMaintenanceRecords.Count} of {MaintenanceRecords.Count} maintenance record{(MaintenanceRecords.Count == 1 ? string.Empty : "s")} shown";
+            : IsMaintenanceWindowCapped
+                ? $"{MaintenanceVisibleCount} of {MaintenanceMatchCount} maintenance records shown"
+                : $"{MaintenanceVisibleCount} maintenance record{(MaintenanceVisibleCount == 1 ? string.Empty : "s")} shown";
 
         public string MaintenanceBacklogSummary
         {
@@ -72,13 +107,20 @@ namespace InventoryManagementApp.ViewModels
                         : "No maintenance rows ready to print";
                 }
 
-                var visible = FilteredMaintenanceRecords.Count;
+                var visible = MaintenanceVisibleCount;
+                var matched = MaintenanceMatchCount;
                 var printed = Math.Min(visible, MaxMaintenancePrintRows);
-                var omitted = Math.Max(0, visible - printed);
+                var omitted = Math.Max(0, matched - printed);
                 var filterContext = IsFilterActive ? "filtered" : "all rows";
-                return omitted == 0
-                    ? $"Ready to print {printed} {filterContext} row{(printed == 1 ? string.Empty : "s")}."
-                    : $"Ready to print first {printed} of {visible} {filterContext} rows; {omitted} omitted from preview.";
+
+                if (omitted == 0)
+                {
+                    return $"Ready to print {printed} {filterContext} row{(printed == 1 ? string.Empty : "s")}.";
+                }
+
+                return IsMaintenanceWindowCapped
+                    ? $"Ready to print first {printed} of {visible} shown {filterContext} rows; {matched} matched."
+                    : $"Ready to print first {printed} of {matched} {filterContext} rows; {omitted} omitted from preview.";
             }
         }
 
@@ -406,6 +448,7 @@ namespace InventoryManagementApp.ViewModels
 
         private void ClearMaintenanceStateAfterLoadFailure()
         {
+            _maintenanceMatchCount = 0;
             MaintenanceRecords.Clear();
             FilteredMaintenanceRecords.Clear();
             SelectedRecord = null;
@@ -450,7 +493,6 @@ namespace InventoryManagementApp.ViewModels
         private void ApplyFilter(int? preferredMaintenanceId = null)
         {
             preferredMaintenanceId ??= SelectedRecord?.MaintenanceID;
-            FilteredMaintenanceRecords.Clear();
 
             var filtered = MaintenanceRecords.AsEnumerable();
 
@@ -480,10 +522,16 @@ namespace InventoryManagementApp.ViewModels
                 .ThenBy(r => r.ScheduledDate)
                 .ThenBy(r => Searchable(r.ItemNumber))
                 .ToList();
+            var visibleList = filteredList.Take(MaxMaintenanceVisibleRows).ToList();
+            _maintenanceMatchCount = filteredList.Count;
 
-            foreach (var record in filteredList)
+            if (!IsSameVisibleWindow(FilteredMaintenanceRecords, visibleList))
             {
-                FilteredMaintenanceRecords.Add(record);
+                FilteredMaintenanceRecords.Clear();
+                foreach (var record in visibleList)
+                {
+                    FilteredMaintenanceRecords.Add(record);
+                }
             }
 
             SelectedRecord = FilteredMaintenanceRecords.FirstOrDefault(r => r.MaintenanceID == preferredMaintenanceId)
@@ -554,11 +602,13 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                var visibleRows = FilteredMaintenanceRecords.Count;
+                var matchedRows = MaintenanceMatchCount;
+                var visibleRows = MaintenanceVisibleCount;
                 var printRows = FilteredMaintenanceRecords.Take(MaxMaintenancePrintRows).ToList();
-                var omittedRows = Math.Max(0, visibleRows - printRows.Count);
+                var omittedRows = Math.Max(0, matchedRows - printRows.Count);
+                var hiddenRows = Math.Max(0, matchedRows - visibleRows);
                 var doc = CreateMaintenanceDocument("Maintenance Schedule", fontSize: 11);
-                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows} | {MaintenanceBacklogSummary}"))
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | Matched: {matchedRows} | Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows} | {MaintenanceBacklogSummary}"))
                 {
                     FontSize = 10,
                     Margin = new Thickness(0, 0, 0, 8)
@@ -566,7 +616,7 @@ namespace InventoryManagementApp.ViewModels
 
                 if (omittedRows > 0)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run($"Large schedule preview limited to the first {MaxMaintenancePrintRows} visible rows to keep print preview responsive. Clear filters or export smaller packets for full handoff review."))
+                    doc.Blocks.Add(new Paragraph(new Run($"Large schedule preview limited to the first {MaxMaintenancePrintRows} visible rows to keep print preview responsive. {hiddenRows} additional matching maintenance rows are outside the live grid window. Refine filters or print smaller packets for full handoff review."))
                     {
                         FontSize = 10,
                         FontStyle = FontStyles.Italic,
@@ -592,7 +642,7 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 doc.Blocks.Add(table);
-                doc.Blocks.Add(new Paragraph(new Run("Review overdue rows, technician assignment, completed dates, and omitted-row counts before handing this schedule to the bench."))
+                doc.Blocks.Add(new Paragraph(new Run("Review overdue rows, technician assignment, completed dates, live-grid limits, and omitted-row counts before handing this schedule to the bench."))
                 {
                     FontSize = 10,
                     FontStyle = FontStyles.Italic,
@@ -664,6 +714,7 @@ namespace InventoryManagementApp.ViewModels
             OnSelectedRecordSummariesChanged();
             OnPropertyChanged(nameof(MaintenanceBacklogSummary));
             OnPropertyChanged(nameof(MaintenanceResultsSummary));
+            OnPropertyChanged(nameof(MaintenanceVisibleWindowSummary));
         }
 
         private void NotifyMaintenanceListStateChanged()
@@ -675,6 +726,11 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(MaintenanceEmptyMessage));
             OnPropertyChanged(nameof(CanPrintMaintenanceList));
             OnPropertyChanged(nameof(MaintenancePrintStatus));
+            OnPropertyChanged(nameof(MaintenanceMatchCount));
+            OnPropertyChanged(nameof(MaintenanceVisibleCount));
+            OnPropertyChanged(nameof(MaintenanceOmittedCount));
+            OnPropertyChanged(nameof(IsMaintenanceWindowCapped));
+            OnPropertyChanged(nameof(MaintenanceVisibleWindowSummary));
             PrintMaintenanceListCommand.NotifyCanExecuteChanged();
         }
 
@@ -697,6 +753,24 @@ namespace InventoryManagementApp.ViewModels
             IsScheduled(record) && record.ScheduledDate >= DateTime.Now && record.ScheduledDate <= DateTime.Now.AddDays(30);
 
         private static string Searchable(string? value) => value?.ToLowerInvariant() ?? string.Empty;
+
+        private static bool IsSameVisibleWindow(ObservableCollection<MaintenanceRecord> currentRows, System.Collections.Generic.IReadOnlyList<MaintenanceRecord> nextRows)
+        {
+            if (currentRows.Count != nextRows.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < nextRows.Count; i++)
+            {
+                if (!ReferenceEquals(currentRows[i], nextRows[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         private static FlowDocument CreateMaintenanceDocument(string title, double fontSize = 16)
         {
