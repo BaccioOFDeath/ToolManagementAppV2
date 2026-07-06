@@ -53,14 +53,14 @@
             <Border Style="{StaticResource CustomerStatCard}">
                 <StackPanel>
                     <TextBlock Text="Visible Customers" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding Customers.Count}" Style="{StaticResource CustomerStatValueText}"/>
-                    <TextBlock Text="Directory rows matching the current search" Style="{StaticResource CustomerDetailText}"/>
+                    <TextBlock Text="{Binding CustomerDirectoryVisibleCount}" Style="{StaticResource CustomerStatValueText}"/>
+                    <TextBlock Text="{Binding CustomerVisibleWindowSummary}" Style="{StaticResource CustomerDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource CustomerStatCard}">
                 <StackPanel>
-                    <TextBlock Text="Search State" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding CustomerFilterStatus}" Style="{StaticResource CustomerStatValueText}"/>
+                    <TextBlock Text="Matched Customers" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding CustomerDirectoryMatchCount}" Style="{StaticResource CustomerStatValueText}"/>
                     <TextBlock Text="{Binding CustomerPrintSummary}" Style="{StaticResource CustomerDetailText}"/>
                 </StackPanel>
             </Border>
