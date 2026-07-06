@@ -15,17 +15,52 @@ namespace InventoryManagementApp.ViewModels
 {
     public class CalibrationManagementViewModel : ObservableObject
     {
+        private const int MaxCalibrationVisibleRows = 500;
         private const int MaxCalibrationPrintRows = 250;
 
         private readonly CalibrationService _calibrationService;
         private readonly IDialogService _dialogService;
+        private int _calibrationMatchCount;
 
         public ObservableCollection<CalibrationRecord> CalibrationRecords { get; }
         public ObservableCollection<CalibrationRecord> FilteredCalibrationRecords { get; }
 
+        public int CalibrationMatchCount => _calibrationMatchCount;
+
+        public int CalibrationVisibleCount => FilteredCalibrationRecords.Count;
+
+        public int CalibrationOmittedCount => Math.Max(0, CalibrationMatchCount - CalibrationVisibleCount);
+
+        public bool IsCalibrationWindowCapped => CalibrationOmittedCount > 0;
+
+        public string CalibrationVisibleWindowSummary
+        {
+            get
+            {
+                if (IsLoading)
+                {
+                    return "Calibration row window is updating";
+                }
+
+                if (CalibrationMatchCount == 0)
+                {
+                    return "No calibration rows visible";
+                }
+
+                if (IsCalibrationWindowCapped)
+                {
+                    return $"Showing first {CalibrationVisibleCount} of {CalibrationMatchCount} matching calibration rows; refine search or due-state filters to view the rest";
+                }
+
+                return $"Showing all {CalibrationVisibleCount} matching calibration row{(CalibrationVisibleCount == 1 ? string.Empty : "s")}";
+            }
+        }
+
         public string CalibrationResultsSummary => IsLoading
             ? "Loading calibration records..."
-            : $"{FilteredCalibrationRecords.Count} of {CalibrationRecords.Count} calibration record{(CalibrationRecords.Count == 1 ? string.Empty : "s")} shown";
+            : IsCalibrationWindowCapped
+                ? $"{CalibrationVisibleCount} of {CalibrationMatchCount} calibration records shown"
+                : $"{CalibrationVisibleCount} calibration record{(CalibrationVisibleCount == 1 ? string.Empty : "s")} shown";
 
         public string CalibrationBacklogSummary
         {
@@ -71,13 +106,20 @@ namespace InventoryManagementApp.ViewModels
                         : "No certificate rows ready to print";
                 }
 
-                var visible = FilteredCalibrationRecords.Count;
+                var visible = CalibrationVisibleCount;
+                var matched = CalibrationMatchCount;
                 var printed = Math.Min(visible, MaxCalibrationPrintRows);
-                var omitted = Math.Max(0, visible - printed);
+                var omitted = Math.Max(0, matched - printed);
                 var filterContext = IsFilterActive ? "filtered" : "all rows";
-                return omitted == 0
-                    ? $"Ready to print {printed} {filterContext} certificate row{(printed == 1 ? string.Empty : "s")}."
-                    : $"Ready to print first {printed} of {visible} {filterContext} certificate rows; {omitted} omitted from preview.";
+
+                if (omitted == 0)
+                {
+                    return $"Ready to print {printed} {filterContext} certificate row{(printed == 1 ? string.Empty : "s")}.";
+                }
+
+                return IsCalibrationWindowCapped
+                    ? $"Ready to print first {printed} of {visible} shown {filterContext} certificate rows; {matched} matched."
+                    : $"Ready to print first {printed} of {matched} {filterContext} certificate rows; {omitted} omitted from preview.";
             }
         }
 
@@ -363,6 +405,7 @@ namespace InventoryManagementApp.ViewModels
 
         private void ClearCalibrationStateAfterLoadFailure()
         {
+            _calibrationMatchCount = 0;
             CalibrationRecords.Clear();
             FilteredCalibrationRecords.Clear();
             SelectedRecord = null;
@@ -407,7 +450,6 @@ namespace InventoryManagementApp.ViewModels
         private void ApplyFilter(int? preferredCalibrationId = null)
         {
             preferredCalibrationId ??= SelectedRecord?.CalibrationID;
-            FilteredCalibrationRecords.Clear();
 
             var filtered = CalibrationRecords.AsEnumerable();
 
@@ -437,10 +479,16 @@ namespace InventoryManagementApp.ViewModels
                 .ThenBy(r => r.NextCalibrationDue)
                 .ThenBy(r => Searchable(r.ItemNumber))
                 .ToList();
+            var visibleList = filteredList.Take(MaxCalibrationVisibleRows).ToList();
+            _calibrationMatchCount = filteredList.Count;
 
-            foreach (var record in filteredList)
+            if (!IsSameVisibleWindow(FilteredCalibrationRecords, visibleList))
             {
-                FilteredCalibrationRecords.Add(record);
+                FilteredCalibrationRecords.Clear();
+                foreach (var record in visibleList)
+                {
+                    FilteredCalibrationRecords.Add(record);
+                }
             }
 
             SelectedRecord = FilteredCalibrationRecords.FirstOrDefault(r => r.CalibrationID == preferredCalibrationId)
@@ -513,11 +561,13 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                var visibleRows = FilteredCalibrationRecords.Count;
+                var matchedRows = CalibrationMatchCount;
+                var visibleRows = CalibrationVisibleCount;
                 var printRows = FilteredCalibrationRecords.Take(MaxCalibrationPrintRows).ToList();
-                var omittedRows = Math.Max(0, visibleRows - printRows.Count);
+                var omittedRows = Math.Max(0, matchedRows - printRows.Count);
+                var hiddenRows = Math.Max(0, matchedRows - visibleRows);
                 var doc = CreateCalibrationDocument("Calibration Due Report", fontSize: 11);
-                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows} | {CalibrationBacklogSummary}"))
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | Matched: {matchedRows} | Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows} | {CalibrationBacklogSummary}"))
                 {
                     FontSize = 10,
                     Margin = new Thickness(0, 0, 0, 8)
@@ -525,7 +575,7 @@ namespace InventoryManagementApp.ViewModels
 
                 if (omittedRows > 0)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run($"Large calibration preview limited to the first {MaxCalibrationPrintRows} visible rows to keep print preview responsive. Clear filters or print smaller certificate packets for full handoff review."))
+                    doc.Blocks.Add(new Paragraph(new Run($"Large calibration preview limited to the first {MaxCalibrationPrintRows} visible rows to keep print preview responsive. {hiddenRows} additional matching calibration rows are outside the live grid window. Refine filters or print smaller certificate packets for full handoff review."))
                     {
                         FontSize = 10,
                         FontStyle = FontStyles.Italic,
@@ -551,7 +601,7 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 doc.Blocks.Add(table);
-                doc.Blocks.Add(new Paragraph(new Run("Review overdue rows, due-soon certificates, missing certificate numbers, calibration standard, and omitted-row counts before releasing items to the shelf."))
+                doc.Blocks.Add(new Paragraph(new Run("Review overdue rows, due-soon certificates, missing certificate numbers, calibration standard, live-grid limits, and omitted-row counts before releasing items to the shelf."))
                 {
                     FontSize = 10,
                     FontStyle = FontStyles.Italic,
@@ -621,6 +671,7 @@ namespace InventoryManagementApp.ViewModels
             OnSelectedRecordSummariesChanged();
             OnPropertyChanged(nameof(CalibrationBacklogSummary));
             OnPropertyChanged(nameof(CalibrationResultsSummary));
+            OnPropertyChanged(nameof(CalibrationVisibleWindowSummary));
         }
 
         private void NotifyCalibrationListStateChanged()
@@ -632,6 +683,11 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CalibrationEmptyMessage));
             OnPropertyChanged(nameof(CanPrintCalibrationList));
             OnPropertyChanged(nameof(CalibrationPrintStatus));
+            OnPropertyChanged(nameof(CalibrationMatchCount));
+            OnPropertyChanged(nameof(CalibrationVisibleCount));
+            OnPropertyChanged(nameof(CalibrationOmittedCount));
+            OnPropertyChanged(nameof(IsCalibrationWindowCapped));
+            OnPropertyChanged(nameof(CalibrationVisibleWindowSummary));
             PrintCalibrationListCommand.NotifyCanExecuteChanged();
         }
 
@@ -647,6 +703,24 @@ namespace InventoryManagementApp.ViewModels
         private static bool IsCurrent(CalibrationRecord record) => !record.IsOverdue && !record.IsDueSoon;
 
         private static string Searchable(string? value) => value?.ToLowerInvariant() ?? string.Empty;
+
+        private static bool IsSameVisibleWindow(ObservableCollection<CalibrationRecord> currentRows, System.Collections.Generic.IReadOnlyList<CalibrationRecord> nextRows)
+        {
+            if (currentRows.Count != nextRows.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < nextRows.Count; i++)
+            {
+                if (!ReferenceEquals(currentRows[i], nextRows[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         private static FlowDocument CreateCalibrationDocument(string title, double fontSize = 16)
         {
