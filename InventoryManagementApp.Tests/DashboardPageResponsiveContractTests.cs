@@ -222,6 +222,26 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void DashboardPage_BindsRowActionsToSelectionReadiness()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");
+
+            Assert.Contains("Content=\"Open\" Command=\"{Binding OpenSelectedRentalCommand}\" IsEnabled=\"{Binding HasSelectedRental}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Return\" Command=\"{Binding ReturnSelectedRentalCommand}\" IsEnabled=\"{Binding HasSelectedRental}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Open\" Command=\"{Binding OpenSelectedCheckedOutItemCommand}\" IsEnabled=\"{Binding HasSelectedCheckedOutItem}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Check In\" Command=\"{Binding CheckInSelectedItemCommand}\" IsEnabled=\"{Binding HasSelectedCheckedOutItem}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Open Related\" Command=\"{Binding OpenActivityDestinationCommand}\" IsEnabled=\"{Binding HasSelectedActivity}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Open\" Command=\"{Binding OpenSelectedIncompleteItemCommand}\" IsEnabled=\"{Binding HasSelectedIncompleteItem}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Open\" Command=\"{Binding OpenSelectedCommonItemCommand}\" IsEnabled=\"{Binding HasSelectedCommonItem}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Check Out / In\" Command=\"{Binding ToggleSelectedCommonItemCommand}\" IsEnabled=\"{Binding HasSelectedCommonItem}\"", xaml, StringComparison.Ordinal);
+            Assert.True(CountOccurrences(xaml, "PlacementTarget.DataContext.HasSelectedRental") >= 2);
+            Assert.True(CountOccurrences(xaml, "PlacementTarget.DataContext.HasSelectedCheckedOutItem") >= 2);
+            Assert.True(CountOccurrences(xaml, "PlacementTarget.DataContext.HasSelectedActivity") >= 1);
+            Assert.True(CountOccurrences(xaml, "PlacementTarget.DataContext.HasSelectedIncompleteItem") >= 1);
+            Assert.True(CountOccurrences(xaml, "PlacementTarget.DataContext.HasSelectedCommonItem") >= 2);
+        }
+
+        [Fact]
         public void DashboardPage_PreservesPrimaryDashboardActionsAndRowHandoff()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");
