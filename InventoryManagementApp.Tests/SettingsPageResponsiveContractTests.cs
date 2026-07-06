@@ -101,12 +101,12 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("private bool _sensitiveFieldSyncQueued;", source, StringComparison.Ordinal);
             Assert.Contains("private void QueueSensitiveFieldSync(SettingsViewModel? sourceViewModel)", source, StringComparison.Ordinal);
-            Assert.Contains("sourceViewModel == null || _sensitiveFieldSyncQueued || !ReferenceEquals(_settingsViewModel, sourceViewModel)", source, StringComparison.Ordinal);
+            Assert.Contains("!_isLoaded || sourceViewModel == null || _sensitiveFieldSyncQueued || !ReferenceEquals(_settingsViewModel, sourceViewModel)", source, StringComparison.Ordinal);
             Assert.Contains("_sensitiveFieldSyncQueued = true;", source, StringComparison.Ordinal);
             Assert.Contains("Dispatcher.BeginInvoke(new Action(() => SyncSensitiveFieldsFromViewModel(sourceViewModel)), DispatcherPriority.Background);", source, StringComparison.Ordinal);
             Assert.Contains("_sensitiveFieldSyncQueued = false;", source, StringComparison.Ordinal);
             Assert.Contains("private void SyncSensitiveFieldsFromViewModel(SettingsViewModel sourceViewModel)", source, StringComparison.Ordinal);
-            Assert.Contains("if (!ReferenceEquals(_settingsViewModel, sourceViewModel))", source, StringComparison.Ordinal);
+            Assert.Contains("if (!_isLoaded || !ReferenceEquals(_settingsViewModel, sourceViewModel))", source, StringComparison.Ordinal);
             Assert.DoesNotContain("Dispatcher.Invoke(SyncSensitiveFieldsFromViewModel)", source, StringComparison.Ordinal);
         }
 
@@ -118,7 +118,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private Task? _initializeSettingsTask;", source, StringComparison.Ordinal);
             Assert.Contains("StartSettingsInitialization();", source, StringComparison.Ordinal);
             Assert.Contains("private void StartSettingsInitialization()", source, StringComparison.Ordinal);
-            Assert.Contains("if (_settingsViewModel == null || _initializeSettingsTask != null)", source, StringComparison.Ordinal);
+            Assert.Contains("if (!_isLoaded || _settingsViewModel == null || _initializeSettingsTask != null)", source, StringComparison.Ordinal);
             Assert.Contains("_initializeSettingsCts = new CancellationTokenSource();", source, StringComparison.Ordinal);
             Assert.Contains("var version = ++_initializeSettingsVersion;", source, StringComparison.Ordinal);
             Assert.Contains("_initializeSettingsTask = InitializeSettingsAsync(_settingsViewModel, _initializeSettingsCts.Token, version);", source, StringComparison.Ordinal);
@@ -150,14 +150,54 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml.cs");
 
-            Assert.True(CountOccurrences(source, "version != _initializeSettingsVersion") >= 3);
-            Assert.True(CountOccurrences(source, "!ReferenceEquals(_settingsViewModel, viewModel)") >= 3);
+            Assert.Contains("private bool IsCurrentSettingsInitialization(SettingsViewModel viewModel, int version)", source, StringComparison.Ordinal);
+            Assert.Contains("&& ReferenceEquals(_settingsViewModel, viewModel)", source, StringComparison.Ordinal);
+            Assert.Contains("&& version == _initializeSettingsVersion;", source, StringComparison.Ordinal);
+            Assert.True(CountOccurrences(source, "IsCurrentSettingsInitialization(viewModel, version)") >= 3);
+            Assert.Contains("private void CompleteSettingsInitialization(SettingsViewModel viewModel, int version)", source, StringComparison.Ordinal);
+            Assert.Contains("_initializeSettingsCts?.Dispose();", source, StringComparison.Ordinal);
+            Assert.Contains("_initializeSettingsTask = null;", source, StringComparison.Ordinal);
             Assert.Contains("cancellationToken.ThrowIfCancellationRequested();", source, StringComparison.Ordinal);
             Assert.Contains("MessageBox.Show(", source, StringComparison.Ordinal);
             Assert.Contains("$\"Failed to load settings: {ex.Message}\"", source, StringComparison.Ordinal);
             Assert.Contains("MessageBoxImage.Error", source, StringComparison.Ordinal);
             Assert.Contains("_settingsViewModel.PropertyChanged -= SettingsViewModel_PropertyChanged;", source, StringComparison.Ordinal);
             Assert.Contains("_settingsViewModel.PropertyChanged += SettingsViewModel_PropertyChanged;", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void SettingsPage_CodeBehindCancelsQueuedThemeTabWorkAfterUnload()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml.cs");
+
+            Assert.Contains("private bool _isLoaded;", source, StringComparison.Ordinal);
+            Assert.Contains("private int _themeDesignerTabVersion;", source, StringComparison.Ordinal);
+            Assert.Contains("_isLoaded = true;", source, StringComparison.Ordinal);
+            Assert.Contains("_isLoaded = false;", source, StringComparison.Ordinal);
+            Assert.Contains("_themeDesignerTabVersion++;", source, StringComparison.Ordinal);
+            Assert.Contains("_themeDesignerTabRetryQueued = false;", source, StringComparison.Ordinal);
+            Assert.Contains("if (_themeDesignerTabRetryQueued || !_isLoaded)", source, StringComparison.Ordinal);
+            Assert.Contains("var version = ++_themeDesignerTabVersion;", source, StringComparison.Ordinal);
+            Assert.Contains("if (!_isLoaded || version != _themeDesignerTabVersion)", source, StringComparison.Ordinal);
+            Assert.Contains("AddThemeDesignerTab();", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void SettingsPage_CodeBehindUsesIterativeVisualTraversalForThemeTabLookup()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml.cs");
+
+            Assert.Contains("using System.Collections.Generic;", source, StringComparison.Ordinal);
+            Assert.Contains("var pending = new Stack<DependencyObject>();", source, StringComparison.Ordinal);
+            Assert.Contains("pending.Push(parent);", source, StringComparison.Ordinal);
+            Assert.Contains("while (pending.Count > 0)", source, StringComparison.Ordinal);
+            Assert.Contains("var current = pending.Pop();", source, StringComparison.Ordinal);
+            Assert.Contains("var childCount = GetVisualChildrenCount(current);", source, StringComparison.Ordinal);
+            Assert.Contains("for (var i = childCount - 1; i >= 0; i--)", source, StringComparison.Ordinal);
+            Assert.Contains("pending.Push(child);", source, StringComparison.Ordinal);
+            Assert.Contains("private static int GetVisualChildrenCount(DependencyObject parent)", source, StringComparison.Ordinal);
+            Assert.Contains("catch (InvalidOperationException)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("var nested = FindVisualChild<T>(child);", source, StringComparison.Ordinal);
         }
 
         private static int CountOccurrences(string text, string value)
