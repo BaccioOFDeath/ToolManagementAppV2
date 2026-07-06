@@ -9,7 +9,7 @@ namespace InventoryManagementApp.Views.Windows
         public ImageImportMappingWindow()
         {
             InitializeComponent();
-            this.UseResponsiveDefaultSize(720, 620);
+            this.UseResponsiveDefaultSize(680, 560);
             DataContext = new ImageImportMappingViewModel(
                 () => { DialogResult = true; Close(); },
                 () => { DialogResult = false; Close(); });
