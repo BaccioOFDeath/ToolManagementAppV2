@@ -217,6 +217,60 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void KitManagementPage_SuppressesGridContextMenusDuringLoading()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml.cs");
+            var helper = ExtractSourceBlock(source, "private bool SuppressContextMenuDuringLoading", "private static bool IsTextInputFocused");
+
+            Assert.Contains("KitsGrid.ContextMenuOpening += KitsGrid_ContextMenuOpening;", source, StringComparison.Ordinal);
+            Assert.Contains("KitItemsGrid.ContextMenuOpening += KitItemsGrid_ContextMenuOpening;", source, StringComparison.Ordinal);
+            Assert.Contains("private void KitsGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)", source, StringComparison.Ordinal);
+            Assert.Contains("private void KitItemsGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)", source, StringComparison.Ordinal);
+            Assert.Equal(2, CountOccurrences(source, "SuppressContextMenuDuringLoading(e);"));
+            Assert.Contains("if (DataContext is KitManagementViewModel { IsKitItemInteractionBusy: true })", helper, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;", helper, StringComparison.Ordinal);
+            Assert.Contains("return true;", helper, StringComparison.Ordinal);
+            Assert.Contains("return false;", helper, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void KitManagementPage_PreservesSearchAndFilterEditingBeforeShortcutsDispatch()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml.cs");
+            var keyDown = ExtractSourceBlock(source, "private void KitManagementPage_PreviewKeyDown", "private static bool IsManagedKitShortcut");
+
+            Assert.Contains("using System.Windows.Controls.Primitives;", source, StringComparison.Ordinal);
+            Assert.Contains("private static bool IsTextInputFocused()", source, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.FocusedElement is TextBoxBase or PasswordBox or ComboBox", source, StringComparison.Ordinal);
+            Assert.Contains("if (IsTextInputFocused() && IsManagedKitShortcut(e))", keyDown, StringComparison.Ordinal);
+            Assert.Contains("return;", keyDown, StringComparison.Ordinal);
+            Assert.Contains("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F", keyDown, StringComparison.Ordinal);
+            Assert.True(
+                keyDown.IndexOf("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.F", StringComparison.Ordinal) <
+                keyDown.IndexOf("if (IsTextInputFocused() && IsManagedKitShortcut(e))", StringComparison.Ordinal),
+                "Ctrl+F should keep focusing search before text-entry shortcuts are preserved.");
+            Assert.True(
+                keyDown.IndexOf("if (IsTextInputFocused() && IsManagedKitShortcut(e))", StringComparison.Ordinal) <
+                keyDown.IndexOf("Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.N", StringComparison.Ordinal),
+                "Text-entry guard should run before kit action shortcuts dispatch.");
+        }
+
+        [Fact]
+        public void KitManagementPage_HandlesUnavailableDoubleClicksAfterRetargetingRows()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml.cs");
+            var kitDoubleClick = ExtractSourceBlock(source, "private void KitRow_MouseDoubleClick", "private void KitItemRow_MouseDoubleClick");
+            var itemDoubleClick = ExtractSourceBlock(source, "private void KitItemRow_MouseDoubleClick", "private void DataGridRow_PreviewMouseRightButtonDown");
+
+            Assert.Contains("vm.SelectedKit = kit;", kitDoubleClick, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;\n                return;", kitDoubleClick, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;\n        }", kitDoubleClick, StringComparison.Ordinal);
+            Assert.Contains("vm.SelectedKitItem = kitItem;", itemDoubleClick, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;\n                return;", itemDoubleClick, StringComparison.Ordinal);
+            Assert.Contains("e.Handled = true;\n        }", itemDoubleClick, StringComparison.Ordinal);
+        }
+
         private static int CountOccurrences(string text, string value)
         {
             var count = 0;
@@ -239,7 +293,7 @@ namespace InventoryManagementApp.Tests
             {
                 var candidate = Path.Combine(directory, Path.Combine(parts));
                 if (File.Exists(candidate))
-                    return File.ReadAllText(candidate);
+                    return NormalizeLineEndings(File.ReadAllText(candidate));
 
                 var parent = Directory.GetParent(directory);
                 if (parent is null)
@@ -250,5 +304,19 @@ namespace InventoryManagementApp.Tests
 
             throw new FileNotFoundException($"Could not find repository file: {Path.Combine(parts)}");
         }
+
+        private static string ExtractSourceBlock(string source, string startMarker, string endMarker)
+        {
+            var start = source.IndexOf(startMarker, StringComparison.Ordinal);
+            Assert.True(start >= 0, $"Could not find start marker: {startMarker}");
+
+            var end = source.IndexOf(endMarker, start, StringComparison.Ordinal);
+            Assert.True(end > start, $"Could not find end marker after {startMarker}: {endMarker}");
+
+            return source[start..end];
+        }
+
+        private static string NormalizeLineEndings(string text)
+            => text.Replace("\r\n", "\n");
     }
 }

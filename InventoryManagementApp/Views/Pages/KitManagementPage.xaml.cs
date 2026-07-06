@@ -1,8 +1,9 @@
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Threading.Tasks;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.ViewModels;
 
@@ -19,6 +20,8 @@ namespace InventoryManagementApp.Views.Pages
             Loaded += KitManagementPage_Loaded;
             DataContextChanged += KitManagementPage_DataContextChanged;
             PreviewKeyDown += KitManagementPage_PreviewKeyDown;
+            KitsGrid.ContextMenuOpening += KitsGrid_ContextMenuOpening;
+            KitItemsGrid.ContextMenuOpening += KitItemsGrid_ContextMenuOpening;
         }
 
         private async void KitManagementPage_Loaded(object sender, RoutedEventArgs e)
@@ -79,6 +82,11 @@ namespace InventoryManagementApp.Views.Pages
             if (vm.IsKitItemInteractionBusy && IsManagedKitShortcut(e))
             {
                 e.Handled = true;
+                return;
+            }
+
+            if (IsTextInputFocused() && IsManagedKitShortcut(e))
+            {
                 return;
             }
 
@@ -171,7 +179,10 @@ namespace InventoryManagementApp.Views.Pages
             {
                 UiActionGuard.Run(this, "Kit Management", () => vm.OpenKitDetailsCommand.Execute(null));
                 e.Handled = true;
+                return;
             }
+
+            e.Handled = true;
         }
 
         private void KitItemRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -194,7 +205,10 @@ namespace InventoryManagementApp.Views.Pages
             {
                 UiActionGuard.RunAsync(this, "Kit Management", async () => await vm.EditKitItemCommand.ExecuteAsync(null));
                 e.Handled = true;
+                return;
             }
+
+            e.Handled = true;
         }
 
         private void DataGridRow_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -206,6 +220,32 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             GridContextMenuSelection.SelectRow(sender, e);
+        }
+
+        private void KitsGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            SuppressContextMenuDuringLoading(e);
+        }
+
+        private void KitItemsGrid_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            SuppressContextMenuDuringLoading(e);
+        }
+
+        private bool SuppressContextMenuDuringLoading(ContextMenuEventArgs e)
+        {
+            if (DataContext is KitManagementViewModel { IsKitItemInteractionBusy: true })
+            {
+                e.Handled = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsTextInputFocused()
+        {
+            return Keyboard.FocusedElement is TextBoxBase or PasswordBox or ComboBox;
         }
     }
 }
