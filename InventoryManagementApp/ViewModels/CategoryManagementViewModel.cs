@@ -1,5 +1,6 @@
 // ViewModels/CategoryManagementViewModel.cs
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace InventoryManagementApp.ViewModels
 {
     public sealed class CategoryManagementViewModel : INotifyPropertyChanged
     {
+        private const int MaxVisibleFilteredCategoryRows = 500;
         private readonly CategoriesService _service;
         private readonly ILogger<CategoryManagementViewModel> _logger;
         private int _selectedInventoryId;
@@ -26,6 +28,8 @@ namespace InventoryManagementApp.ViewModels
         private bool _isBusy;
         private bool _schemaInitialized;
         private bool _loadFailureDialogShown;
+        private int _matchedCategoryCount;
+        private int _omittedFilteredCategoryCount;
 
         public ObservableCollection<CategoryItem> Categories { get; } = new();
         public ObservableCollection<CategoryItem> FilteredCategories { get; } = new();
@@ -124,17 +128,59 @@ namespace InventoryManagementApp.ViewModels
 
         public bool IsCategoryEmptyStateVisible => !IsCategoryInteractionBusy && FilteredCategories.Count == 0;
 
-        public string CategoryResultsSummary => string.IsNullOrWhiteSpace(SearchText)
-            ? $"{FilteredCategories.Count} {(FilteredCategories.Count == 1 ? "category" : "categories")} shown"
-            : $"{FilteredCategories.Count} of {Categories.Count} categor{(FilteredCategories.Count == 1 ? "y" : "ies")} match \"{SearchText.Trim()}\"";
+        public int FullFilteredCategoryCount => _matchedCategoryCount;
+
+        public int FilteredCategoryOmittedCount => _omittedFilteredCategoryCount;
+
+        public bool IsCategoryFilterWindowCapped => FilteredCategoryOmittedCount > 0;
+
+        public string CategoryResultsSummary
+        {
+            get
+            {
+                if (IsCategoryInteractionBusy) return "Loading category directory...";
+
+                var visible = FilteredCategories.Count;
+                var matched = FullFilteredCategoryCount;
+                var noun = matched == 1 ? "category" : "categories";
+                var prefix = string.IsNullOrWhiteSpace(SearchText)
+                    ? $"{matched} {noun} match the current inventory area"
+                    : $"{matched} of {Categories.Count} categor{(matched == 1 ? "y" : "ies")} match \"{SearchText.Trim()}\"";
+
+                return IsCategoryFilterWindowCapped
+                    ? $"{visible} of {prefix} shown; {FilteredCategoryOmittedCount} held out of the grid for responsiveness"
+                    : $"{visible} {noun} shown";
+            }
+        }
 
         public string CategorySetupSummary => Categories.Count == 0
             ? "No categories have been linked to this inventory area yet."
             : $"{Categories.Count} categor{(Categories.Count == 1 ? "y" : "ies")} support filtering, item setup, and advisor search.";
 
-        public string CategoryFilterSummary => string.IsNullOrWhiteSpace(SearchText)
-            ? "Showing every linked category."
-            : $"Filter active: \"{SearchText.Trim()}\".";
+        public string CategoryFilterSummary
+        {
+            get
+            {
+                if (IsCategoryInteractionBusy) return "Search and setup actions are paused while category rows load.";
+                if (string.IsNullOrWhiteSpace(SearchText)) return "Showing every linked category.";
+
+                var suffix = IsCategoryFilterWindowCapped
+                    ? $" Showing the first {FilteredCategories.Count} matches."
+                    : string.Empty;
+                return $"Filter active: \"{SearchText.Trim()}\".{suffix}";
+            }
+        }
+
+        public string CategoryVisibleWindowSummary
+        {
+            get
+            {
+                if (IsCategoryInteractionBusy) return "Grid rows are loading.";
+                if (!IsCategoryFilterWindowCapped) return "All matching categories are visible in the grid.";
+
+                return $"Showing first {FilteredCategories.Count} of {FullFilteredCategoryCount} matching categories; {FilteredCategoryOmittedCount} additional matches are summarized to keep filtering fast.";
+            }
+        }
 
         public string CategoryPrintSummary
         {
@@ -142,9 +188,13 @@ namespace InventoryManagementApp.ViewModels
             {
                 if (IsCategoryInteractionBusy) return "Print is paused while category rows are loading.";
                 if (FilteredCategories.Count == 0) return "Print is available after categories are loaded or the filter has matches.";
-                return string.IsNullOrWhiteSpace(SearchText)
-                    ? $"Ready to print {FilteredCategories.Count} category row{(FilteredCategories.Count == 1 ? "" : "s")}."
-                    : $"Ready to print {FilteredCategories.Count} filtered category row{(FilteredCategories.Count == 1 ? "" : "s")}.";
+
+                var printableRows = Math.Min(FilteredCategories.Count, 250);
+                var omittedFromPrint = Math.Max(0, FullFilteredCategoryCount - printableRows);
+                var filterContext = string.IsNullOrWhiteSpace(SearchText) ? "visible category" : "filtered category";
+                return omittedFromPrint > 0
+                    ? $"Ready to print the first {printableRows} of {FullFilteredCategoryCount} {filterContext} row{(FullFilteredCategoryCount == 1 ? "" : "s")}; {omittedFromPrint} omitted for preview speed."
+                    : $"Ready to print {FullFilteredCategoryCount} {filterContext} row{(FullFilteredCategoryCount == 1 ? "" : "s")}.";
             }
         }
 
@@ -311,7 +361,9 @@ namespace InventoryManagementApp.ViewModels
                 Categories.Clear();
                 foreach (var c in list) Categories.Add(new CategoryItem { CategoryID = c.CategoryID, Name = c.Name });
                 ApplyFilter(selectedId);
-                StatusMessage = $"Loaded {Categories.Count} categor{(Categories.Count == 1 ? "y" : "ies")}.";
+                StatusMessage = IsCategoryFilterWindowCapped
+                    ? $"Loaded {Categories.Count} categories. Showing the first {FilteredCategories.Count} matches so the grid stays responsive."
+                    : $"Loaded {Categories.Count} categor{(Categories.Count == 1 ? "y" : "ies")}.";
                 _loadFailureDialogShown = false;
             }
             catch (Exception ex)
@@ -337,6 +389,8 @@ namespace InventoryManagementApp.ViewModels
         {
             Categories.Clear();
             FilteredCategories.Clear();
+            _matchedCategoryCount = 0;
+            _omittedFilteredCategoryCount = 0;
             SelectedCategory = null;
             CategoryName = "";
             RaiseDirectoryProperties();
@@ -357,7 +411,9 @@ namespace InventoryManagementApp.ViewModels
                 Categories.Clear();
                 foreach (var c in list) Categories.Add(new CategoryItem { CategoryID = c.CategoryID, Name = c.Name });
                 ApplyFilter(preferredSelectedId);
-                StatusMessage = refreshedStatusMessage;
+                StatusMessage = IsCategoryFilterWindowCapped
+                    ? $"{refreshedStatusMessage} Showing the first {FilteredCategories.Count} matching rows."
+                    : refreshedStatusMessage;
             }
             catch (Exception refreshEx)
             {
@@ -379,9 +435,10 @@ namespace InventoryManagementApp.ViewModels
                 .ThenBy(c => c.CategoryID)
                 .ToList();
 
-            FilteredCategories.Clear();
-            foreach (var category in filtered)
-                FilteredCategories.Add(category);
+            _matchedCategoryCount = filtered.Count;
+            var visible = filtered.Take(MaxVisibleFilteredCategoryRows).ToList();
+            _omittedFilteredCategoryCount = Math.Max(0, filtered.Count - visible.Count);
+            ReplaceFilteredCategories(visible);
 
             SelectedCategory = currentId.HasValue
                 ? FilteredCategories.FirstOrDefault(c => c.CategoryID == currentId.Value)
@@ -389,6 +446,28 @@ namespace InventoryManagementApp.ViewModels
 
             RaiseDirectoryProperties();
             RaiseSelectedCategoryProperties();
+        }
+
+        private void ReplaceFilteredCategories(IReadOnlyList<CategoryItem> visibleCategories)
+        {
+            if (FilteredCategories.Count == visibleCategories.Count)
+            {
+                var unchanged = true;
+                for (var i = 0; i < visibleCategories.Count; i++)
+                {
+                    if (!ReferenceEquals(FilteredCategories[i], visibleCategories[i]))
+                    {
+                        unchanged = false;
+                        break;
+                    }
+                }
+
+                if (unchanged) return;
+            }
+
+            FilteredCategories.Clear();
+            foreach (var category in visibleCategories)
+                FilteredCategories.Add(category);
         }
 
         private async Task ClearSearchAsync()
@@ -525,11 +604,15 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(CategoryResultsSummary));
             OnPropertyChanged(nameof(CategorySetupSummary));
             OnPropertyChanged(nameof(CategoryFilterSummary));
+            OnPropertyChanged(nameof(CategoryVisibleWindowSummary));
             OnPropertyChanged(nameof(CategoryPrintSummary));
             OnPropertyChanged(nameof(IsDirectoryPrintAvailable));
             OnPropertyChanged(nameof(IsCategoryEmptyStateVisible));
             OnPropertyChanged(nameof(IsCategoryActionAvailable));
             OnPropertyChanged(nameof(IsSelectedCategoryActionAvailable));
+            OnPropertyChanged(nameof(FullFilteredCategoryCount));
+            OnPropertyChanged(nameof(FilteredCategoryOmittedCount));
+            OnPropertyChanged(nameof(IsCategoryFilterWindowCapped));
             OnPropertyChanged(nameof(CategoryEmptyStateTitle));
             OnPropertyChanged(nameof(CategoryEmptyStateMessage));
             OnPropertyChanged(nameof(CategoryNameStatus));
@@ -564,7 +647,7 @@ namespace InventoryManagementApp.ViewModels
             private string _name = "";
 
             public int CategoryID { get => _categoryId; set { if (_categoryId == value) return; _categoryId = value; OnPropertyChanged(); } }
-            public string Name { get => _name; set { if (_name == value) return; _name = value; OnPropertyChanged(); } }
+            public string Name { get => _name; set { if (_name == value) return; _name = value; OnPropertyChanged(); OnPropertyChanged(nameof(DirectoryLabel)); } }
 
             public string DirectoryLabel => $"#{CategoryID} | {Name}";
 
