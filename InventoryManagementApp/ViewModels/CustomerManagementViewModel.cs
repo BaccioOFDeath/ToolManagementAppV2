@@ -17,6 +17,7 @@ namespace InventoryManagementApp.ViewModels
 {
     public class CustomerManagementViewModel : ObservableObject
     {
+        private const int MaxCustomerDirectoryVisibleRows = 500;
         private const int MaxCustomerDirectoryPrintRows = 250;
 
         private readonly ICustomerService? _customerService;
@@ -24,11 +25,40 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<CustomerModel> Customers { get; } = new();
 
+        public int CustomerDirectoryMatchCount => _customerDirectoryMatchCount;
+
+        public int CustomerDirectoryVisibleCount => Customers.Count;
+
+        public int CustomerDirectoryOmittedCount => Math.Max(0, CustomerDirectoryMatchCount - CustomerDirectoryVisibleCount);
+
+        public bool IsCustomerDirectoryWindowCapped => CustomerDirectoryOmittedCount > 0;
+
+        public string CustomerVisibleWindowSummary
+        {
+            get
+            {
+                if (IsCustomerDirectoryBusy)
+                    return "Customer row window is updating";
+
+                if (CustomerDirectoryMatchCount == 0)
+                    return "No customer rows visible";
+
+                if (IsCustomerDirectoryWindowCapped)
+                    return $"Showing first {CustomerDirectoryVisibleCount} of {CustomerDirectoryMatchCount} matching customers; refine search to view the rest";
+
+                return $"Showing all {CustomerDirectoryVisibleCount} matching customer{(CustomerDirectoryVisibleCount == 1 ? string.Empty : "s")}";
+            }
+        }
+        private int _customerDirectoryMatchCount;
+
         public string CustomerResultsSummary
         {
             get
             {
-                var baseSummary = $"{Customers.Count} customer{(Customers.Count == 1 ? string.Empty : "s")} shown";
+                var baseSummary = IsCustomerDirectoryWindowCapped
+                    ? $"{CustomerDirectoryVisibleCount} of {CustomerDirectoryMatchCount} customers shown"
+                    : $"{CustomerDirectoryVisibleCount} customer{(CustomerDirectoryVisibleCount == 1 ? string.Empty : "s")} shown";
+
                 return string.IsNullOrWhiteSpace(CustomerSearchTerm)
                     ? baseSummary
                     : $"{baseSummary} for \"{CustomerSearchTerm.Trim()}\"";
@@ -44,9 +74,13 @@ namespace InventoryManagementApp.ViewModels
                         ? "Loading customer directory..."
                         : $"Searching \"{CustomerSearchTerm.Trim()}\"...";
 
-                return string.IsNullOrWhiteSpace(CustomerSearchTerm)
+                var filterStatus = string.IsNullOrWhiteSpace(CustomerSearchTerm)
                     ? "Showing all customers"
                     : $"Filtered by \"{CustomerSearchTerm.Trim()}\"";
+
+                return IsCustomerDirectoryWindowCapped
+                    ? $"{filterStatus}; first {CustomerDirectoryVisibleCount} of {CustomerDirectoryMatchCount} shown"
+                    : filterStatus;
             }
         }
 
@@ -60,9 +94,15 @@ namespace InventoryManagementApp.ViewModels
                 if (Customers.Count == 0)
                     return "No printable customer rows yet";
 
-                return Customers.Count > MaxCustomerDirectoryPrintRows
-                    ? $"Print preview includes the first {MaxCustomerDirectoryPrintRows} of {Customers.Count} visible customers"
-                    : $"{Customers.Count} visible customer{(Customers.Count == 1 ? string.Empty : "s")} ready for print preview";
+                var printableCount = Math.Min(MaxCustomerDirectoryPrintRows, Customers.Count);
+                if (CustomerDirectoryMatchCount > printableCount)
+                {
+                    return IsCustomerDirectoryWindowCapped
+                        ? $"Print preview includes the first {printableCount} of {CustomerDirectoryVisibleCount} shown customers; {CustomerDirectoryMatchCount} matched"
+                        : $"Print preview includes the first {printableCount} of {CustomerDirectoryMatchCount} visible customers";
+                }
+
+                return $"{CustomerDirectoryVisibleCount} visible customer{(CustomerDirectoryVisibleCount == 1 ? string.Empty : "s")} ready for print preview";
             }
         }
 
@@ -98,6 +138,7 @@ namespace InventoryManagementApp.ViewModels
                     OnPropertyChanged(nameof(CustomerPrintSummary));
                     OnPropertyChanged(nameof(CustomerEmptyStateMessage));
                     OnPropertyChanged(nameof(CustomerOperationsSummary));
+                    OnPropertyChanged(nameof(CustomerVisibleWindowSummary));
                     NotifyCustomerAvailabilityStateChanged();
                     AddCustomerCommand.NotifyCanExecuteChanged();
                     SearchCustomersCommand.NotifyCanExecuteChanged();
@@ -234,7 +275,7 @@ namespace InventoryManagementApp.ViewModels
                 IsCustomerDirectoryBusy = true;
                 var preferredCustomerId = SelectedCustomer?.CustomerID;
                 var all = await _customerService.GetAllCustomersAsync();
-                Customers.ReplaceRange(OrderCustomersForDirectory(all));
+                ApplyCustomerDirectoryWindow(OrderCustomersForDirectory(all), preferredCustomerId);
                 SelectBestCustomerAfterRefresh(preferredCustomerId);
                 NotifyCustomerDirectoryStateChanged();
             }
@@ -323,7 +364,7 @@ namespace InventoryManagementApp.ViewModels
                 IsCustomerDirectoryBusy = true;
                 var preferredCustomerId = SelectedCustomer?.CustomerID;
                 var all = await GetCustomersForCurrentSearchAsync();
-                Customers.ReplaceRange(all);
+                ApplyCustomerDirectoryWindow(all, preferredCustomerId);
                 SelectBestCustomerAfterRefresh(preferredCustomerId);
                 NotifyCustomerDirectoryStateChanged();
             }
@@ -346,7 +387,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 var all = await GetCustomersForCurrentSearchAsync();
-                Customers.ReplaceRange(all);
+                ApplyCustomerDirectoryWindow(all, preferredCustomerId);
                 SelectBestCustomerAfterRefresh(preferredCustomerId, clearSelectionWhenPreferredMissing);
                 NotifyCustomerDirectoryStateChanged();
                 await _dialogService.ShowInfoAsync(refreshedMessage, title);
@@ -375,8 +416,36 @@ namespace InventoryManagementApp.ViewModels
                 .ThenBy(c => c.CustomerID)
                 .ToList();
 
+        private void ApplyCustomerDirectoryWindow(IReadOnlyList<CustomerModel> orderedCustomers, int? preferredCustomerId = null)
+        {
+            _customerDirectoryMatchCount = orderedCustomers.Count;
+            var visibleCustomers = orderedCustomers.Take(MaxCustomerDirectoryVisibleRows).ToList();
+
+            if (IsSameVisibleCustomerWindow(visibleCustomers))
+            {
+                return;
+            }
+
+            Customers.ReplaceRange(visibleCustomers);
+        }
+
+        private bool IsSameVisibleCustomerWindow(IReadOnlyList<CustomerModel> visibleCustomers)
+        {
+            if (Customers.Count != visibleCustomers.Count)
+                return false;
+
+            for (var index = 0; index < visibleCustomers.Count; index++)
+            {
+                if (!ReferenceEquals(Customers[index], visibleCustomers[index]))
+                    return false;
+            }
+
+            return true;
+        }
+
         private void ClearCustomerDirectoryAfterLoadFailure()
         {
+            _customerDirectoryMatchCount = 0;
             Customers.Clear();
             SelectedCustomer = null;
             NotifyCustomerDirectoryStateChanged();
@@ -384,6 +453,11 @@ namespace InventoryManagementApp.ViewModels
 
         private void NotifyCustomerDirectoryStateChanged()
         {
+            OnPropertyChanged(nameof(CustomerDirectoryMatchCount));
+            OnPropertyChanged(nameof(CustomerDirectoryVisibleCount));
+            OnPropertyChanged(nameof(CustomerDirectoryOmittedCount));
+            OnPropertyChanged(nameof(IsCustomerDirectoryWindowCapped));
+            OnPropertyChanged(nameof(CustomerVisibleWindowSummary));
             OnPropertyChanged(nameof(CustomerResultsSummary));
             OnPropertyChanged(nameof(CustomerFilterStatus));
             OnPropertyChanged(nameof(CustomerPrintSummary));
@@ -561,16 +635,18 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
+                var matchCount = Math.Max(CustomerDirectoryMatchCount, Customers.Count);
                 var visibleCount = Customers.Count;
                 var printableCustomers = Customers.Take(MaxCustomerDirectoryPrintRows).ToList();
-                var omittedCount = Math.Max(0, visibleCount - printableCustomers.Count);
+                var omittedCount = Math.Max(0, matchCount - printableCustomers.Count);
+                var hiddenFromGridCount = Math.Max(0, matchCount - visibleCount);
                 var searchStatus = string.IsNullOrWhiteSpace(CustomerSearchTerm)
-                    ? "Search: all visible customers"
+                    ? "Search: all matching customers"
                     : $"Search: {CustomerSearchTerm.Trim()}";
 
                 var doc = CreateCustomerDocument("Customer Directory", fontSize: 11);
                 doc.Blocks.Add(new Paragraph(new Run(
-                    $"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Visible: {visibleCount} | Printed: {printableCustomers.Count} | Omitted: {omittedCount} | {searchStatus}"))
+                    $"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Matched: {matchCount} | Visible: {visibleCount} | Printed: {printableCustomers.Count} | Omitted: {omittedCount} | {searchStatus}"))
                 {
                     FontSize = 10,
                     Margin = new Thickness(0, 0, 0, 8)
@@ -578,8 +654,11 @@ namespace InventoryManagementApp.ViewModels
 
                 if (omittedCount > 0)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run(
-                        $"Large directory limit: showing the first {MaxCustomerDirectoryPrintRows} visible customers. Refine search before filing or sending a complete directory packet."))
+                    var omittedMessage = hiddenFromGridCount > 0
+                        ? $"Large directory limit: printing the first {MaxCustomerDirectoryPrintRows} of {visibleCount} shown customers; {hiddenFromGridCount} additional matching customers are outside the live grid. Refine search before filing or sending a complete directory packet."
+                        : $"Large directory limit: showing the first {MaxCustomerDirectoryPrintRows} visible customers. Refine search before filing or sending a complete directory packet.";
+
+                    doc.Blocks.Add(new Paragraph(new Run(omittedMessage))
                     {
                         FontSize = 10,
                         FontWeight = FontWeights.Bold,
@@ -611,7 +690,7 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 doc.Blocks.Add(table);
-                doc.Blocks.Add(new Paragraph(new Run("Review note: verify the selected contact path, email, phone/mobile, address, and omitted-row count before using this directory for rental, reminder, or service follow-up."))
+                doc.Blocks.Add(new Paragraph(new Run("Review note: verify the selected contact path, email, phone/mobile, address, matched-row count, visible-row window, and omitted-row count before using this directory for rental, reminder, or service follow-up."))
                 {
                     FontSize = 10,
                     FontStyle = FontStyles.Italic,
@@ -621,7 +700,7 @@ namespace InventoryManagementApp.ViewModels
                 _dialogService.ShowPrintPreview(
                     doc,
                     "Customer Directory",
-                    "Customer directory packet with contact paths, address review, visible-row counts, and large-directory limits.");
+                    "Customer directory packet with contact paths, address review, matched-row counts, visible-row windows, and large-directory limits.");
             }
             catch (Exception ex)
             {
