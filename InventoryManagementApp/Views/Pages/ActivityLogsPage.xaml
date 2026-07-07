@@ -47,7 +47,7 @@
                     <Border Style="{StaticResource ActivityStatCard}">
                         <StackPanel>
                             <TextBlock Text="VISIBLE" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding FilteredLogCount, StringFormat={}{0} rows visible}"
+                            <TextBlock Text="{Binding FilteredLogCount, StringFormat={}{0} rows shown}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
@@ -56,8 +56,8 @@
                     </Border>
                     <Border Style="{StaticResource ActivityStatCard}">
                         <StackPanel>
-                            <TextBlock Text="LOADED" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding TotalLogCount, StringFormat={}{0} recent rows}"
+                            <TextBlock Text="MATCHED" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding MatchedLogCount, StringFormat={}{0} rows matched}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
@@ -66,8 +66,8 @@
                     </Border>
                     <Border Style="{StaticResource ActivityStatCard}">
                         <StackPanel>
-                            <TextBlock Text="SELECTED" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding SelectedLogActionGroup}"
+                            <TextBlock Text="OMITTED" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding OmittedLogCount, StringFormat={}{0} hidden from grid}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
@@ -147,6 +147,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
@@ -157,7 +158,7 @@
                                 <TextBlock Text="01 Activity Directory" Style="{StaticResource SectionHeader}" Margin="0"/>
                                 <TextBlock Text="Scan the current audit trail by user, event family, destination, and follow-up path." Style="{StaticResource CaptionTextBlock}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding FilteredLogCount, StringFormat={}{0} visible}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ActivityWindowStatusText}" Style="{StaticResource CaptionTextBlock}" HorizontalAlignment="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </DockPanel>
                     </Border>
 
@@ -168,8 +169,22 @@
                         </DockPanel>
                     </Border>
 
+                    <Border Grid.Row="2" Margin="8,0,8,8" MaxWidth="780" HorizontalAlignment="Left">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource AdminHandoffCard}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasOmittedActivityRows}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="{Binding ActivityWindowStatusText}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    </Border>
+
                     <DataGrid x:Name="ActivityGrid"
-                              Grid.Row="2"
+                              Grid.Row="3"
                               ItemsSource="{Binding FilteredLogs}"
                               SelectedItem="{Binding SelectedLog, Mode=TwoWay}"
                               IsReadOnly="True"
@@ -223,7 +238,7 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <Border Grid.Row="2" MaxWidth="360" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Grid.Row="3" MaxWidth="360" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -240,7 +255,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Grid.Row="2" MaxWidth="380" MinHeight="118" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border Grid.Row="3" MaxWidth="380" MinHeight="118" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -258,7 +273,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Grid.Row="3" Style="{StaticResource DesktopPaneSubheader}" BorderThickness="0,1,0,0">
+                    <Border Grid.Row="4" Style="{StaticResource DesktopPaneSubheader}" BorderThickness="0,1,0,0">
                         <DockPanel LastChildFill="True">
                             <TextBlock Text="{Binding PrintStatusText}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left" TextWrapping="Wrap" Margin="0,0,10,0"/>
                             <Button Style="{StaticResource GhostButton}" Content="Clear Filters" Command="{Binding ClearFiltersCommand}" HorizontalAlignment="Right"/>
@@ -342,6 +357,8 @@
             <DockPanel LastChildFill="True">
                 <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
                     <TextBlock Text="{Binding FilteredLogCount, StringFormat='Visible: {0}'}" FontSize="11" Margin="0,0,12,0"/>
+                    <TextBlock Text="{Binding MatchedLogCount, StringFormat='Matched: {0}'}" FontSize="11" Margin="0,0,12,0"/>
+                    <TextBlock Text="{Binding OmittedLogCount, StringFormat='Hidden: {0}'}" FontSize="11" Margin="0,0,12,0"/>
                     <TextBlock Text="{Binding TotalLogCount, StringFormat='Loaded: {0}'}" FontSize="11" Margin="0,0,12,0"/>
                     <TextBlock Text="{Binding LastLoadedText, StringFormat='Last refresh: {0}'}" FontSize="11"/>
                 </WrapPanel>

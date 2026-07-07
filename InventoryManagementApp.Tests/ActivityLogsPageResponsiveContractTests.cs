@@ -44,11 +44,14 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void ActivityLogsPage_BoundsEmptyStateAndHandoffTextInsteadOfForcingPageWidthOrHeight()
+        public void ActivityLogsPage_BoundsEmptyOmittedAndHandoffTextInsteadOfForcingPageWidthOrHeight()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml");
 
-            Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"360\" Margin=\"12\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"3\" MaxWidth=\"360\" Margin=\"12\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"2\" Margin=\"8,0,8,8\" MaxWidth=\"780\" HorizontalAlignment=\"Left\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Binding=\"{Binding HasOmittedActivityRows}\" Value=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding ActivityWindowStatusText}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MinHeight=\"130\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MaxHeight=\"260\"", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalScrollBarVisibility=\"Disabled\"", xaml, StringComparison.Ordinal);
@@ -93,6 +96,21 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<DataTrigger Binding=\"{Binding IsBusy}\" Value=\"True\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<ProgressBar IsIndeterminate=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ActivityBusyMessage", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsPage_ShowsMatchedVisibleHiddenAndLoadedCounts()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml");
+
+            Assert.Contains("Text=\"MATCHED\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"OMITTED\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MatchedLogCount", xaml, StringComparison.Ordinal);
+            Assert.Contains("OmittedLogCount", xaml, StringComparison.Ordinal);
+            Assert.Contains("StringFormat='Matched: {0}'", xaml, StringComparison.Ordinal);
+            Assert.Contains("StringFormat='Hidden: {0}'", xaml, StringComparison.Ordinal);
+            Assert.Contains("StringFormat='Loaded: {0}'", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("{Binding FilteredLogCount, StringFormat={}{0} visible}", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -176,6 +194,24 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ActivityLogsPage_PrintPreviewAccountsForMatchedVisibleHiddenAndPrintedRows()
+        {
+            var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
+
+            Assert.Contains("var totalMatchedCount = vm.MatchedLogCount;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var totalVisibleCount = vm.FilteredLogs.Count;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var hiddenFromGridCount = vm.OmittedLogCount;", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("var printOmittedCount = Math.Max(0, totalVisibleCount - printRows.Count);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("BuildPrintDocument(printRows, totalMatchedCount, totalVisibleCount, hiddenFromGridCount, printOmittedCount, vm.PrintStatusText, vm.ActivitySummary)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Matched Activity Rows", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Visible Grid Rows", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Hidden From Grid", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Print Omitted Rows", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Live Grid Limit", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("ActivityLogsViewModel.MaxVisibleActivityRows", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ActivityLogsViewModel_CoalescesFilteringAndKeepsRowsDuringRefreshFailure()
         {
             var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
@@ -184,7 +220,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("CancellationTokenSource? _filterRefreshCts", viewModel, StringComparison.Ordinal);
             Assert.Contains("Interlocked.Exchange(ref _filterRefreshCts, cts)", viewModel, StringComparison.Ordinal);
             Assert.Contains("await Task.Delay(FilterDebounceMilliseconds, cts.Token);", viewModel, StringComparison.Ordinal);
-            Assert.Contains("await Task.Run(() => rows", viewModel, StringComparison.Ordinal);
+            Assert.Contains("await Task.Run(() => BuildFilteredLogWindow(rows", viewModel, StringComparison.Ordinal);
             Assert.Contains("PreserveActivityLogRowsAfterLoadFailure", viewModel, StringComparison.Ordinal);
             Assert.DoesNotContain("ClearActivityLogRowsAfterLoadFailure", viewModel, StringComparison.Ordinal);
         }
@@ -249,14 +285,37 @@ namespace InventoryManagementApp.Tests
         {
             var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
 
-            Assert.Contains("ReplaceFilteredLogs(filtered, previousSelection);", viewModel, StringComparison.Ordinal);
-            Assert.Contains("private void ReplaceFilteredLogs(IReadOnlyList<ActivityLog> filtered, ActivityLog? previousSelection)", viewModel, StringComparison.Ordinal);
-            Assert.Contains("if (!HasSameRows(FilteredLogs, filtered))", viewModel, StringComparison.Ordinal);
+            Assert.Contains("ReplaceFilteredLogs(filterResult.VisibleRows, previousSelection);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private void ReplaceFilteredLogs(IReadOnlyList<ActivityLog> visibleRows, ActivityLog? previousSelection)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (!HasSameRows(FilteredLogs, visibleRows))", viewModel, StringComparison.Ordinal);
             Assert.Contains("SelectedLog = previousSelection != null && FilteredLogs.Contains(previousSelection)", viewModel, StringComparison.Ordinal);
             Assert.Contains("private static bool HasSameRows(IReadOnlyList<ActivityLog> currentRows, IReadOnlyList<ActivityLog> nextRows)", viewModel, StringComparison.Ordinal);
             Assert.Contains("if (!ReferenceEquals(currentRows[i], nextRows[i]))", viewModel, StringComparison.Ordinal);
             Assert.Contains("previousCts?.Dispose();", viewModel, StringComparison.Ordinal);
             Assert.Contains("_searchRows = Array.Empty<ActivityLogSearchRow>();", viewModel, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ActivityLogsViewModel_CapsLiveGridRowsAndReportsHiddenMatches()
+        {
+            var viewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "ActivityLogsViewModel.cs");
+
+            Assert.Contains("public const int MaxVisibleActivityRows = 500;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private int _matchedLogCount;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public int MatchedLogCount => _matchedLogCount;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public int OmittedLogCount => Math.Max(0, MatchedLogCount - FilteredLogCount);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool HasOmittedActivityRows => OmittedLogCount > 0;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("var visibleRows = new List<ActivityLog>(MaxVisibleActivityRows);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("if (visibleRows.Count < MaxVisibleActivityRows)", viewModel, StringComparison.Ordinal);
+            Assert.Contains("return new FilteredActivityLogResult(visibleRows, matchedCount);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("_matchedLogCount = filterResult.MatchedCount;", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public string ActivityWindowStatusText", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(MatchedLogCount));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(OmittedLogCount));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(HasOmittedActivityRows));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(ActivityWindowStatusText));", viewModel, StringComparison.Ordinal);
+            Assert.Contains("private sealed record FilteredActivityLogResult(IReadOnlyList<ActivityLog> VisibleRows, int MatchedCount);", viewModel, StringComparison.Ordinal);
+            Assert.DoesNotContain(".Where(row => row.Matches(selectedUserFilter, selectedActionFilter, search))\n                    .Select(row => row.Log)\n                    .ToList()", viewModel, StringComparison.Ordinal);
         }
 
         private static string ReadRepoFile(params string[] parts)

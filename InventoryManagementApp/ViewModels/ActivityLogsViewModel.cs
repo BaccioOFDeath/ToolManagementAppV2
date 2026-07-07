@@ -18,6 +18,7 @@ namespace InventoryManagementApp.ViewModels
         const string AllUsersFilter = "All users";
         const string AllActionsFilter = "All actions";
         const int FilterDebounceMilliseconds = 160;
+        public const int MaxVisibleActivityRows = 500;
         const int MaxActivityPrintRows = 250;
 
         private readonly ActivityLogService _service;
@@ -25,6 +26,7 @@ namespace InventoryManagementApp.ViewModels
         private CancellationTokenSource? _filterRefreshCts;
         private bool _suppressFilterRefresh;
         private IReadOnlyList<ActivityLogSearchRow> _searchRows = Array.Empty<ActivityLogSearchRow>();
+        private int _matchedLogCount;
 
         public ObservableCollection<ActivityLog> Logs { get; } = new();
         public ObservableCollection<ActivityLog> FilteredLogs { get; } = new();
@@ -135,14 +137,17 @@ namespace InventoryManagementApp.ViewModels
 
         public string LastLoadedText => LastLoadedAt.HasValue ? LastLoadedAt.Value.ToString("g") : "Not loaded";
         public int TotalLogCount => Logs.Count;
+        public int MatchedLogCount => _matchedLogCount;
         public int FilteredLogCount => FilteredLogs.Count;
+        public int OmittedLogCount => Math.Max(0, MatchedLogCount - FilteredLogCount);
+        public bool HasOmittedActivityRows => OmittedLogCount > 0;
         public bool IsBusy => IsLoading || IsFiltering;
         public bool HasActiveFilters => HasActiveFilter();
         public bool CanChangeActivityFilters => !IsLoading;
         public bool CanRefreshActivityRows => !IsBusy;
         public bool CanUseSelectedLogActions => !IsBusy && SelectedLog != null;
         public bool CanPrintActivityRows => !IsBusy && FilteredLogs.Count > 0;
-        public bool CanShowActivityEmptyState => !IsBusy && FilteredLogs.Count == 0;
+        public bool CanShowActivityEmptyState => !IsBusy && MatchedLogCount == 0;
         public string ActivityBusyMessage => IsLoading
             ? "Refreshing recent audit rows without blocking the rest of the screen."
             : "Applying the current search and filter choices to the loaded audit rows.";
@@ -157,6 +162,12 @@ namespace InventoryManagementApp.ViewModels
             ? "Refresh the audit trail to review recent operations, account changes, imports, rentals, and item events."
             : "Clear or adjust the current search, user, and action filters to review more of the audit trail.";
 
+        public string ActivityWindowStatusText => HasOmittedActivityRows
+            ? $"Showing first {FilteredLogCount} of {MatchedLogCount} matching activity rows to keep the live grid responsive; refine filters to reach {OmittedLogCount} more."
+            : MatchedLogCount == 0
+                ? "No matching activity rows are visible."
+                : "All matching activity rows are visible in the live grid.";
+
         public string PrintStatusText
         {
             get
@@ -167,6 +178,12 @@ namespace InventoryManagementApp.ViewModels
                     return "Print preview will be available after the current filters finish applying.";
                 if (FilteredLogs.Count == 0)
                     return "No activity rows are ready to print.";
+
+                var printRows = Math.Min(FilteredLogs.Count, MaxActivityPrintRows);
+                if (HasOmittedActivityRows && FilteredLogs.Count > MaxActivityPrintRows)
+                    return $"Print preview will include the first {printRows} of {FilteredLogs.Count} visible row(s); {OmittedLogCount} additional matching row(s) are hidden from the live grid.";
+                if (HasOmittedActivityRows)
+                    return $"Print preview ready for {printRows} visible row(s); {OmittedLogCount} additional matching row(s) are hidden from the live grid.";
                 if (FilteredLogs.Count > MaxActivityPrintRows)
                     return $"Print preview will include the first {MaxActivityPrintRows} of {FilteredLogs.Count} visible row(s).";
 
@@ -184,7 +201,7 @@ namespace InventoryManagementApp.ViewModels
                         : $"Refreshing activity rows; {FilteredLogs.Count} previously visible row(s) remain on screen.";
                 if (IsFiltering)
                     return $"Filtering {Logs.Count} loaded activity row(s).";
-                if (FilteredLogs.Count == 0)
+                if (MatchedLogCount == 0)
                     return Logs.Count == 0
                         ? "No activity rows loaded yet. Refresh to review recent operations."
                         : "No matching activity rows. Clear filters or refine the audit search.";
@@ -196,7 +213,12 @@ namespace InventoryManagementApp.ViewModels
                     .Take(3)
                     .Select(group => $"{group.Key}: {group.Count()}");
 
-                return $"{FilteredLogs.Count} visible of {Logs.Count} loaded. Top activity: {string.Join(", ", groups)}.";
+                var matchScope = HasActiveFilter() ? "matching" : "loaded";
+                var omittedText = HasOmittedActivityRows
+                    ? $" {OmittedLogCount} {matchScope} row(s) are hidden from the live grid."
+                    : string.Empty;
+
+                return $"{FilteredLogs.Count} visible of {MatchedLogCount} {matchScope} activity row(s).{omittedText} Top visible activity: {string.Join(", ", groups)}.";
             }
         }
 
@@ -290,7 +312,7 @@ namespace InventoryManagementApp.ViewModels
                 LastLoadedAt = DateTime.Now;
                 RebuildFilterLists();
                 await ApplyFiltersAsync(false);
-                StatusMessage = $"Loaded {Logs.Count} recent activity row(s).";
+                StatusMessage = $"Loaded {Logs.Count} recent activity row(s); {FilteredLogs.Count} are visible in the live grid.";
                 return true;
             }
             catch (Exception ex)
@@ -326,6 +348,7 @@ namespace InventoryManagementApp.ViewModels
             if (Logs.Count == 0)
             {
                 FilteredLogs.Clear();
+                _matchedLogCount = 0;
                 _searchRows = Array.Empty<ActivityLogSearchRow>();
                 SelectedLog = null;
                 LastLoadedAt = null;
@@ -412,18 +435,16 @@ namespace InventoryManagementApp.ViewModels
                 var previousSelection = SelectedLog;
                 var rows = GetSearchRowsSnapshot();
 
-                var filtered = await Task.Run(() => rows
-                    .Where(row => row.Matches(selectedUserFilter, selectedActionFilter, search))
-                    .Select(row => row.Log)
-                    .ToList(), cts.Token);
+                var filterResult = await Task.Run(() => BuildFilteredLogWindow(rows, selectedUserFilter, selectedActionFilter, search, cts.Token), cts.Token);
 
                 cts.Token.ThrowIfCancellationRequested();
-                ReplaceFilteredLogs(filtered, previousSelection);
+                _matchedLogCount = filterResult.MatchedCount;
+                ReplaceFilteredLogs(filterResult.VisibleRows, previousSelection);
 
                 NotifyActivityStateChanged();
                 StatusMessage = HasActiveFilter()
-                    ? $"{FilteredLogs.Count} of {Logs.Count} activity row(s) match the current filters."
-                    : $"{Logs.Count} recent activity row(s) visible.";
+                    ? $"{FilteredLogs.Count} visible of {MatchedLogCount} matching activity row(s)."
+                    : $"{FilteredLogs.Count} visible of {Logs.Count} recent activity row(s).";
             }
             catch (OperationCanceledException)
             {
@@ -439,6 +460,25 @@ namespace InventoryManagementApp.ViewModels
 
                 cts.Dispose();
             }
+        }
+
+        private static FilteredActivityLogResult BuildFilteredLogWindow(IReadOnlyList<ActivityLogSearchRow> rows, string selectedUserFilter, string selectedActionFilter, string search, CancellationToken cancellationToken)
+        {
+            var visibleRows = new List<ActivityLog>(MaxVisibleActivityRows);
+            var matchedCount = 0;
+
+            foreach (var row in rows)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!row.Matches(selectedUserFilter, selectedActionFilter, search))
+                    continue;
+
+                matchedCount++;
+                if (visibleRows.Count < MaxVisibleActivityRows)
+                    visibleRows.Add(row.Log);
+            }
+
+            return new FilteredActivityLogResult(visibleRows, matchedCount);
         }
 
         private IReadOnlyList<ActivityLogSearchRow> GetSearchRowsSnapshot()
@@ -464,12 +504,12 @@ namespace InventoryManagementApp.ViewModels
             return true;
         }
 
-        private void ReplaceFilteredLogs(IReadOnlyList<ActivityLog> filtered, ActivityLog? previousSelection)
+        private void ReplaceFilteredLogs(IReadOnlyList<ActivityLog> visibleRows, ActivityLog? previousSelection)
         {
-            if (!HasSameRows(FilteredLogs, filtered))
+            if (!HasSameRows(FilteredLogs, visibleRows))
             {
                 FilteredLogs.Clear();
-                foreach (var log in filtered)
+                foreach (var log in visibleRows)
                     FilteredLogs.Add(log);
             }
 
@@ -495,7 +535,10 @@ namespace InventoryManagementApp.ViewModels
         private void NotifyActivityStateChanged()
         {
             OnPropertyChanged(nameof(TotalLogCount));
+            OnPropertyChanged(nameof(MatchedLogCount));
             OnPropertyChanged(nameof(FilteredLogCount));
+            OnPropertyChanged(nameof(OmittedLogCount));
+            OnPropertyChanged(nameof(HasOmittedActivityRows));
             OnPropertyChanged(nameof(IsBusy));
             OnPropertyChanged(nameof(HasActiveFilters));
             OnPropertyChanged(nameof(CanChangeActivityFilters));
@@ -506,6 +549,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(ActivityBusyMessage));
             OnPropertyChanged(nameof(ActivityEmptyStateTitle));
             OnPropertyChanged(nameof(ActivityEmptyStateMessage));
+            OnPropertyChanged(nameof(ActivityWindowStatusText));
             OnPropertyChanged(nameof(PrintStatusText));
             OnPropertyChanged(nameof(ActivitySummary));
             ClearFiltersCommand.NotifyCanExecuteChanged();
@@ -592,6 +636,8 @@ namespace InventoryManagementApp.ViewModels
         {
             return string.IsNullOrWhiteSpace(text) ? fallback : text.Trim();
         }
+
+        private sealed record FilteredActivityLogResult(IReadOnlyList<ActivityLog> VisibleRows, int MatchedCount);
 
         private sealed class ActivityLogSearchRow
         {
