@@ -20,6 +20,17 @@
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
         </Style>
+        <Style x:Key="RentalStatusPillText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
+            <Setter Property="MaxWidth" Value="320"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="RentalGridTextBlock" TargetType="TextBlock">
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+            <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+        </Style>
         <Style x:Key="RentalFilterLabel" TargetType="TextBlock" BasedOn="{StaticResource LabelTextBlock}">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,0,6,4"/>
@@ -70,6 +81,10 @@
             </Style.Triggers>
         </Style>
         <Style x:Key="RentalBusyDataGridStyle" TargetType="DataGrid" BasedOn="{StaticResource VirtualizedDataGridStyle}">
+            <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
+            <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
+            <Setter Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="True"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsLoading}" Value="True">
                     <Setter Property="IsEnabled" Value="False"/>
@@ -112,21 +127,21 @@
                 <StackPanel>
                     <TextBlock Text="Filtered Rentals" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding Rentals.Count}" Style="{StaticResource RentalStatValueText}"/>
-                    <TextBlock Text="Rows matching the current search, date range, and status" Style="{StaticResource RentalDetailText}"/>
+                    <TextBlock Text="{Binding SearchSummary}" Style="{StaticResource RentalDetailText}" ToolTip="{Binding SearchSummary}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource RentalStatCard}">
                 <StackPanel>
                     <TextBlock Text="Checked Out" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding ActiveRentals.Count}" Style="{StaticResource RentalStatValueText}"/>
-                    <TextBlock Text="Active customer handoffs that still need return or extension" Style="{StaticResource RentalDetailText}"/>
+                    <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource RentalDetailText}" ToolTip="{Binding CheckedOutSummary}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource RentalStatCard}">
                 <StackPanel>
                     <TextBlock Text="Open Requests" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding PendingRequests.Count}" Style="{StaticResource RentalStatValueText}"/>
-                    <TextBlock Text="Customer holds waiting for advisor follow-up" Style="{StaticResource RentalDetailText}"/>
+                    <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource RentalDetailText}" ToolTip="{Binding RequestSummary}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource RentalStatCard}">
@@ -151,6 +166,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Border Style="{StaticResource DesktopPaneHeader}">
                         <DockPanel LastChildFill="False">
@@ -158,7 +174,7 @@
                                 <TextBlock Text="Rental Desk" Style="{StaticResource SectionHeader}" Margin="0"/>
                                 <TextBlock Text="Search, return, extend, document, or inspect the selected rental." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding SearchSummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" Margin="12,0,0,0"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding SearchSummary}" Style="{StaticResource RentalStatusPillText}" ToolTip="{Binding SearchSummary}" Margin="12,0,0,0"/>
                         </DockPanel>
                     </Border>
                     <Border Grid.Row="1" Style="{StaticResource DesktopPaneSubheader}" Padding="10,8">
@@ -185,6 +201,8 @@
                               AutoGenerateColumns="False"
                               EnableRowVirtualization="True"
                               EnableColumnVirtualization="True"
+                              HeadersVisibility="Column"
+                              RowDetailsVisibilityMode="Collapsed"
                               ScrollViewer.CanContentScroll="True"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -196,11 +214,11 @@
                             </Style>
                         </DataGrid.RowStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Binding="{Binding RentalID}" Width="52"/>
-                            <DataGridTextColumn Header="Items" Binding="{Binding JobItemSummary}" Width="96" MinWidth="78"/>
-                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="1.7*" MinWidth="130"/>
-                            <DataGridTextColumn Header="Due Back" Binding="{Binding JobDueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="124" MinWidth="104"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" MinWidth="74"/>
+                            <DataGridTextColumn Header="ID" Binding="{Binding RentalID}" Width="52" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="Items" Binding="{Binding JobItemSummary}" Width="96" MinWidth="78" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="1.7*" MinWidth="130" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="Due Back" Binding="{Binding JobDueDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="124" MinWidth="104" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="90" MinWidth="74" ElementStyle="{StaticResource RentalGridTextBlock}"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -248,6 +266,12 @@
                             <TextBlock Text="Refreshing rental desk" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
                             <TextBlock Text="Keeping the current rows visible while rental, request, and print actions pause until the refresh completes." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
+                    </Border>
+                    <Border Grid.Row="3" Style="{StaticResource DesktopPaneSubheader}" Padding="10,6">
+                        <DockPanel LastChildFill="False">
+                            <TextBlock DockPanel.Dock="Left" Text="{Binding SearchSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" ToolTip="{Binding SearchSummary}"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding CheckedOutSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" ToolTip="{Binding CheckedOutSummary}" Margin="12,0,0,0"/>
+                        </DockPanel>
                     </Border>
                 </Grid>
             </Border>
@@ -340,6 +364,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Border Style="{StaticResource DesktopPaneHeader}">
                     <DockPanel LastChildFill="False">
@@ -348,6 +373,7 @@
                             <TextBlock Text="Confirm, cancel, print, and route customer holds tied to unavailable rental items." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
                         <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0,0,0">
+                            <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource RentalStatusPillText}" ToolTip="{Binding RequestSummary}" Margin="0,0,8,6"/>
                             <Button Style="{StaticResource RentalBusyPrimaryButton}" Content="Details" Command="{Binding OpenRequestDetailsCommand}" Margin="0,0,4,6"/>
                             <Button Style="{StaticResource RentalBusyPrimaryButton}" Content="Confirm" Command="{Binding ConfirmRequestCommand}" Margin="0,0,4,6"/>
                             <Button Style="{StaticResource RentalBusyPrimaryButton}" Content="Cancel" Command="{Binding CancelRequestCommand}" Margin="0,0,4,6"/>
@@ -372,6 +398,8 @@
                               AutoGenerateColumns="False"
                               EnableRowVirtualization="True"
                               EnableColumnVirtualization="True"
+                              HeadersVisibility="Column"
+                              RowDetailsVisibilityMode="Collapsed"
                               ScrollViewer.CanContentScroll="True"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -392,14 +420,14 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="100" MinWidth="78"/>
-                            <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="150" MinWidth="110"/>
-                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="1.4*" MinWidth="125"/>
-                            <DataGridTextColumn Header="Requested" Binding="{Binding ReservationDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="118" MinWidth="92"/>
-                            <DataGridTextColumn Header="From" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="90" MinWidth="72"/>
-                            <DataGridTextColumn Header="Until" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="90" MinWidth="72"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="96" MinWidth="76"/>
-                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*" MinWidth="130"/>
+                            <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="100" MinWidth="78" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="150" MinWidth="110" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="1.4*" MinWidth="125" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="Requested" Binding="{Binding ReservationDate, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="118" MinWidth="92" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="From" Binding="{Binding StartDate, StringFormat={}{0:yyyy-MM-dd}}" Width="90" MinWidth="72" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="Until" Binding="{Binding EndDate, StringFormat={}{0:yyyy-MM-dd}}" Width="90" MinWidth="72" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="96" MinWidth="76" ElementStyle="{StaticResource RentalGridTextBlock}"/>
+                            <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*" MinWidth="130" ElementStyle="{StaticResource RentalGridTextBlock}"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -489,6 +517,12 @@
                         </StackPanel>
                     </Border>
                 </Grid>
+                <Border Grid.Row="2" Style="{StaticResource DesktopPaneSubheader}" Padding="10,6">
+                    <DockPanel LastChildFill="False">
+                        <TextBlock DockPanel.Dock="Left" Text="{Binding RequestSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" ToolTip="{Binding RequestSummary}"/>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedRequestNextAction}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxWidth="520" ToolTip="{Binding SelectedRequestNextAction}" Margin="12,0,0,0"/>
+                    </DockPanel>
+                </Border>
             </Grid>
         </Border>
 
