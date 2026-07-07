@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Models.Domain;
@@ -137,40 +135,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private void SetDashboardInteractiveActionsEnabled(bool isEnabled)
         {
-            foreach (var element in EnumerateVisualDescendants(DashboardRoot))
-            {
-                if (ReferenceEquals(element, DashboardLoadRetryButton))
-                    continue;
-
-                switch (element)
-                {
-                    case Button button:
-                        button.IsEnabled = isEnabled;
-                        break;
-                    case MenuItem menuItem:
-                        menuItem.IsEnabled = isEnabled;
-                        break;
-                }
-            }
-        }
-
-        private static IEnumerable<DependencyObject> EnumerateVisualDescendants(DependencyObject parent)
-        {
-            var pending = new Stack<DependencyObject>();
-            pending.Push(parent);
-
-            while (pending.Count > 0)
-            {
-                var current = pending.Pop();
-                var childCount = VisualTreeHelper.GetChildrenCount(current);
-
-                for (var index = childCount - 1; index >= 0; index--)
-                {
-                    var child = VisualTreeHelper.GetChild(current, index);
-                    pending.Push(child);
-                    yield return child;
-                }
-            }
+            DashboardRoot.IsEnabled = isEnabled;
         }
 
         private void DashboardPage_Unloaded(object sender, RoutedEventArgs e)
