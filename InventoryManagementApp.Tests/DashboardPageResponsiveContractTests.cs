@@ -152,24 +152,20 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void DashboardPage_DisablesVisibleCommandButtonsWhileRowsRefresh()
+        public void DashboardPage_DisablesRootWhileRowsRefreshWithoutOverwritingActionBindings()
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
 
-            Assert.Contains("using System.Collections.Generic;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("using System.Windows.Media;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("SetDashboardInteractiveActionsEnabled(false);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("SetDashboardInteractiveActionsEnabled(true);", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("private void SetDashboardInteractiveActionsEnabled(bool isEnabled)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("EnumerateVisualDescendants(DashboardRoot)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("ReferenceEquals(element, DashboardLoadRetryButton)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("case Button button:", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("button.IsEnabled = isEnabled;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("case MenuItem menuItem:", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("menuItem.IsEnabled = isEnabled;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("VisualTreeHelper.GetChildrenCount(current)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("pending.Push(child);", codeBehind, StringComparison.Ordinal);
-            Assert.DoesNotContain("foreach (var descendant in EnumerateVisualDescendants(child))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private void SetDashboardInteractiveActionsEnabled(bool isEnabled)\n        {\n            DashboardRoot.IsEnabled = isEnabled;\n        }", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("DashboardLoadRetryButton.IsEnabled = DashboardLoadRetryButton.Visibility == Visibility.Visible;", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("EnumerateVisualDescendants", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("VisualTreeHelper.GetChildrenCount", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("case Button button:", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("case MenuItem menuItem:", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("button.IsEnabled = isEnabled;", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("menuItem.IsEnabled = isEnabled;", codeBehind, StringComparison.Ordinal);
         }
 
         [Fact]
