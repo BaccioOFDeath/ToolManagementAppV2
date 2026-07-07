@@ -257,6 +257,41 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void ManageRentalsPage_UsesExplicitRecyclingVirtualizationForDenseRentalAndRequestGrids()
+        {
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
+            var busyGridStyle = ExtractSourceBlock(xaml, "<Style x:Key=\"RentalBusyDataGridStyle\"", "        </Style>\n    </Page.Resources>");
+
+            Assert.Contains("<Setter Property=\"VirtualizingPanel.IsVirtualizing\" Value=\"True\"/>", busyGridStyle, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"VirtualizingPanel.VirtualizationMode\" Value=\"Recycling\"/>", busyGridStyle, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"VirtualizingPanel.IsVirtualizingWhenGrouping\" Value=\"True\"/>", busyGridStyle, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"ScrollViewer.CanContentScroll\" Value=\"True\"/>", busyGridStyle, StringComparison.Ordinal);
+            Assert.Contains("HeadersVisibility=\"Column\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("RowDetailsVisibilityMode=\"Collapsed\"", xaml, StringComparison.Ordinal);
+            Assert.Equal(2, CountOccurrences(xaml, "Style=\"{StaticResource RentalBusyDataGridStyle}\">"));
+            Assert.DoesNotContain("VirtualizingPanel.VirtualizationMode=\"Standard\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageRentalsPage_ShowsProfessionalSummaryStatusAndTrimmedGridCells()
+        {
+            var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
+
+            Assert.Contains("<Style x:Key=\"RentalStatusPillText\" TargetType=\"TextBlock\" BasedOn=\"{StaticResource CaptionTextBlock}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"RentalGridTextBlock\" TargetType=\"TextBlock\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"TextTrimming\" Value=\"CharacterEllipsis\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"ToolTip\" Value=\"{Binding Text, RelativeSource={RelativeSource Self}}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"{Binding SearchSummary}\" Style=\"{StaticResource RentalDetailText}\" ToolTip=\"{Binding SearchSummary}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"{Binding CheckedOutSummary}\" Style=\"{StaticResource RentalDetailText}\" ToolTip=\"{Binding CheckedOutSummary}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"{Binding RequestSummary}\" Style=\"{StaticResource RentalDetailText}\" ToolTip=\"{Binding RequestSummary}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<RowDefinition Height=\"Auto\"/>\n                    </Grid.RowDefinitions>\n                    <Border Style=\"{StaticResource DesktopPaneHeader}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"3\" Style=\"{StaticResource DesktopPaneSubheader}\" Padding=\"10,6\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"2\" Style=\"{StaticResource DesktopPaneSubheader}\" Padding=\"10,6\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"{Binding SelectedRequestNextAction}\" Style=\"{StaticResource CaptionTextBlock}\" TextWrapping=\"Wrap\" TextTrimming=\"CharacterEllipsis\" MaxWidth=\"520\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ElementStyle=\"{StaticResource RentalGridTextBlock}\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
         public void ManageRentalsPage_PreservesRentalAndRequestCommandsAndRowHandlers()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml");
@@ -299,6 +334,19 @@ namespace InventoryManagementApp.Tests
             Assert.True(end > start, $"Could not find source block end marker: {endMarker}");
 
             return source[start..end];
+        }
+
+        private static int CountOccurrences(string source, string value)
+        {
+            var count = 0;
+            var index = 0;
+            while ((index = source.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                index += value.Length;
+            }
+
+            return count;
         }
 
         private static string ReadRepoFile(params string[] parts)
