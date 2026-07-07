@@ -15,6 +15,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"230\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("DirectoryStatValueText", xaml, StringComparison.Ordinal);
+            Assert.Contains("Virtualized directory rows currently in memory", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Grid Grid.Row=\"1\" Margin=\"0,0,0,5\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"1.25*\"/>", xaml, StringComparison.Ordinal);
         }
@@ -55,11 +56,39 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("x:Name=\"ItemDirectoryGrid\"", xaml, StringComparison.Ordinal);
             Assert.Contains("EnableRowVirtualization=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("EnableColumnVirtualization=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VirtualizingPanel.IsVirtualizing=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VirtualizingPanel.VirtualizationMode=\"Recycling\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VirtualizingPanel.ScrollUnit=\"Item\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VirtualizingPanel.CacheLength=\"1\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VirtualizingPanel.CacheLengthUnit=\"Page\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("RowDetailsVisibilityMode=\"Collapsed\"", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectionMode=\"Extended\"", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectionUnit=\"FullRow\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.VerticalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ManageItemsPage_KeepsGridProfessionalAndOperatorAdjustable()
+        {
+            var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml");
+
+            Assert.Contains("HeadersVisibility=\"Column\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("GridLinesVisibility=\"Horizontal\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanUserResizeColumns=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanUserReorderColumns=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanUserSortColumns=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ClipboardCopyMode=\"IncludeHeader\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("DirectoryGridTextBlockStyle", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"TextTrimming\" Value=\"CharacterEllipsis\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"ToolTip\" Value=\"{Binding Text, RelativeSource={RelativeSource Self}}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Part Number\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Quantity\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Unit Price\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ToolTip=\"{Binding AvailabilityDetail}\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Header=\"Part #\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Header=\"Qty\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -70,6 +99,10 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"320\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel>", xaml, StringComparison.Ordinal);
+            Assert.Contains("Loaded rows: {0}", xaml, StringComparison.Ordinal);
+            Assert.Contains("Page size: {0}", xaml, StringComparison.Ordinal);
+            Assert.Contains("Pending inline edits: {0}", xaml, StringComparison.Ordinal);
+            Assert.Contains("Missing images in loaded rows: {0}", xaml, StringComparison.Ordinal);
             Assert.Contains("More rows available: {0}", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"300\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("VerticalScrollBarVisibility=\"Hidden\"", xaml, StringComparison.Ordinal);
