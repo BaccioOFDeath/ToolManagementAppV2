@@ -295,13 +295,16 @@ namespace InventoryManagementApp.Views.Pages
                     return;
                 }
 
-                var totalFilteredCount = vm.FilteredLogs.Count;
+                var totalMatchedCount = vm.MatchedLogCount;
+                var totalVisibleCount = vm.FilteredLogs.Count;
+                var hiddenFromGridCount = vm.OmittedLogCount;
                 var printRows = vm.FilteredLogs.Take(MaxActivityPrintRows).ToList();
-                var document = BuildPrintDocument(printRows, totalFilteredCount, vm.PrintStatusText, vm.ActivitySummary);
+                var printOmittedCount = Math.Max(0, totalVisibleCount - printRows.Count);
+                var document = BuildPrintDocument(printRows, totalMatchedCount, totalVisibleCount, hiddenFromGridCount, printOmittedCount, vm.PrintStatusText, vm.ActivitySummary);
                 new PrintPreviewWindow().ShowPreview(
                     document,
                     "Activity Logs",
-                    "Review the filtered audit trail, destination routing, and operator handoff before printing. Large result sets print the first 250 rows so preview stays responsive.");
+                    "Review the filtered audit trail, destination routing, hidden grid matches, and operator handoff before printing. Large result sets print the first 250 visible rows so preview stays responsive.");
             });
         }
 
@@ -387,10 +390,9 @@ namespace InventoryManagementApp.Views.Pages
                    $"Action: {SafeText(log.Action, "No activity detail was recorded.")}";
         }
 
-        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<ActivityLog> logs, int totalFilteredCount, string summary, string activitySummary)
+        private static FlowDocument BuildPrintDocument(IReadOnlyCollection<ActivityLog> logs, int totalMatchedCount, int totalVisibleCount, int hiddenFromGridCount, int printOmittedCount, string summary, string activitySummary)
         {
             var printedRowCount = logs.Count;
-            var omittedRowCount = Math.Max(0, totalFilteredCount - printedRowCount);
             var document = new FlowDocument
             {
                 FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
@@ -409,7 +411,7 @@ namespace InventoryManagementApp.Views.Pages
                 FontSize = 10,
                 Margin = new Thickness(0, 0, 0, 4)
             });
-            document.Blocks.Add(BuildSummarySection(summary, activitySummary, totalFilteredCount, printedRowCount, omittedRowCount));
+            document.Blocks.Add(BuildSummarySection(summary, activitySummary, totalMatchedCount, totalVisibleCount, printedRowCount, hiddenFromGridCount, printOmittedCount));
 
             var table = new Table { CellSpacing = 0 };
             table.Columns.Add(new TableColumn { Width = new GridLength(0.16, GridUnitType.Star) });
@@ -451,7 +453,7 @@ namespace InventoryManagementApp.Views.Pages
             }
 
             document.Blocks.Add(table);
-            document.Blocks.Add(new Paragraph(new Run("Review destination, next action, and any omitted rows before filing the audit handoff."))
+            document.Blocks.Add(new Paragraph(new Run("Review destination, next action, hidden grid matches, and any omitted print rows before filing the audit handoff."))
             {
                 FontSize = 9,
                 FontStyle = FontStyles.Italic,
@@ -460,7 +462,7 @@ namespace InventoryManagementApp.Views.Pages
             return document;
         }
 
-        private static Block BuildSummarySection(string summary, string activitySummary, int totalFilteredCount, int printedRowCount, int omittedRowCount)
+        private static Block BuildSummarySection(string summary, string activitySummary, int totalMatchedCount, int totalVisibleCount, int printedRowCount, int hiddenFromGridCount, int printOmittedCount)
         {
             var group = new Section
             {
@@ -470,8 +472,14 @@ namespace InventoryManagementApp.Views.Pages
                 Margin = new Thickness(0, 0, 0, 10)
             };
 
-            AddSummaryLine(group, "Print Packet", $"{printedRowCount} of {totalFilteredCount} filtered activity row(s)");
-            AddSummaryLine(group, "Omitted Rows", omittedRowCount == 0 ? "None" : $"{omittedRowCount} row(s) not printed; narrow filters or print again after refining the audit search.");
+            AddSummaryLine(group, "Print Packet", $"{printedRowCount} printed row(s) from {totalVisibleCount} visible activity row(s)");
+            AddSummaryLine(group, "Matched Activity Rows", totalMatchedCount.ToString());
+            AddSummaryLine(group, "Visible Grid Rows", totalVisibleCount.ToString());
+            AddSummaryLine(group, "Hidden From Grid", hiddenFromGridCount == 0 ? "None" : $"{hiddenFromGridCount} matching row(s) hidden from the live grid; refine filters to review or print them");
+            AddSummaryLine(group, "Printed Rows", printedRowCount.ToString());
+            AddSummaryLine(group, "Print Omitted Rows", printOmittedCount == 0 ? "None" : $"{printOmittedCount} visible row(s) not printed; narrow filters or print again after refining the audit search");
+            AddSummaryLine(group, "Live Grid Limit", $"First {ActivityLogsViewModel.MaxVisibleActivityRows} matching activity row(s)");
+            AddSummaryLine(group, "Print Limit", $"First {MaxActivityPrintRows} visible row(s)");
             AddSummaryLine(group, "Filter Status", ValueOrNotRecorded(summary));
             AddSummaryLine(group, "Activity Mix", ValueOrNotRecorded(activitySummary));
             return group;
