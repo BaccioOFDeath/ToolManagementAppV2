@@ -70,6 +70,12 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="DirectoryGridTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+        </Style>
     </Page.Resources>
 
     <Grid Margin="4">
@@ -102,7 +108,7 @@
                 <StackPanel>
                     <TextBlock Text="Loaded Rows" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding Items.Count}" Style="{StaticResource DirectoryStatValueText}"/>
-                    <TextBlock Text="Incremental directory rows currently in memory" Style="{StaticResource DirectoryDetailText}"/>
+                    <TextBlock Text="Virtualized directory rows currently in memory" Style="{StaticResource DirectoryDetailText}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource DirectoryStatCard}">
@@ -202,6 +208,18 @@
                               AutoGenerateColumns="False"
                               EnableRowVirtualization="True"
                               EnableColumnVirtualization="True"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              VirtualizingPanel.ScrollUnit="Item"
+                              VirtualizingPanel.CacheLength="1"
+                              VirtualizingPanel.CacheLengthUnit="Page"
+                              RowDetailsVisibilityMode="Collapsed"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              CanUserResizeColumns="True"
+                              CanUserReorderColumns="True"
+                              CanUserSortColumns="True"
+                              ClipboardCopyMode="IncludeHeader"
                               ScrollViewer.CanContentScroll="True"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -228,22 +246,22 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Number" Visibility="{Binding Data.ShowItemNumber, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding ItemNumber, Mode=OneWay}" Width="110"/>
-                            <DataGridTextColumn Header="Part #" Visibility="{Binding Data.ShowPartNumber, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding PartNumber, Mode=OneWay}" Width="110"/>
-                            <DataGridTextColumn Header="Name" Visibility="{Binding Data.ShowName, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Name, Mode=OneWay}" Width="210"/>
-                            <DataGridTextColumn Header="Brand" Visibility="{Binding Data.ShowBrand, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Brand, Mode=OneWay}" Width="120"/>
+                            <DataGridTextColumn Header="Number" Visibility="{Binding Data.ShowItemNumber, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding ItemNumber, Mode=OneWay}" ElementStyle="{StaticResource DirectoryGridTextBlockStyle}" Width="110"/>
+                            <DataGridTextColumn Header="Part Number" Visibility="{Binding Data.ShowPartNumber, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding PartNumber, Mode=OneWay}" ElementStyle="{StaticResource DirectoryGridTextBlockStyle}" Width="120"/>
+                            <DataGridTextColumn Header="Name" Visibility="{Binding Data.ShowName, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Name, Mode=OneWay}" ElementStyle="{StaticResource DirectoryGridTextBlockStyle}" Width="210"/>
+                            <DataGridTextColumn Header="Brand" Visibility="{Binding Data.ShowBrand, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Brand, Mode=OneWay}" ElementStyle="{StaticResource DirectoryGridTextBlockStyle}" Width="120"/>
                             <DataGridTemplateColumn Header="Status" Width="125">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Style="{StaticResource AvailabilityTextBlock}" Text="{Binding AvailabilityStatus}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Style="{StaticResource AvailabilityTextBlock}" Text="{Binding AvailabilityStatus}" TextTrimming="CharacterEllipsis" ToolTip="{Binding AvailabilityDetail}"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Qty" Visibility="{Binding Data.ShowQuantityOnHand, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding QuantityOnHand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="70"/>
-                            <DataGridTextColumn Header="Location" Visibility="{Binding Data.ShowLocation, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="130"/>
-                            <DataGridTextColumn Header="Price" Visibility="{Binding Data.ShowPrice, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Price, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="84"/>
-                            <DataGridTextColumn Header="Activity" Binding="{Binding ActivitySummary, Mode=OneWay}" Width="150"/>
-                            <DataGridTextColumn Header="Notes" Visibility="{Binding Data.ShowNotes, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Notes, Mode=OneWay}" Width="*"/>
+                            <DataGridTextColumn Header="Quantity" Visibility="{Binding Data.ShowQuantityOnHand, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding QuantityOnHand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ElementStyle="{StaticResource DirectoryGridTextBlockStyle}" Width="80"/>
+                            <DataGridTextColumn Header="Location" Visibility="{Binding Data.ShowLocation, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ElementStyle="{StaticResource DirectoryGridTextBlockStyle}" Width="130"/>
+                            <DataGridTextColumn Header="Unit Price" Visibility="{Binding Data.ShowPrice, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Price, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ElementStyle="{StaticResource DirectoryGridTextBlockStyle}" Width="90"/>
+                            <DataGridTextColumn Header="Activity" Binding="{Binding ActivitySummary, Mode=OneWay}" ElementStyle="{StaticResource DirectoryGridTextBlockStyle}" Width="150"/>
+                            <DataGridTextColumn Header="Notes" Visibility="{Binding Data.ShowNotes, Source={StaticResource VmProxy}, Converter={StaticResource BoolToVis}}" Binding="{Binding Notes, Mode=OneWay}" ElementStyle="{StaticResource DirectoryGridTextBlockStyle}" Width="*"/>
                         </DataGrid.Columns>
                         <DataGrid.ContextMenu>
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
@@ -384,7 +402,10 @@
 
         <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Padding="6,3" Margin="0,5,0,0">
             <WrapPanel>
+                <TextBlock Text="{Binding Items.Count, StringFormat='Loaded rows: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding PageSize, StringFormat='Page size: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                 <TextBlock Text="{Binding PendingEdits.Count, StringFormat='Pending inline edits: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding MissingImageCount, StringFormat='Missing images in loaded rows: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                 <TextBlock Text="{Binding SelectedSortOption.DisplayName, StringFormat='Sort: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                 <TextBlock Text="{Binding Items.HasMoreItems, StringFormat='More rows available: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
             </WrapPanel>
