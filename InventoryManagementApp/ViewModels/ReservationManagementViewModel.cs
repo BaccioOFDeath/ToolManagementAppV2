@@ -15,10 +15,12 @@ namespace InventoryManagementApp.ViewModels
 {
     public class ReservationManagementViewModel : ObservableObject
     {
+        private const int MaxVisibleReservationRows = 500;
         private const int MaxReservationPrintRows = 250;
 
         private readonly ReservationService _reservationService;
         private readonly IDialogService _dialogService;
+        private int _matchedReservationCount;
 
         public ObservableCollection<Reservation> Reservations { get; }
         public ObservableCollection<Reservation> FilteredReservations { get; }
@@ -33,11 +35,45 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 var activeCount = Reservations.Count(r => r.IsActive);
-                var shown = $"{FilteredReservations.Count} of {Reservations.Count} reservation{(Reservations.Count == 1 ? string.Empty : "s")} shown";
+                var matchLabel = MatchingReservationCount == 1 ? "reservation" : "reservations";
+                var shown = HasOmittedReservationRows
+                    ? $"{VisibleReservationCount} of {MatchingReservationCount} matching {matchLabel} shown"
+                    : $"{VisibleReservationCount} of {TotalReservationCount} reservation{(TotalReservationCount == 1 ? string.Empty : "s")} shown";
                 var active = $"{activeCount} active";
+                var omitted = HasOmittedReservationRows
+                    ? $" | {OmittedReservationCount} hidden from live grid"
+                    : string.Empty;
+
                 return string.IsNullOrWhiteSpace(SearchText)
-                    ? $"{shown} | {active} | filter: {SelectedFilter}"
-                    : $"{shown} for \"{SearchText.Trim()}\" | {active} | filter: {SelectedFilter}";
+                    ? $"{shown} | {active} | filter: {SelectedFilter}{omitted}"
+                    : $"{shown} for \"{SearchText.Trim()}\" | {active} | filter: {SelectedFilter}{omitted}";
+            }
+        }
+
+        public int VisibleReservationCount => FilteredReservations.Count;
+        public int TotalReservationCount => Reservations.Count;
+        public int MatchingReservationCount => _matchedReservationCount;
+        public int OmittedReservationCount => Math.Max(0, MatchingReservationCount - VisibleReservationCount);
+        public bool HasOmittedReservationRows => OmittedReservationCount > 0;
+        public string ReservationVisibleWindowSummary
+        {
+            get
+            {
+                if (IsLoading)
+                {
+                    return "Rows loading...";
+                }
+
+                if (VisibleReservationCount == 0)
+                {
+                    return IsFilterActive
+                        ? "No matching rows"
+                        : "No active rows";
+                }
+
+                return HasOmittedReservationRows
+                    ? $"Showing first {VisibleReservationCount} of {MatchingReservationCount}; {OmittedReservationCount} hidden for responsiveness."
+                    : $"Showing all {VisibleReservationCount} matching row{(VisibleReservationCount == 1 ? string.Empty : "s")}.";
             }
         }
 
@@ -69,13 +105,12 @@ namespace InventoryManagementApp.ViewModels
                         : "No hold rows ready to print";
                 }
 
-                var visible = FilteredReservations.Count;
-                var printed = Math.Min(visible, MaxReservationPrintRows);
-                var omitted = Math.Max(0, visible - printed);
+                var printed = Math.Min(VisibleReservationCount, MaxReservationPrintRows);
+                var omitted = Math.Max(0, MatchingReservationCount - printed);
                 var filterContext = IsFilterActive ? "filtered" : "active";
                 return omitted == 0
                     ? $"Ready to print {printed} {filterContext} hold row{(printed == 1 ? string.Empty : "s")}."
-                    : $"Ready to print first {printed} of {visible} {filterContext} hold rows; {omitted} omitted from preview.";
+                    : $"Ready to print first {printed} of {MatchingReservationCount} {filterContext} hold rows; {omitted} omitted from preview.";
             }
         }
 
@@ -463,7 +498,6 @@ namespace InventoryManagementApp.ViewModels
         private void ApplyFilter(int? preferredReservationId = null)
         {
             preferredReservationId ??= SelectedReservation?.ReservationID;
-            FilteredReservations.Clear();
 
             var filtered = Reservations.AsEnumerable();
 
@@ -490,13 +524,35 @@ namespace InventoryManagementApp.ViewModels
                 _ => filtered
             };
 
-            foreach (var reservation in filtered.OrderBy(r => r.StartDate).ThenBy(r => r.CustomerName))
+            var visibleRows = new System.Collections.Generic.List<Reservation>(MaxVisibleReservationRows);
+            var matchedCount = 0;
+            foreach (var reservation in filtered.OrderBy(r => r.StartDate).ThenBy(r => r.CustomerName).ThenBy(r => r.ReservationID))
+            {
+                matchedCount++;
+                if (visibleRows.Count < MaxVisibleReservationRows)
+                {
+                    visibleRows.Add(reservation);
+                }
+            }
+
+            _matchedReservationCount = matchedCount;
+            ApplyFilteredReservationWindow(visibleRows);
+            SelectBestReservationAfterRefresh(preferredReservationId);
+            NotifyReservationListStateChanged();
+        }
+
+        private void ApplyFilteredReservationWindow(System.Collections.Generic.IReadOnlyList<Reservation> visibleRows)
+        {
+            if (FilteredReservations.Count == visibleRows.Count && FilteredReservations.Select((row, index) => ReferenceEquals(row, visibleRows[index])).All(match => match))
+            {
+                return;
+            }
+
+            FilteredReservations.Clear();
+            foreach (var reservation in visibleRows)
             {
                 FilteredReservations.Add(reservation);
             }
-
-            SelectBestReservationAfterRefresh(preferredReservationId);
-            NotifyReservationListStateChanged();
         }
 
         private void ClearReservationSearch()
@@ -510,6 +566,7 @@ namespace InventoryManagementApp.ViewModels
         {
             Reservations.Clear();
             FilteredReservations.Clear();
+            _matchedReservationCount = 0;
             SelectedReservation = null;
             NotifyCommandStatesAndSummaries();
             NotifyReservationListStateChanged();
@@ -579,11 +636,13 @@ namespace InventoryManagementApp.ViewModels
 
             try
             {
-                var visibleRows = FilteredReservations.Count;
+                var matchedRows = MatchingReservationCount;
+                var visibleRows = VisibleReservationCount;
+                var hiddenFromGridRows = OmittedReservationCount;
                 var printRows = FilteredReservations.Take(MaxReservationPrintRows).ToList();
-                var omittedRows = Math.Max(0, visibleRows - printRows.Count);
+                var omittedRows = Math.Max(0, matchedRows - printRows.Count);
                 var doc = CreateReservationDocument("Reservation Directory", fontSize: 11);
-                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | Visible: {visibleRows} | Printed: {printRows.Count} | Omitted: {omittedRows} | {ReservationResultsSummary}"))
+                doc.Blocks.Add(new Paragraph(new Run($"Printed {DateTime.Now:yyyy-MM-dd HH:mm} | Filter: {SelectedFilter} | Search: {ValueOrNotRecorded(SearchText)} | Matched: {matchedRows} | Visible grid: {visibleRows} | Hidden from grid: {hiddenFromGridRows} | Printed: {printRows.Count} | Print omitted: {omittedRows} | {ReservationResultsSummary}"))
                 {
                     FontSize = 10,
                     Margin = new Thickness(0, 0, 0, 8)
@@ -591,7 +650,7 @@ namespace InventoryManagementApp.ViewModels
 
                 if (omittedRows > 0)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run($"Large reservation preview limited to the first {MaxReservationPrintRows} visible rows to keep print preview responsive. Narrow the status filter or search before printing a full shelf-pick packet."))
+                    doc.Blocks.Add(new Paragraph(new Run($"Large reservation preview limited to the first {MaxReservationPrintRows} visible rows to keep print preview responsive. The live grid shows up to {MaxVisibleReservationRows} rows; narrow the status filter or search before printing a full shelf-pick packet."))
                     {
                         FontSize = 10,
                         FontStyle = FontStyles.Italic,
@@ -627,7 +686,7 @@ namespace InventoryManagementApp.ViewModels
                 }
 
                 doc.Blocks.Add(table);
-                doc.Blocks.Add(new Paragraph(new Run("Review pending, confirmed, upcoming, fulfilled, cancelled, linked Rental ID, and omitted-row counts before shelf pickup or customer handoff."))
+                doc.Blocks.Add(new Paragraph(new Run("Review pending, confirmed, upcoming, fulfilled, cancelled, linked Rental ID, hidden-from-grid counts, and print-omitted counts before shelf pickup or customer handoff."))
                 {
                     FontSize = 10,
                     FontStyle = FontStyles.Italic,
@@ -675,11 +734,18 @@ namespace InventoryManagementApp.ViewModels
             ShowUpcomingReservationsCommand.NotifyCanExecuteChanged();
             NotifySelectionSummariesChanged();
             OnPropertyChanged(nameof(ReservationResultsSummary));
+            OnPropertyChanged(nameof(ReservationVisibleWindowSummary));
         }
 
         private void NotifyReservationListStateChanged()
         {
             OnPropertyChanged(nameof(ReservationResultsSummary));
+            OnPropertyChanged(nameof(VisibleReservationCount));
+            OnPropertyChanged(nameof(TotalReservationCount));
+            OnPropertyChanged(nameof(MatchingReservationCount));
+            OnPropertyChanged(nameof(OmittedReservationCount));
+            OnPropertyChanged(nameof(HasOmittedReservationRows));
+            OnPropertyChanged(nameof(ReservationVisibleWindowSummary));
             OnPropertyChanged(nameof(IsFilterActive));
             OnPropertyChanged(nameof(ReservationEmptyTitle));
             OnPropertyChanged(nameof(ReservationEmptyMessage));
