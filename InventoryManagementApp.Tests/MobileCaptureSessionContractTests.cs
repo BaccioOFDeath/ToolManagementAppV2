@@ -66,6 +66,44 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Item photo updated", submitMethod, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void MobileCaptureService_ForcesReadableLightMobilePage()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "Services", "MobileCapture", "MobileCaptureService.cs");
+
+            Assert.Contains("<meta name=\"color-scheme\" content=\"light\">", source, StringComparison.Ordinal);
+            Assert.Contains(":root{color-scheme:light;", source, StringComparison.Ordinal);
+            Assert.Contains("html,body{min-height:100%;background:#f4f6f8;background:var(--bg);color:#111827;color:var(--text)}", source, StringComparison.Ordinal);
+            Assert.Contains("section{background:#ffffff;background:var(--panel);color:#111827;color:var(--text);", source, StringComparison.Ordinal);
+            Assert.Contains("input,textarea,select{display:block;width:100%;margin-top:4px;padding:11px 10px;border:1px solid #cbd5e1;border-color:var(--line);border-radius:6px;background:#ffffff;background:var(--field);color:#111827;color:var(--text);", source, StringComparison.Ordinal);
+            Assert.Contains("-webkit-appearance:none;appearance:none", source, StringComparison.Ordinal);
+            Assert.Contains(".checks input{width:auto;margin:0;-webkit-appearance:checkbox;appearance:auto}", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("@media (prefers-color-scheme: dark)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("background:transparent;color:var(--text)", source, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void MobileCaptureService_PrefersReachableLanAdaptersOverVirtualAdapters()
+        {
+            var source = ReadRepositoryFile("InventoryManagementApp", "Services", "MobileCapture", "MobileCaptureService.cs");
+            var getLanAddress = ExtractMethod(source, "private static string GetLanAddress");
+            var interfaceFilter = ExtractMethod(source, "private static bool IsUsableMobileCaptureInterface");
+            var virtualFilter = ExtractMethod(source, "private static bool IsVirtualMobileCaptureInterface");
+            var addressFilter = ExtractMethod(source, "private static bool IsUsableMobileCaptureAddress");
+
+            Assert.Contains(".Where(IsUsableMobileCaptureInterface)", getLanAddress, StringComparison.Ordinal);
+            Assert.Contains("GatewayAddresses", interfaceFilter, StringComparison.Ordinal);
+            Assert.Contains("NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel", interfaceFilter, StringComparison.Ordinal);
+            Assert.Contains("IsVirtualMobileCaptureInterface(networkInterface)", interfaceFilter, StringComparison.Ordinal);
+            Assert.Contains("Hyper-V", virtualFilter, StringComparison.Ordinal);
+            Assert.Contains("vEthernet", virtualFilter, StringComparison.Ordinal);
+            Assert.Contains("WSL", virtualFilter, StringComparison.Ordinal);
+            Assert.Contains("VMware", virtualFilter, StringComparison.Ordinal);
+            Assert.Contains("VirtualBox", virtualFilter, StringComparison.Ordinal);
+            Assert.Contains("!IPAddress.IsLoopback(address)", addressFilter, StringComparison.Ordinal);
+            Assert.Contains("!IPAddressIsAutoPrivate(address.ToString())", addressFilter, StringComparison.Ordinal);
+        }
+
         private static string ExtractMethod(string source, string signature)
         {
             var start = source.IndexOf(signature, StringComparison.Ordinal);

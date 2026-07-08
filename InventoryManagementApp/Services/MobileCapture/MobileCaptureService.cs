@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Security.Cryptography;
@@ -324,19 +325,54 @@ namespace InventoryManagementApp.Services.MobileCapture
 
         private static string GetLanAddress()
         {
-            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                if (ni.OperationalStatus != OperationalStatus.Up || ni.NetworkInterfaceType == NetworkInterfaceType.Loopback)
-                    continue;
+            var candidate = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(IsUsableMobileCaptureInterface)
+                .SelectMany(ni => ni.GetIPProperties().UnicastAddresses
+                    .Where(address => IsUsableMobileCaptureAddress(address.Address))
+                    .Select(address => address.Address.ToString()))
+                .FirstOrDefault();
 
-                var ip = ni.GetIPProperties().UnicastAddresses
-                    .FirstOrDefault(a => a.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddressIsAutoPrivate(a.Address.ToString()));
-                if (ip != null)
-                    return ip.Address.ToString();
-            }
+            if (!string.IsNullOrWhiteSpace(candidate))
+                return candidate;
 
             return "127.0.0.1";
         }
+
+        private static bool IsUsableMobileCaptureInterface(NetworkInterface networkInterface)
+        {
+            if (networkInterface.OperationalStatus != OperationalStatus.Up)
+                return false;
+
+            if (networkInterface.NetworkInterfaceType is NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel)
+                return false;
+
+            if (IsVirtualMobileCaptureInterface(networkInterface))
+                return false;
+
+            return networkInterface.GetIPProperties().GatewayAddresses
+                .Any(gateway => gateway.Address.AddressFamily == AddressFamily.InterNetwork
+                                && !Equals(gateway.Address, IPAddress.Any)
+                                && !Equals(gateway.Address, IPAddress.None));
+        }
+
+        private static bool IsVirtualMobileCaptureInterface(NetworkInterface networkInterface)
+        {
+            var name = networkInterface.Name ?? string.Empty;
+            var description = networkInterface.Description ?? string.Empty;
+            var combined = $"{name} {description}";
+
+            return combined.Contains("Hyper-V", StringComparison.OrdinalIgnoreCase)
+                   || combined.Contains("vEthernet", StringComparison.OrdinalIgnoreCase)
+                   || combined.Contains("WSL", StringComparison.OrdinalIgnoreCase)
+                   || combined.Contains("VMware", StringComparison.OrdinalIgnoreCase)
+                   || combined.Contains("VirtualBox", StringComparison.OrdinalIgnoreCase)
+                   || combined.Contains("Loopback", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsUsableMobileCaptureAddress(IPAddress address)
+            => address.AddressFamily == AddressFamily.InterNetwork
+               && !IPAddressIsAutoPrivate(address.ToString())
+               && !IPAddress.IsLoopback(address);
 
         private static bool IPAddressIsAutoPrivate(string address)
             => address.StartsWith("169.254.", StringComparison.Ordinal);
@@ -383,14 +419,15 @@ namespace InventoryManagementApp.Services.MobileCapture
 
         private static string CreateExpiredHtml()
             => """
-               <!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Mobile Capture</title>
-               <style>body{font-family:Segoe UI,Arial,sans-serif;margin:0;padding:24px;background:#111827;color:#f8fafc}main{max-width:520px;margin:auto;background:#1f2937;padding:20px;border:1px solid #374151}h1{font-size:24px}</style></head>
+               <!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><title>Mobile Capture</title>
+               <style>html,body{min-height:100%;background:#f4f6f8;color:#111827}body{font-family:Segoe UI,Arial,sans-serif;margin:0;padding:24px}main{max-width:520px;margin:auto;background:#ffffff;color:#111827;padding:20px;border:1px solid #cbd5e1;border-radius:8px}h1{font-size:24px}</style></head>
                <body><main><h1>Session expired</h1><p>Open Mobile Capture again from the desktop app and scan the new QR code.</p></main></body></html>
                """;
 
         private static string CreateResultHtml(string title, string message, string token)
             => $$"""
                <!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{Escape(title)}}</title>
+               <meta name="color-scheme" content="light">
                <style>{{MobileCss}}</style></head><body><main><h1>{{Escape(title)}}</h1><p>{{message}}</p><a class="button" href="/mobile-capture?token={{Uri.EscapeDataString(token)}}">Add another</a></main></body></html>
                """;
 
@@ -400,6 +437,7 @@ namespace InventoryManagementApp.Services.MobileCapture
                <html>
                <head>
                  <meta name="viewport" content="width=device-width, initial-scale=1">
+                 <meta name="color-scheme" content="light">
                  <title>Mobile Capture</title>
                  <style>{{MobileCss}}</style>
                </head>
@@ -452,9 +490,8 @@ namespace InventoryManagementApp.Services.MobileCapture
                """;
 
         private const string MobileCss = """
-            :root{color-scheme:light dark;--bg:#f4f6f8;--panel:#ffffff;--text:#111827;--muted:#5b6472;--line:#cbd5e1;--accent:#2563eb;--accentText:#fff}
-            @media (prefers-color-scheme: dark){:root{--bg:#10141d;--panel:#1d2430;--text:#f8fafc;--muted:#cbd5e1;--line:#334155;--accent:#60a5fa;--accentText:#0f172a}}
-            *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif}main{max-width:680px;margin:0 auto;padding:16px}h1{font-size:28px;margin:8px 0 16px}h2{font-size:18px;margin:0 0 12px}section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin:0 0 14px;box-shadow:0 1px 2px rgba(15,23,42,.08)}label{display:block;font-weight:600;font-size:13px;color:var(--muted);margin:0 0 10px}input,textarea,select{display:block;width:100%;margin-top:4px;padding:11px 10px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--text);font:inherit}textarea{resize:vertical}.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 12px}.checks label{display:flex;gap:8px;align-items:center;margin:0}.checks input{width:auto;margin:0}button,.button{display:inline-block;width:100%;border:0;border-radius:6px;background:var(--accent);color:var(--accentText);font-weight:700;padding:12px 14px;text-align:center;text-decoration:none;font:inherit}p{line-height:1.45;color:var(--muted)}
+            :root{color-scheme:light;--bg:#f4f6f8;--panel:#ffffff;--text:#111827;--muted:#5b6472;--line:#cbd5e1;--field:#ffffff;--accent:#2563eb;--accentText:#ffffff}
+            *{box-sizing:border-box}html,body{min-height:100%;background:#f4f6f8;background:var(--bg);color:#111827;color:var(--text)}body{margin:0;font-family:Segoe UI,Arial,sans-serif;-webkit-text-size-adjust:100%}main{max-width:680px;margin:0 auto;padding:16px}h1{font-size:28px;margin:8px 0 16px;color:#111827;color:var(--text)}h2{font-size:18px;margin:0 0 12px;color:#111827;color:var(--text)}section{background:#ffffff;background:var(--panel);color:#111827;color:var(--text);border:1px solid #cbd5e1;border-color:var(--line);border-radius:8px;padding:16px;margin:0 0 14px;box-shadow:0 1px 2px rgba(15,23,42,.08)}label{display:block;font-weight:600;font-size:13px;color:#5b6472;color:var(--muted);margin:0 0 10px}input,textarea,select{display:block;width:100%;margin-top:4px;padding:11px 10px;border:1px solid #cbd5e1;border-color:var(--line);border-radius:6px;background:#ffffff;background:var(--field);color:#111827;color:var(--text);font:inherit;-webkit-appearance:none;appearance:none}input[type=file]{padding:10px;background:#ffffff;background:var(--field)}select{background-image:linear-gradient(45deg,transparent 50%,#5b6472 50%),linear-gradient(135deg,#5b6472 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 12px) 50%;background-size:6px 6px,6px 6px;background-repeat:no-repeat}textarea{resize:vertical}.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 12px}.checks label{display:flex;gap:8px;align-items:center;margin:0;color:#111827;color:var(--text)}.checks input{width:auto;margin:0;-webkit-appearance:checkbox;appearance:auto}button,.button{display:inline-block;width:100%;border:0;border-radius:6px;background:#2563eb;background:var(--accent);color:#ffffff;color:var(--accentText);font-weight:700;padding:12px 14px;text-align:center;text-decoration:none;font:inherit}p{line-height:1.45;color:#5b6472;color:var(--muted)}
             """;
     }
 }
