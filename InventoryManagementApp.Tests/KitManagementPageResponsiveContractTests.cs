@@ -149,9 +149,9 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "KitManagementViewModel.cs");
 
             Assert.Contains("var printedKits = visibleKits.Take(MaxDirectoryPrintRows).ToList();", source, StringComparison.Ordinal);
-            Assert.Contains("var omittedCount = visibleKits.Count - printedKits.Count;", source, StringComparison.Ordinal);
-            Assert.Contains("Visible {visibleKits.Count} | Printed {printedKits.Count} | Omitted {omittedCount}", source, StringComparison.Ordinal);
-            Assert.Contains("Large filtered directories print the first 250 visible rows to keep preview responsive.", source, StringComparison.Ordinal);
+            Assert.Contains("var omittedCount = Math.Max(0, FullFilteredKitCount - printedKits.Count);", source, StringComparison.Ordinal);
+            Assert.Contains("Matched {FullFilteredKitCount} | Grid window {visibleKits.Count} | Printed {printedKits.Count} | Omitted {omittedCount}", source, StringComparison.Ordinal);
+            Assert.Contains("Large filtered directories print the first 250 matching rows to keep preview responsive.", source, StringComparison.Ordinal);
             Assert.Contains("new GridLength(1.15, GridUnitType.Star)", source, StringComparison.Ordinal);
             Assert.Contains("new GridLength(2.25, GridUnitType.Star)", source, StringComparison.Ordinal);
             Assert.DoesNotContain("new GridLength(120)", source, StringComparison.Ordinal);

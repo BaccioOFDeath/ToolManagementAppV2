@@ -20,8 +20,8 @@ public class CustomerEditViewModelTests
         vm.SaveCommand.Execute(null);
 
         Assert.False(saved);
-        Assert.Contains("primary contact", vm.StatusMessage);
-        Assert.False(vm.HasValidationMessage);
+        Assert.Contains("Contact is required", vm.StatusMessage);
+        Assert.True(vm.HasValidationMessage);
     }
 
     [Fact]

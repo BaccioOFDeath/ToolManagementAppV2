@@ -62,19 +62,22 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml.cs");
 
             Assert.Contains("private const int MaxActivityPrintRows = 250;", source, StringComparison.Ordinal);
-            Assert.Contains("var totalFilteredCount = vm.FilteredLogs.Count;", source, StringComparison.Ordinal);
+            Assert.Contains("var totalVisibleCount = vm.FilteredLogs.Count;", source, StringComparison.Ordinal);
+            Assert.Contains("var totalMatchedCount = vm.MatchedLogCount;", source, StringComparison.Ordinal);
+            Assert.Contains("var hiddenFromGridCount = vm.OmittedLogCount;", source, StringComparison.Ordinal);
             Assert.Contains("var printRows = vm.FilteredLogs.Take(MaxActivityPrintRows).ToList();", source, StringComparison.Ordinal);
-            Assert.Contains("BuildPrintDocument(printRows, totalFilteredCount, vm.PrintStatusText, vm.ActivitySummary)", source, StringComparison.Ordinal);
-            Assert.Contains("Large result sets print the first 250 rows so preview stays responsive.", source, StringComparison.Ordinal);
-            Assert.Contains("BuildSummarySection(summary, activitySummary, totalFilteredCount, printedRowCount, omittedRowCount)", source, StringComparison.Ordinal);
+            Assert.Contains("BuildPrintDocument(printRows, totalMatchedCount, totalVisibleCount, hiddenFromGridCount, printOmittedCount, vm.PrintStatusText, vm.ActivitySummary)", source, StringComparison.Ordinal);
+            Assert.Contains("Large result sets print the first 250 visible rows so preview stays responsive.", source, StringComparison.Ordinal);
+            Assert.Contains("BuildSummarySection(summary, activitySummary, totalMatchedCount, totalVisibleCount, printedRowCount, hiddenFromGridCount, printOmittedCount)", source, StringComparison.Ordinal);
             Assert.Contains("AddSummaryLine(group, \"Print Packet\"", source, StringComparison.Ordinal);
-            Assert.Contains("AddSummaryLine(group, \"Omitted Rows\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Hidden From Grid\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Print Omitted Rows\"", source, StringComparison.Ordinal);
             Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.16, GridUnitType.Star) });", source, StringComparison.Ordinal);
             Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.34, GridUnitType.Star) });", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"When / User\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Next Action\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Activity Detail\", true)", source, StringComparison.Ordinal);
-            Assert.Contains("Review destination, next action, and any omitted rows before filing the audit handoff.", source, StringComparison.Ordinal);
+            Assert.Contains("Review destination, next action, hidden grid matches, and any omitted print rows before filing the audit handoff.", source, StringComparison.Ordinal);
             Assert.DoesNotContain("BuildPrintDocument(vm.FilteredLogs.ToList()", source, StringComparison.Ordinal);
             Assert.DoesNotContain("foreach (var width in new[] { 115.0, 105.0, 100.0, 105.0, 275.0 })", source, StringComparison.Ordinal);
         }
@@ -87,18 +90,21 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private const int MaxUsersPrintRows = 250;", source, StringComparison.Ordinal);
             Assert.Contains("var totalVisibleCount = ViewModel.Users.Count;", source, StringComparison.Ordinal);
             Assert.Contains("var printRows = ViewModel.Users.Take(MaxUsersPrintRows).ToList();", source, StringComparison.Ordinal);
-            Assert.Contains("BuildPrintDocument(printRows, totalVisibleCount, summary)", source, StringComparison.Ordinal);
-            Assert.Contains("Review the current account directory, access coverage, lockout state, active state, contact handoff details, and any omitted rows before filing an admin packet.", source, StringComparison.Ordinal);
-            Assert.Contains("BuildSummarySection(summary, totalVisibleCount, users.Count, Math.Max(0, totalVisibleCount - users.Count))", source, StringComparison.Ordinal);
-            Assert.Contains("AddSummaryLine(group, \"Total Visible Rows\"", source, StringComparison.Ordinal);
-            Assert.Contains("AddSummaryLine(group, \"Omitted Rows\"", source, StringComparison.Ordinal);
-            Assert.Contains("AddSummaryLine(group, \"Large Directory Limit\"", source, StringComparison.Ordinal);
+            Assert.Contains("BuildPrintDocument(printRows, totalMatchedCount, totalVisibleCount, hiddenFromGridCount, summary)", source, StringComparison.Ordinal);
+            Assert.Contains("Review the current account directory, access coverage, lockout state, active state, contact handoff details, hidden grid matches, and any omitted print rows before filing an admin packet.", source, StringComparison.Ordinal);
+            Assert.Contains("BuildSummarySection(summary, totalMatchedCount, totalVisibleCount, users.Count, hiddenFromGridCount, Math.Max(0, totalVisibleCount - users.Count))", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Matched Accounts\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Visible Grid Rows\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Hidden From Grid\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Print Omitted Rows\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Live Grid Limit\"", source, StringComparison.Ordinal);
+            Assert.Contains("AddSummaryLine(group, \"Print Limit\"", source, StringComparison.Ordinal);
             Assert.Contains("table.Columns.Add(new TableColumn { Width = new GridLength(0.26, GridUnitType.Star) });", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"User / Role\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Security\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Access\", true)", source, StringComparison.Ordinal);
             Assert.Contains("AddCell(header, \"Contact\", true)", source, StringComparison.Ordinal);
-            Assert.Contains("Review access coverage, lockout state, disabled accounts, contact handoff details, and any omitted rows", source, StringComparison.Ordinal);
+            Assert.Contains("Review access coverage, lockout state, disabled accounts, contact handoff details, hidden grid matches, and any omitted print rows", source, StringComparison.Ordinal);
             Assert.DoesNotContain("BuildPrintDocument(ViewModel.Users.ToList()", source, StringComparison.Ordinal);
             Assert.DoesNotContain("foreach (var width in new[] { 55.0, 130.0, 95.0, 250.0, 190.0, 90.0, 80.0 })", source, StringComparison.Ordinal);
         }

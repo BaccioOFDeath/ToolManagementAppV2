@@ -176,7 +176,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             var viewModel = ReadRepositoryFile("InventoryManagementApp", "ViewModels", "ReportsViewModel.cs");
             var pageCode = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml.cs");
 
-            Assert.Contains("public bool CanPrintCurrentReport => !IsBusy && LastRunAt.HasValue && ReportLines.Count > 0 && !string.Equals(ReportStatus, \"Report failed.\", StringComparison.Ordinal);", viewModel, StringComparison.Ordinal);
+            Assert.Contains("public bool CanPrintCurrentReport => !IsBusy && LastRunAt.HasValue && ReportLineCount > 0 && ReportLines.Count > 0 && !string.Equals(ReportStatus, \"Report failed.\", StringComparison.Ordinal);", viewModel, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CanPrintCurrentReport));", viewModel, StringComparison.Ordinal);
             Assert.Contains("if (DataContext is not ReportsViewModel vm)", pageCode, StringComparison.Ordinal);
             Assert.Contains("if (vm.IsBusy)", pageCode, StringComparison.Ordinal);
@@ -211,7 +211,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Review the report summary, destination routing, next-action handoff, and any omitted rows before printing.", reportsCode, StringComparison.Ordinal);
             Assert.Contains("new PrintPreviewWindow().ShowPreview(", activityCode, StringComparison.Ordinal);
             Assert.Contains("\"Activity Logs\"", activityCode, StringComparison.Ordinal);
-            Assert.Contains("Review the filtered audit trail, destination routing, and operator handoff before printing.", activityCode, StringComparison.Ordinal);
+            Assert.Contains("Review the filtered audit trail, destination routing, hidden grid matches, and operator handoff before printing.", activityCode, StringComparison.Ordinal);
             Assert.DoesNotContain("WpfPrintDialog", reportsCode, StringComparison.Ordinal);
             Assert.DoesNotContain("PrintDocument(((IDocumentPaginatorSource)document).DocumentPaginator", reportsCode, StringComparison.Ordinal);
             Assert.DoesNotContain("WpfPrintDialog", activityCode, StringComparison.Ordinal);

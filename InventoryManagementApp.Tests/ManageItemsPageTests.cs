@@ -62,10 +62,15 @@ namespace InventoryManagementApp.Tests
                 {
                     threadEx = ex;
                 }
+                finally
+                {
+                    WpfTestHelper.ShutdownApplication();
+                    Dispatcher.CurrentDispatcher.InvokeShutdown();
+                }
             });
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
-            thread.Join();
+            Assert.True(thread.Join(TimeSpan.FromSeconds(10)), "The WPF item page load test did not complete.");
             if (threadEx != null) throw threadEx;
         }
 
@@ -98,7 +103,7 @@ namespace InventoryManagementApp.Tests
                     var dataGrid = FindDescendant<DataGrid>(page.Content as DependencyObject ?? page) ?? throw new InvalidOperationException("DataGrid not found");
                     foreach (var col in dataGrid.Columns)
                         Assert.Equal(Visibility.Visible, col.Visibility);
-                    Assert.Contains(dataGrid.Columns, c => Equals("Part #", c.Header));
+                    Assert.Contains(dataGrid.Columns, c => Equals("Part Number", c.Header));
                     Assert.Contains(dataGrid.Columns, c => Equals("Notes", c.Header));
                     WpfTestHelper.ShutdownApplication();
                 }
@@ -106,10 +111,15 @@ namespace InventoryManagementApp.Tests
                 {
                     threadEx = ex;
                 }
+                finally
+                {
+                    WpfTestHelper.ShutdownApplication();
+                    Dispatcher.CurrentDispatcher.InvokeShutdown();
+                }
             });
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
-            thread.Join();
+            Assert.True(thread.Join(TimeSpan.FromSeconds(10)), "The WPF item grid column test did not complete.");
             if (threadEx != null) throw threadEx;
         }
 

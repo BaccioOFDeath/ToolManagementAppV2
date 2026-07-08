@@ -30,17 +30,13 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void DashboardPage_UsesIterativeVisualTraversalWhenTogglingActions()
+        public void DashboardPage_UsesSharedGridAncestorLookupWhenTogglingActions()
         {
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
 
-            Assert.Contains("private static IEnumerable<DependencyObject> EnumerateVisualDescendants(DependencyObject parent)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("var pending = new Stack<DependencyObject>();", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("pending.Push(parent);", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("while (pending.Count > 0)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("var current = pending.Pop();", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("for (var index = childCount - 1; index >= 0; index--)", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("pending.Push(child);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.FindAncestor<DataGridRow>", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.FindAncestor<System.Windows.Controls.DataGrid>", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GridContextMenuSelection.SelectRow(sender, e);", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("foreach (var descendant in EnumerateVisualDescendants(child))", codeBehind, StringComparison.Ordinal);
         }
 

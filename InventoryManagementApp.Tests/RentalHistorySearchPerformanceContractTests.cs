@@ -12,7 +12,7 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "RentalHistoryViewModel.cs");
 
             Assert.Contains("public IAsyncRelayCommand SearchCommand { get; }", source, StringComparison.Ordinal);
-            Assert.Contains("SearchCommand = new AsyncRelayCommand(ExecuteSearchAsync, () => !IsFiltering);", source, StringComparison.Ordinal);
+            Assert.Contains("SearchCommand = new AsyncRelayCommand(ExecuteSearchAsync, () => !IsHistoryBusy);", source, StringComparison.Ordinal);
             Assert.Contains("private CancellationTokenSource? _searchCts;", source, StringComparison.Ordinal);
             Assert.Contains("Task.Run(() => BuildFilteredHistory(term, cts.Token), cts.Token)", source, StringComparison.Ordinal);
             Assert.Contains("catch (OperationCanceledException)", source, StringComparison.Ordinal);
@@ -47,9 +47,12 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("if (IsFiltering)", source, StringComparison.Ordinal);
             Assert.Contains("public bool HasActiveSearch => !string.IsNullOrWhiteSpace(AppliedSearchText);", source, StringComparison.Ordinal);
             Assert.Contains("public bool HasNoResults => History.Count == 0;", source, StringComparison.Ordinal);
-            Assert.Contains("public bool CanExportHistory => History.Count > 0 && !IsFiltering;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsHistoryBusy => IsFiltering || IsExportingCsv;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool CanExportHistory => History.Count > 0 && !IsHistoryBusy;", source, StringComparison.Ordinal);
             Assert.Contains("public string EmptyStateTitle => HasActiveSearch ? \"No matching rental records\" : \"No rental history records\";", source, StringComparison.Ordinal);
-            Assert.Contains("public string ExportSummary => CanExportHistory", source, StringComparison.Ordinal);
+            Assert.Contains("public string ExportSummary", source, StringComparison.Ordinal);
+            Assert.Contains("if (IsExportingCsv)", source, StringComparison.Ordinal);
+            Assert.Contains("if (History.Count == 0)", source, StringComparison.Ordinal);
             Assert.Contains("void RestoreSelection(int? previousSelectionId)", source, StringComparison.Ordinal);
             Assert.Contains("void NotifyHistoryViewChanged()", source, StringComparison.Ordinal);
         }
@@ -62,9 +65,10 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("if (!CanExportHistory)", source, StringComparison.Ordinal);
             Assert.Contains("FileName = BuildExportFileName()", source, StringComparison.Ordinal);
             Assert.Contains("RentalID,ItemNumber,ItemLocation,CustomerName,RentalDate,DueDate,ReturnDate,Status,FilteredView", source, StringComparison.Ordinal);
-            Assert.Contains("Escape(SearchStatus)", source, StringComparison.Ordinal);
+            Assert.Contains("var filteredView = SearchStatus;", source, StringComparison.Ordinal);
+            Assert.Contains("Escape(filteredView)", source, StringComparison.Ordinal);
             Assert.Contains("new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)", source, StringComparison.Ordinal);
-            Assert.Contains("_dialogService.ShowInfo($\"Exported {History.Count} rental record(s) to {path}.\", \"Rental History Export\");", source, StringComparison.Ordinal);
+            Assert.Contains("_dialogService.ShowInfo($\"Exported {visibleRows.Count} rental record(s) to {path}.\", \"Rental History Export\");", source, StringComparison.Ordinal);
             Assert.Contains("rental_history{suffix}_{DateTime.Now:yyyyMMdd_HHmm}.csv", source, StringComparison.Ordinal);
         }
 

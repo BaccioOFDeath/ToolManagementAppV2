@@ -98,17 +98,18 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "ImageImportMappingWindow.xaml");
             var codeBehind = ReadRepositoryFile("InventoryManagementApp", "Views", "Windows", "ImageImportMappingWindow.xaml.cs");
 
-            Assert.Contains("Width=\"720\" Height=\"620\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"600\" MinHeight=\"500\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("this.UseResponsiveDefaultSize(720, 620);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("Width=\"680\" Height=\"560\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"520\" MinHeight=\"420\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("this.UseResponsiveDefaultSize(680, 560);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel Grid.Row=\"1\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"170\" MaxWidth=\"250\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"1.25*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"8\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"145\" MaxWidth=\"220\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinHeight=\"210\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MaxWidth=\"320\"", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalScrollBarVisibility=\"Disabled\"", xaml, StringComparison.Ordinal);
             Assert.Contains("UseItemNumber", xaml, StringComparison.Ordinal);
             Assert.Contains("UsePartNumber", xaml, StringComparison.Ordinal);
             Assert.Contains("UseName", xaml, StringComparison.Ordinal);
+            Assert.Contains("MappingReadinessText", xaml, StringComparison.Ordinal);
             Assert.Contains("CancelCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("OkCommand", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Grid.Row=\"1\" Columns=\"3\"", xaml, StringComparison.Ordinal);
