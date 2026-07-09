@@ -37,10 +37,24 @@ namespace InventoryManagementApp.ViewModels
         private CancellationTokenSource _filterCts = new();
         private CancellationTokenSource _loadCts = new();
         private bool _disposed;
+        private bool _suppressViewOptionRefresh;
         private readonly List<ItemModel> _pendingEdits = new();
         private static readonly string[] ItemImageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
 
         public IncrementalLoadingCollection<ItemModel> Items { get; }
+
+        private bool _isInitializing;
+        public bool IsInitializing
+        {
+            get => _isInitializing;
+            private set
+            {
+                if (SetProperty(ref _isInitializing, value))
+                    OnPropertyChanged(nameof(IsDirectoryBusy));
+            }
+        }
+
+        public bool IsDirectoryBusy => IsInitializing || Items.IsLoading;
 
         public IAsyncRelayCommand SearchCommand { get; }
         public IAsyncRelayCommand EditItemCommand { get; }
@@ -146,6 +160,7 @@ namespace InventoryManagementApp.ViewModels
             DeleteItemsCommand = new AsyncRelayCommand<IList>(DeleteItemsAsync);
             CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
             Items.CollectionChanged += Items_CollectionChanged;
+            ((INotifyPropertyChanged)Items).PropertyChanged += Items_PropertyChanged;
         }
 
         partial void OnSelectedItemChanged(ItemModel? value)
@@ -155,6 +170,8 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task InitializeAsync(CancellationToken ct = default)
         {
+            IsInitializing = true;
+            _suppressViewOptionRefresh = true;
             try
             {
                 var psSetting = await _settingsService.GetSettingAsync("PageSize", ct).ConfigureAwait(false);
@@ -193,6 +210,11 @@ namespace InventoryManagementApp.ViewModels
             catch (OperationCanceledException)
             {
                 _logger.LogDebug("Initialization canceled");
+            }
+            finally
+            {
+                _suppressViewOptionRefresh = false;
+                IsInitializing = false;
             }
         }
 
@@ -283,6 +305,9 @@ namespace InventoryManagementApp.ViewModels
 
         partial void OnFilterChanged(string value)
         {
+            if (_suppressViewOptionRefresh)
+                return;
+
             _ = StartFilterAsync();
         }
 
@@ -312,7 +337,13 @@ namespace InventoryManagementApp.ViewModels
         private void OnPeakExceeded(object? sender, EventArgs e) =>
             InvokeOnUiThread(Items.Reset);
 
-        partial void OnSelectedSortOptionChanged(SortOption value) => _ = ApplySortAsync(value);
+        partial void OnSelectedSortOptionChanged(SortOption value)
+        {
+            if (_suppressViewOptionRefresh)
+                return;
+
+            _ = ApplySortAsync(value);
+        }
 
         private async Task ApplySortAsync(SortOption value)
         {
@@ -332,7 +363,13 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
-        partial void OnPageSizeChanged(int value) => _ = ApplyPageSizeAsync(value);
+        partial void OnPageSizeChanged(int value)
+        {
+            if (_suppressViewOptionRefresh)
+                return;
+
+            _ = ApplyPageSizeAsync(value);
+        }
 
         private async Task ApplyPageSizeAsync(int value)
         {
@@ -460,6 +497,12 @@ namespace InventoryManagementApp.ViewModels
             }
 
             RefreshMissingImageCount();
+        }
+
+        private void Items_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IncrementalLoadingCollection<ItemModel>.IsLoading))
+                OnPropertyChanged(nameof(IsDirectoryBusy));
         }
 
         private void RefreshMissingImageCount()
@@ -775,6 +818,7 @@ namespace InventoryManagementApp.ViewModels
             _memoryBudget.SteadyExceeded -= OnSteadyExceeded;
             _memoryBudget.PeakExceeded -= OnPeakExceeded;
             Items.CollectionChanged -= Items_CollectionChanged;
+            ((INotifyPropertyChanged)Items).PropertyChanged -= Items_PropertyChanged;
             foreach (var item in Items)
                 item.PropertyChanged -= Item_PropertyChanged;
             var dispatcher = Application.Current?.Dispatcher;

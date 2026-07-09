@@ -71,7 +71,7 @@ namespace InventoryManagementApp.Views.Pages
 
             _loadedViewModel = vm;
 
-            if (vm.Items.IsLoading || vm.Items.Count > 0)
+            if (vm.IsDirectoryBusy || vm.Items.Count > 0)
                 return;
 
             try
@@ -79,7 +79,7 @@ namespace InventoryManagementApp.Views.Pages
                 await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
                 await vm.InitializeAsync(_loadCts.Token);
 
-                if (!vm.Items.IsLoading && vm.Items.Count == 0 && vm.Items.HasMoreItems)
+                if (!vm.IsDirectoryBusy && vm.Items.Count == 0 && vm.Items.HasMoreItems)
                     await vm.LoadMoreAsync(_loadCts.Token);
             }
             catch (OperationCanceledException)
@@ -182,7 +182,7 @@ namespace InventoryManagementApp.Views.Pages
 
         private bool IsItemDirectoryBusy()
         {
-            return DataContext is ItemsViewModel { Items.IsLoading: true };
+            return DataContext is ItemsViewModel { IsDirectoryBusy: true };
         }
     }
 }

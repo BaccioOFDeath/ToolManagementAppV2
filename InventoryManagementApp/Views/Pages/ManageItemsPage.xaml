@@ -24,14 +24,14 @@
         </Style>
         <Style x:Key="LoadingAwarePrimaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Items.IsLoading}" Value="True">
+                <DataTrigger Binding="{Binding IsDirectoryBusy}" Value="True">
                     <Setter Property="IsEnabled" Value="False"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
         <Style x:Key="LoadingAwareGhostButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Items.IsLoading}" Value="True">
+                <DataTrigger Binding="{Binding IsDirectoryBusy}" Value="True">
                     <Setter Property="IsEnabled" Value="False"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -39,7 +39,7 @@
         <Style x:Key="DirectoryStatusValueText" TargetType="TextBlock" BasedOn="{StaticResource DirectoryStatValueText}">
             <Setter Property="Text" Value="Ready"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Items.IsLoading}" Value="True">
+                <DataTrigger Binding="{Binding IsDirectoryBusy}" Value="True">
                     <Setter Property="Text" Value="Loading rows"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -47,7 +47,7 @@
         <Style x:Key="DirectoryStatusDetailText" TargetType="TextBlock" BasedOn="{StaticResource DirectoryDetailText}">
             <Setter Property="Text" Value="Actions use the currently loaded page of rows"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Items.IsLoading}" Value="True">
+                <DataTrigger Binding="{Binding IsDirectoryBusy}" Value="True">
                     <Setter Property="Text" Value="Row actions pause until the directory finishes loading"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -178,19 +178,19 @@
                                 <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
                                 <pages:SearchBar Width="240"
                                                  MinWidth="180"
-                                                 IsEnabled="{Binding Items.IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                                                 IsEnabled="{Binding IsDirectoryBusy, Converter={StaticResource InverseBooleanConverter}}"
                                                  Text="{Binding Filter}"
                                                  SearchCommand="{Binding SearchCommand}"
                                                  SearchLabel="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat=Search {0}}"/>
                                 <TextBlock Text="Sort" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="12,0,6,4"/>
                                 <ComboBox Width="110"
                                           MinWidth="96"
-                                          IsEnabled="{Binding Items.IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                                          IsEnabled="{Binding IsDirectoryBusy, Converter={StaticResource InverseBooleanConverter}}"
                                           ItemsSource="{Binding SortOptions}"
                                           SelectedItem="{Binding SelectedSortOption}"
                                           DisplayMemberPath="DisplayName"/>
                                 <TextBlock Text="Rows" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="12,0,6,4"/>
-                                <TextBox Width="56" MinWidth="48" IsEnabled="{Binding Items.IsLoading, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding PageSize, UpdateSourceTrigger=LostFocus}"/>
+                                <TextBox Width="56" MinWidth="48" IsEnabled="{Binding IsDirectoryBusy, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding PageSize, UpdateSourceTrigger=LostFocus}"/>
                             </WrapPanel>
                             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0,0,0">
                                 <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="Save Changes" Command="{Binding CommitChangesCommand}" Margin="0,0,4,4"/>
@@ -267,20 +267,20 @@
                             <ContextMenu Style="{StaticResource {x:Type ContextMenu}}"
                                         DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                                 <MenuItem Header="View details"
-                                          IsEnabled="{Binding PlacementTarget.DataContext.Items.IsLoading, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
+                                          IsEnabled="{Binding PlacementTarget.DataContext.IsDirectoryBusy, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
                                           Command="{Binding PlacementTarget.DataContext.ViewDetailsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Edit item"
-                                          IsEnabled="{Binding PlacementTarget.DataContext.Items.IsLoading, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
+                                          IsEnabled="{Binding PlacementTarget.DataContext.IsDirectoryBusy, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
                                           Command="{Binding PlacementTarget.DataContext.EditItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Rental history"
-                                          IsEnabled="{Binding PlacementTarget.DataContext.Items.IsLoading, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
+                                          IsEnabled="{Binding PlacementTarget.DataContext.IsDirectoryBusy, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
                                           Command="{Binding PlacementTarget.DataContext.OpenRentalHistoryCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <Separator/>
                                 <MenuItem Header="Save pending changes"
-                                          IsEnabled="{Binding PlacementTarget.DataContext.Items.IsLoading, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
+                                          IsEnabled="{Binding PlacementTarget.DataContext.IsDirectoryBusy, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
                                           Command="{Binding PlacementTarget.DataContext.CommitChangesCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Delete selected"
-                                          IsEnabled="{Binding PlacementTarget.DataContext.Items.IsLoading, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
+                                          IsEnabled="{Binding PlacementTarget.DataContext.IsDirectoryBusy, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource InverseBooleanConverter}}"
                                           Command="{Binding PlacementTarget.DataContext.DeleteItemsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                             </ContextMenu>
@@ -294,7 +294,7 @@
                                     <DataTrigger Binding="{Binding Items.Count}" Value="0">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
-                                    <DataTrigger Binding="{Binding Items.IsLoading}" Value="True">
+                                    <DataTrigger Binding="{Binding IsDirectoryBusy}" Value="True">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -306,7 +306,7 @@
                             <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-                    <Border Grid.Row="2" MaxWidth="360" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Items.IsLoading, Converter={StaticResource BoolToVis}}" IsHitTestVisible="False">
+                    <Border Grid.Row="2" MaxWidth="360" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsDirectoryBusy, Converter={StaticResource BoolToVis}}" IsHitTestVisible="False">
                         <Border.Style>
                             <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
                                 <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
@@ -323,7 +323,7 @@
                                  IsIndeterminate="True"
                                  Height="4"
                                  Margin="0,4,0,0"
-                                 Visibility="{Binding Items.IsLoading, Converter={StaticResource BoolToVis}}"/>
+                                 Visibility="{Binding IsDirectoryBusy, Converter={StaticResource BoolToVis}}"/>
                 </Grid>
             </Border>
 

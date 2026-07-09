@@ -121,9 +121,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<TextBlock Text=\"Directory Status\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"Text\" Value=\"Loading rows\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"IsEnabled\" Value=\"False\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("IsEnabled=\"{Binding Items.IsLoading, Converter={StaticResource InverseBooleanConverter}}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsEnabled=\"{Binding IsDirectoryBusy, Converter={StaticResource InverseBooleanConverter}}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Loading item rows", xaml, StringComparison.Ordinal);
-            Assert.Contains("Visibility=\"{Binding Items.IsLoading, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Visibility=\"{Binding IsDirectoryBusy, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Row actions will resume when the current page is ready", xaml, StringComparison.Ordinal);
         }
 
@@ -153,14 +153,29 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("DataContextChanged += ManageItemsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("PreviewKeyDown += ManageItemsPage_PreviewKeyDown;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (ReferenceEquals(_loadedViewModel, vm))", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("if (vm.Items.IsLoading || vm.Items.Count > 0)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsDirectoryBusy || vm.Items.Count > 0)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("if (!vm.Items.IsLoading && vm.Items.Count == 0 && vm.Items.HasMoreItems)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!vm.IsDirectoryBusy && vm.Items.Count == 0 && vm.Items.HasMoreItems)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (IsItemDirectoryBusy())", codeBehind, StringComparison.Ordinal);
             Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("return DataContext is ItemsViewModel { Items.IsLoading: true };", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("return DataContext is ItemsViewModel { IsDirectoryBusy: true };", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("private bool _isLoadedForCurrentLifetime;", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("if (_isLoadedForCurrentLifetime)", codeBehind, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ItemsViewModel_SuppressesSavedOptionReloadsDuringInitializationAndPublishesBusyState()
+        {
+            var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemsViewModel.cs");
+
+            Assert.Contains("private bool _suppressViewOptionRefresh;", source, StringComparison.Ordinal);
+            Assert.Contains("public bool IsDirectoryBusy => IsInitializing || Items.IsLoading;", source, StringComparison.Ordinal);
+            Assert.Contains("IsInitializing = true;", source, StringComparison.Ordinal);
+            Assert.Contains("_suppressViewOptionRefresh = true;", source, StringComparison.Ordinal);
+            Assert.Contains("_suppressViewOptionRefresh = false;", source, StringComparison.Ordinal);
+            Assert.Contains("if (_suppressViewOptionRefresh)", source, StringComparison.Ordinal);
+            Assert.Contains("((INotifyPropertyChanged)Items).PropertyChanged += Items_PropertyChanged;", source, StringComparison.Ordinal);
+            Assert.Contains("OnPropertyChanged(nameof(IsDirectoryBusy));", source, StringComparison.Ordinal);
         }
 
         [Fact]
