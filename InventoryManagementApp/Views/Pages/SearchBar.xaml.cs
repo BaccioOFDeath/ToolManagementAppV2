@@ -6,6 +6,8 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class SearchBar : System.Windows.Controls.UserControl
     {
+        bool _skipNextLostKeyboardFocusSearch;
+
         public SearchBar()
         {
             InitializeComponent();
@@ -39,6 +41,15 @@ namespace InventoryManagementApp.Views.Pages
         public static readonly DependencyProperty ClearCommandProperty =
             DependencyProperty.Register(nameof(ClearCommand), typeof(ICommand), typeof(SearchBar));
 
+        public bool SearchOnLostKeyboardFocus
+        {
+            get => (bool)GetValue(SearchOnLostKeyboardFocusProperty);
+            set => SetValue(SearchOnLostKeyboardFocusProperty, value);
+        }
+
+        public static readonly DependencyProperty SearchOnLostKeyboardFocusProperty =
+            DependencyProperty.Register(nameof(SearchOnLostKeyboardFocus), typeof(bool), typeof(SearchBar), new PropertyMetadata(false));
+
         public string SearchLabel
         {
             get => (string)GetValue(SearchLabelProperty);
@@ -47,5 +58,37 @@ namespace InventoryManagementApp.Views.Pages
 
         public static readonly DependencyProperty SearchLabelProperty =
             DependencyProperty.Register(nameof(SearchLabel), typeof(string), typeof(SearchBar), new PropertyMetadata("Search"));
+
+        void SearchTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Tab)
+            {
+                ExecuteLostFocusSearch();
+                _skipNextLostKeyboardFocusSearch = true;
+            }
+        }
+
+        void SearchTextBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (_skipNextLostKeyboardFocusSearch)
+            {
+                _skipNextLostKeyboardFocusSearch = false;
+                return;
+            }
+
+            if (e.NewFocus is DependencyObject newFocus && IsAncestorOf(newFocus))
+                return;
+
+            ExecuteLostFocusSearch();
+        }
+
+        void ExecuteLostFocusSearch()
+        {
+            if (!SearchOnLostKeyboardFocus || SearchCommand == null)
+                return;
+
+            if (SearchCommand.CanExecute(null))
+                SearchCommand.Execute(null);
+        }
     }
 }

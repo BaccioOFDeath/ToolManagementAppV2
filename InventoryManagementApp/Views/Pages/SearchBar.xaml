@@ -33,6 +33,8 @@
                      Background="{DynamicResource SearchBarBackgroundBrush}"
                      BorderBrush="{DynamicResource SearchBarInnerBorderBrush}"
                      BorderThickness="{DynamicResource SearchBarInnerBorderThickness}"
+                     PreviewKeyDown="SearchTextBox_PreviewKeyDown"
+                     LostKeyboardFocus="SearchTextBox_LostKeyboardFocus"
                      Text="{Binding Text, ElementName=Root, UpdateSourceTrigger=PropertyChanged}">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Enter" Command="{Binding SearchCommand, ElementName=Root}"/>

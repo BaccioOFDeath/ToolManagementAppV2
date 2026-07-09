@@ -225,17 +225,7 @@ namespace InventoryManagementApp.ViewModels
         public string GlobalSearchText
         {
             get => _globalSearchText;
-            set
-            {
-                if (SetProperty(ref _globalSearchText, value))
-                {
-                    var cts = Interlocked.Exchange(ref _globalSearchCts, null);
-                    cts?.Cancel();
-                    cts?.Dispose();
-                    _globalSearchDebounceTimer.Stop();
-                    _globalSearchDebounceTimer.Start();
-                }
-            }
+            set => SetProperty(ref _globalSearchText, value);
         }
 
         public bool IsCurrentUserAdmin => _userContext.IsAdmin;
@@ -804,7 +794,6 @@ namespace InventoryManagementApp.ViewModels
 
             GlobalSearchCommand = new AsyncRelayCommand(ct => GlobalSearchAsync(ct));
             _globalSearchDebounceTimer = globalSearchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
-            _globalSearchDebounceTimer.Tick += OnGlobalSearchDebounceTimerTick;
 
             SwitchUserCommand = new AsyncRelayCommand(async () =>
             {
@@ -1112,15 +1101,6 @@ namespace InventoryManagementApp.ViewModels
                     $"Imported {result.ImportedCount} images. Unmatched: {result.UnmatchedFiles.Count}, Conflicts: {result.ConflictingFiles.Count}",
                     "Import Images");
             }
-        }
-
-        void OnGlobalSearchDebounceTimerTick(object? s, EventArgs e)
-        {
-            _globalSearchDebounceTimer.Stop();
-            var old = Interlocked.Exchange(ref _globalSearchCts, new CancellationTokenSource());
-            old?.Cancel();
-            old?.Dispose();
-            _ = GlobalSearchCommand.ExecuteAsync(_globalSearchCts.Token);
         }
 
         async Task GlobalSearchAsync(CancellationToken cancellationToken)
@@ -1448,7 +1428,6 @@ namespace InventoryManagementApp.ViewModels
             WeakReferenceMessenger.Default.UnregisterAll(this);
             _autoLogoutTimer.Tick -= OnAutoLogoutTimerTick;
             _autoLogoutTimer.Stop();
-            _globalSearchDebounceTimer.Tick -= OnGlobalSearchDebounceTimerTick;
             _globalSearchDebounceTimer.Stop();
             var cts = Interlocked.Exchange(ref _globalSearchCts, null);
             cts?.Cancel();

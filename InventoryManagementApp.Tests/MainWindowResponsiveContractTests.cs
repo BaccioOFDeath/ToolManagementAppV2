@@ -38,10 +38,27 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<pages:SearchBar x:Name=\"ShellSearchBar\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"180\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MaxWidth=\"720\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("SearchOnLostKeyboardFocus=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Button x:Name=\"ShellUserButton\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MaxWidth=\"196\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<StackPanel MaxWidth=\"126\" MinWidth=\"0\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<StackPanel Width=\"132\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ShellSearchRunsOnlyFromExplicitSearchActions()
+        {
+            var mainViewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "MainViewModel.cs");
+            var searchBarXaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SearchBar.xaml");
+            var searchBarCode = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SearchBar.xaml.cs");
+
+            Assert.Contains("set => SetProperty(ref _globalSearchText, value);", mainViewModel, StringComparison.Ordinal);
+            Assert.DoesNotContain("_globalSearchDebounceTimer.Start();", mainViewModel, StringComparison.Ordinal);
+            Assert.DoesNotContain("_ = GlobalSearchCommand.ExecuteAsync(_globalSearchCts.Token);", mainViewModel, StringComparison.Ordinal);
+            Assert.Contains("<KeyBinding Key=\"Enter\" Command=\"{Binding SearchCommand, ElementName=Root}\"/>", searchBarXaml, StringComparison.Ordinal);
+            Assert.Contains("PreviewKeyDown=\"SearchTextBox_PreviewKeyDown\"", searchBarXaml, StringComparison.Ordinal);
+            Assert.Contains("if (e.Key == Key.Tab)", searchBarCode, StringComparison.Ordinal);
+            Assert.Contains("SearchOnLostKeyboardFocusProperty", searchBarCode, StringComparison.Ordinal);
         }
 
         [Fact]
