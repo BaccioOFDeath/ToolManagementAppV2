@@ -155,6 +155,39 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task InitializeAsync_ClampsLargeSavedPageSizeForInteractiveDirectory()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService(settings: new Dictionary<string, string>
+            {
+                ["PageSize"] = "200"
+            });
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+
+            await vm.InitializeAsync();
+
+            Assert.Equal(60, vm.PageSize);
+            Assert.Equal(60, vm.Items.PageSize);
+        }
+
+        [Fact]
+        public void DefaultPageSizeKeepsInitialDirectoryLoadSmall()
+        {
+            var service = new DummyItemService();
+            var dialog = new DummyDialogService();
+            var rental = new DummyRentalService();
+            var settings = new DummySettingsService();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(service, memoryBudget, dialog, rental, settings, NullLogger<ItemsViewModel>.Instance);
+
+            Assert.Equal(40, vm.PageSize);
+            Assert.Equal(40, vm.Items.PageSize);
+        }
+
+        [Fact]
         public async Task InitializeAsync_UsesUserScopedLastFilterWhenUserContextExists()
         {
             var service = new DummyItemService();
@@ -689,7 +722,6 @@ namespace InventoryManagementApp.Tests
 
         private sealed class PagingItemService : IItemService
         {
-            private const int PageSize = 200;
             public List<int> Pages { get; } = new();
 
             public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
@@ -700,7 +732,7 @@ namespace InventoryManagementApp.Tests
             public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default)
             {
                 Pages.Add(page.Number);
-                return EnumeratePageAsync(page.Number, cancellationToken);
+                return EnumeratePageAsync(page.Number, page.Size, cancellationToken);
             }
 
             public IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
@@ -720,13 +752,13 @@ namespace InventoryManagementApp.Tests
             public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
             public Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
 
-            private async IAsyncEnumerable<ItemModel> EnumeratePageAsync(int page, [EnumeratorCancellation] CancellationToken ct)
+            private async IAsyncEnumerable<ItemModel> EnumeratePageAsync(int page, int pageSize, [EnumeratorCancellation] CancellationToken ct)
             {
-                for (int i = 0; i < PageSize; i++)
+                for (int i = 0; i < pageSize; i++)
                 {
                     await Task.Yield();
                     ct.ThrowIfCancellationRequested();
-                    yield return new ItemModel { ItemID = (page - 1) * PageSize + i + 1 };
+                    yield return new ItemModel { ItemID = (page - 1) * pageSize + i + 1 };
                 }
             }
         }

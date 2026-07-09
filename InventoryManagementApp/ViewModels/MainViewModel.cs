@@ -106,7 +106,11 @@ namespace InventoryManagementApp.ViewModels
         public string CurrentPageHeaderKey
         {
             get => _currentPageHeaderKey;
-            private set => SetProperty(ref _currentPageHeaderKey, value);
+            private set
+            {
+                if (SetProperty(ref _currentPageHeaderKey, value))
+                    OnPropertyChanged(nameof(CanShowShellSearch));
+            }
         }
 
         private string _currentWorkflowGuide = "Search or open a dashboard view to start the workflow.";
@@ -253,6 +257,8 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public bool CanUseSearchTools => !IsGuestUser;
+        public bool CanShowShellSearch => CanUseSearchTools
+            && !string.Equals(CurrentPageHeaderKey, "ManageItems", StringComparison.Ordinal);
 
         public bool IsAdminSectionVisible => CanAny(User.PermissionManageUsers, User.PermissionSettings);
         public bool IsDataSectionVisible => Can(User.PermissionImportExport);
@@ -338,6 +344,7 @@ namespace InventoryManagementApp.ViewModels
             OnPropertyChanged(nameof(HasCurrentUser));
             OnPropertyChanged(nameof(IsGuestUser));
             OnPropertyChanged(nameof(CanUseSearchTools));
+            OnPropertyChanged(nameof(CanShowShellSearch));
             OnPropertyChanged(nameof(IsAdminSectionVisible));
             OnPropertyChanged(nameof(IsDataSectionVisible));
             OnPropertyChanged(nameof(IsOperationsSectionVisible));
@@ -1116,18 +1123,18 @@ namespace InventoryManagementApp.ViewModels
                 return;
             }
 
-            ItemManagement.SearchText = GlobalSearchText;
-            if (string.IsNullOrWhiteSpace(GlobalSearchText))
+            var searchText = GlobalSearchText;
+            ItemManagement.SetSearchTextWithoutSearch(searchText);
+            if (string.IsNullOrWhiteSpace(searchText))
             {
                 if (CurrentPage?.DataContext is ItemManagementViewModel)
-                    await ItemManagement.SearchCommand.ExecuteAsync(cancellationToken);
+                    await ItemManagement.SearchImmediatelyAsync(searchText, cancellationToken);
 
                 return;
             }
 
             await OpenSearchItemsCommand.ExecuteAsync(null);
-            if (ItemManagement.SearchCommand != null)
-                await ItemManagement.SearchCommand.ExecuteAsync(cancellationToken);
+            await ItemManagement.SearchImmediatelyAsync(searchText, cancellationToken);
         }
 
         public void ClearSearch()

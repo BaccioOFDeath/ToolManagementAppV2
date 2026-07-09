@@ -13,11 +13,11 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("<DockPanel LastChildFill=\"True\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<TextBox Width=\"260\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"180\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ComboBox Width=\"150\" MinWidth=\"120\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel DockPanel.Dock=\"Right\" Orientation=\"Horizontal\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel VerticalAlignment=\"Center\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Text=\"Find item\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Text=\"{Binding SearchText, UpdateSourceTrigger=PropertyChanged}\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"320\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"180\"/>", xaml, StringComparison.Ordinal);
         }
@@ -117,7 +117,13 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("DataContextChanged += ItemSearchPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("ReferenceEquals(_loadedSearchViewModel, vm) && _hasLoadedSearchForViewModel", codeBehind, StringComparison.Ordinal);
             Assert.Contains("await Dispatcher.Yield(DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!string.IsNullOrWhiteSpace(vm.SearchText) && vm.SearchResults.Count > 0)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (!string.IsNullOrWhiteSpace(vm.SearchText))", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (!vm.SearchCommand.IsRunning && vm.SearchCommand.CanExecute(null))", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("_ = vm.SearchImmediatelyAsync(entry.Term);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("FocusShellSearchBox();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("FindName(\"ShellSearchBar\") is SearchBar shellSearchBar", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("shellSearchBar.FocusInput();", codeBehind, StringComparison.Ordinal);
             Assert.Contains("private static bool IsSearchBusy(ItemManagementViewModel vm)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("return vm.SearchCommand.IsRunning;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("Wait for the item search to finish before opening item details.", codeBehind, StringComparison.Ordinal);

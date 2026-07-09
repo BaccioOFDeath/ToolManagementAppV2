@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
@@ -93,6 +94,35 @@ namespace InventoryManagementApp.Tests
             Assert.Equal("Return Rental", dialog.LastConfirmTitle);
             Assert.Contains("currently rented out, not checked out", dialog.LastConfirmMessage);
             Assert.True(openedRentals);
+        }
+
+        [Fact]
+        public async Task SearchImmediatelyAsync_UpdatesSearchTextWithoutStartingDebounceTimer()
+        {
+            var itemService = new RecordingSearchItemService();
+            var timer = new RecordingDispatcherTimer();
+            var vm = new ItemManagementViewModel(
+                itemService,
+                new RecordingCustomerService(),
+                new RecordingRentalService(),
+                new RecordingDialogService(),
+                new DummySettingsService(),
+                NullLogger<ItemManagementViewModel>.Instance,
+                timer);
+
+            vm.SearchText = "old";
+            Assert.Equal(1, timer.StartCount);
+            timer.ResetCounts();
+
+            await vm.SearchImmediatelyAsync("drain");
+
+            Assert.Equal("drain", vm.SearchText);
+            Assert.Equal("drain", vm.SearchTerm);
+            Assert.Equal(1, itemService.SearchCallCount);
+            Assert.Equal("drain", itemService.LastSearchText);
+            Assert.Equal(0, timer.StartCount);
+            Assert.True(timer.StopCount >= 1);
+            Assert.Single(vm.SearchResults);
         }
 
         [Fact]
@@ -674,6 +704,68 @@ namespace InventoryManagementApp.Tests
             public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, Microsoft.Data.Sqlite.SqliteConnection? conn = null, Microsoft.Data.Sqlite.SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
             public Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+        }
+
+        private sealed class RecordingSearchItemService : IItemService
+        {
+            public int SearchCallCount { get; private set; }
+            public string? LastSearchText { get; private set; }
+
+            public Task AddItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task UpdateItemAsync(ItemModel item, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task DeleteItemAsync(int itemID, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<ItemModel?> GetItemByIDAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult<ItemModel?>(null);
+            public IAsyncEnumerable<ItemModel> GetItemsAsync(ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, CancellationToken cancellationToken = default) => AsyncEnumerable.Empty<ItemModel>();
+            public async IAsyncEnumerable<ItemModel> SearchItemsAsync(string? searchText, ItemPage page, SortField sortField = SortField.Name, SortDirection sortDirection = SortDirection.Ascending, bool? isRentalItem = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            {
+                SearchCallCount++;
+                LastSearchText = searchText;
+                await Task.Yield();
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return new ItemModel { ItemID = 12, Name = "Drain Plug Key Set", Brand = "Repco" };
+            }
+            public Task<int> CountItemsAsync(ItemFilter filter, CancellationToken ct) => Task.FromResult(0);
+            public Task SaveChangesAsync(IEnumerable<ItemModel> changes, CancellationToken ct) => Task.CompletedTask;
+            public Task<bool> ToggleItemCheckOutStatusAsync(int itemID, CancellationToken cancellationToken = default) => Task.FromResult(true);
+            public Task<List<ItemModel>> GetItemsCheckedOutByAsync(string userName, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task<List<ItemModel>> GetCheckedOutItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task UpdateItemImageAsync(int itemID, string imagePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<List<int>> ImportItemsFromCsvAsync(string filePath, IDictionary<string, string> map, CancellationToken cancellationToken) => Task.FromResult(new List<int>());
+            public Task ExportItemsToCsvAsync(string filePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<List<int>> ImportItemsAsync(string filePath, IDataImporter<ItemModel> importer, CancellationToken cancellationToken = default) => Task.FromResult(new List<int>());
+            public Task ExportItemsAsync(string filePath, IDataExporter<ItemModel> exporter, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<ImageImportResult> ImportItemImagesAsync(string folderPath, Func<ItemModel, IEnumerable<string>> keySelector, IProgress<ImageImportProgress>? progress = null, CancellationToken cancellationToken = default) => Task.FromResult(new ImageImportResult());
+            public Task<string> GenerateNextItemNumberAsync(CancellationToken cancellationToken = default) => Task.FromResult(string.Empty);
+            public Task UpdateItemQuantitiesAsync(int itemID, int qtyChange, bool isRental, Microsoft.Data.Sqlite.SqliteConnection? conn = null, Microsoft.Data.Sqlite.SqliteTransaction? tx = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<List<ItemModel>> GetMostCommonlyUsedItemsAsync(int limit, CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+            public Task<List<ItemModel>> GetIncompleteItemsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ItemModel>());
+        }
+
+        private sealed class RecordingDispatcherTimer : IDispatcherTimer
+        {
+            public event EventHandler? Tick { add { } remove { } }
+            public TimeSpan Interval { get; set; }
+            public bool IsEnabled { get; private set; }
+            public int StartCount { get; private set; }
+            public int StopCount { get; private set; }
+
+            public void Start()
+            {
+                StartCount++;
+                IsEnabled = true;
+            }
+
+            public void Stop()
+            {
+                StopCount++;
+                IsEnabled = false;
+            }
+
+            public void ResetCounts()
+            {
+                StartCount = 0;
+                StopCount = 0;
+            }
         }
     }
 }

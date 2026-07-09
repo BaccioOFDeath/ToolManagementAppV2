@@ -65,6 +65,12 @@ namespace InventoryManagementApp.Views.Pages
             if (vm.SelectedCategory != "All")
                 vm.SelectedCategory = "All";
 
+            if (!string.IsNullOrWhiteSpace(vm.SearchText) && vm.SearchResults.Count > 0)
+                return;
+
+            if (!string.IsNullOrWhiteSpace(vm.SearchText))
+                return;
+
             if (!vm.SearchCommand.IsRunning && vm.SearchCommand.CanExecute(null))
                 await vm.SearchCommand.ExecuteAsync(null);
         }
@@ -382,9 +388,7 @@ namespace InventoryManagementApp.Views.Pages
 
             if (vm.Categories.Contains(entry.Category))
                 vm.SelectedCategory = entry.Category;
-            vm.SearchText = entry.Term;
-            if (vm.SearchCommand.CanExecute(null))
-                _ = vm.SearchCommand.ExecuteAsync(null);
+            _ = vm.SearchImmediatelyAsync(entry.Term);
         }
 
         private void OpenDemandItem_Click(object sender, RoutedEventArgs e)
@@ -777,12 +781,20 @@ namespace InventoryManagementApp.Views.Pages
             var searchBox = FindVisualChild<TextBox>(this);
             if (searchBox == null)
             {
-                Focus();
+                FocusShellSearchBox();
                 return;
             }
 
             searchBox.Focus();
             searchBox.SelectAll();
+        }
+
+        private void FocusShellSearchBox()
+        {
+            if (Application.Current?.MainWindow?.FindName("ShellSearchBar") is SearchBar shellSearchBar)
+                shellSearchBar.FocusInput();
+            else
+                Focus();
         }
 
         private static ItemModel? SelectInvokedItem(WpfDataGrid grid, MouseButtonEventArgs e)

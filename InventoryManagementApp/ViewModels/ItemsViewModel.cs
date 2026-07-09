@@ -40,6 +40,9 @@ namespace InventoryManagementApp.ViewModels
         private bool _suppressViewOptionRefresh;
         private readonly List<ItemModel> _pendingEdits = new();
         private static readonly string[] ItemImageExtensions = [".jpg", ".jpeg", ".png", ".bmp", ".gif"];
+        private const int DefaultInteractivePageSize = 40;
+        private const int MinInteractivePageSize = 20;
+        private const int MaxInteractivePageSize = 60;
 
         public IncrementalLoadingCollection<ItemModel> Items { get; }
 
@@ -118,7 +121,7 @@ namespace InventoryManagementApp.ViewModels
         private SortOption selectedSortOption;
 
         [ObservableProperty]
-        private int pageSize = 200;
+        private int pageSize = DefaultInteractivePageSize;
 
         public ObservableCollection<SortOption> SortOptions { get; }
 
@@ -177,8 +180,8 @@ namespace InventoryManagementApp.ViewModels
                 var psSetting = await _settingsService.GetSettingAsync("PageSize", ct).ConfigureAwait(false);
                 if (int.TryParse(psSetting, out var ps) && ps > 0)
                 {
-                    PageSize = ps;
-                    Items.PageSize = ps;
+                    PageSize = NormalizeInteractivePageSize(ps);
+                    Items.PageSize = PageSize;
                 }
 
                 var filterSetting = await _settingsService.GetSettingAsync(GetLastFilterSettingKey(), ct).ConfigureAwait(false);
@@ -365,11 +368,21 @@ namespace InventoryManagementApp.ViewModels
 
         partial void OnPageSizeChanged(int value)
         {
+            var normalized = NormalizeInteractivePageSize(value);
+            if (normalized != value)
+            {
+                PageSize = normalized;
+                return;
+            }
+
             if (_suppressViewOptionRefresh)
                 return;
 
             _ = ApplyPageSizeAsync(value);
         }
+
+        private static int NormalizeInteractivePageSize(int value) =>
+            Math.Clamp(value, MinInteractivePageSize, MaxInteractivePageSize);
 
         private async Task ApplyPageSizeAsync(int value)
         {

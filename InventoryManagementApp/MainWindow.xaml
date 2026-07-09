@@ -84,7 +84,7 @@
                                  SearchCommand="{Binding GlobalSearchCommand}"
                                  SearchOnLostKeyboardFocus="True"
                                  SearchLabel=""
-                                 Visibility="{Binding CanUseSearchTools, Converter={StaticResource BoolToVis}}"/>
+                                 Visibility="{Binding CanShowShellSearch, Converter={StaticResource BoolToVis}}"/>
 
                 <Button x:Name="ShellUserButton"
                         Grid.Column="2"

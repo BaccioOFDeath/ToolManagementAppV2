@@ -67,6 +67,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("ScrollViewer.CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.VerticalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ScrollViewer.ScrollChanged=\"ItemDirectoryGrid_ScrollChanged\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -159,6 +160,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("if (IsItemDirectoryBusy())", codeBehind, StringComparison.Ordinal);
             Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("return DataContext is ItemsViewModel { IsDirectoryBusy: true };", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("private async void ItemDirectoryGrid_ScrollChanged(object sender, ScrollChangedEventArgs e)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("await vm.LoadMoreAsync(_loadCts.Token);", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("private bool _isLoadedForCurrentLifetime;", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("if (_isLoadedForCurrentLifetime)", codeBehind, StringComparison.Ordinal);
         }
@@ -169,10 +172,13 @@ namespace InventoryManagementApp.Tests
             var source = ReadRepoFile("InventoryManagementApp", "ViewModels", "ItemsViewModel.cs");
 
             Assert.Contains("private bool _suppressViewOptionRefresh;", source, StringComparison.Ordinal);
+            Assert.Contains("private const int DefaultInteractivePageSize = 40;", source, StringComparison.Ordinal);
+            Assert.Contains("private const int MaxInteractivePageSize = 60;", source, StringComparison.Ordinal);
             Assert.Contains("public bool IsDirectoryBusy => IsInitializing || Items.IsLoading;", source, StringComparison.Ordinal);
             Assert.Contains("IsInitializing = true;", source, StringComparison.Ordinal);
             Assert.Contains("_suppressViewOptionRefresh = true;", source, StringComparison.Ordinal);
             Assert.Contains("_suppressViewOptionRefresh = false;", source, StringComparison.Ordinal);
+            Assert.Contains("private static int NormalizeInteractivePageSize(int value)", source, StringComparison.Ordinal);
             Assert.Contains("if (_suppressViewOptionRefresh)", source, StringComparison.Ordinal);
             Assert.Contains("((INotifyPropertyChanged)Items).PropertyChanged += Items_PropertyChanged;", source, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(IsDirectoryBusy));", source, StringComparison.Ordinal);

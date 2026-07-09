@@ -64,12 +64,6 @@
         <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
             <DockPanel LastChildFill="True">
                 <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <TextBlock Text="Find item" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
-                    <TextBox Width="260"
-                             MinWidth="180"
-                             Margin="0,0,10,4"
-                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="Search by name, item number, part number, brand, location, or keyword"/>
                     <TextBlock Text="Brand" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
                     <ComboBox Width="150" MinWidth="120" Margin="0,0,10,4" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"/>
                 </WrapPanel>

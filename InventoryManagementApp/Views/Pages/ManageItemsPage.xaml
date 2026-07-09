@@ -223,6 +223,7 @@
                               ScrollViewer.CanContentScroll="True"
                               ScrollViewer.HorizontalScrollBarVisibility="Auto"
                               ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              ScrollViewer.ScrollChanged="ItemDirectoryGrid_ScrollChanged"
                               Style="{StaticResource VirtualizedDataGridStyle}">
                         <DataGrid.RowHeight>56</DataGrid.RowHeight>
                         <DataGrid.Resources>

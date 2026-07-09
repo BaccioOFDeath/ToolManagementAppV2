@@ -58,6 +58,23 @@ namespace InventoryManagementApp.Views.Pages
             }
         }
 
+        private async void ItemDirectoryGrid_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            if (e.VerticalChange <= 0 || e.VerticalOffset < e.ExtentHeight - e.ViewportHeight - 2)
+                return;
+
+            if (DataContext is not ItemsViewModel vm || vm.IsDirectoryBusy || !vm.Items.HasMoreItems)
+                return;
+
+            try
+            {
+                await vm.LoadMoreAsync(_loadCts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
         private async void ManageItemsPage_Loaded(object sender, RoutedEventArgs e)
         {
             if (DataContext is not ItemsViewModel vm)

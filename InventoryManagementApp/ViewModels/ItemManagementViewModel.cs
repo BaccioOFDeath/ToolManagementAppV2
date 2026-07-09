@@ -132,6 +132,26 @@ namespace InventoryManagementApp.ViewModels
             }
         }
 
+        public void SetSearchTextWithoutSearch(string value)
+        {
+            _searchDebounceTimer.Stop();
+            var normalizedValue = value ?? string.Empty;
+            if (SetProperty(ref _searchText, normalizedValue, nameof(SearchText)))
+                SearchTerm = normalizedValue;
+            else if (!string.Equals(SearchTerm, normalizedValue, StringComparison.Ordinal))
+                SearchTerm = normalizedValue;
+
+            _searchCts?.Cancel();
+        }
+
+        public async Task SearchImmediatelyAsync(string value, CancellationToken cancellationToken = default)
+        {
+            SetSearchTextWithoutSearch(value);
+            _searchCts?.Dispose();
+            _searchCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            await SearchCommand.ExecuteAsync(cancellationToken);
+        }
+
         public ItemManagementViewModel(IItemService itemService,
                                        ICustomerService customerService,
                                        IRentalService rentalService,

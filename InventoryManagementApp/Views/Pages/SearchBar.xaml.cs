@@ -13,6 +13,12 @@ namespace InventoryManagementApp.Views.Pages
             InitializeComponent();
         }
 
+        public void FocusInput()
+        {
+            SearchTextBox.Focus();
+            SearchTextBox.SelectAll();
+        }
+
         public string Text
         {
             get => (string)GetValue(TextProperty);
