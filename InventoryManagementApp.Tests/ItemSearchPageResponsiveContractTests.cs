@@ -20,6 +20,7 @@ namespace InventoryManagementApp.Tests
             Assert.DoesNotContain("Text=\"{Binding SearchText, UpdateSourceTrigger=PropertyChanged}\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"320\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"180\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("Source=\"{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -123,7 +124,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("_ = vm.SearchImmediatelyAsync(entry.Term);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("FocusShellSearchBox();", codeBehind, StringComparison.Ordinal);
             Assert.Contains("FindName(\"ShellSearchBar\") is SearchBar shellSearchBar", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("shellSearchBar.FocusInput();", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("shellSearchBar.FocusInput(selectAll: false);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("private static bool IsSearchBusy(ItemManagementViewModel vm)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("return vm.SearchCommand.IsRunning;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("Wait for the item search to finish before opening item details.", codeBehind, StringComparison.Ordinal);

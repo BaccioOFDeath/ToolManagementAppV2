@@ -68,6 +68,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("ScrollViewer.HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.VerticalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.ScrollChanged=\"ItemDirectoryGrid_ScrollChanged\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Source=\"{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]

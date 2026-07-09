@@ -242,7 +242,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border Width="48" Height="48" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,2">
-                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}" Stretch="UniformToFill" ClipToBounds="True"/>
+                                            <Image Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}" Stretch="UniformToFill" ClipToBounds="True"/>
                                         </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

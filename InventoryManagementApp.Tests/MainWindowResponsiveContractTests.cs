@@ -38,7 +38,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<pages:SearchBar x:Name=\"ShellSearchBar\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"180\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MaxWidth=\"720\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("SearchOnLostKeyboardFocus=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("SearchOnLostKeyboardFocus=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Visibility=\"{Binding CanShowShellSearch, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Button x:Name=\"ShellUserButton\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MaxWidth=\"196\"", xaml, StringComparison.Ordinal);
@@ -47,31 +47,37 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void ShellSearchRunsOnlyFromExplicitSearchActions()
+        public void ShellSearchDebouncesTypingAndDoesNotRunOnClickAway()
         {
             var mainViewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "MainViewModel.cs");
             var searchBarXaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SearchBar.xaml");
             var searchBarCode = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SearchBar.xaml.cs");
 
-            Assert.Contains("set => SetProperty(ref _globalSearchText, value);", mainViewModel, StringComparison.Ordinal);
-            Assert.DoesNotContain("_globalSearchDebounceTimer.Start();", mainViewModel, StringComparison.Ordinal);
+            Assert.Contains("ScheduleGlobalSearch(value);", mainViewModel, StringComparison.Ordinal);
+            Assert.Contains("_globalSearchDebounceTimer.Tick += OnGlobalSearchDebounceTimerTick;", mainViewModel, StringComparison.Ordinal);
+            Assert.Contains("_globalSearchDebounceTimer.Start();", mainViewModel, StringComparison.Ordinal);
+            Assert.Contains("async void OnGlobalSearchDebounceTimerTick(object? sender, EventArgs e)", mainViewModel, StringComparison.Ordinal);
             Assert.DoesNotContain("_ = GlobalSearchCommand.ExecuteAsync(_globalSearchCts.Token);", mainViewModel, StringComparison.Ordinal);
             Assert.Contains("ItemManagement.SetSearchTextWithoutSearch(searchText);", mainViewModel, StringComparison.Ordinal);
             Assert.Contains("await ItemManagement.SearchImmediatelyAsync(searchText, cancellationToken);", mainViewModel, StringComparison.Ordinal);
             Assert.Contains("<KeyBinding Key=\"Enter\" Command=\"{Binding SearchCommand, ElementName=Root}\"/>", searchBarXaml, StringComparison.Ordinal);
             Assert.Contains("PreviewKeyDown=\"SearchTextBox_PreviewKeyDown\"", searchBarXaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("LostKeyboardFocus=\"SearchTextBox_LostKeyboardFocus\"", searchBarXaml, StringComparison.Ordinal);
+            Assert.Contains("public void FocusInput(bool selectAll = true)", searchBarCode, StringComparison.Ordinal);
+            Assert.Contains("SearchTextBox.CaretIndex = SearchTextBox.Text.Length;", searchBarCode, StringComparison.Ordinal);
             Assert.Contains("if (e.Key == Key.Tab)", searchBarCode, StringComparison.Ordinal);
-            Assert.Contains("SearchOnLostKeyboardFocusProperty", searchBarCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("SearchOnLostKeyboardFocusProperty", searchBarCode, StringComparison.Ordinal);
+            Assert.DoesNotContain("LostKeyboardFocus", searchBarCode, StringComparison.Ordinal);
         }
 
         [Fact]
-        public void ShellSearchHidesOnPagesWithTheirOwnDirectorySearch()
+        public void ShellSearchStaysAvailableAcrossPagesForItemLookup()
         {
             var mainViewModel = ReadRepoFile("InventoryManagementApp", "ViewModels", "MainViewModel.cs");
             var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
 
             Assert.Contains("public bool CanShowShellSearch => CanUseSearchTools", mainViewModel, StringComparison.Ordinal);
-            Assert.Contains("!string.Equals(CurrentPageHeaderKey, \"ManageItems\", StringComparison.Ordinal)", mainViewModel, StringComparison.Ordinal);
+            Assert.DoesNotContain("!string.Equals(CurrentPageHeaderKey, \"ManageItems\", StringComparison.Ordinal)", mainViewModel, StringComparison.Ordinal);
             Assert.Contains("OnPropertyChanged(nameof(CanShowShellSearch));", mainViewModel, StringComparison.Ordinal);
             Assert.Contains("Visibility=\"{Binding CanShowShellSearch, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Header=\"Search Tools\"", xaml, StringComparison.Ordinal);

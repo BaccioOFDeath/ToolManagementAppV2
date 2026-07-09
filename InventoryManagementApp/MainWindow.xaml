@@ -82,7 +82,6 @@
                                  Margin="0,0,12,0"
                                  Text="{Binding GlobalSearchText}"
                                  SearchCommand="{Binding GlobalSearchCommand}"
-                                 SearchOnLostKeyboardFocus="True"
                                  SearchLabel=""
                                  Visibility="{Binding CanShowShellSearch, Converter={StaticResource BoolToVis}}"/>
 

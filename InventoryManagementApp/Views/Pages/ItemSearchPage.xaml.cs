@@ -792,7 +792,7 @@ namespace InventoryManagementApp.Views.Pages
         private void FocusShellSearchBox()
         {
             if (Application.Current?.MainWindow?.FindName("ShellSearchBar") is SearchBar shellSearchBar)
-                shellSearchBar.FocusInput();
+                shellSearchBar.FocusInput(selectAll: false);
             else
                 Focus();
         }

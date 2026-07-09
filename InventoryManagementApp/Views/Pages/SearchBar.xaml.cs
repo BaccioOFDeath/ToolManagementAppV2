@@ -6,17 +6,18 @@ namespace InventoryManagementApp.Views.Pages
 {
     public partial class SearchBar : System.Windows.Controls.UserControl
     {
-        bool _skipNextLostKeyboardFocusSearch;
-
         public SearchBar()
         {
             InitializeComponent();
         }
 
-        public void FocusInput()
+        public void FocusInput(bool selectAll = true)
         {
             SearchTextBox.Focus();
-            SearchTextBox.SelectAll();
+            if (selectAll)
+                SearchTextBox.SelectAll();
+            else
+                SearchTextBox.CaretIndex = SearchTextBox.Text.Length;
         }
 
         public string Text
@@ -47,15 +48,6 @@ namespace InventoryManagementApp.Views.Pages
         public static readonly DependencyProperty ClearCommandProperty =
             DependencyProperty.Register(nameof(ClearCommand), typeof(ICommand), typeof(SearchBar));
 
-        public bool SearchOnLostKeyboardFocus
-        {
-            get => (bool)GetValue(SearchOnLostKeyboardFocusProperty);
-            set => SetValue(SearchOnLostKeyboardFocusProperty, value);
-        }
-
-        public static readonly DependencyProperty SearchOnLostKeyboardFocusProperty =
-            DependencyProperty.Register(nameof(SearchOnLostKeyboardFocus), typeof(bool), typeof(SearchBar), new PropertyMetadata(false));
-
         public string SearchLabel
         {
             get => (string)GetValue(SearchLabelProperty);
@@ -69,32 +61,11 @@ namespace InventoryManagementApp.Views.Pages
         {
             if (e.Key == Key.Tab)
             {
-                ExecuteLostFocusSearch();
-                _skipNextLostKeyboardFocusSearch = true;
+                if (SearchCommand?.CanExecute(null) == true)
+                    SearchCommand.Execute(null);
+                e.Handled = true;
+                MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
             }
-        }
-
-        void SearchTextBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
-        {
-            if (_skipNextLostKeyboardFocusSearch)
-            {
-                _skipNextLostKeyboardFocusSearch = false;
-                return;
-            }
-
-            if (e.NewFocus is DependencyObject newFocus && IsAncestorOf(newFocus))
-                return;
-
-            ExecuteLostFocusSearch();
-        }
-
-        void ExecuteLostFocusSearch()
-        {
-            if (!SearchOnLostKeyboardFocus || SearchCommand == null)
-                return;
-
-            if (SearchCommand.CanExecute(null))
-                SearchCommand.Execute(null);
         }
     }
 }

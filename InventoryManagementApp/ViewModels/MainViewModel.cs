@@ -229,7 +229,11 @@ namespace InventoryManagementApp.ViewModels
         public string GlobalSearchText
         {
             get => _globalSearchText;
-            set => SetProperty(ref _globalSearchText, value);
+            set
+            {
+                if (SetProperty(ref _globalSearchText, value))
+                    ScheduleGlobalSearch(value);
+            }
         }
 
         public bool IsCurrentUserAdmin => _userContext.IsAdmin;
@@ -257,8 +261,7 @@ namespace InventoryManagementApp.ViewModels
         }
 
         public bool CanUseSearchTools => !IsGuestUser;
-        public bool CanShowShellSearch => CanUseSearchTools
-            && !string.Equals(CurrentPageHeaderKey, "ManageItems", StringComparison.Ordinal);
+        public bool CanShowShellSearch => CanUseSearchTools;
 
         public bool IsAdminSectionVisible => CanAny(User.PermissionManageUsers, User.PermissionSettings);
         public bool IsDataSectionVisible => Can(User.PermissionImportExport);
@@ -801,6 +804,7 @@ namespace InventoryManagementApp.ViewModels
 
             GlobalSearchCommand = new AsyncRelayCommand(ct => GlobalSearchAsync(ct));
             _globalSearchDebounceTimer = globalSearchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };
+            _globalSearchDebounceTimer.Tick += OnGlobalSearchDebounceTimerTick;
 
             SwitchUserCommand = new AsyncRelayCommand(async () =>
             {
@@ -1112,6 +1116,7 @@ namespace InventoryManagementApp.ViewModels
 
         async Task GlobalSearchAsync(CancellationToken cancellationToken)
         {
+            _globalSearchDebounceTimer.Stop();
             if (IsGuestUser)
             {
                 if (!string.IsNullOrWhiteSpace(GlobalSearchText))
@@ -1135,6 +1140,58 @@ namespace InventoryManagementApp.ViewModels
 
             await OpenSearchItemsCommand.ExecuteAsync(null);
             await ItemManagement.SearchImmediatelyAsync(searchText, cancellationToken);
+        }
+
+        void ScheduleGlobalSearch(string searchText)
+        {
+            _globalSearchDebounceTimer.Stop();
+            var existingCts = Interlocked.Exchange(ref _globalSearchCts, null);
+            existingCts?.Cancel();
+            existingCts?.Dispose();
+
+            if (IsGuestUser)
+                return;
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                ItemManagement.SetSearchTextWithoutSearch(string.Empty);
+                return;
+            }
+
+            ItemManagement.SetSearchTextWithoutSearch(searchText);
+            if (CurrentPage?.DataContext is not ItemManagementViewModel && OpenSearchItemsCommand.CanExecute(null))
+                _ = OpenSearchItemsCommand.ExecuteAsync(null);
+
+            _globalSearchDebounceTimer.Start();
+        }
+
+        async void OnGlobalSearchDebounceTimerTick(object? sender, EventArgs e)
+        {
+            _globalSearchDebounceTimer.Stop();
+            if (string.IsNullOrWhiteSpace(GlobalSearchText))
+                return;
+
+            var cts = new CancellationTokenSource();
+            var previousCts = Interlocked.Exchange(ref _globalSearchCts, cts);
+            previousCts?.Cancel();
+            previousCts?.Dispose();
+
+            try
+            {
+                await GlobalSearchAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to run global item search");
+            }
+            finally
+            {
+                if (ReferenceEquals(Interlocked.CompareExchange(ref _globalSearchCts, null, cts), cts))
+                    cts.Dispose();
+            }
         }
 
         public void ClearSearch()
@@ -1435,6 +1492,7 @@ namespace InventoryManagementApp.ViewModels
             WeakReferenceMessenger.Default.UnregisterAll(this);
             _autoLogoutTimer.Tick -= OnAutoLogoutTimerTick;
             _autoLogoutTimer.Stop();
+            _globalSearchDebounceTimer.Tick -= OnGlobalSearchDebounceTimerTick;
             _globalSearchDebounceTimer.Stop();
             var cts = Interlocked.Exchange(ref _globalSearchCts, null);
             cts?.Cancel();
