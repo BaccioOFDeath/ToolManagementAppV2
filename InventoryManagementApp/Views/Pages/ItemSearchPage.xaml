@@ -134,15 +134,10 @@
                                         <Border BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Width="62" Height="62" HorizontalAlignment="Center" VerticalAlignment="Center" Background="{DynamicResource ControlBackgroundBrush}">
                                             <Image Style="{StaticResource ResultImage}"
                                                    Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                   ToolTipService.InitialShowDelay="250"
                                                    ToolTipService.ShowDuration="60000">
                                                 <Image.ToolTip>
-                                                    <Border Padding="4" Background="{DynamicResource ControlBackgroundBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1">
-                                                        <StackPanel>
-                                                            <Image Width="260" Height="190" Stretch="Uniform" Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
-                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="0,6,0,0" TextWrapping="Wrap" MaxWidth="260"/>
-                                                            <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}"/>
-                                                        </StackPanel>
-                                                    </Border>
+                                                    <ToolTip Style="{StaticResource ItemImageHoverToolTip}" Content="{Binding}"/>
                                                 </Image.ToolTip>
                                             </Image>
                                         </Border>
@@ -271,7 +266,13 @@
                                 <DataGridTemplateColumn Header="Photo" Width="52" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image Width="44" Height="44" Stretch="UniformToFill" Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                                            <Image Width="44" Height="44" Stretch="UniformToFill"
+                                                   Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                   ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
+                                                <Image.ToolTip>
+                                                    <ToolTip Style="{StaticResource ItemImageHoverToolTip}" Content="{Binding}"/>
+                                                </Image.ToolTip>
+                                            </Image>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>

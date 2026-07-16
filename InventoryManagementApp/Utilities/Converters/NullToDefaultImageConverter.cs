@@ -81,6 +81,37 @@ namespace InventoryManagementApp.Utilities.Converters
                 yield return Path.Combine("Assets", "ItemImages", trimmed + extension);
         }
 
+        public static bool HasCustomImage(object? value)
+        {
+            var imagePath = value == null ? null : GetImagePath(value);
+            if (PathExists(imagePath))
+                return true;
+
+            var itemNumber = value == null ? null : GetItemNumber(value);
+            if (string.IsNullOrWhiteSpace(itemNumber))
+                return false;
+
+            foreach (var candidate in BuildItemImageCandidates(itemNumber))
+            {
+                if (PathExists(candidate))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool PathExists(string? path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return false;
+
+            if (Uri.TryCreate(path, UriKind.Absolute, out var uri) && uri.IsFile)
+                return File.Exists(uri.LocalPath);
+
+            var absolutePath = Helpers.PathHelper.GetAbsolutePath(path, false);
+            return absolutePath != null && File.Exists(absolutePath);
+        }
+
         private bool TryLoadImage(string path, out BitmapImage image)
         {
             image = null!;

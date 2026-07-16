@@ -177,10 +177,9 @@
                                     <DataTemplate>
                                         <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
                                             <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                                   Stretch="UniformToFill">
+                                                   Stretch="UniformToFill" ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
                                                 <Image.ToolTip>
-                                                    <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                                           MaxWidth="180" MaxHeight="180" Stretch="Uniform"/>
+                                                    <ToolTip Style="{StaticResource ItemImageHoverToolTip}" Content="{Binding}"/>
                                                 </Image.ToolTip>
                                             </Image>
                                         </Border>
@@ -242,10 +241,9 @@
                                     <DataTemplate>
                                         <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
                                             <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                                   Stretch="UniformToFill">
+                                                   Stretch="UniformToFill" ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
                                                 <Image.ToolTip>
-                                                    <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                                           MaxWidth="180" MaxHeight="180" Stretch="Uniform"/>
+                                                    <ToolTip Style="{StaticResource ItemImageHoverToolTip}" Content="{Binding}"/>
                                                 </Image.ToolTip>
                                             </Image>
                                         </Border>
@@ -394,10 +392,9 @@
                                             <DataTemplate>
                                                 <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
                                                     <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                                           Stretch="UniformToFill">
+                                                           Stretch="UniformToFill" ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
                                                         <Image.ToolTip>
-                                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                                                   MaxWidth="180" MaxHeight="180" Stretch="Uniform"/>
+                                                            <ToolTip Style="{StaticResource ItemImageHoverToolTip}" Content="{Binding}"/>
                                                         </Image.ToolTip>
                                                     </Image>
                                                 </Border>

@@ -14,6 +14,36 @@
     <ItemsPanelTemplate x:Key="WrapPanelItems">
         <WrapPanel Orientation="Horizontal"/>
     </ItemsPanelTemplate>
+    <DataTemplate x:Key="ItemImageHoverPreviewTemplate">
+        <Border Padding="8"
+                Background="{DynamicResource ControlBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrushAlt}"
+                BorderThickness="1">
+            <StackPanel>
+                <Image Width="380"
+                       Height="300"
+                       Stretch="Uniform"
+                       Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                <TextBlock Text="{Binding Name}"
+                           FontWeight="SemiBold"
+                           Margin="0,6,0,0"
+                           MaxWidth="380"
+                           TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding ItemNumber}" Style="{StaticResource CaptionTextBlock}"/>
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+    <Style x:Key="ItemImageHoverToolTip" TargetType="ToolTip">
+        <Setter Property="ContentTemplate" Value="{StaticResource ItemImageHoverPreviewTemplate}"/>
+        <Setter Property="Placement" Value="MousePoint"/>
+        <Setter Property="HorizontalOffset" Value="14"/>
+        <Setter Property="VerticalOffset" Value="14"/>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Content, RelativeSource={RelativeSource Self}, Converter={StaticResource ItemHasImageConverter}}" Value="False">
+                <Setter Property="Visibility" Value="Collapsed"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
     <DataTemplate x:Key="ItemCardTemplate">
         <Button Command="{Binding DataContext.OpenItemCardCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                 CommandParameter="{Binding}"
@@ -61,7 +91,13 @@
                                Margin="4"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
-                               Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                               Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                               ToolTipService.InitialShowDelay="250"
+                               ToolTipService.ShowDuration="60000">
+                            <Image.ToolTip>
+                                <ToolTip Style="{StaticResource ItemImageHoverToolTip}" Content="{Binding}"/>
+                            </Image.ToolTip>
+                        </Image>
                     </Border>
                     <Grid Grid.Row="1" Margin="0,5,0,0">
                         <Grid.RowDefinitions>
