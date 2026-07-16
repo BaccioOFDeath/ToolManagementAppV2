@@ -127,6 +127,7 @@ public class DashboardViewModelTests
     {
         public int CountCalls { get; private set; }
         public int GetCalls { get; private set; }
+        public User? CurrentUser { get; set; }
 
         public Task<int> CountUsersAsync(CancellationToken cancellationToken = default)
         {
@@ -142,7 +143,7 @@ public class DashboardViewModelTests
 
         public Task<User?> GetUserByIDAsync(int userID, CancellationToken cancellationToken = default) => throw new NotImplementedException();
         public Task<(AuthenticationResult Result, User? User)> AuthenticateUserAsync(string userName, string password) => throw new NotImplementedException();
-        public Task<User?> GetCurrentUserAsync() => throw new NotImplementedException();
+        public Task<User?> GetCurrentUserAsync() => Task.FromResult(CurrentUser);
         public Task AddUserAsync(User user) => throw new NotImplementedException();
         public Task UpdateUserAsync(User user) => throw new NotImplementedException();
         public Task<bool> TryDeleteUserAsync(int userID) => throw new NotImplementedException();
@@ -156,6 +157,8 @@ public class DashboardViewModelTests
         public string? LastConfirmTitle { get; private set; }
         public string? LastConfirmMessage { get; private set; }
         public List<ItemModel> ItemDetailsItems { get; } = new();
+        public FlowDocument? LastPrintDocument { get; private set; }
+        public string? LastPrintTitle { get; private set; }
 
         public void ShowInfo(string message, string title) { }
         public Task ShowInfoAsync(string message, string title) => Task.CompletedTask;
@@ -178,8 +181,40 @@ public class DashboardViewModelTests
         public void ShowRentalHistory(ItemModel item, IEnumerable<RentalModel> history) { }
         public Dictionary<string, string>? ShowImportMapping(IEnumerable<string> headers, IEnumerable<string> properties, IEnumerable<string>? requiredPropertyNames = null) => null;
         public Func<ItemModel, IEnumerable<string>>? ShowImageImportMapping() => null;
-        public void ShowPrintPreview(FlowDocument document, string title, string description) { }
+        public void ShowPrintPreview(FlowDocument document, string title, string description)
+        {
+            LastPrintDocument = document;
+            LastPrintTitle = title;
+        }
         public void ShowPrintLabelDialog() { }
+    }
+
+    [Fact]
+    public async Task PrintMyCheckedOutItemsCommand_PrintsOnlyCurrentUsersRows()
+    {
+        using var db = new DatabaseService(":memory:");
+        var userService = new StubUserService { CurrentUser = new User { UserName = "Garett" } };
+        var dialogService = new StubDialogService();
+        var vm = new DashboardViewModel(
+            new StubItemService(),
+            new StubRentalService(),
+            new StubCustomerService(),
+            userService,
+            new StubActivityLogService(db),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            new RelayCommand(() => { }),
+            dialogService: dialogService);
+        vm.CheckedOutItems.Add(new ItemModel { ItemID = 1, ItemNumber = "MINE-1", Name = "My item", CheckedOutBy = " garett " });
+        vm.CheckedOutItems.Add(new ItemModel { ItemID = 2, ItemNumber = "OTHER-1", Name = "Other item", CheckedOutBy = "Brandyn" });
+
+        await vm.PrintMyCheckedOutItemsCommand.ExecuteAsync(null);
+
+        Assert.Equal("My Checked Out Items - Garett", dialogService.LastPrintTitle);
+        var printedText = new TextRange(dialogService.LastPrintDocument!.ContentStart, dialogService.LastPrintDocument.ContentEnd).Text;
+        Assert.Contains("MINE-1", printedText, StringComparison.Ordinal);
+        Assert.DoesNotContain("OTHER-1", printedText, StringComparison.Ordinal);
+        Assert.Contains("Total Items: 1", printedText, StringComparison.Ordinal);
     }
 
     private sealed class StubActivityLogService : ActivityLogService

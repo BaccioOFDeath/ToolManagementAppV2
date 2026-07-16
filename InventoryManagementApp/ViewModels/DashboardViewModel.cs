@@ -169,6 +169,7 @@ namespace InventoryManagementApp.ViewModels
         public IRelayCommand OpenSelectedRentalCommand { get; }
         public IRelayCommand OpenActivityDestinationCommand { get; }
         public IAsyncRelayCommand PrintCheckedOutItemsCommand { get; }
+        public IAsyncRelayCommand PrintMyCheckedOutItemsCommand { get; }
         public IAsyncRelayCommand PrintDashboardSnapshotCommand { get; }
         public IAsyncRelayCommand<ItemModel> CheckInItemCommand { get; }
         public IAsyncRelayCommand<RentalModel> ReturnRentalCommand { get; }
@@ -216,6 +217,7 @@ namespace InventoryManagementApp.ViewModels
             OpenSelectedRentalCommand = new RelayCommand(OpenRentalsWorkflow, () => HasSelectedRental);
             OpenActivityDestinationCommand = new RelayCommand(OpenActivityDestination, () => HasSelectedActivity);
             PrintCheckedOutItemsCommand = new AsyncRelayCommand(PrintCheckedOutItemsAsync);
+            PrintMyCheckedOutItemsCommand = new AsyncRelayCommand(PrintMyCheckedOutItemsAsync);
             PrintDashboardSnapshotCommand = new AsyncRelayCommand(PrintDashboardSnapshotAsync);
             CheckInItemCommand = new AsyncRelayCommand<ItemModel>(CheckInItemAsync, item => item != null);
             ReturnRentalCommand = new AsyncRelayCommand<RentalModel>(ReturnRentalAsync, rental => rental != null);
@@ -817,12 +819,42 @@ namespace InventoryManagementApp.ViewModels
             {
                 var currentUser = await _userService.GetCurrentUserAsync();
                 var userName = currentUser?.UserName ?? "Unknown";
-                var doc = GenerateCheckedOutItemsDocument(userName);
+                var doc = GenerateCheckedOutItemsDocument("Checked Out Items", userName, CheckedOutItems, "Checked-out inventory");
                 ShowDashboardPrintPreview(doc, $"Checked Out Items - {userName}", "Dashboard checked-out item handoff");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to print checked-out items");
+            }
+        }
+
+        private async Task PrintMyCheckedOutItemsAsync()
+        {
+            try
+            {
+                var currentUser = await _userService.GetCurrentUserAsync();
+                var userName = currentUser?.UserName?.Trim() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(userName))
+                {
+                    _dialogService?.ShowInfo("A signed-in user is required to print a personal checked-out list.", "Print My Checked Out Items");
+                    return;
+                }
+
+                var myItems = CheckedOutItems
+                    .Where(item => string.Equals(item.CheckedOutBy?.Trim(), userName, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                if (myItems.Count == 0)
+                {
+                    _dialogService?.ShowInfo($"No items are currently checked out by {userName}.", "Print My Checked Out Items");
+                    return;
+                }
+
+                var doc = GenerateCheckedOutItemsDocument("My Checked Out Items", userName, myItems, "My checked-out inventory");
+                ShowDashboardPrintPreview(doc, $"My Checked Out Items - {userName}", "Personal dashboard pick list");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to print the current user's checked-out items");
             }
         }
 
@@ -855,11 +887,15 @@ namespace InventoryManagementApp.ViewModels
             dialogService.ShowPrintPreview(document, title, description);
         }
 
-        private System.Windows.Documents.FlowDocument GenerateCheckedOutItemsDocument(string userName)
+        private System.Windows.Documents.FlowDocument GenerateCheckedOutItemsDocument(
+            string title,
+            string userName,
+            IReadOnlyCollection<ItemModel> items,
+            string sectionTitle)
         {
-            var doc = CreatePrintDocument("Checked Out Items", userName);
-            AddCheckedOutItemTable(doc, CheckedOutItems, "Checked-out inventory");
-            AddTotal(doc, $"Total Items: {CheckedOutItems.Count}");
+            var doc = CreatePrintDocument(title, userName);
+            AddCheckedOutItemTable(doc, items, sectionTitle);
+            AddTotal(doc, $"Total Items: {items.Count}");
             return doc;
         }
 

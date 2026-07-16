@@ -215,7 +215,8 @@
                             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
                                 <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCheckedOutItemCommand}" IsEnabled="{Binding HasSelectedCheckedOutItem}" Margin="0,0,4,4"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Check In" Command="{Binding CheckInSelectedItemCommand}" IsEnabled="{Binding HasSelectedCheckedOutItem}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Print" Command="{Binding PrintCheckedOutItemsCommand}" Margin="0,0,0,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print All" Command="{Binding PrintCheckedOutItemsCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print Mine" Command="{Binding PrintMyCheckedOutItemsCommand}" Margin="0,0,0,4" ToolTip="Print only items checked out by the signed-in user."/>
                             </WrapPanel>
                         </DockPanel>
                     </Border>
@@ -262,6 +263,7 @@
                                 <MenuItem Header="Open Item Workflow" Command="{Binding PlacementTarget.DataContext.OpenSelectedCheckedOutItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" IsEnabled="{Binding PlacementTarget.DataContext.HasSelectedCheckedOutItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Check In" Command="{Binding PlacementTarget.DataContext.CheckInSelectedItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" IsEnabled="{Binding PlacementTarget.DataContext.HasSelectedCheckedOutItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Print Checked-Out Items" Command="{Binding PlacementTarget.DataContext.PrintCheckedOutItemsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                <MenuItem Header="Print My Checked-Out Items" Command="{Binding PlacementTarget.DataContext.PrintMyCheckedOutItemsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                 <MenuItem Header="Print Dashboard Snapshot" Command="{Binding PlacementTarget.DataContext.PrintDashboardSnapshotCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                             </ContextMenu>
                         </DataGrid.ContextMenu>

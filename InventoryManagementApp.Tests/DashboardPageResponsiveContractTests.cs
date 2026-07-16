@@ -251,6 +251,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("OpenRentalsCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintDashboardSnapshotCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintCheckedOutItemsCommand", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Print Mine\" Command=\"{Binding PrintMyCheckedOutItemsCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Print My Checked-Out Items\"", xaml, StringComparison.Ordinal);
             Assert.Contains("OpenActivityDestinationCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("OpenSelectedIncompleteItemCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("OpenSelectedCommonItemCommand", xaml, StringComparison.Ordinal);
