@@ -12,12 +12,12 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "CustomerEditWindow.xaml");
             var code = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "CustomerEditWindow.xaml.cs");
 
-            Assert.Contains("Width=\"700\" Height=\"560\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"560\" MinHeight=\"440\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Width=\"860\" Height=\"700\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"620\" MinHeight=\"500\"", xaml, StringComparison.Ordinal);
             Assert.Contains("UseLayoutRounding=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("SnapsToDevicePixels=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Grid Margin=\"12\" ClipToBounds=\"True\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("this.UseResponsiveDefaultSize(760, 620);", code, StringComparison.Ordinal);
+            Assert.Contains("this.UseResponsiveDefaultSize(860, 700);", code, StringComparison.Ordinal);
             Assert.DoesNotContain("Width=\"720\" Height=\"580\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("MinWidth=\"600\" MinHeight=\"500\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("this.UseResponsiveDefaultSize(900, 760);", code, StringComparison.Ordinal);
@@ -51,7 +51,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("MaxHeight=\"42\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MaxWidth=\"170\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer Grid.Row=\"1\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanContentScroll=\"False\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("PanningMode=\"VerticalOnly\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("IsEnabled=\"{Binding CanEditCustomer}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"88\" MinWidth=\"74\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"78\" MinWidth=\"68\"/>", xaml, StringComparison.Ordinal);

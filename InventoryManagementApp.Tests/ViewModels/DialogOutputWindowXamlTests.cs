@@ -167,7 +167,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("SaveCommand", saveCancel, StringComparison.Ordinal);
             Assert.Contains("CancelCommand", saveCancel, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"96\"", saveCancel, StringComparison.Ordinal);
-            Assert.Contains("UseResponsiveDefaultSize(760, 620)", customerCode, StringComparison.Ordinal);
+            Assert.Contains("UseResponsiveDefaultSize(860, 700)", customerCode, StringComparison.Ordinal);
             Assert.Contains("UseResponsiveDefaultSize(840, 720)", itemCode, StringComparison.Ordinal);
             Assert.Contains("UseResponsiveDefaultSize(920, 700)", userCode, StringComparison.Ordinal);
             Assert.Contains("UseResponsiveDefaultSize(880, 720)", maintenanceCode, StringComparison.Ordinal);

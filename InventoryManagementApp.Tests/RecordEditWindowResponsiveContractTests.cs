@@ -44,14 +44,15 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "CustomerEditWindow.xaml");
 
-            Assert.Contains("Width=\"700\" Height=\"560\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"560\" MinHeight=\"440\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Width=\"860\" Height=\"700\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"620\" MinHeight=\"500\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel Grid.Row=\"1\" Margin=\"0,0,0,2\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<Style x:Key=\"CustomerEditorStepCard\" TargetType=\"Border\" BasedOn=\"{StaticResource DesktopSummaryCard}\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"215\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer Grid.Row=\"1\"", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalScrollBarVisibility=\"Disabled\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("CanContentScroll=\"False\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"88\" MinWidth=\"74\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"78\" MinWidth=\"68\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Grid.Row=\"1\" Columns=\"3\"", xaml, StringComparison.Ordinal);

@@ -51,7 +51,7 @@ namespace InventoryManagementApp.Tests.Views
             Assert.True(commonTabIndex >= 0, "Common items should be exposed as a tab beside issue workflows.");
             Assert.True(gridIndex > commonTabIndex, "Common items grid should live inside the Commonly Used tab.");
             Assert.True(checkedOutIndex >= 0 && checkedOutIndex < commonTabIndex, "Checked-out items should appear before the right-side common items tab.");
-            Assert.Contains("Grid.Row=\"0\" Grid.RowSpan=\"2\" Grid.Column=\"0\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Grid.Row=\"0\" Grid.RowSpan=\"3\" Grid.Column=\"0\"", xaml, StringComparison.Ordinal);
 
             var commonItemsGrid = xaml.Substring(gridIndex);
 

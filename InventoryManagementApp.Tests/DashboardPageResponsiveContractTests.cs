@@ -27,9 +27,12 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<ColumnDefinition Width=\"1.65*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"6\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"0.95*\" MinWidth=\"300\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<GridSplitter Grid.Row=\"0\" Grid.RowSpan=\"2\" Grid.Column=\"1\" Width=\"6\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Border Grid.Row=\"0\" Grid.RowSpan=\"2\" Grid.Column=\"0\" Style=\"{StaticResource Card}\" Padding=\"0\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Border Grid.Row=\"1\" Grid.Column=\"2\" Style=\"{StaticResource Card}\" Padding=\"0\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<GridSplitter Grid.Row=\"0\" Grid.RowSpan=\"3\" Grid.Column=\"1\" Width=\"6\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"0\" Grid.RowSpan=\"3\" Grid.Column=\"0\" Style=\"{StaticResource Card}\" Padding=\"0\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<GridSplitter Grid.Row=\"1\" Grid.Column=\"2\" Height=\"6\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ResizeDirection=\"Rows\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ResizeBehavior=\"PreviousAndNext\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"2\" Grid.Column=\"2\" Style=\"{StaticResource Card}\" Padding=\"0\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"2*\" MinWidth=\"520\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"*\" MinWidth=\"360\"/>", xaml, StringComparison.Ordinal);
         }
