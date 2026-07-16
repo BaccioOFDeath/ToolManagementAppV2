@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using InventoryManagementApp.Data;
@@ -14,6 +15,29 @@ namespace InventoryManagementApp.Tests
 {
     public class ItemManagementViewModelCheckoutRefreshTests
     {
+        [Fact]
+        public void GetMyCheckedOutItems_ReturnsOnlyRowsOwnedByCurrentUser()
+        {
+            var userContext = new Mock<IUserContext>();
+            userContext.SetupGet(context => context.UserName).Returns(" Garett ");
+            var vm = new ItemManagementViewModel(
+                Mock.Of<IItemService>(),
+                Mock.Of<ICustomerService>(),
+                Mock.Of<IRentalService>(),
+                Mock.Of<IDialogService>(),
+                Mock.Of<ISettingsService>(),
+                NullLogger<ItemManagementViewModel>.Instance,
+                userContext: userContext.Object);
+            vm.CheckedOutItems.Add(new ItemModel { ItemID = 1, CheckedOutBy = "Garett" });
+            vm.CheckedOutItems.Add(new ItemModel { ItemID = 2, CheckedOutBy = "garett " });
+            vm.CheckedOutItems.Add(new ItemModel { ItemID = 3, CheckedOutBy = "Brandyn" });
+            vm.CheckedOutItems.Add(new ItemModel { ItemID = 4, CheckedOutBy = string.Empty });
+
+            var mine = vm.GetMyCheckedOutItems();
+
+            Assert.Equal(new[] { 1, 2 }, mine.Select(item => item.ItemID));
+        }
+
         [Fact]
         public async Task ToggleCheckOutCommand_UsesPersistedItemStateAfterSuccessfulToggle()
         {

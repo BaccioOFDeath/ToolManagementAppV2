@@ -509,7 +509,7 @@ namespace InventoryManagementApp.ViewModels
 
             OpenImageImportMappingWindowCommand = new AsyncRelayCommand(ct => OpenImageImportMappingWindowAsync(ct));
 
-            ItemManagement = new ItemManagementViewModel(itemService, customerService, rentalService, _dialogService, _settingsService);
+            ItemManagement = new ItemManagementViewModel(itemService, customerService, rentalService, _dialogService, _settingsService, userContext: _userContext);
             _itemManagementPropertyChangedHandler = (s, e) =>
             {
                 if (e.PropertyName == nameof(ItemManagementViewModel.SelectedItem))

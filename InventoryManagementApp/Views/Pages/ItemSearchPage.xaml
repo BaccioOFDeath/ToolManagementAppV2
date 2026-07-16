@@ -69,7 +69,8 @@
                 </WrapPanel>
                 <WrapPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0">
                     <Button Content="Print Results" Click="PrintSearchResults_Click" Margin="0,0,4,4"/>
-                    <Button Content="Print Checked Out" Click="PrintCheckedOut_Click" Margin="0,0,0,4"/>
+                    <Button Content="Print Checked Out" Click="PrintCheckedOut_Click" Margin="0,0,4,4"/>
+                    <Button Content="Print Mine" Click="PrintMyCheckedOut_Click" Margin="0,0,0,4" ToolTip="Print only items checked out by the signed-in user."/>
                 </WrapPanel>
                 <WrapPanel VerticalAlignment="Center" MinWidth="0">
                     <TextBlock Text="{Binding SearchResultsSummary}" Style="{StaticResource CaptionTextBlock}" Margin="0,0,12,4" TextTrimming="CharacterEllipsis"/>
@@ -235,7 +236,8 @@
                                     <TextBlock Text="Visible while searching; double-click to inspect or check back in." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                 </StackPanel>
                                 <WrapPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0">
-                                    <Button Content="Print" Click="PrintCheckedOut_Click" Style="{StaticResource GhostButton}" Margin="0,0,4,4"/>
+                                    <Button Content="Print All" Click="PrintCheckedOut_Click" Style="{StaticResource GhostButton}" Margin="0,0,4,4"/>
+                                    <Button Content="Print Mine" Click="PrintMyCheckedOut_Click" Style="{StaticResource GhostButton}" Margin="0,0,4,4" ToolTip="Print only items checked out by the signed-in user."/>
                                     <Button Content="Details" Command="{Binding ViewDetailsCommand}" Style="{StaticResource GhostButton}" Margin="0,0,0,4"/>
                                 </WrapPanel>
                             </DockPanel>
@@ -260,6 +262,7 @@
                                     <MenuItem Header="Check In" Command="{Binding PlacementTarget.DataContext.ToggleCheckOutCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                                     <Separator/>
                                     <MenuItem Header="Print Checked Out" Click="PrintCheckedOut_Click"/>
+                                    <MenuItem Header="Print My Checked Out" Click="PrintMyCheckedOut_Click"/>
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
                             <DataGrid.Columns>

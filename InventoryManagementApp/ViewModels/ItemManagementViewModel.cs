@@ -30,6 +30,7 @@ namespace InventoryManagementApp.ViewModels
         private readonly IRentalService _rentalService;
         private readonly IDialogService _dialogService;
         private readonly ISettingsService _settingsService;
+        private readonly IUserContext? _userContext;
         private readonly ILogger<ItemManagementViewModel> _logger;
 
         public ObservableCollection<ItemModel> Items { get; } = new();
@@ -38,6 +39,18 @@ namespace InventoryManagementApp.ViewModels
 
         public string SearchResultsSummary => SearchResults.Count == 1 ? "1 result" : $"{SearchResults.Count} results";
         public string CheckedOutSummary => CheckedOutItems.Count == 1 ? "1 checked out" : $"{CheckedOutItems.Count} checked out";
+        public string CurrentUserName => _userContext?.UserName?.Trim() ?? string.Empty;
+
+        public IReadOnlyList<ItemModel> GetMyCheckedOutItems()
+        {
+            var userName = CurrentUserName;
+            if (string.IsNullOrWhiteSpace(userName))
+                return Array.Empty<ItemModel>();
+
+            return CheckedOutItems
+                .Where(item => string.Equals(item.CheckedOutBy?.Trim(), userName, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
 
         /// <summary>
         /// List of available item categories derived from distinct brands
@@ -158,13 +171,15 @@ namespace InventoryManagementApp.ViewModels
                                        IDialogService dialogService,
                                        ISettingsService settingsService,
                                        ILogger<ItemManagementViewModel>? logger = null,
-                                       IDispatcherTimer? searchDebounceTimer = null)
+                                       IDispatcherTimer? searchDebounceTimer = null,
+                                       IUserContext? userContext = null)
         {
             _itemService = itemService;
             _customerService = customerService;
             _rentalService = rentalService;
             _dialogService = dialogService;
             _settingsService = settingsService;
+            _userContext = userContext;
             _logger = logger ?? NullLogger<ItemManagementViewModel>.Instance;
             SearchCommand = new AsyncRelayCommand(FilterItemsAsync);
             _searchDebounceTimer = searchDebounceTimer ?? new DispatcherTimerWrapper { Interval = TimeSpan.FromMilliseconds(300) };

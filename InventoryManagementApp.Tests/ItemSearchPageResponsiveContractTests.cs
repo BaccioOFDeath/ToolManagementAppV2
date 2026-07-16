@@ -163,6 +163,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("ToggleCheckOutCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintSearchResults_Click", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintCheckedOut_Click", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Print Mine\" Click=\"PrintMyCheckedOut_Click\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Print My Checked Out\" Click=\"PrintMyCheckedOut_Click\"", xaml, StringComparison.Ordinal);
             Assert.Contains("RepeatSelectedSearch_Click", xaml, StringComparison.Ordinal);
             Assert.Contains("OpenDemandItem_Click", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintSearchIntelligence_Click", xaml, StringComparison.Ordinal);

@@ -477,6 +477,25 @@ namespace InventoryManagementApp.Views.Pages
                 UiActionGuard.Run(this, "Item Search", () => PrintItems("Currently Checked Out Items", vm.CheckedOutItems));
         }
 
+        private void PrintMyCheckedOut_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not ItemManagementViewModel vm)
+                return;
+
+            UiActionGuard.Run(this, "Item Search", () => PrintMyCheckedOutItems(vm));
+        }
+
+        private void PrintMyCheckedOutItems(ItemManagementViewModel vm)
+        {
+            if (string.IsNullOrWhiteSpace(vm.CurrentUserName))
+            {
+                ShowInfo("A signed-in user is required to print a personal checked-out list.", "Print My Checked Out Items");
+                return;
+            }
+
+            PrintItems($"My Checked Out Items - {vm.CurrentUserName}", vm.GetMyCheckedOutItems());
+        }
+
         private void PrintItems(string title, IEnumerable<ItemModel> items)
         {
             if (DataContext is ItemManagementViewModel vm && IsSearchBusy(vm))
