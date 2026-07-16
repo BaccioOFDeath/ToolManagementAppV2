@@ -10,8 +10,10 @@ using System.Windows.Controls; // WPF PrintDialog
 using System.Windows.Input;
 using System.Windows.Threading;
 using InventoryManagementApp.ViewModels;
+using InventoryManagementApp.Interfaces;
 using InventoryManagementApp.Utilities.Extensions;
 using InventoryManagementApp.Utilities.Printing;
+using Microsoft.Extensions.DependencyInjection;
 
 #nullable enable
 
@@ -22,6 +24,7 @@ namespace InventoryManagementApp.Views.Windows
         internal const double DefaultPreviewPageWidth = 816;
         internal const double DefaultPreviewPageHeight = 1056;
         private const double MinimumPrintableExtent = 320;
+        private const string CompanyLogoSettingKey = "CompanyLogoPath";
         private static readonly Thickness PrintPagePadding = new(36, 36, 36, 36);
         private static readonly Uri DefaultLogoUri = new("pack://application:,,,/Resources/DefaultLogo.png");
 
@@ -75,12 +78,27 @@ namespace InventoryManagementApp.Views.Windows
             ApplyTablePolish(document);
         }
 
-        private void LoadLogoForPreview(string path)
+        private async void LoadLogoForPreview(string path)
         {
-            if (!TryResolveCustomLogoUri(path, out var logoUri))
-                return;
+            try
+            {
+                var resolvedPath = path;
+                if (string.IsNullOrWhiteSpace(resolvedPath))
+                {
+                    var settingsService = (System.Windows.Application.Current as App)?.Host.Services.GetService<ISettingsService>();
+                    if (settingsService != null)
+                        resolvedPath = await settingsService.GetSettingAsync(CompanyLogoSettingKey).ConfigureAwait(true) ?? string.Empty;
+                }
 
-            SetPreviewLogo(logoUri);
+                if (!TryResolveCustomLogoUri(resolvedPath, out var logoUri))
+                    return;
+
+                SetPreviewLogo(logoUri);
+            }
+            catch (Exception ex) when (ex is IOException or InvalidOperationException or Microsoft.Data.Sqlite.SqliteException)
+            {
+                SetPreviewLogo(DefaultLogoUri);
+            }
         }
 
         private static bool TryResolveCustomLogoUri(string path, out Uri logoUri)

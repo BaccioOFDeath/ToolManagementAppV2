@@ -7,13 +7,13 @@ namespace InventoryManagementApp.Tests.ViewModels
     public class MainWindowShellXamlTests
     {
         [Fact]
-        public void MainWindow_UsesPersistentWorkflowStatusFooter()
+        public void MainWindow_KeepsWorkflowGuidanceInThePageHeaderOnly()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
 
-            Assert.Contains("DesktopStatusFooter", xaml, StringComparison.Ordinal);
-            Assert.Contains("Workflow status", xaml, StringComparison.Ordinal);
-            Assert.Contains("ShellWorkflowTicker", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("DesktopStatusFooter", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Workflow status", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("ShellWorkflowTicker", xaml, StringComparison.Ordinal);
             Assert.Contains("CurrentWorkflowGuide", xaml, StringComparison.Ordinal);
             Assert.Contains("TextTrimming=\"CharacterEllipsis\"", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalAlignment=\"Stretch\"", xaml, StringComparison.Ordinal);
@@ -40,12 +40,12 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("x:Name=\"ShellMenu\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"PageHeaderBand\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"WorkflowGuideText\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("x:Name=\"ShellStatusFooter\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("x:Name=\"ShellFooterRow\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("x:Name=\"ShellStatusFooter\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("x:Name=\"ShellFooterRow\"", xaml, StringComparison.Ordinal);
 
             Assert.Contains("CompactShellHeightThreshold = 820", codeBehind, StringComparison.Ordinal);
             Assert.Contains("SystemParameters.WorkArea.Height < CompactShellHeightThreshold", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("ShellStatusFooter.Visibility = compact ? Visibility.Collapsed : Visibility.Visible", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("ShellStatusFooter.Visibility", codeBehind, StringComparison.Ordinal);
             Assert.Contains("WorkflowGuideText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible", codeBehind, StringComparison.Ordinal);
             Assert.Contains("MainFrame.Margin = new Thickness(4)", codeBehind, StringComparison.Ordinal);
         }
@@ -74,17 +74,15 @@ namespace InventoryManagementApp.Tests.ViewModels
         }
 
         [Fact]
-        public void MainWindowFooter_ExplainsCurrentLocationAndNextButtonDestinations()
+        public void MainWindow_DoesNotRepeatHeaderContextInAFooter()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
 
-            Assert.Contains("CurrentNavSectionTitle", xaml, StringComparison.Ordinal);
-            Assert.Contains("CurrentPageTitle", xaml, StringComparison.Ordinal);
-            Assert.Contains("Primary: ", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("CurrentNavSectionTitle", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Primary: ", xaml, StringComparison.Ordinal);
             Assert.Contains("CurrentWorkflowPrimaryActionText", xaml, StringComparison.Ordinal);
-            Assert.Contains("Next: ", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Next: ", xaml, StringComparison.Ordinal);
             Assert.Contains("CurrentWorkflowSecondaryActionText", xaml, StringComparison.Ordinal);
-            Assert.Contains("CurrentUserRole", xaml, StringComparison.Ordinal);
         }
 
         [Fact]

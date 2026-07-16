@@ -25,14 +25,12 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void PrintPreviewWindow_ReducesSplitPressureAndKeepsDocumentCanvasScrollable()
+        public void PrintPreviewWindow_UsesTheFullWidthForTheScrollableDocumentCanvas()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Windows", "PrintPreviewWindow.xaml");
 
-            Assert.Contains("<ColumnDefinition Width=\"*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"5\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"0.32*\" MinWidth=\"220\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<GridSplitter Grid.Column=\"1\"\n                          Width=\"5\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<GridSplitter", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<ColumnDefinition Width=\"0.32*\" MinWidth=\"220\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("Style=\"{StaticResource ThemedDocumentCanvasFrame}\" MinWidth=\"0\" ClipToBounds=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("VerticalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
@@ -50,7 +48,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Command=\"{Binding PageSetupCommand}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Command=\"{Binding PrintCommand}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Command=\"{Binding CloseCommand}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Ctrl+P prints, Ctrl+Shift+P reapplies page setup, and Esc closes the preview when no print job is active.", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Ctrl+P prints", xaml, StringComparison.Ordinal);
             Assert.Contains("MinWidth=\"78\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("MaxWidth=\"330\"", xaml, StringComparison.Ordinal);
         }
@@ -81,6 +79,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("private static readonly Uri DefaultLogoUri", codeBehind, StringComparison.Ordinal);
             Assert.Contains("SetPreviewLogo(DefaultLogoUri);", codeBehind, StringComparison.Ordinal);
             Assert.Contains("Dispatcher.BeginInvoke(new Action(() => LoadLogoForPreview(_logoPath)), DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GetSettingAsync(CompanyLogoSettingKey)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("GetService<ISettingsService>()", codeBehind, StringComparison.Ordinal);
             Assert.Contains("private static bool TryResolveCustomLogoUri", codeBehind, StringComparison.Ordinal);
             Assert.Contains("return false;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (!Equals(logoUri, DefaultLogoUri))\n                    SetPreviewLogo(DefaultLogoUri);", codeBehind, StringComparison.Ordinal);

@@ -40,7 +40,6 @@
                                HorizontalAlignment="Center"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center" MinWidth="0" MaxWidth="620">
-                        <TextBlock Text="Preview Workstation" Style="{StaticResource CaptionTextBlock}"/>
                         <TextBlock x:Name="PreviewTitle"
                                    Style="{StaticResource HeadingTextBlock}"
                                    TextWrapping="Wrap"
@@ -81,88 +80,28 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="0,8,0,8" MinWidth="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" MinWidth="0"/>
-                <ColumnDefinition Width="5"/>
-                <ColumnDefinition Width="0.32*" MinWidth="220"/>
-            </Grid.ColumnDefinitions>
-
-            <Border Grid.Column="0" Style="{StaticResource ThemedWindowPane}" MinWidth="0">
-                <Grid MinWidth="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <DockPanel Grid.Row="0" LastChildFill="True" Margin="0,0,0,8" MinWidth="0">
-                        <StackPanel DockPanel.Dock="Left" MinWidth="0" Margin="0,0,12,0" MaxWidth="520">
-                            <TextBlock Text="Document Canvas" Style="{StaticResource SubheadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="Live preview of printable content with current branding, title, and page setup." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                        </StackPanel>
-                        <TextBlock DockPanel.Dock="Right" Text="Output Review" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                    </DockPanel>
-
-                    <Border Grid.Row="1" Style="{StaticResource ThemedDocumentCanvasFrame}" MinWidth="0" ClipToBounds="True">
-                        <FlowDocumentScrollViewer x:Name="DocViewer"
-                                                  Style="{StaticResource ThemedDocumentPreviewViewer}"
-                                                  IsToolBarVisible="False"
-                                                  VerticalScrollBarVisibility="Auto"
-                                                  HorizontalScrollBarVisibility="Auto"
-                                                  Focusable="True"/>
-                    </Border>
-                </Grid>
+        <Border Grid.Row="1"
+                Style="{StaticResource ThemedWindowPane}"
+                Margin="0,8"
+                MinWidth="0">
+            <Border Style="{StaticResource ThemedDocumentCanvasFrame}" MinWidth="0" ClipToBounds="True">
+                <FlowDocumentScrollViewer x:Name="DocViewer"
+                                          Style="{StaticResource ThemedDocumentPreviewViewer}"
+                                          IsToolBarVisible="False"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Auto"
+                                          Focusable="True"/>
             </Border>
-
-            <GridSplitter Grid.Column="1"
-                          Width="5"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          Background="{DynamicResource BorderBrushBase}"/>
-
-            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MinWidth="0">
-                <StackPanel Margin="8,0,0,0" MinWidth="0">
-                    <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,8" MinWidth="0">
-                        <StackPanel>
-                            <TextBlock Text="Print checklist" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
-                            <TextBlock Text="1. Confirm the title and logo match the handoff." TextWrapping="Wrap" Margin="0,6,0,0"/>
-                            <TextBlock Text="2. Use Page Setup when content needs a wider sheet." TextWrapping="Wrap" Margin="0,4,0,0"/>
-                            <TextBlock Text="3. Print only after the preview reads cleanly." TextWrapping="Wrap" Margin="0,4,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8" MinWidth="0">
-                        <StackPanel>
-                            <TextBlock Text="Fast review" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
-                            <TextBlock Text="Ctrl+P prints, Ctrl+Shift+P reapplies page setup, and Esc closes the preview when no print job is active." TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border Style="{StaticResource DesktopSummaryCard}" MinWidth="0">
-                        <StackPanel>
-                            <TextBlock Text="Available actions" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
-                            <TextBlock Text="Page setup adjusts the document width, Print opens the Windows printer dialog, and Close returns to the originating workflow." TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-            </ScrollViewer>
-        </Grid>
+        </Border>
 
         <Border Grid.Row="2" Style="{StaticResource ThemedWindowFooter}">
-            <DockPanel LastChildFill="True" MinWidth="0">
-                <TextBlock DockPanel.Dock="Left"
-                           Text="Ready for final print review"
-                           Style="{StaticResource CaptionTextBlock}"
-                           VerticalAlignment="Center"
-                           TextWrapping="Wrap"
-                           Margin="0,0,12,0"/>
-                <TextBlock x:Name="PreviewFooterStatus"
-                           Text="{Binding FooterStatus}"
-                           Style="{StaticResource CaptionTextBlock}"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Center"
-                           TextWrapping="Wrap"
-                           TextTrimming="CharacterEllipsis"/>
-            </DockPanel>
+            <TextBlock x:Name="PreviewFooterStatus"
+                       Text="{Binding FooterStatus}"
+                       Style="{StaticResource CaptionTextBlock}"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextTrimming="CharacterEllipsis"/>
         </Border>
     </Grid>
 </Window>

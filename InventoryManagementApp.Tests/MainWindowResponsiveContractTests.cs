@@ -131,18 +131,14 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void MainWindow_FooterUsesShrinkableColumnsAndWrappingStatusActions()
+        public void MainWindow_OmitsTheDuplicateWorkflowFooter()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
 
-            Assert.Contains("<ColumnDefinition Width=\"1.1*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"Auto\" MinWidth=\"0\" MaxWidth=\"145\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"1.7*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"Auto\" MinWidth=\"0\" MaxWidth=\"380\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Grid Grid.Column=\"0\" ClipToBounds=\"True\" MinWidth=\"0\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<TextBlock Text=\"Workflow status\" Style=\"{StaticResource LabelTextBlock}\" TextTrimming=\"CharacterEllipsis\" MaxWidth=\"120\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel Grid.Column=\"3\" Orientation=\"Horizontal\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" MaxWidth=\"380\"", xaml, StringComparison.Ordinal);
-            Assert.DoesNotContain("<StackPanel Grid.Column=\"3\" Orientation=\"Horizontal\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("x:Name=\"ShellStatusFooter\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Workflow status", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Primary: ", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Next: ", xaml, StringComparison.Ordinal);
         }
 
         [Fact]

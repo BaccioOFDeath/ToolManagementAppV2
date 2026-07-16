@@ -199,7 +199,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("string? description = null, string? logoPath = null", previewSource, StringComparison.Ordinal);
             Assert.Contains("PreviewDescription.Text = _description", previewSource, StringComparison.Ordinal);
             Assert.Contains("_logoPath = logoPath ?? string.Empty", previewSource, StringComparison.Ordinal);
-            Assert.Contains("TryResolveCustomLogoUri(path, out var logoUri)", previewSource, StringComparison.Ordinal);
+            Assert.Contains("TryResolveCustomLogoUri(resolvedPath, out var logoUri)", previewSource, StringComparison.Ordinal);
+            Assert.Contains("GetSettingAsync(CompanyLogoSettingKey)", previewSource, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"PreviewDescription\"", previewXaml, StringComparison.Ordinal);
         }
 

@@ -97,8 +97,6 @@ namespace InventoryManagementApp
 
             ShellSubtitle.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
             WorkflowGuideText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
-            ShellStatusFooter.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
-            ShellFooterRow.Height = compact ? new GridLength(0) : GridLength.Auto;
 
             if (compact)
             {
