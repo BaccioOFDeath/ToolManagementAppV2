@@ -13,6 +13,8 @@ namespace InventoryManagementApp.Tests.Views
 
             Assert.Contains("<DataGrid.RowHeight>56</DataGrid.RowHeight>", xaml, StringComparison.Ordinal);
             Assert.Contains("Width=\"48\" Height=\"48\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Stretch=\"Uniform\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Stretch=\"UniformToFill\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -26,6 +28,18 @@ namespace InventoryManagementApp.Tests.Views
             Assert.Contains("x:Name=\"CheckedOutGrid\"", xaml, StringComparison.Ordinal);
             Assert.Contains("RowHeight=\"64\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Width=\"44\" Height=\"44\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("UniformToFill", xaml, StringComparison.Ordinal);
+        }
+
+        [Theory]
+        [InlineData("DashboardPage.xaml")]
+        [InlineData("ManageRentalsPage.xaml")]
+        public void OtherItemRowThumbnails_ShowTheWholePhoto(string pageName)
+        {
+            var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", pageName);
+
+            Assert.Contains("Stretch=\"Uniform\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Stretch=\"UniformToFill\"", xaml, StringComparison.Ordinal);
         }
 
         private static string ReadRepositoryFile(params string[] relativePath)

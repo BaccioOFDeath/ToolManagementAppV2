@@ -395,7 +395,7 @@
                                     <DataTemplate>
                                         <Border Width="44" Height="44" Margin="4" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" ClipToBounds="True">
                                             <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
-                                                   Stretch="UniformToFill" ClipToBounds="True"
+                                                   Stretch="Uniform"
                                                    ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
                                                 <Image.ToolTip>
                                                     <ToolTip Style="{StaticResource ItemImageHoverToolTip}" Content="{Binding}"/>

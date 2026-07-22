@@ -43,7 +43,7 @@
         <Style x:Key="ResultImage" TargetType="Image">
             <Setter Property="Width" Value="58"/>
             <Setter Property="Height" Value="58"/>
-            <Setter Property="Stretch" Value="UniformToFill"/>
+            <Setter Property="Stretch" Value="Uniform"/>
             <Setter Property="SnapsToDevicePixels" Value="True"/>
         </Style>
         <Style x:Key="InsightStatCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
@@ -292,7 +292,7 @@
                                 <DataGridTemplateColumn Header="Photo" Width="52" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image Width="44" Height="44" Stretch="UniformToFill"
+                                            <Image Width="44" Height="44" Stretch="Uniform"
                                                    Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                    ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
                                                 <Image.ToolTip>
