@@ -203,6 +203,16 @@
                         </TabItem>
                     </TabControl>
 
+                    <GridSplitter Grid.Column="1"
+                                  Width="12"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  ResizeDirection="Columns"
+                                  ResizeBehavior="PreviousAndNext"
+                                  Background="{DynamicResource BorderBrushBase}"
+                                  ToolTip="Drag to resize the theme controls and preview panes"
+                                  AutomationProperties.Name="Resize theme controls and preview panes"/>
+
                     <StackPanel Grid.Column="2">
                         <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,12">
                             <StackPanel>

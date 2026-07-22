@@ -140,6 +140,10 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Header=\"04 Density and interaction\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Header=\"05 Page headers\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Theme pages", xaml, StringComparison.Ordinal);
+            Assert.Contains("<GridSplitter Grid.Column=\"1\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ResizeDirection=\"Columns\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ResizeBehavior=\"PreviousAndNext\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("AutomationProperties.Name=\"Resize theme controls and preview panes\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]

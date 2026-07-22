@@ -120,8 +120,10 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("<Style x:Key=\"DirectoryStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("Style=\"{StaticResource DirectoryStatValueText}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"1.7*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"0.95*\" MinWidth=\"300\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"2*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ColumnDefinition Width=\"0.65*\" MinWidth=\"260\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<GridSplitter Grid.Column=\"1\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("ResizeBehavior=\"PreviousAndNext\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<pages:SearchBar Width=\"240\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"New\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"Mobile Capture\"", xaml, StringComparison.Ordinal);
