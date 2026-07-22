@@ -93,7 +93,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.DoesNotContain("PageHeaderDashboardBrush", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("PageHeaderRentalsBrush", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("PageHeaderSettingsBrush", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ContentControl Grid.Row=\"2\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Frame Grid.Row=\"2\"", xaml, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)

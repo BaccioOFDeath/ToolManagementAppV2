@@ -157,18 +157,20 @@
             </ScrollViewer>
         </Border>
 
-        <ContentControl Grid.Row="2"
-                        Name="MainFrame"
-                        Background="{DynamicResource MainContentBackgroundBrush}"
-                        Content="{Binding CurrentPage}"
-                        Margin="{StaticResource PagePadding}"
-                        Focusable="False"
-                        ClipToBounds="True"
-                        SnapsToDevicePixels="True"
-                        UseLayoutRounding="True"
-                        HorizontalContentAlignment="Stretch"
-                        VerticalContentAlignment="Stretch"
-                        KeyboardNavigation.TabNavigation="Cycle"/>
+        <Frame Grid.Row="2"
+               Name="MainFrame"
+               NavigationUIVisibility="Hidden"
+               JournalOwnership="OwnsJournal"
+               Background="{DynamicResource MainContentBackgroundBrush}"
+               Content="{Binding CurrentPage}"
+               Margin="{StaticResource PagePadding}"
+               Focusable="False"
+               ClipToBounds="True"
+               SnapsToDevicePixels="True"
+               UseLayoutRounding="True"
+               HorizontalContentAlignment="Stretch"
+               VerticalContentAlignment="Stretch"
+               KeyboardNavigation.TabNavigation="Cycle"/>
 
     </Grid>
 </Window>
