@@ -4,13 +4,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource MainContentBackgroundBrush}">
     <Page.Resources>
-        <Style x:Key="ActivityStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="MinHeight" Value="78"/>
-            <Setter Property="MinWidth" Value="150"/>
-            <Setter Property="MaxWidth" Value="230"/>
-            <Setter Property="Margin" Value="0,0,8,8"/>
-        </Style>
+        <Style x:Key="ActivityStatCard" TargetType="Border" BasedOn="{StaticResource PageHeaderStatCard}"/>
         <Style x:Key="ActivityDetailCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
             <Setter Property="Padding" Value="12"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
@@ -21,7 +15,7 @@
         </Style>
     </Page.Resources>
 
-    <Grid Margin="0">
+    <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -29,28 +23,29 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
+        <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderActivityLogsBrush}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.2*" MinWidth="260"/>
                     <ColumnDefinition Width="12"/>
                     <ColumnDefinition Width="1.8*" MinWidth="320"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Activity Audit Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left">
+                    <TextBlock Text="Activity Logs" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Filter recent operational events, inspect the selected audit trail, and open the related workflow without losing row context."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
                 </StackPanel>
-                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
+                <WrapPanel Grid.Column="2" Style="{StaticResource PageHeaderStatsPanel}">
                     <Border Style="{StaticResource ActivityStatCard}">
                         <StackPanel>
                             <TextBlock Text="VISIBLE" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="{Binding FilteredLogCount, StringFormat={}{0} rows shown}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
-                                       TextWrapping="Wrap"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
@@ -60,7 +55,8 @@
                             <TextBlock Text="{Binding MatchedLogCount, StringFormat={}{0} rows matched}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
-                                       TextWrapping="Wrap"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
@@ -70,7 +66,8 @@
                             <TextBlock Text="{Binding OmittedLogCount, StringFormat={}{0} hidden from grid}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
-                                       TextWrapping="Wrap"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
@@ -80,7 +77,8 @@
                             <TextBlock Text="{Binding PrintStatusText}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
-                                       TextWrapping="Wrap"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
@@ -125,9 +123,6 @@
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
                     <TextBlock Text="Audit actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Open Related" Click="OpenRelatedPage_Click" IsEnabled="{Binding CanUseSelectedLogActions}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Open Detail" Click="OpenSelectedLog_Click" IsEnabled="{Binding CanUseSelectedLogActions}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedLog_Click" IsEnabled="{Binding CanUseSelectedLogActions}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Print Results" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintActivityRows}" Margin="0,0,4,4"/>
                         <TextBlock Text="{Binding ActivitySummary}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="6,1,0,4"/>
                     </WrapPanel>
@@ -350,20 +345,5 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="3"
-                Style="{StaticResource ToolbarCard}"
-                Margin="0,6,0,0"
-                Padding="8,5">
-            <DockPanel LastChildFill="True">
-                <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
-                    <TextBlock Text="{Binding FilteredLogCount, StringFormat='Visible: {0}'}" FontSize="11" Margin="0,0,12,0"/>
-                    <TextBlock Text="{Binding MatchedLogCount, StringFormat='Matched: {0}'}" FontSize="11" Margin="0,0,12,0"/>
-                    <TextBlock Text="{Binding OmittedLogCount, StringFormat='Hidden: {0}'}" FontSize="11" Margin="0,0,12,0"/>
-                    <TextBlock Text="{Binding TotalLogCount, StringFormat='Loaded: {0}'}" FontSize="11" Margin="0,0,12,0"/>
-                    <TextBlock Text="{Binding LastLoadedText, StringFormat='Last refresh: {0}'}" FontSize="11"/>
-                </WrapPanel>
-                <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap"/>
-            </DockPanel>
-        </Border>
     </Grid>
 </Page>

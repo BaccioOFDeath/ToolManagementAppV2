@@ -69,12 +69,14 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void ActionButtons_AppearAtTop()
+        public void CreationActionsAppearAtTopAndSelectedItemActionsStayWithTheDetailPane()
         {
             var xaml = ReadXaml();
+            var newIndex = xaml.IndexOf("Content=\"New\"");
             var editIndex = xaml.IndexOf("Content=\"Edit\"");
             var dataGridIndex = xaml.IndexOf("<DataGrid");
-            Assert.True(editIndex >= 0 && dataGridIndex >= 0 && editIndex < dataGridIndex);
+            Assert.True(newIndex >= 0 && dataGridIndex >= 0 && newIndex < dataGridIndex);
+            Assert.True(editIndex > dataGridIndex, "Selected-item actions should remain in the detail pane instead of being duplicated above the grid.");
         }
 
         [Fact]
@@ -116,12 +118,13 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadXaml();
 
-            Assert.Contains("<Setter Property=\"MinHeight\" Value=\"54\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"DirectoryStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("Style=\"{StaticResource DirectoryStatValueText}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"1.7*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"0.95*\" MinWidth=\"300\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<pages:SearchBar Width=\"240\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Padding=\"6,3\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"New\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Mobile Capture\"", xaml, StringComparison.Ordinal);
         }
 
         private static string ReadXaml()

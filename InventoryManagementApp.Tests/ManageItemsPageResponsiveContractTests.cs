@@ -11,12 +11,13 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml");
 
-            Assert.Contains("<WrapPanel Grid.Row=\"1\" Margin=\"0,0,0,5\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"230\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"0\" Style=\"{StaticResource PageHeaderBand}\" Background=\"{DynamicResource PageHeaderManageItemsBrush}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Style=\"{StaticResource PageHeaderStatsPanel}\" Margin=\"12,0,0,0\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"DirectoryStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("DirectoryStatValueText", xaml, StringComparison.Ordinal);
             Assert.Contains("Virtualized directory rows currently in memory", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Grid Grid.Row=\"1\" Margin=\"0,0,0,5\">", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<WrapPanel Grid.Row=\"1\" Margin=\"0,0,0,5\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"1.25*\"/>", xaml, StringComparison.Ordinal);
         }
 
@@ -26,7 +27,8 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageItemsPage.xaml");
 
             Assert.Contains("<StackPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\" MinWidth=\"220\" MaxWidth=\"460\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\" HorizontalAlignment=\"Right\" Margin=\"12,0,0,0\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"New\" Command=\"{Binding NewItemCommand}\" Margin=\"0,0,4,4\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Mobile Capture\" Command=\"{Binding OpenMobileCaptureCommand}\" Margin=\"0,0,4,4\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\" HorizontalAlignment=\"Right\" Margin=\"12,0,0,0\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<pages:SearchBar Width=\"240\"", xaml, StringComparison.Ordinal);
@@ -101,11 +103,11 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"320\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel>", xaml, StringComparison.Ordinal);
-            Assert.Contains("Loaded rows: {0}", xaml, StringComparison.Ordinal);
-            Assert.Contains("Page size: {0}", xaml, StringComparison.Ordinal);
-            Assert.Contains("Pending inline edits: {0}", xaml, StringComparison.Ordinal);
-            Assert.Contains("Missing images in loaded rows: {0}", xaml, StringComparison.Ordinal);
-            Assert.Contains("More rows available: {0}", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Loaded Rows\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Page Size\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Pending Edits\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Missing Images\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Loaded rows: {0}", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"300\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("VerticalScrollBarVisibility=\"Hidden\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<DockPanel LastChildFill=\"False\">\n                <TextBlock DockPanel.Dock=\"Left\" Text=\"{Binding PendingEdits.Count", xaml, StringComparison.Ordinal);

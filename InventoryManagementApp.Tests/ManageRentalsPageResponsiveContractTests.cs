@@ -11,11 +11,12 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
 
-            Assert.Contains("<WrapPanel x:Name=\"RentalStatsStrip\" Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"235\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"0\" Style=\"{StaticResource PageHeaderBand}\" Background=\"{DynamicResource PageHeaderRentalsBrush}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel x:Name=\"RentalStatsStrip\" Style=\"{StaticResource PageHeaderStatsPanel}\" Margin=\"12,0,0,0\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"RentalStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("RentalStatValueText", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Grid x:Name=\"RentalStatsStrip\" Grid.Row=\"1\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("x:Name=\"RentalStatsRow\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"1.25*\"/>", xaml, StringComparison.Ordinal);
         }
 
@@ -281,9 +282,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Style x:Key=\"RentalGridTextBlock\" TargetType=\"TextBlock\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"TextTrimming\" Value=\"CharacterEllipsis\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"ToolTip\" Value=\"{Binding Text, RelativeSource={RelativeSource Self}}\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<TextBlock Text=\"{Binding SearchSummary}\" Style=\"{StaticResource RentalDetailText}\" ToolTip=\"{Binding SearchSummary}\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<TextBlock Text=\"{Binding CheckedOutSummary}\" Style=\"{StaticResource RentalDetailText}\" ToolTip=\"{Binding CheckedOutSummary}\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<TextBlock Text=\"{Binding RequestSummary}\" Style=\"{StaticResource RentalDetailText}\" ToolTip=\"{Binding RequestSummary}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"{Binding SearchSummary}\" Style=\"{StaticResource RentalDetailText}\" TextWrapping=\"NoWrap\" TextTrimming=\"CharacterEllipsis\" ToolTip=\"{Binding SearchSummary}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"{Binding CheckedOutSummary}\" Style=\"{StaticResource RentalDetailText}\" TextWrapping=\"NoWrap\" TextTrimming=\"CharacterEllipsis\" ToolTip=\"{Binding CheckedOutSummary}\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<TextBlock Text=\"{Binding RequestSummary}\" Style=\"{StaticResource RentalDetailText}\" TextWrapping=\"NoWrap\" TextTrimming=\"CharacterEllipsis\" ToolTip=\"{Binding RequestSummary}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<RowDefinition Height=\"Auto\"/>\n                    </Grid.RowDefinitions>\n                    <Border Style=\"{StaticResource DesktopPaneHeader}\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border Grid.Row=\"3\" Style=\"{StaticResource DesktopPaneSubheader}\" Padding=\"10,6\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border Grid.Row=\"2\" Style=\"{StaticResource DesktopPaneSubheader}\" Padding=\"10,6\">", xaml, StringComparison.Ordinal);

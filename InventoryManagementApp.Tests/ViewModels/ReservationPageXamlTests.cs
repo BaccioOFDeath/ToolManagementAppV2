@@ -11,12 +11,12 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReservationPage.xaml");
 
-            Assert.Contains("Reservations Workbench", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Reservations\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ReservationResultsSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedReservationSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedReservationTitle", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedReservationNextAction", xaml, StringComparison.Ordinal);
-            Assert.Contains("SelectedReservationShelfChecklist", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("SelectedReservationShelfChecklist", xaml, StringComparison.Ordinal);
             Assert.Contains("AddReservationCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("ConfirmReservationCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("FulfillReservationCommand", xaml, StringComparison.Ordinal);

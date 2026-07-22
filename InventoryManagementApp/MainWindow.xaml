@@ -34,12 +34,10 @@
         <Grid.RowDefinitions>
             <RowDefinition x:Name="ShellHeaderRow" Height="Auto"/>
             <RowDefinition x:Name="ShellMenuRow" Height="Auto"/>
-            <RowDefinition x:Name="ShellPageHeaderRow" Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="0"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.RowSpan="4"
+        <Border Grid.RowSpan="3"
                 Background="{DynamicResource ThemeAppBackgroundOverlayBrush}"
                 IsHitTestVisible="False"/>
 
@@ -157,94 +155,7 @@
             </ScrollViewer>
         </Border>
 
-        <Border x:Name="PageHeaderBand"
-                Grid.Row="2"
-                BorderBrush="{DynamicResource BorderBrushBase}"
-                BorderThickness="0,0,0,1"
-                Effect="{DynamicResource ThemeSurfaceShadow}"
-                MinHeight="44"
-                Padding="8,6">
-            <Border.Style>
-                <Style TargetType="Border">
-                    <Setter Property="Background" Value="{DynamicResource ThemeShellHeaderBrush}"/>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Dashboard">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderDashboardBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Search">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderSearchBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="ManageItems">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderManageItemsBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Rentals">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderRentalsBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Customers">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderCustomersBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Reservations">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderReservationsBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Maintenance">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderMaintenanceBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Calibration">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderCalibrationBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Kits">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderKitsBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Categories">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderCategoriesBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Reports">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderReportsBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="ActivityLogs">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderActivityLogsBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="ImportExport">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderImportExportBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Users">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderUsersBrush}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurrentPageHeaderKey}" Value="Settings">
-                            <Setter Property="Background" Value="{DynamicResource PageHeaderSettingsBrush}"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
-            <Grid ClipToBounds="True">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" MinWidth="0"/>
-                    <ColumnDefinition Width="Auto" MinWidth="0" MaxWidth="420"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" MinWidth="0" Margin="0,0,12,0">
-                    <TextBlock Text="{Binding CurrentPageTitle}" Style="{StaticResource PageTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock x:Name="WorkflowGuideText" Text="{Binding CurrentWorkflowGuide}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                </StackPanel>
-                <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" MaxWidth="420">
-                    <Button Style="{StaticResource GhostButton}"
-                            Content="{Binding CurrentWorkflowPrimaryActionText}"
-                            Command="{Binding CurrentWorkflowPrimaryCommand}"
-                            Visibility="{Binding HasCurrentWorkflowPrimaryAction, Converter={StaticResource BoolToVis}}"
-                            MinWidth="96"
-                            MaxWidth="180"
-                            Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}"
-                            Content="{Binding CurrentWorkflowSecondaryActionText}"
-                            Command="{Binding CurrentWorkflowSecondaryCommand}"
-                            Visibility="{Binding HasCurrentWorkflowSecondaryAction, Converter={StaticResource BoolToVis}}"
-                            MinWidth="96"
-                            MaxWidth="180"
-                            Margin="0,0,0,4"/>
-                </WrapPanel>
-            </Grid>
-        </Border>
-
-        <Frame Grid.Row="3"
+        <Frame Grid.Row="2"
                Name="MainFrame"
                NavigationUIVisibility="Hidden"
                JournalOwnership="OwnsJournal"

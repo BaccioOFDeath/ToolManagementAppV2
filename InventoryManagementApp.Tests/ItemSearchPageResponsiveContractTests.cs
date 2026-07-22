@@ -12,15 +12,22 @@ namespace InventoryManagementApp.Tests
             var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml"));
 
             Assert.Contains("<DockPanel LastChildFill=\"True\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ComboBox Width=\"150\" MinWidth=\"120\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel DockPanel.Dock=\"Right\" Orientation=\"Horizontal\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel VerticalAlignment=\"Center\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Grid.Row=\"0\" Style=\"{StaticResource PageHeaderBand}\" Background=\"{DynamicResource PageHeaderSearchBrush}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<StackPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Search Tools\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ComboBox Height=\"27\" MinHeight=\"27\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Print Results\" Click=\"PrintSearchResults_Click\" Style=\"{StaticResource GhostButton}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Style=\"{StaticResource PageHeaderStatsPanel}\" MinWidth=\"0\">", xaml, StringComparison.Ordinal);
+            Assert.Equal(3, CountOccurrences(xaml, "<Border Style=\"{StaticResource PageHeaderStatCard}\">"));
             Assert.DoesNotContain("Text=\"Find item\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Text=\"{Binding SearchText, UpdateSourceTrigger=PropertyChanged}\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"320\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"180\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("Source=\"{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"No search results yet\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Binding SearchResults.Count", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Nothing is checked out\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Binding CheckedOutItems.Count", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -42,7 +49,7 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = NormalizeNewlines(ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ItemSearchPage.xaml"));
 
-            Assert.Contains("<StackPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\" MinWidth=\"180\" MaxWidth=\"420\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<StackPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\" HorizontalAlignment=\"Left\" MinWidth=\"180\" MaxWidth=\"520\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<StackPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\" MinWidth=\"170\" MaxWidth=\"360\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<StackPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\" MinWidth=\"180\" MaxWidth=\"360\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<Setter Property=\"MinWidth\" Value=\"145\"/>", xaml, StringComparison.Ordinal);

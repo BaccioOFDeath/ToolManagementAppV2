@@ -7,17 +7,8 @@
       xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
       Background="{DynamicResource MainContentBackgroundBrush}">
     <Page.Resources>
-        <Style x:Key="DirectoryStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="MinHeight" Value="54"/>
-            <Setter Property="MinWidth" Value="150"/>
-            <Setter Property="MaxWidth" Value="230"/>
-            <Setter Property="Margin" Value="0,0,6,6"/>
-        </Style>
-        <Style x:Key="DirectoryStatValueText" TargetType="TextBlock" BasedOn="{StaticResource StatisticValueTextBlock}">
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-        </Style>
+        <Style x:Key="DirectoryStatCard" TargetType="Border" BasedOn="{StaticResource PageHeaderStatCard}"/>
+        <Style x:Key="DirectoryStatValueText" TargetType="TextBlock" BasedOn="{StaticResource PageHeaderStatValueText}"/>
         <Style x:Key="DirectoryDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
@@ -81,74 +72,63 @@
     <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="8,5" Margin="0,0,0,5">
+        <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderManageItemsBrush}">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="220" MaxWidth="460">
                     <TextBlock Text="Manage Items" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Maintain the item directory, review current availability, and save inline stock/location edits before staff use live records." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
-                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0,0,0">
-                    <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="New" Command="{Binding NewItemCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="Mobile Capture" Command="{Binding OpenMobileCaptureCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="Edit" Command="{Binding EditItemCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource LoadingAwareGhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource LoadingAwareGhostButton}" Content="History" Command="{Binding OpenRentalHistoryCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource LoadingAwareGhostButton}" Content="Delete" Command="{Binding DeleteSelectedItemCommand}" CommandParameter="{Binding SelectedItem}" Margin="0,0,4,4"/>
-                </WrapPanel>
-            </DockPanel>
-        </Border>
-
-        <WrapPanel Grid.Row="1" Margin="0,0,0,5">
+                <WrapPanel Style="{StaticResource PageHeaderStatsPanel}" Margin="12,0,0,0">
             <Border Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
                     <TextBlock Text="Loaded Rows" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding Items.Count}" Style="{StaticResource DirectoryStatValueText}"/>
-                    <TextBlock Text="Virtualized directory rows currently in memory" Style="{StaticResource DirectoryDetailText}"/>
+                    <TextBlock Text="Virtualized directory rows currently in memory" Style="{StaticResource DirectoryDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
                     <TextBlock Text="Pending Edits" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding PendingEdits.Count}" Style="{StaticResource DirectoryStatValueText}"/>
-                    <TextBlock Text="Inline quantity, price, or location changes awaiting save" Style="{StaticResource DirectoryDetailText}"/>
+                    <TextBlock Text="Inline quantity, price, or location changes awaiting save" Style="{StaticResource DirectoryDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
                     <TextBlock Text="Missing Images" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding MissingImageCount}" Style="{StaticResource DirectoryStatValueText}"/>
-                    <TextBlock Text="Loaded rows still using the default item photo" Style="{StaticResource DirectoryDetailText}"/>
+                    <TextBlock Text="Loaded rows still using the default item photo" Style="{StaticResource DirectoryDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
                     <TextBlock Text="Page Size" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding PageSize}" Style="{StaticResource DirectoryStatValueText}"/>
-                    <TextBlock Text="Rows requested per directory load" Style="{StaticResource DirectoryDetailText}"/>
+                    <TextBlock Text="Rows requested per directory load" Style="{StaticResource DirectoryDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
                     <TextBlock Text="Directory Status" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Style="{StaticResource DirectoryStatusValueText}"/>
-                    <TextBlock Style="{StaticResource DirectoryStatusDetailText}"/>
+                    <TextBlock Style="{StaticResource DirectoryStatusDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
                     <TextBlock Text="Selected Item" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding SelectedItem.Name, TargetNullValue=No item selected}" Style="{StaticResource DirectoryStatValueText}"/>
-                    <TextBlock Text="{Binding SelectedItem.AvailabilityDetail, TargetNullValue='Select a row to review availability and next actions.'}" Style="{StaticResource DirectoryDetailText}"/>
+                    <TextBlock Text="{Binding SelectedItem.AvailabilityDetail, TargetNullValue='Select a row to review availability and next actions.'}" Style="{StaticResource DirectoryDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
             </Border>
-        </WrapPanel>
+                </WrapPanel>
+            </DockPanel>
+        </Border>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.7*" MinWidth="0"/>
                 <ColumnDefinition Width="6"/>
@@ -193,6 +173,8 @@
                                 <TextBox Width="56" MinWidth="48" IsEnabled="{Binding IsDirectoryBusy, Converter={StaticResource InverseBooleanConverter}}" Text="{Binding PageSize, UpdateSourceTrigger=LostFocus}"/>
                             </WrapPanel>
                             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0,0,0">
+                                <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="New" Command="{Binding NewItemCommand}" Margin="0,0,4,4"/>
+                                <Button Style="{StaticResource LoadingAwareGhostButton}" Content="Mobile Capture" Command="{Binding OpenMobileCaptureCommand}" Margin="0,0,4,4"/>
                                 <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="Save Changes" Command="{Binding CommitChangesCommand}" Margin="0,0,4,4"/>
                                 <Button Style="{StaticResource LoadingAwareGhostButton}" Content="Details" Command="{Binding ViewDetailsCommand}" Margin="0,0,4,4"/>
                             </WrapPanel>
@@ -395,27 +377,11 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Style="{StaticResource DesktopSummaryCard}">
-                                <StackPanel>
-                                    <TextBlock Text="Directory checklist" Style="{StaticResource SectionHeader}" TextWrapping="Wrap"/>
-                                    <TextBlock Text="1. Filter or sort to the right record. 2. Confirm the selected item context. 3. Save pending inline edits before leaving the page." TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
         </Grid>
 
-        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Padding="6,3" Margin="0,5,0,0">
-            <WrapPanel>
-                <TextBlock Text="{Binding Items.Count, StringFormat='Loaded rows: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <TextBlock Text="{Binding PageSize, StringFormat='Page size: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <TextBlock Text="{Binding PendingEdits.Count, StringFormat='Pending inline edits: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <TextBlock Text="{Binding MissingImageCount, StringFormat='Missing images in loaded rows: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <TextBlock Text="{Binding SelectedSortOption.DisplayName, StringFormat='Sort: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <TextBlock Text="{Binding Items.HasMoreItems, StringFormat='More rows available: {0}'}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center"/>
-            </WrapPanel>
-        </Border>
     </Grid>
 </Page>

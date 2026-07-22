@@ -11,9 +11,8 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml");
 
-            Assert.Contains("<WrapPanel Grid.Column=\"2\" HorizontalAlignment=\"Right\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"235\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Grid.Column=\"2\" Style=\"{StaticResource PageHeaderStatsPanel}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"CategoryStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("CategoryStatValueText", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"1.15*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("PRINT", xaml, StringComparison.Ordinal);
@@ -75,7 +74,6 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml");
 
-            Assert.Contains("Content=\"Print Directory\" Click=\"PrintCategories_Click\" IsEnabled=\"{Binding IsDirectoryPrintAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Header=\"Print Current Directory\" Click=\"PrintCategories_Click\" IsEnabled=\"{Binding IsDirectoryPrintAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("CategoryPrintSummary", xaml, StringComparison.Ordinal);
         }
@@ -86,7 +84,7 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml");
 
             Assert.Contains("Content=\"Open\" Click=\"OpenCategoryDetail_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Content=\"Copy Handoff\" Click=\"CopyCategory_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Copy\" Click=\"CopyCategory_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"Print Sheet\" Click=\"PrintSelectedCategory_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Header=\"Open Category Detail\" Click=\"OpenCategoryDetail_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Header=\"Copy Setup Handoff\" Click=\"CopyCategory_Click\" IsEnabled=\"{Binding IsSelectedCategoryActionAvailable}\"", xaml, StringComparison.Ordinal);

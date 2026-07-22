@@ -11,10 +11,10 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
 
-            Assert.Contains("<WrapPanel Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MinWidth\" Value=\"160\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"250\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Style=\"{StaticResource PageHeaderStatsPanel}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"UserStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Grid Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<WrapPanel Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"1.35*\"/>", xaml, StringComparison.Ordinal);
         }
 
@@ -124,8 +124,8 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
 
-            Assert.Contains("Content=\"Add User\" Command=\"{Binding AddUserCommand}\" IsEnabled=\"{Binding CanUseUserActions}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Content=\"Edit Access\" Command=\"{Binding EditUserCommand}\" IsEnabled=\"{Binding CanUseSelectedUserActions}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Add\" Command=\"{Binding AddUserCommand}\" IsEnabled=\"{Binding CanUseUserActions}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Edit User Access\" Command=\"{Binding EditUserCommand}\" IsEnabled=\"{Binding CanUseSelectedUserActions}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"Reset Password\" Click=\"ResetSelectedUser_Click\" IsEnabled=\"{Binding CanUseSelectedUserActions}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"Copy Handoff\" Click=\"CopySelectedUser_Click\" IsEnabled=\"{Binding CanUseSelectedUserActions}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"Print Directory\" Click=\"PrintUsers_Click\" IsEnabled=\"{Binding CanPrintUsers}\"", xaml, StringComparison.Ordinal);

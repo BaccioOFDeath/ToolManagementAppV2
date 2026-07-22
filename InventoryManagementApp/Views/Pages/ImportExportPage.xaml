@@ -5,20 +5,8 @@
       xmlns:helpers="clr-namespace:InventoryManagementApp.Utilities.Helpers"
       Background="{DynamicResource MainContentBackgroundBrush}">
     <Page.Resources>
-        <Style x:Key="DataOperationStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="MinHeight" Value="78"/>
-            <Setter Property="MinWidth" Value="150"/>
-            <Setter Property="MaxWidth" Value="230"/>
-            <Setter Property="Margin" Value="0,0,8,8"/>
-        </Style>
-        <Style x:Key="DataOperationStatValueText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-            <Setter Property="Margin" Value="0,3,0,0"/>
-        </Style>
+        <Style x:Key="DataOperationStatCard" TargetType="Border" BasedOn="{StaticResource PageHeaderStatCard}"/>
+        <Style x:Key="DataOperationStatValueText" TargetType="TextBlock" BasedOn="{StaticResource PageHeaderStatValueText}"/>
         <Style x:Key="DataLaneCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
             <Setter Property="Padding" Value="12"/>
             <Setter Property="Margin" Value="0,0,8,8"/>
@@ -36,7 +24,7 @@
         </Style>
     </Page.Resources>
 
-    <Grid Margin="0">
+    <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -44,40 +32,40 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
+        <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderImportExportBrush}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.15*" MinWidth="0"/>
                     <ColumnDefinition Width="10"/>
                     <ColumnDefinition Width="1.85*" MinWidth="0"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" MinWidth="220" MaxWidth="460">
-                    <TextBlock Text="Data Operations Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left" MinWidth="220" MaxWidth="460">
+                    <TextBlock Text="Import / Export" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Coordinate item files, customer directories, image mapping, backups, and result review from one controlled data desk."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
                 </StackPanel>
-                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
+                <WrapPanel Grid.Column="2" Style="{StaticResource PageHeaderStatsPanel}">
                     <Border Style="{StaticResource DataOperationStatCard}">
                         <StackPanel>
                             <TextBlock Text="ITEM DATA" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}}" Style="{StaticResource DataOperationStatValueText}"/>
-                            <TextBlock Text="CSV, JSON, XML" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            <TextBlock Text="CSV, JSON, XML" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource DataOperationStatCard}">
                         <StackPanel>
                             <TextBlock Text="CUSTOMERS" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="Directory" Style="{StaticResource DataOperationStatValueText}"/>
-                            <TextBlock Text="Import and export" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Import and export" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource DataOperationStatCard}">
                         <StackPanel>
                             <TextBlock Text="PROTECTION" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="Full Backup" Style="{StaticResource DataOperationStatValueText}"/>
-                            <TextBlock Text="Database and assets" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Database and assets" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource DataOperationStatCard}">
@@ -87,35 +75,6 @@
                         </StackPanel>
                     </Border>
                 </WrapPanel>
-            </Grid>
-        </Border>
-
-        <Border Grid.Row="1" Style="{StaticResource ToolbarCard}" Padding="10,8" Margin="0,6,0,0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <DockPanel LastChildFill="True">
-                    <TextBlock Text="Data actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <WrapPanel>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Import Items" Command="{Binding ImportItemsCommand}" MinWidth="118" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Export Items" Command="{Binding ExportItemsCommand}" MinWidth="118" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Import Customers" Command="{Binding ImportCustomersCommand}" MinWidth="132" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Export Customers" Command="{Binding ExportCustomersCommand}" MinWidth="132" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource DataActionButton}" Content="Create Full Backup" Command="{Binding BackupDatabaseCommand}"/>
-                        <Button Style="{StaticResource DataActionButton}" Content="Cancel Import" Command="{Binding CancelImportItemsCommand}" IsEnabled="{Binding ImportItemsCommand.IsRunning}"/>
-                    </WrapPanel>
-                </DockPanel>
-                <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
-                    <TextBlock Text="Result actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <WrapPanel>
-                        <Button Style="{StaticResource DataActionButton}" Content="Copy Selected" Click="CopySelectedLog_Click" IsEnabled="{Binding CanReviewSelectedLog}"/>
-                        <Button Style="{StaticResource DataActionButton}" Content="Print Log" Click="PrintLogs_Click" IsEnabled="{Binding CanPrintImportExportLogs}"/>
-                        <Button Style="{StaticResource DataActionButton}" Content="Clear Log" Command="{Binding ClearImportExportLogsCommand}"/>
-                        <TextBlock Text="{Binding LogSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="6,1,0,4" MaxWidth="520"/>
-                    </WrapPanel>
-                </DockPanel>
             </Grid>
         </Border>
 
@@ -582,13 +541,5 @@
             </TabItem>
         </TabControl>
 
-        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0" Padding="8,5">
-            <WrapPanel>
-                <TextBlock Text="{Binding LogSummary}" Style="{StaticResource CaptionTextBlock}" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="680" Margin="0,0,10,4"/>
-                <TextBlock Text="{Binding DataOperationStatus}" FontSize="11" FontWeight="SemiBold" Margin="0,0,10,4" VerticalAlignment="Center"/>
-                <TextBlock Text="{Binding DataOperationSummary}" Style="{StaticResource CaptionTextBlock}" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="520" Margin="0,0,10,4"/>
-                <ProgressBar Width="120" Height="14" IsIndeterminate="True" Visibility="{Binding IsDataOperationBusy, Converter={StaticResource BoolToVis}}" Margin="0,0,0,4"/>
-            </WrapPanel>
-        </Border>
     </Grid>
 </Page>

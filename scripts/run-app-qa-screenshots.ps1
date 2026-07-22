@@ -269,7 +269,6 @@ if ($Capture.Count -gt 0) {
     }
     $expectedFolders = @($expectedScreenshotFiles | ForEach-Object { ($_ -split '\\')[0] } | Select-Object -Unique)
     $ExpectedScreenshotCount = $expectedScreenshotFiles.Count
-    $SkipFullScreen = $true
 }
 if ($ExpectedScreenshotCount -lt $expectedScreenshotFiles.Count) {
     $ExpectedScreenshotCount = $expectedScreenshotFiles.Count

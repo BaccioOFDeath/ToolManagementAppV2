@@ -5,17 +5,8 @@
       Background="{DynamicResource MainContentBackgroundBrush}"
       Focusable="True">
     <Page.Resources>
-        <Style x:Key="RentalStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="8,4"/>
-            <Setter Property="MinWidth" Value="150"/>
-            <Setter Property="MaxWidth" Value="235"/>
-            <Setter Property="MinHeight" Value="48"/>
-            <Setter Property="Margin" Value="0,0,8,6"/>
-        </Style>
-        <Style x:Key="RentalStatValueText" TargetType="TextBlock" BasedOn="{StaticResource HeadingTextBlock}">
-            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-            <Setter Property="TextWrapping" Value="NoWrap"/>
-        </Style>
+        <Style x:Key="RentalStatCard" TargetType="Border" BasedOn="{StaticResource PageHeaderStatCard}"/>
+        <Style x:Key="RentalStatValueText" TargetType="TextBlock" BasedOn="{StaticResource PageHeaderStatValueText}"/>
         <Style x:Key="RentalDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
@@ -97,63 +88,51 @@
     <Grid x:Name="RootLayout" Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition x:Name="RentalStatsRow" Height="Auto"/>
             <RowDefinition x:Name="RentalMainRow" Height="1.55*"/>
             <RowDefinition x:Name="RentalSplitterRow" Height="6"/>
             <RowDefinition x:Name="RequestQueueRow" Height="1.25*"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
-            <DockPanel LastChildFill="False">
+        <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderRentalsBrush}">
+            <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="220" MaxWidth="520">
                     <TextBlock Text="Rentals" Style="{StaticResource PageTitleTextBlock}"/>
                     <TextBlock Text="Run active checkouts, returns, customer documents, and follow-up requests from one rental desk." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
-                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0,0,0">
-                    <Button Style="{StaticResource RentalBusyPrimaryButton}" Content="Details" Command="{Binding OpenRentalDetailsCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource RentalBusyPrimaryButton}" Content="Check In" Command="{Binding CheckInCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource RentalBusyPrimaryButton}" Content="Extend" Command="{Binding ExtendCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource RentalBusyPrimaryButton}" Content="Request" Command="{Binding PlaceRequestCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource RentalBusyGhostButton}" Content="Pick Slip" Command="{Binding PrintPickingSlipCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource RentalBusyGhostButton}" Content="Invoice" Command="{Binding PrintInvoiceCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource RentalBusyGhostButton}" Content="History" Command="{Binding OpenHistoryCommand}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource RentalBusyGhostButton}" Content="Delete" Command="{Binding DeleteRentalCommand}" Margin="0,0,0,6"/>
-                </WrapPanel>
-            </DockPanel>
-        </Border>
-
-        <WrapPanel x:Name="RentalStatsStrip" Grid.Row="1" Margin="0,0,0,6">
+                <WrapPanel x:Name="RentalStatsStrip" Style="{StaticResource PageHeaderStatsPanel}" Margin="12,0,0,0">
             <Border Style="{StaticResource RentalStatCard}">
                 <StackPanel>
                     <TextBlock Text="Filtered Rentals" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding Rentals.Count}" Style="{StaticResource RentalStatValueText}"/>
-                    <TextBlock Text="{Binding SearchSummary}" Style="{StaticResource RentalDetailText}" ToolTip="{Binding SearchSummary}"/>
+                    <TextBlock Text="{Binding SearchSummary}" Style="{StaticResource RentalDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip="{Binding SearchSummary}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource RentalStatCard}">
                 <StackPanel>
                     <TextBlock Text="Checked Out" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding ActiveRentals.Count}" Style="{StaticResource RentalStatValueText}"/>
-                    <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource RentalDetailText}" ToolTip="{Binding CheckedOutSummary}"/>
+                    <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource RentalDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip="{Binding CheckedOutSummary}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource RentalStatCard}">
                 <StackPanel>
                     <TextBlock Text="Open Requests" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding PendingRequests.Count}" Style="{StaticResource RentalStatValueText}"/>
-                    <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource RentalDetailText}" ToolTip="{Binding RequestSummary}"/>
+                    <TextBlock Text="{Binding RequestSummary}" Style="{StaticResource RentalDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip="{Binding RequestSummary}"/>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource RentalStatCard}">
                 <StackPanel>
                     <TextBlock Text="Selected Rental" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding SelectedRental.ItemNumber, TargetNullValue=No rental selected}" Style="{StaticResource RentalStatValueText}"/>
-                    <TextBlock Text="{Binding SelectedRental.CustomerName, StringFormat='Customer: {0}', TargetNullValue='Select a row to review customer, timing, and document actions.'}" Style="{StaticResource RentalDetailText}"/>
+                    <TextBlock Text="{Binding SelectedRental.CustomerName, StringFormat='Customer: {0}', TargetNullValue='Select a row to review customer, timing, and document actions.'}" Style="{StaticResource RentalDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
             </Border>
-        </WrapPanel>
+                </WrapPanel>
+            </DockPanel>
+        </Border>
 
-        <Grid Grid.Row="2" Margin="0,0,0,0">
+        <Grid Grid.Row="1" Margin="0,0,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.65*" MinWidth="0"/>
                 <ColumnDefinition Width="6"/>
@@ -357,9 +336,9 @@
             </Border>
         </Grid>
 
-        <GridSplitter Grid.Row="3" Height="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
+        <GridSplitter Grid.Row="2" Height="6" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrushBase}"/>
 
-        <Border Grid.Row="4" Style="{StaticResource Card}" Padding="0" MinWidth="0">
+        <Border Grid.Row="3" Style="{StaticResource Card}" Padding="0" MinWidth="0">
             <Grid MinWidth="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -532,6 +511,6 @@
             </Grid>
         </Border>
 
-        <ProgressBar Grid.Row="0" Grid.RowSpan="5" IsIndeterminate="True" Height="4" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
+        <ProgressBar Grid.Row="0" Grid.RowSpan="4" IsIndeterminate="True" Height="4" VerticalAlignment="Top" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
     </Grid>
 </Page>

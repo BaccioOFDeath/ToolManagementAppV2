@@ -11,13 +11,13 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "CategoriesPage.xaml");
 
-            Assert.Contains("Category Workbench", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Categories\"", xaml, StringComparison.Ordinal);
             Assert.Contains("CategoryResultsSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("CategoryFilterSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("CategorySetupSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedCategoryTitle", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedCategoryNextAction", xaml, StringComparison.Ordinal);
-            Assert.Contains("SelectedCategoryChecklist", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("SelectedCategoryChecklist", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedCategoryHandoff", xaml, StringComparison.Ordinal);
             Assert.Contains("AddCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("SaveCommand", xaml, StringComparison.Ordinal);

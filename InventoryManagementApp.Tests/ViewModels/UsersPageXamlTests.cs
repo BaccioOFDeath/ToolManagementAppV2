@@ -11,7 +11,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
 
-            Assert.Contains("Users Workbench", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Users\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Visible Users", xaml, StringComparison.Ordinal);
             Assert.Contains("Directory Filter", xaml, StringComparison.Ordinal);
             Assert.Contains("Selected Access", xaml, StringComparison.Ordinal);
@@ -36,7 +36,8 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("DesktopPaneSubheader", xaml, StringComparison.Ordinal);
             Assert.Contains("DesktopNoteCard", xaml, StringComparison.Ordinal);
             Assert.Contains("Access And Security Handoff", xaml, StringComparison.Ordinal);
-            Assert.Contains("Admin Next Step", xaml, StringComparison.Ordinal);
+            Assert.Contains("Allowed App Areas", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Admin Next Step", xaml, StringComparison.Ordinal);
             Assert.Contains("UserEmptyStateTitle", xaml, StringComparison.Ordinal);
             Assert.Contains("No users match this filter", viewModel, StringComparison.Ordinal);
             Assert.Contains("UserRow_MouseDoubleClick", xaml, StringComparison.Ordinal);

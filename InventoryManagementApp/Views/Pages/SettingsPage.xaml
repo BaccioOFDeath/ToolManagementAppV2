@@ -5,13 +5,7 @@
       Background="{DynamicResource MainContentBackgroundBrush}">
 
     <Page.Resources>
-        <Style x:Key="SettingsStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="MinWidth" Value="160"/>
-            <Setter Property="MaxWidth" Value="260"/>
-            <Setter Property="MinHeight" Value="76"/>
-            <Setter Property="Margin" Value="0,0,8,8"/>
-        </Style>
+        <Style x:Key="SettingsStatCard" TargetType="Border" BasedOn="{StaticResource PageHeaderStatCard}"/>
         <Style x:Key="SettingsActionButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
             <Setter Property="MinWidth" Value="112"/>
             <Setter Property="Margin" Value="0,0,4,4"/>
@@ -28,54 +22,54 @@
         </Style>
     </Page.Resources>
 
-    <Grid Margin="0">
+    <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
+        <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderSettingsBrush}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.15*" MinWidth="0"/>
                     <ColumnDefinition Width="8"/>
                     <ColumnDefinition Width="1.85*" MinWidth="0"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" MinWidth="0">
-                    <TextBlock Text="Admin Settings Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left" MinWidth="0">
+                    <TextBlock Text="Settings" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Control database access, workstation defaults, field visibility, brand identity, reminders, and recovery destinations from one stable admin desk."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
                 </StackPanel>
-                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
+                <WrapPanel Grid.Column="2" Style="{StaticResource PageHeaderStatsPanel}">
                     <Border Style="{StaticResource SettingsStatCard}">
                         <StackPanel>
                             <TextBlock Text="DATABASE" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding ConnectionString}" FontWeight="SemiBold" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="34" Margin="0,3,0,0"/>
-                            <TextBlock Text="Test before switching" Style="{StaticResource CaptionTextBlock}"/>
+                            <TextBlock Text="{Binding ConnectionString}" Style="{StaticResource PageHeaderStatValueText}"/>
+                            <TextBlock Text="Test before switching" Style="{StaticResource PageHeaderStatCaptionText}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource SettingsStatCard}">
                         <StackPanel>
                             <TextBlock Text="IDENTITY" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding ApplicationName}" FontWeight="SemiBold" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="34" Margin="0,3,0,0"/>
-                            <TextBlock Text="Theme, labels, logo" Style="{StaticResource CaptionTextBlock}"/>
+                            <TextBlock Text="{Binding ApplicationName}" Style="{StaticResource PageHeaderStatValueText}"/>
+                            <TextBlock Text="Theme, labels, logo" Style="{StaticResource PageHeaderStatCaptionText}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource SettingsStatCard}">
                         <StackPanel>
                             <TextBlock Text="REMINDERS" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding SelectedEmailProvider}" FontWeight="SemiBold" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="34" Margin="0,3,0,0"/>
-                            <TextBlock Text="Email and SMS" Style="{StaticResource CaptionTextBlock}"/>
+                            <TextBlock Text="{Binding SelectedEmailProvider}" Style="{StaticResource PageHeaderStatValueText}"/>
+                            <TextBlock Text="Email and SMS" Style="{StaticResource PageHeaderStatCaptionText}"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource SettingsStatCard}">
                         <StackPanel>
                             <TextBlock Text="RECOVERY" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding BackupDirectory}" FontWeight="SemiBold" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="34" Margin="0,3,0,0"/>
-                            <TextBlock Text="Export destination" Style="{StaticResource CaptionTextBlock}"/>
+                            <TextBlock Text="{Binding BackupDirectory}" Style="{StaticResource PageHeaderStatValueText}"/>
+                            <TextBlock Text="Export destination" Style="{StaticResource PageHeaderStatCaptionText}"/>
                         </StackPanel>
                     </Border>
                 </WrapPanel>
@@ -86,19 +80,6 @@
             <TabItem Style="{StaticResource DesktopSectionListTabItem}" Header="01 Service Status">
                 <Border Style="{StaticResource DesktopContentPane}">
                     <DockPanel>
-                        <Border DockPanel.Dock="Top" Style="{StaticResource DesktopSectionActionStrip}">
-                            <DockPanel LastChildFill="True">
-                                <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                                    <TextBlock Text="Admin Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,4"/>
-                                    <Button Style="{StaticResource SettingsPrimaryActionButton}" Content="Test DB" Command="{Binding TestDbCommand}"/>
-                                    <Button Style="{StaticResource SettingsPrimaryActionButton}" Content="Test Email" Command="{Binding TestEmailCommand}"/>
-                                    <Button Style="{StaticResource SettingsPrimaryActionButton}" Content="Save Email" Command="{Binding SaveEmailSettingsCommand}"/>
-                                    <Button Style="{StaticResource SettingsPrimaryActionButton}" Content="Save Messaging" Command="{Binding SaveMessagingSettingsCommand}"/>
-                                    <Button Style="{StaticResource SettingsPrimaryActionButton}" Content="Save Backup" Command="{Binding SaveBackupSettingsCommand}"/>
-                                </WrapPanel>
-                                <TextBlock Text="Current configuration snapshot" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                            </DockPanel>
-                        </Border>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                             <Grid Margin="0,8,0,0">
                                 <Grid.ColumnDefinitions>
@@ -760,11 +741,5 @@
             </TabItem>
         </TabControl>
 
-        <Border Grid.Row="2" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0" Padding="8,5">
-            <DockPanel LastChildFill="True">
-                <TextBlock DockPanel.Dock="Right" Text="Settings desk ready" FontSize="11" Margin="10,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                <TextBlock Text="Admin settings: database, defaults, item display, email, branding, messaging, and backups stay aligned from this workbench." Style="{StaticResource CaptionTextBlock}" FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center"/>
-            </DockPanel>
-        </Border>
     </Grid>
 </Page>

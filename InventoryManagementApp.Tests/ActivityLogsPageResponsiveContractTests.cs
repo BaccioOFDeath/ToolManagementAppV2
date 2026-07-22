@@ -11,9 +11,8 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml");
 
-            Assert.Contains("<WrapPanel Grid.Column=\"2\" HorizontalAlignment=\"Right\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"230\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Grid.Column=\"2\" Style=\"{StaticResource PageHeaderStatsPanel}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"ActivityStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Grid.Column=\"2\" Columns=\"4\">", xaml, StringComparison.Ordinal);
         }
 
@@ -107,9 +106,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Text=\"OMITTED\"", xaml, StringComparison.Ordinal);
             Assert.Contains("MatchedLogCount", xaml, StringComparison.Ordinal);
             Assert.Contains("OmittedLogCount", xaml, StringComparison.Ordinal);
-            Assert.Contains("StringFormat='Matched: {0}'", xaml, StringComparison.Ordinal);
-            Assert.Contains("StringFormat='Hidden: {0}'", xaml, StringComparison.Ordinal);
-            Assert.Contains("StringFormat='Loaded: {0}'", xaml, StringComparison.Ordinal);
+            Assert.Contains("StringFormat={}{0} rows matched", xaml, StringComparison.Ordinal);
+            Assert.Contains("StringFormat={}{0} hidden from grid", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("{Binding FilteredLogCount, StringFormat={}{0} visible}", xaml, StringComparison.Ordinal);
         }
 

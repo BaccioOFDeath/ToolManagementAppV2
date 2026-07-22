@@ -606,6 +606,7 @@ namespace InventoryManagementApp.ViewModels
             try
             {
                 await _itemService.UpdateItemAsync(updated, ct).ConfigureAwait(false);
+                await InvokeOnUiThreadAsync(() => ApplySuccessfulItemEdit(selected, updated)).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -616,6 +617,22 @@ namespace InventoryManagementApp.ViewModels
                 var refreshed = await RefreshItemsAfterMutationFailureAsync(updated.ItemID, ct).ConfigureAwait(false);
                 await _dialogService.ShowInfoAsync($"Failed to update {LabelProvider.Instance.ItemLabelSingular.ToLower()}: {AppendItemMutationRefreshMessage(ex.Message, refreshed)}", "Error").ConfigureAwait(false);
             }
+        }
+
+        private void ApplySuccessfulItemEdit(ItemModel original, ItemModel updated)
+        {
+            var index = Items.IndexOf(original);
+            if (index < 0)
+                index = Items.ToList().FindIndex(item => item.ItemID == updated.ItemID);
+
+            if (index >= 0)
+                Items[index] = updated;
+
+            _pendingEdits.Remove(original);
+            _pendingEdits.Remove(updated);
+            OnPropertyChanged(nameof(PendingEdits));
+            SelectedItem = updated;
+            RefreshMissingImageCount();
         }
 
         private void ViewDetails()

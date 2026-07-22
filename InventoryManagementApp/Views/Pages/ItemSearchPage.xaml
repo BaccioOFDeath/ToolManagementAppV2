@@ -61,20 +61,31 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}">
+        <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderSearchBrush}">
             <DockPanel LastChildFill="True">
-                <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <TextBlock Text="Brand" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
-                    <ComboBox Width="150" MinWidth="120" Margin="0,0,10,4" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"/>
-                </WrapPanel>
-                <WrapPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0">
-                    <Button Content="Print Results" Click="PrintSearchResults_Click" Margin="0,0,4,4"/>
-                    <Button Content="Print Checked Out" Click="PrintCheckedOut_Click" Margin="0,0,4,4"/>
-                    <Button Content="Print Mine" Click="PrintMyCheckedOut_Click" Margin="0,0,0,4" ToolTip="Print only items checked out by the signed-in user."/>
-                </WrapPanel>
-                <WrapPanel VerticalAlignment="Center" MinWidth="0">
-                    <TextBlock Text="{Binding SearchResultsSummary}" Style="{StaticResource CaptionTextBlock}" Margin="0,0,12,4" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource CaptionTextBlock}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
+                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <TextBlock Text="Search Tools" Style="{StaticResource PageTitleTextBlock}"/>
+                    <TextBlock Text="Find an item, then open or check it out." Style="{StaticResource CaptionTextBlock}"/>
+                </StackPanel>
+                <WrapPanel Style="{StaticResource PageHeaderStatsPanel}" MinWidth="0">
+                    <Border Style="{StaticResource PageHeaderStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="BRAND" Style="{StaticResource LabelTextBlock}"/>
+                            <ComboBox Height="27" MinHeight="27" Margin="0,2,0,0" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource PageHeaderStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="RESULTS" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding SearchResultsSummary}" Style="{StaticResource PageHeaderStatValueText}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource PageHeaderStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="CHECKED OUT" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding CheckedOutSummary}" Style="{StaticResource PageHeaderStatValueText}"/>
+                        </StackPanel>
+                    </Border>
                 </WrapPanel>
             </DockPanel>
         </Border>
@@ -93,16 +104,12 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Border Grid.Row="0" Style="{StaticResource DesktopPaneHeader}" Margin="0" BorderThickness="0,0,0,2">
-                        <DockPanel LastChildFill="True">
-                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="180" MaxWidth="420">
+                        <DockPanel LastChildFill="False">
+                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" HorizontalAlignment="Left" MinWidth="180" MaxWidth="520">
                                 <TextBlock Text="Search Results" Style="{StaticResource SectionHeader}" Margin="0"/>
                                 <TextBlock Text="Rows include photo, stock, holder, and location; double-click for full details." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,3,0,0"/>
                             </StackPanel>
-                            <WrapPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0">
-                                <Button Content="Details" Command="{Binding ViewDetailsCommand}" Style="{StaticResource GhostButton}" Margin="0,0,4,4"/>
-                                <Button Content="Rent Out" Command="{Binding OpenRentalsCommand}" Style="{StaticResource GhostButton}" Margin="0,0,4,4"/>
-                                <Button Content="Check Out / In" Command="{Binding ToggleCheckOutCommand}" CommandParameter="{Binding SelectedItem}" Style="{StaticResource GhostButton}" Margin="0,0,0,4"/>
-                            </WrapPanel>
+                            <Button DockPanel.Dock="Right" Content="Print Results" Click="PrintSearchResults_Click" Style="{StaticResource GhostButton}" VerticalAlignment="Center" Margin="12,0,0,0"/>
                         </DockPanel>
                     </Border>
                     <DataGrid x:Name="ResultsGrid"
@@ -211,6 +218,22 @@
                             </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
+                    <Border Grid.Row="1" MaxWidth="380" MinHeight="126" Padding="18" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                        <Border.Style>
+                            <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SearchResults.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="No search results yet" Style="{StaticResource SubheadingTextBlock}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Use the Find bar above or choose a brand, then run a search to populate the item directory." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="330" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
 
@@ -313,6 +336,22 @@
                                 </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
+                        <Border Grid.Row="1" MaxWidth="330" MinHeight="112" Padding="16" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CheckedOutItems.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="Nothing is checked out" Style="{StaticResource SubheadingTextBlock}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Checked-out items will appear here with holder and return actions." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="280" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
                     </Grid>
                 </Border>
 

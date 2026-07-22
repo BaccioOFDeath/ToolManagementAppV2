@@ -13,9 +13,8 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("<ColumnDefinition Width=\"1.15*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"1.85*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel Grid.Column=\"2\" HorizontalAlignment=\"Right\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MinWidth\" Value=\"160\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"260\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Grid.Column=\"2\" Style=\"{StaticResource PageHeaderStatsPanel}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"SettingsStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Grid.Column=\"2\" Columns=\"4\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"2*\" MinWidth=\"360\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"3*\" MinWidth=\"520\"/>", xaml, StringComparison.Ordinal);
@@ -28,8 +27,9 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("SettingsPrimaryActionButton", xaml, StringComparison.Ordinal);
             Assert.Contains("SettingsActionButton", xaml, StringComparison.Ordinal);
-            Assert.True(CountOccurrences(xaml, "<WrapPanel DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\">") >= 5);
-            Assert.Contains("<WrapPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
+            Assert.True(CountOccurrences(xaml, "<WrapPanel DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\">") >= 4);
+            Assert.DoesNotContain("<WrapPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Text=\"Admin Actions\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Orientation=\"Horizontal\" DockPanel.Dock=\"Left\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Orientation=\"Horizontal\" VerticalAlignment=\"Center\"", xaml, StringComparison.Ordinal);
         }

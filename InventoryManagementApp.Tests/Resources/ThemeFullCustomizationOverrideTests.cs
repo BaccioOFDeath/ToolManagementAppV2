@@ -28,6 +28,17 @@ namespace InventoryManagementApp.Tests.Resources
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.FullCustomizationOverrides.xaml");
 
             Assert.Contains("x:Key=\"ToolbarCard\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Key=\"PageHeaderBand\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"Height\" Value=\"90\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"MinHeight\" Value=\"90\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Key=\"PageHeaderStatCard\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"Width\" Value=\"160\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Setter Property=\"Height\" Value=\"66\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Key=\"PageHeaderStatValueText\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Key=\"PageHeaderStatCaptionText\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("x:Key=\"PageHeaderStatsPanel\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("x:Key=\"PageHeaderActionsPanel\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("x:Key=\"PageHeaderActionButton\"", xaml, StringComparison.Ordinal);
             Assert.Contains("TargetType=\"DataGridColumnHeader\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Key=\"DesktopSummaryCard\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Key=\"DesktopInsetCard\"", xaml, StringComparison.Ordinal);
