@@ -146,7 +146,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
-                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                            <Image Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                    Stretch="Uniform" ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
                                                 <Image.ToolTip>
                                                     <ToolTip Style="{StaticResource ItemImageHoverToolTip}" Content="{Binding}"/>
@@ -213,7 +213,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
-                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                            <Image Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                    Stretch="Uniform" ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
                                                 <Image.ToolTip>
                                                     <ToolTip Style="{StaticResource ItemImageHoverToolTip}" Content="{Binding}"/>
@@ -372,7 +372,7 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Width="42" Height="34" Margin="2">
-                                                    <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                                    <Image Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                            Stretch="Uniform" ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
                                                         <Image.ToolTip>
                                                             <ToolTip Style="{StaticResource ItemImageHoverToolTip}" Content="{Binding}"/>

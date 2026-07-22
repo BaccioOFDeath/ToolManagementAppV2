@@ -102,7 +102,7 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void MissingImageCount_TracksLoadedRowsWithoutUsableImages()
+        public async Task MissingImageCount_TracksLoadedRowsWithoutUsableImages()
         {
             var service = new DummyItemService();
             var dialog = new DummyDialogService();
@@ -118,10 +118,12 @@ namespace InventoryManagementApp.Tests
             {
                 vm.Items.Add(new ItemModel { ItemID = 1, ItemNumber = "NOIMAGE", ImagePath = string.Empty });
                 vm.Items.Add(new ItemModel { ItemID = 2, ItemNumber = "TMISSING-IMAGE-COUNT", ImagePath = string.Empty });
+                await vm.WaitForImageStatusRefreshAsync();
 
                 Assert.Equal(1, vm.MissingImageCount);
 
                 vm.Items[0].ImagePath = AppAssetHelper.ToAppRelativePath(fallbackPath);
+                await vm.WaitForImageStatusRefreshAsync();
 
                 Assert.Equal(0, vm.MissingImageCount);
             }

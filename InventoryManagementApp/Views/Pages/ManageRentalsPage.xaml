@@ -394,7 +394,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border Width="44" Height="44" Margin="4" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" ClipToBounds="True">
-                                            <Image Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                            <Image Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                    Stretch="Uniform"
                                                    ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
                                                 <Image.ToolTip>
@@ -441,7 +441,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
-                                    <Image Source="{Binding SelectedRequest, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}" Stretch="Uniform"/>
+                                    <Image Source="{Binding SelectedRequest, IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}" Stretch="Uniform"/>
                                 </Border>
                                 <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,8">
                                     <StackPanel>

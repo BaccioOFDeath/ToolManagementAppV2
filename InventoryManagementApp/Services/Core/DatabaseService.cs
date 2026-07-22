@@ -330,6 +330,13 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Items", "Supplier");
             EnsureIndex(conn, "Items", "Location");
             EnsureIndex(conn, "Items", "Notes");
+            EnsureIndex(conn, "Items", "UpdatedAt");
+            EnsureIndex(conn, "Items", "AvailableQuantity");
+            EnsureIndex(conn, "Items", new[] { "IsRentalItem", "NameDescription" });
+            EnsureIndex(conn, "Items", new[] { "IsCheckedOut", "IsRentalItem" });
+            EnsureIndex(conn, "Items", new[] { "CheckedOutBy", "IsCheckedOut", "IsRentalItem" });
+            EnsureIndex(conn, "Items", "CheckoutCount");
+            EnsureItemSearchIndex(conn);
             // Ensure each user has a unique username
             EnsureIndex(conn, "Users", "UserName", true);
             EnsureIndex(conn, "Customers", "Contact");
@@ -351,6 +358,56 @@ namespace InventoryManagementApp.Services.Core
             EnsureIndex(conn, "Kits", "KitNumber", true);
             EnsureIndex(conn, "KitItems", "KitID");
             EnsureIndex(conn, "KitItems", "ItemID");
+        }
+
+        private void EnsureItemSearchIndex(SqliteConnection conn)
+        {
+            try
+            {
+                const string sql = @"
+                    CREATE VIRTUAL TABLE IF NOT EXISTS ItemsSearch USING fts5(
+                        ItemNumber,
+                        NameDescription,
+                        Location,
+                        Brand,
+                        PartNumber,
+                        Supplier,
+                        Notes,
+                        Keywords,
+                        content='Items',
+                        content_rowid='ItemID',
+                        tokenize='trigram case_sensitive 0'
+                    );
+                    CREATE TRIGGER IF NOT EXISTS ItemsSearch_ai AFTER INSERT ON Items BEGIN
+                        INSERT INTO ItemsSearch(rowid, ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, Notes, Keywords)
+                        VALUES (new.ItemID, new.ItemNumber, new.NameDescription, new.Location, new.Brand, new.PartNumber, new.Supplier, new.Notes, new.Keywords);
+                    END;
+                    CREATE TRIGGER IF NOT EXISTS ItemsSearch_ad AFTER DELETE ON Items BEGIN
+                        INSERT INTO ItemsSearch(ItemsSearch, rowid, ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, Notes, Keywords)
+                        VALUES ('delete', old.ItemID, old.ItemNumber, old.NameDescription, old.Location, old.Brand, old.PartNumber, old.Supplier, old.Notes, old.Keywords);
+                    END;
+                    CREATE TRIGGER IF NOT EXISTS ItemsSearch_au AFTER UPDATE ON Items BEGIN
+                        INSERT INTO ItemsSearch(ItemsSearch, rowid, ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, Notes, Keywords)
+                        VALUES ('delete', old.ItemID, old.ItemNumber, old.NameDescription, old.Location, old.Brand, old.PartNumber, old.Supplier, old.Notes, old.Keywords);
+                        INSERT INTO ItemsSearch(rowid, ItemNumber, NameDescription, Location, Brand, PartNumber, Supplier, Notes, Keywords)
+                        VALUES (new.ItemID, new.ItemNumber, new.NameDescription, new.Location, new.Brand, new.PartNumber, new.Supplier, new.Notes, new.Keywords);
+                    END;";
+                using (var command = new SqliteCommand(sql, conn))
+                    command.ExecuteNonQuery();
+
+                using var versionCommand = new SqliteCommand("SELECT Value FROM Settings WHERE Key='ItemSearchIndexVersion';", conn);
+                if (!string.Equals(Convert.ToString(versionCommand.ExecuteScalar()), "1-trigram", StringComparison.Ordinal))
+                {
+                    using var rebuild = new SqliteCommand("INSERT INTO ItemsSearch(ItemsSearch) VALUES('rebuild');", conn);
+                    rebuild.ExecuteNonQuery();
+                    using var saveVersion = new SqliteCommand("INSERT INTO Settings(Key, Value) VALUES('ItemSearchIndexVersion', '1-trigram') ON CONFLICT(Key) DO UPDATE SET Value=excluded.Value;", conn);
+                    saveVersion.ExecuteNonQuery();
+                }
+            }
+            catch (SqliteException ex)
+            {
+                _logger.LogWarning(ex, "FTS5 item search is unavailable; item search will use the compatible SQL fallback");
+            }
         }
 
         void EnsureCurrentSchemaColumns(SqliteConnection conn)

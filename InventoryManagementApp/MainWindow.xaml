@@ -7,6 +7,8 @@
         Title="{Binding WindowTitle}" Width="1180" Height="760" MinWidth="880" MinHeight="520" WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
         Background="{DynamicResource BackgroundBrush}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
         FontFamily="{DynamicResource ThemeFontFamily}">
     <Window.Resources>
         <Style x:Key="ShellTitleButton" TargetType="Button">
@@ -155,16 +157,18 @@
             </ScrollViewer>
         </Border>
 
-        <Frame Grid.Row="2"
-               Name="MainFrame"
-               NavigationUIVisibility="Hidden"
-               JournalOwnership="OwnsJournal"
-               Background="{DynamicResource MainContentBackgroundBrush}"
-               Content="{Binding CurrentPage}"
-               Margin="{StaticResource PagePadding}"
-               Focusable="False"
-               ClipToBounds="True"
-               KeyboardNavigation.TabNavigation="Cycle"/>
+        <ContentControl Grid.Row="2"
+                        Name="MainFrame"
+                        Background="{DynamicResource MainContentBackgroundBrush}"
+                        Content="{Binding CurrentPage}"
+                        Margin="{StaticResource PagePadding}"
+                        Focusable="False"
+                        ClipToBounds="True"
+                        SnapsToDevicePixels="True"
+                        UseLayoutRounding="True"
+                        HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Stretch"
+                        KeyboardNavigation.TabNavigation="Cycle"/>
 
     </Grid>
 </Window>

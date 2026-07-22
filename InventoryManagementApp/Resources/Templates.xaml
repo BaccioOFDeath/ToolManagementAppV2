@@ -23,7 +23,7 @@
                 <Image Width="380"
                        Height="300"
                        Stretch="Uniform"
-                       Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
+                       Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"/>
                 <TextBlock Text="{Binding Name}"
                            FontWeight="SemiBold"
                            Margin="0,6,0,0"
@@ -91,7 +91,7 @@
                                Margin="4"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
-                               Source="{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                               Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                ToolTipService.InitialShowDelay="250"
                                ToolTipService.ShowDuration="60000">
                             <Image.ToolTip>

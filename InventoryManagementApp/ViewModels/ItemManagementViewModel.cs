@@ -344,8 +344,6 @@ namespace InventoryManagementApp.ViewModels
             var page = new ItemPage(1, PageSize);
             var list = new List<ItemModel>();
 
-            SearchResults.Clear();
-
             try
             {
                 if (!string.IsNullOrWhiteSpace(term))

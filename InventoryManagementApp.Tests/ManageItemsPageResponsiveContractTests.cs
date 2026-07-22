@@ -74,7 +74,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("ScrollViewer.HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.VerticalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.ScrollChanged=\"ItemDirectoryGrid_ScrollChanged\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Source=\"{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Source=\"{Binding Thumbnail, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -161,9 +161,11 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("DataContextChanged += ManageItemsPage_DataContextChanged;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("PreviewKeyDown += ManageItemsPage_PreviewKeyDown;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (ReferenceEquals(_loadedViewModel, vm))", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("if (vm.IsDirectoryBusy || vm.Items.Count > 0)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("if (vm.IsDirectoryBusy)", codeBehind, StringComparison.Ordinal);
             Assert.Contains("await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("if (!vm.IsDirectoryBusy && vm.Items.Count == 0 && vm.Items.HasMoreItems)", codeBehind, StringComparison.Ordinal);
+            Assert.Contains("await vm.EnsureLoadedAsync(_loadCts.Token);", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("vm.Dispose();", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("DataContext = null;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("if (IsItemDirectoryBusy())", codeBehind, StringComparison.Ordinal);
             Assert.Contains("e.Handled = true;", codeBehind, StringComparison.Ordinal);
             Assert.Contains("return DataContext is ItemsViewModel { IsDirectoryBusy: true };", codeBehind, StringComparison.Ordinal);

@@ -16,7 +16,7 @@ namespace InventoryManagementApp.Tests.Views
             var checkedOutGrid = xaml.Substring(gridIndex);
 
             Assert.Contains("<DataGridTemplateColumn Header=\"Image\" Width=\"58\">", checkedOutGrid, StringComparison.Ordinal);
-            Assert.Contains("Source=\"{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", checkedOutGrid, StringComparison.Ordinal);
+            Assert.Contains("Source=\"{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", checkedOutGrid, StringComparison.Ordinal);
             Assert.Contains("<Image.ToolTip>", checkedOutGrid, StringComparison.Ordinal);
             Assert.Contains("RowHeight=\"44\"", checkedOutGrid, StringComparison.Ordinal);
         }
@@ -35,7 +35,7 @@ namespace InventoryManagementApp.Tests.Views
             Assert.Contains("RowHeight=\"44\"", activeRentalsGrid, StringComparison.Ordinal);
             Assert.Contains("<DataGridTemplateColumn Header=\"Image\" Width=\"58\">", activeRentalsGrid, StringComparison.Ordinal);
             Assert.Contains("Width=\"42\" Height=\"34\"", activeRentalsGrid, StringComparison.Ordinal);
-            Assert.Contains("Source=\"{Binding Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", activeRentalsGrid, StringComparison.Ordinal);
+            Assert.Contains("Source=\"{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}\"", activeRentalsGrid, StringComparison.Ordinal);
             Assert.Contains("<Image.ToolTip>", activeRentalsGrid, StringComparison.Ordinal);
         }
 

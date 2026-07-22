@@ -224,7 +224,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border Width="48" Height="48" Background="{DynamicResource SurfaceAltBrush}" BorderBrush="{DynamicResource BorderBrushAlt}" BorderThickness="1" Margin="0,2">
-                                            <Image Source="{Binding IsAsync=True, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
+                                            <Image Source="{Binding Thumbnail, Converter={StaticResource NullToDefaultImageConverter}, ConverterParameter=item}"
                                                    Stretch="Uniform"
                                                    ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="60000">
                                                 <Image.ToolTip>

@@ -1,11 +1,19 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Windows.Media;
 
 namespace InventoryManagementApp.Models.Domain
 {
     public class ItemModel : ObservableObject
     {
+        private ImageSource? _thumbnail;
+        public ImageSource? Thumbnail
+        {
+            get => _thumbnail;
+            set => SetProperty(ref _thumbnail, value);
+        }
+
         private int _itemID;
         public int ItemID
         {

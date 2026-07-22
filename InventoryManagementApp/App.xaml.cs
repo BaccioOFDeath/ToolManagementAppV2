@@ -186,7 +186,8 @@ namespace InventoryManagementApp
                 services.AddSingleton<RentalContactLogService>();
                 services.AddSingleton<KitService>();
                 services.AddSingleton<MemoryBudget>();
-                services.AddTransient<ItemsViewModel>();
+                services.AddSingleton<ItemThumbnailCache>();
+                services.AddSingleton<ItemsViewModel>();
                 services.AddSingleton<IMainViewModel, MainViewModel>();
                 services.AddSingleton<ILoginViewModel, LoginViewModel>();
                 services.AddTransient<ItemEditWindow>();

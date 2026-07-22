@@ -56,7 +56,8 @@ namespace InventoryManagementApp.Tests
         {
             var source = ReadRepoFile("InventoryManagementApp", "Data", "ItemRepository.cs");
 
-            AssertMethodUsesProjection(source, "public async IAsyncEnumerable<Item> GetPageAsync", "public async Task<int> CountAsync");
+            Assert.Contains("QueryPageAsync(filter, page, useFullTextSearch, cancellationToken)", source, StringComparison.Ordinal);
+            AssertMethodUsesProjection(source, "private async Task<IReadOnlyList<Item>> QueryPageAsync", "private async Task<int> CountAsync(ItemFilter filter, bool");
             AssertMethodUsesProjection(source, "public async Task<Item?> GetByIdAsync", "public async Task SaveChangesAsync");
             AssertMethodUsesProjection(source, "public async Task<List<Item>> GetItemsCheckedOutByAsync", "public async Task<List<Item>> GetCheckedOutItemsAsync");
             AssertMethodUsesProjection(source, "public async Task<List<Item>> GetCheckedOutItemsAsync", "public async Task UpdateItemImageAsync");

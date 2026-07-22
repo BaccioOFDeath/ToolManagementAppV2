@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Item = InventoryManagementApp.Models.Domain.ItemModel;
 
 namespace InventoryManagementApp.Data;
@@ -12,47 +17,51 @@ namespace InventoryManagementApp.Data;
 public sealed class ItemRepository : IItemRepository
 {
     private readonly SqliteConnectionFactory _factory;
+    private readonly ILogger<ItemRepository> _logger;
     private const string ItemProjection = "ItemID, TRIM(IFNULL(ItemNumber, '')) AS ItemNumber, TRIM(IFNULL(NameDescription, '')) AS Name, TRIM(IFNULL(Location, '')) AS Location, TRIM(IFNULL(Brand, '')) AS Brand, TRIM(IFNULL(PartNumber, '')) AS PartNumber, TRIM(IFNULL(Supplier, '')) AS Supplier, PurchasedDate, TRIM(IFNULL(Notes, '')) AS Notes, TRIM(IFNULL(Keywords, '')) AS Keywords, AvailableQuantity AS QuantityOnHand, RentedQuantity, IsRentalItem, Price, TRIM(IFNULL(ImagePath, '')) AS ImagePath, IsCheckedOut, TRIM(IFNULL(CheckedOutBy, '')) AS CheckedOutBy, CheckedOutTime, TRIM(IFNULL(CheckedInBy, '')) AS CheckedInBy, CheckedInTime, IsPowered, NULLIF(TRIM(UpdatedAt), '') AS UpdatedAt, IsIncomplete, TRIM(IFNULL(MissingComponentsNotes, '')) AS MissingComponentsNotes, TRIM(IFNULL(IssuesNotes, '')) AS IssuesNotes, CheckoutCount";
 
-    public ItemRepository(SqliteConnectionFactory factory)
-        => _factory = factory;
+    public ItemRepository(SqliteConnectionFactory factory, ILogger<ItemRepository>? logger = null)
+    {
+        _factory = factory;
+        _logger = logger ?? NullLogger<ItemRepository>.Instance;
+    }
 
     public async IAsyncEnumerable<Item> GetPageAsync(ItemFilter filter, ItemPage page, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var sql = $"SELECT {ItemProjection} FROM Items";
-        var (whereClause, parameters) = BuildFilter(filter);
-        sql += whereClause;
-        var orderColumn = filter.SortField switch
+        var timer = Stopwatch.StartNew();
+        var useFullTextSearch = CanUseFullTextSearch(filter.Search);
+        IReadOnlyList<Item> items;
+        try
         {
-            SortField.Name => "NameDescription",
-            SortField.ItemNumber => "ItemNumber",
-            SortField.QuantityOnHand => "AvailableQuantity",
-            SortField.UpdatedAt => "UpdatedAt",
-            _ => "ItemID"
-        };
-        var orderDirection = filter.SortDirection == SortDirection.Ascending ? "ASC" : "DESC";
-        sql += $" ORDER BY {orderColumn} {orderDirection}, ItemID ASC LIMIT @Take OFFSET @Skip";
-        parameters.Add("Take", page.Size);
-        parameters.Add("Skip", (page.Number - 1) * page.Size);
-        await using var conn = (DbConnection)_factory.Create();
-        var command = new CommandDefinition(sql, parameters, flags: CommandFlags.None, cancellationToken: cancellationToken);
-        await using var reader = await conn.ExecuteReaderAsync(command).ConfigureAwait(false);
-        var parser = reader.GetRowParser<Item>();
-        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-        {
-            yield return parser(reader);
+            items = await QueryPageAsync(filter, page, useFullTextSearch, cancellationToken).ConfigureAwait(false);
         }
+        catch (SqliteException ex) when (useFullTextSearch)
+        {
+            _logger.LogWarning(ex, "FTS5 item query failed; using compatible SQL search for this request");
+            items = await QueryPageAsync(filter, page, false, cancellationToken).ConfigureAwait(false);
+            useFullTextSearch = false;
+        }
+
+        _logger.LogInformation("Item repository page {PageNumber} returned {ItemCount} rows via {SearchMode} in {ElapsedMilliseconds} ms",
+            page.Number, items.Count, useFullTextSearch ? "FTS5" : "indexed SQL", timer.ElapsedMilliseconds);
+        foreach (var item in items)
+            yield return item;
     }
 
     public async Task<int> CountAsync(ItemFilter filter, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        var sql = "SELECT COUNT(*) FROM Items";
-        var (whereClause, parameters) = BuildFilter(filter);
-        sql += whereClause;
-        await using var conn = (DbConnection)_factory.Create();
-        return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, parameters, cancellationToken: ct));
+        var useFullTextSearch = CanUseFullTextSearch(filter.Search);
+        try
+        {
+            return await CountAsync(filter, useFullTextSearch, ct).ConfigureAwait(false);
+        }
+        catch (SqliteException ex) when (useFullTextSearch)
+        {
+            _logger.LogWarning(ex, "FTS5 item count failed; using compatible SQL search for this request");
+            return await CountAsync(filter, false, ct).ConfigureAwait(false);
+        }
     }
 
     public async Task<Item?> GetByIdAsync(int id, CancellationToken ct)
@@ -314,6 +323,63 @@ public sealed class ItemRepository : IItemRepository
         await using var conn = (DbConnection)_factory.Create();
         var items = await conn.QueryAsync<Item>(new CommandDefinition(sql, cancellationToken: ct)).ConfigureAwait(false);
         return items.AsList();
+    }
+
+    private async Task<IReadOnlyList<Item>> QueryPageAsync(ItemFilter filter, ItemPage page, bool useFullTextSearch, CancellationToken ct)
+    {
+        var sql = $"SELECT {ItemProjection} FROM Items";
+        var (whereClause, parameters) = useFullTextSearch ? BuildFullTextFilter(filter) : BuildFilter(filter);
+        sql += whereClause;
+        var orderColumn = filter.SortField switch
+        {
+            SortField.Name => "NameDescription",
+            SortField.ItemNumber => "ItemNumber",
+            SortField.QuantityOnHand => "AvailableQuantity",
+            SortField.UpdatedAt => "UpdatedAt",
+            _ => "ItemID"
+        };
+        var orderDirection = filter.SortDirection == SortDirection.Ascending ? "ASC" : "DESC";
+        sql += $" ORDER BY {orderColumn} {orderDirection}, ItemID ASC LIMIT @Take OFFSET @Skip";
+        parameters.Add("Take", page.Size);
+        parameters.Add("Skip", (page.Number - 1) * page.Size);
+        await using var conn = (DbConnection)_factory.Create();
+        var rows = await conn.QueryAsync<Item>(new CommandDefinition(sql, parameters, cancellationToken: ct)).ConfigureAwait(false);
+        return rows.AsList();
+    }
+
+    private async Task<int> CountAsync(ItemFilter filter, bool useFullTextSearch, CancellationToken ct)
+    {
+        var sql = "SELECT COUNT(*) FROM Items";
+        var (whereClause, parameters) = useFullTextSearch ? BuildFullTextFilter(filter) : BuildFilter(filter);
+        sql += whereClause;
+        await using var conn = (DbConnection)_factory.Create();
+        return await conn.ExecuteScalarAsync<int>(new CommandDefinition(sql, parameters, cancellationToken: ct)).ConfigureAwait(false);
+    }
+
+    private static bool CanUseFullTextSearch(string? search)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+            return false;
+        var tokens = search.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return tokens.Length > 0 && tokens.All(token => token.Length >= 3);
+    }
+
+    private static (string WhereClause, DynamicParameters Parameters) BuildFullTextFilter(ItemFilter filter)
+    {
+        var parameters = new DynamicParameters();
+        var tokens = filter.Search!.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var query = string.Join(" AND ", tokens.Select(token => $"\"{token.Replace("\"", "\"\"")}\""));
+        var conditions = new List<string>
+        {
+            "ItemID IN (SELECT rowid FROM ItemsSearch WHERE ItemsSearch MATCH @FullTextQuery)"
+        };
+        parameters.Add("FullTextQuery", query);
+        if (filter.IsRentalItem.HasValue)
+        {
+            conditions.Add("IsRentalItem=@IsRental");
+            parameters.Add("IsRental", filter.IsRentalItem.Value ? 1 : 0);
+        }
+        return (" WHERE " + string.Join(" AND ", conditions), parameters);
     }
 
     private static (string WhereClause, DynamicParameters Parameters) BuildFilter(ItemFilter filter)

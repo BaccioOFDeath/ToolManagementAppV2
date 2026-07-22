@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -11,13 +12,16 @@ using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using InventoryManagementApp.Data;
 using InventoryManagementApp.Interfaces;
+using InventoryManagementApp.Messages;
 using InventoryManagementApp.Models.Domain;
 using InventoryManagementApp.Models;
 using InventoryManagementApp.Utilities;
 using InventoryManagementApp.Utilities.Helpers;
 using InventoryManagementApp.Services.MobileCapture;
+using InventoryManagementApp.Services.Items;
 using InventoryManagementApp.Views.Windows;
 using Microsoft.Extensions.Logging;
 using Application = System.Windows.Application;
@@ -34,8 +38,16 @@ namespace InventoryManagementApp.ViewModels
         private readonly IUserContext? _userContext;
         private readonly MobileCaptureService? _mobileCaptureService;
         private readonly ILogger<ItemsViewModel> _logger;
+        private readonly ItemThumbnailCache? _thumbnailCache;
         private CancellationTokenSource _filterCts = new();
         private CancellationTokenSource _loadCts = new();
+        private CancellationTokenSource _imageScanCts = new();
+        private CancellationTokenSource _thumbnailCts = new();
+        private readonly SemaphoreSlim _initializeGate = new(1, 1);
+        private readonly HashSet<ItemModel> _observedItems = new();
+        private Task _imageStatusRefreshTask = Task.CompletedTask;
+        private bool _hasInitialized;
+        private int _cacheStale;
         private bool _disposed;
         private bool _suppressViewOptionRefresh;
         private readonly List<ItemModel> _pendingEdits = new();
@@ -125,7 +137,7 @@ namespace InventoryManagementApp.ViewModels
 
         public ObservableCollection<SortOption> SortOptions { get; }
 
-        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ISettingsService settingsService, ILogger<ItemsViewModel> logger, MobileCaptureService? mobileCaptureService = null, IUserContext? userContext = null)
+        public ItemsViewModel(IItemService itemService, MemoryBudget memoryBudget, IDialogService dialogService, IRentalService rentalService, ISettingsService settingsService, ILogger<ItemsViewModel> logger, MobileCaptureService? mobileCaptureService = null, IUserContext? userContext = null, ItemThumbnailCache? thumbnailCache = null)
         {
             _itemService = itemService;
             _memoryBudget = memoryBudget;
@@ -135,7 +147,8 @@ namespace InventoryManagementApp.ViewModels
             _mobileCaptureService = mobileCaptureService;
             _userContext = userContext;
             _logger = logger;
-            Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize);
+            _thumbnailCache = thumbnailCache;
+            Items = new IncrementalLoadingCollection<ItemModel>(LoadPageAsync, PageSize, OnCollectionBatchApplied);
             SearchCommand = new AsyncRelayCommand(StartFilterAsync);
             SortOptions = new ObservableCollection<SortOption>(new[]
             {
@@ -153,6 +166,9 @@ namespace InventoryManagementApp.ViewModels
             VisibleFields = Enum.GetValues<ItemDetailField>().ToDictionary(f => f, _ => true);
             _memoryBudget.SteadyExceeded += OnSteadyExceeded;
             _memoryBudget.PeakExceeded += OnPeakExceeded;
+            _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
+            if (_userContext is not null)
+                _userContext.UserChanged += OnCurrentUserChanged;
 
             EditItemCommand = new AsyncRelayCommand(ct => EditItemAsync(ct));
             ViewDetailsCommand = new RelayCommand(ViewDetails);
@@ -164,6 +180,11 @@ namespace InventoryManagementApp.ViewModels
             CommitChangesCommand = new AsyncRelayCommand(ct => CommitChangesAsync(ct));
             Items.CollectionChanged += Items_CollectionChanged;
             ((INotifyPropertyChanged)Items).PropertyChanged += Items_PropertyChanged;
+            WeakReferenceMessenger.Default.Register<DomainDataChangedMessage>(this, (_, message) =>
+            {
+                if (message.Includes(DomainDataScope.Items | DomainDataScope.Categories | DomainDataScope.Kits))
+                    Interlocked.Exchange(ref _cacheStale, 1);
+            });
         }
 
         partial void OnSelectedItemChanged(ItemModel? value)
@@ -173,6 +194,13 @@ namespace InventoryManagementApp.ViewModels
 
         public async Task InitializeAsync(CancellationToken ct = default)
         {
+            await _initializeGate.WaitAsync(ct).ConfigureAwait(false);
+            if (_hasInitialized)
+            {
+                _initializeGate.Release();
+                return;
+            }
+
             IsInitializing = true;
             _suppressViewOptionRefresh = true;
             try
@@ -208,7 +236,7 @@ namespace InventoryManagementApp.ViewModels
                 VisibleFields = complete;
                 if (vis.Count != complete.Count)
                     await _settingsService.SaveItemDetailVisibilityAsync(complete, ct).ConfigureAwait(false);
-                _settingsService.ItemDetailVisibilityChanged += OnItemDetailVisibilityChanged;
+                _hasInitialized = true;
             }
             catch (OperationCanceledException)
             {
@@ -218,7 +246,23 @@ namespace InventoryManagementApp.ViewModels
             {
                 _suppressViewOptionRefresh = false;
                 IsInitializing = false;
+                _initializeGate.Release();
             }
+        }
+
+        public async Task EnsureLoadedAsync(CancellationToken ct = default)
+        {
+            var timer = Stopwatch.StartNew();
+            await InitializeAsync(ct).ConfigureAwait(false);
+            if (Items.Count == 0 && Items.HasMoreItems)
+            {
+                await LoadMoreAsync(ct).ConfigureAwait(false);
+                Interlocked.Exchange(ref _cacheStale, 0);
+            }
+            else if (Interlocked.Exchange(ref _cacheStale, 0) != 0)
+                await RefreshAsync(ct).ConfigureAwait(false);
+
+            _logger.LogInformation("Item directory ready with {ItemCount} rows in {ElapsedMilliseconds} ms", Items.Count, timer.ElapsedMilliseconds);
         }
 
         void OnItemDetailVisibilityChanged(object? sender, IDictionary<ItemDetailField, bool> visibility)
@@ -236,6 +280,7 @@ namespace InventoryManagementApp.ViewModels
 
         private async Task<IList<ItemModel>> LoadPageAsync(int page, CancellationToken ct)
         {
+            var timer = Stopwatch.StartNew();
             try
             {
                 var result = new List<ItemModel>();
@@ -245,9 +290,9 @@ namespace InventoryManagementApp.ViewModels
                     : _itemService.SearchItemsAsync(Filter, pageInfo, SelectedSortOption.Field, SelectedSortOption.Direction, cancellationToken: ct);
                 await foreach (var item in source.WithCancellation(ct).ConfigureAwait(false))
                 {
-                    item.PropertyChanged += Item_PropertyChanged;
                     result.Add(item);
                 }
+                _logger.LogDebug("Item query page {PageNumber} returned {ItemCount} rows in {ElapsedMilliseconds} ms", page, result.Count, timer.ElapsedMilliseconds);
                 return result;
             }
             catch (OperationCanceledException)
@@ -293,6 +338,7 @@ namespace InventoryManagementApp.ViewModels
                     ? Items.FirstOrDefault(item => item.ItemID == selectedId.Value)
                     : null;
             }).ConfigureAwait(false);
+            Interlocked.Exchange(ref _cacheStale, 0);
         }
 
         private Task StartFilterAsync()
@@ -480,7 +526,11 @@ namespace InventoryManagementApp.ViewModels
         {
             if (sender is not ItemModel item) return;
             if (e.PropertyName == nameof(ItemModel.ImagePath) || e.PropertyName == nameof(ItemModel.ItemNumber))
+            {
+                item.Thumbnail = null;
                 RefreshMissingImageCount();
+                QueueThumbnailLoad(item);
+            }
 
             if (e.PropertyName == nameof(ItemModel.QuantityOnHand) || e.PropertyName == nameof(ItemModel.Location) || e.PropertyName == nameof(ItemModel.Price))
             {
@@ -494,19 +544,18 @@ namespace InventoryManagementApp.ViewModels
 
         private void Items_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.OldItems != null)
+            var currentItems = Items.ToHashSet();
+            foreach (var removed in _observedItems.Where(item => !currentItems.Contains(item)).ToArray())
             {
-                foreach (var oldItem in e.OldItems.OfType<ItemModel>())
-                    oldItem.PropertyChanged -= Item_PropertyChanged;
+                removed.PropertyChanged -= Item_PropertyChanged;
+                _observedItems.Remove(removed);
             }
 
-            if (e.NewItems != null)
+            foreach (var added in currentItems.Where(item => !_observedItems.Contains(item)))
             {
-                foreach (var newItem in e.NewItems.OfType<ItemModel>())
-                {
-                    newItem.PropertyChanged -= Item_PropertyChanged;
-                    newItem.PropertyChanged += Item_PropertyChanged;
-                }
+                added.PropertyChanged += Item_PropertyChanged;
+                _observedItems.Add(added);
+                QueueThumbnailLoad(added);
             }
 
             RefreshMissingImageCount();
@@ -518,18 +567,98 @@ namespace InventoryManagementApp.ViewModels
                 OnPropertyChanged(nameof(IsDirectoryBusy));
         }
 
+        public Task WaitForImageStatusRefreshAsync() => _imageStatusRefreshTask;
+
         private void RefreshMissingImageCount()
         {
-            MissingImageCount = Items.Count(ItemIsMissingImage);
+            _imageScanCts.Cancel();
+            _imageScanCts.Dispose();
+            _imageScanCts = new CancellationTokenSource();
+            var token = _imageScanCts.Token;
+            var snapshot = Items.Select(item => new ImageStatusSnapshot(item.ImagePath, item.ItemNumber)).ToArray();
+            _imageStatusRefreshTask = RefreshMissingImageCountAsync(snapshot, token);
         }
 
-        private static bool ItemIsMissingImage(ItemModel item)
+        private void OnCurrentUserChanged(object? sender, User? user)
+        {
+            Interlocked.Exchange(ref _cacheStale, 1);
+            _hasInitialized = false;
+            InvokeOnUiThread(() =>
+            {
+                _suppressViewOptionRefresh = true;
+                try
+                {
+                    Filter = string.Empty;
+                    Items.Reset();
+                    SelectedItem = null;
+                }
+                finally
+                {
+                    _suppressViewOptionRefresh = false;
+                }
+            });
+        }
+
+        private async Task RefreshMissingImageCountAsync(ImageStatusSnapshot[] snapshot, CancellationToken token)
+        {
+            var timer = Stopwatch.StartNew();
+            try
+            {
+                var missing = await Task.Run(() => snapshot.Count(ItemIsMissingImage), token).ConfigureAwait(false);
+                token.ThrowIfCancellationRequested();
+                await InvokeOnUiThreadAsync(() => MissingImageCount = missing).ConfigureAwait(false);
+                _logger.LogInformation("Scanned {ItemCount} item image paths in {ElapsedMilliseconds} ms", snapshot.Length, timer.ElapsedMilliseconds);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private static bool ItemIsMissingImage(ImageStatusSnapshot item)
         {
             if (HasUsableImagePath(item.ImagePath))
                 return false;
 
             return !HasItemNumberImageFallback(item.ItemNumber);
         }
+
+        private void QueueThumbnailLoad(ItemModel item)
+        {
+            if (_thumbnailCache is null || item.Thumbnail is not null || _thumbnailCts.IsCancellationRequested)
+                return;
+
+            _ = LoadThumbnailAsync(item, _thumbnailCts.Token);
+        }
+
+        private async Task LoadThumbnailAsync(ItemModel item, CancellationToken token)
+        {
+            var timer = Stopwatch.StartNew();
+            try
+            {
+                var thumbnail = await _thumbnailCache!.GetAsync(item, token).ConfigureAwait(false);
+                if (thumbnail is null || token.IsCancellationRequested)
+                    return;
+                await InvokeOnUiThreadAsync(() => item.Thumbnail = thumbnail).ConfigureAwait(false);
+                if (timer.ElapsedMilliseconds >= 100)
+                    _logger.LogInformation("Slow item thumbnail {ItemId} completed in {ElapsedMilliseconds} ms", item.ItemID, timer.ElapsedMilliseconds);
+                else
+                    _logger.LogDebug("Item {ItemId} thumbnail ready in {ElapsedMilliseconds} ms", item.ItemID, timer.ElapsedMilliseconds);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Unable to load thumbnail for item {ItemId}", item.ItemID);
+            }
+        }
+
+        private void OnCollectionBatchApplied(int itemCount, TimeSpan elapsed)
+        {
+            _logger.LogInformation("Applied {ItemCount} item rows to the directory in one UI batch in {ElapsedMilliseconds} ms", itemCount, elapsed.TotalMilliseconds);
+        }
+
+        private sealed record ImageStatusSnapshot(string? ImagePath, string? ItemNumber);
 
         private static bool HasUsableImagePath(string? imagePath)
         {
@@ -847,10 +976,15 @@ namespace InventoryManagementApp.ViewModels
             _disposed = true;
             _memoryBudget.SteadyExceeded -= OnSteadyExceeded;
             _memoryBudget.PeakExceeded -= OnPeakExceeded;
+            _settingsService.ItemDetailVisibilityChanged -= OnItemDetailVisibilityChanged;
+            if (_userContext is not null)
+                _userContext.UserChanged -= OnCurrentUserChanged;
             Items.CollectionChanged -= Items_CollectionChanged;
             ((INotifyPropertyChanged)Items).PropertyChanged -= Items_PropertyChanged;
-            foreach (var item in Items)
+            foreach (var item in _observedItems)
                 item.PropertyChanged -= Item_PropertyChanged;
+            _observedItems.Clear();
+            WeakReferenceMessenger.Default.UnregisterAll(this);
             var dispatcher = Application.Current?.Dispatcher;
             if (dispatcher == null || dispatcher.CheckAccess())
                 Items.Reset();
@@ -860,6 +994,11 @@ namespace InventoryManagementApp.ViewModels
             _filterCts.Dispose();
             _loadCts.Cancel();
             _loadCts.Dispose();
+            _imageScanCts.Cancel();
+            _imageScanCts.Dispose();
+            _thumbnailCts.Cancel();
+            _thumbnailCts.Dispose();
+            _initializeGate.Dispose();
         }
 
         private static void InvokeOnUiThread(Action action)
@@ -887,8 +1026,10 @@ namespace InventoryManagementApp.ViewModels
     public class IncrementalLoadingCollection<T> : ObservableCollection<T>
     {
         private readonly Func<int, CancellationToken, Task<IList<T>>> _loader;
+        private readonly Action<int, TimeSpan>? _batchApplied;
         private int _pageSize;
         private int _page;
+        private bool _deferNotifications;
         private readonly SemaphoreSlim _gate = new(1, 1);
         public bool HasMoreItems { get; private set; } = true;
         private bool _isLoading;
@@ -910,10 +1051,11 @@ namespace InventoryManagementApp.ViewModels
             set => _pageSize = value;
         }
 
-        public IncrementalLoadingCollection(Func<int, CancellationToken, Task<IList<T>>> loader, int pageSize)
+        public IncrementalLoadingCollection(Func<int, CancellationToken, Task<IList<T>>> loader, int pageSize, Action<int, TimeSpan>? batchApplied = null)
         {
             _loader = loader;
             _pageSize = pageSize;
+            _batchApplied = batchApplied;
         }
 
         public async Task LoadMoreAsync(CancellationToken ct = default)
@@ -929,16 +1071,11 @@ namespace InventoryManagementApp.ViewModels
                 var dispatcher = Application.Current?.Dispatcher;
                 if (dispatcher == null || dispatcher.CheckAccess())
                 {
-                    foreach (var item in result)
-                        Add(item);
+                    AddRange(result);
                 }
                 else
                 {
-                    await dispatcher.InvokeAsync(() =>
-                    {
-                        foreach (var item in result)
-                            Add(item);
-                    });
+                    await dispatcher.InvokeAsync(() => AddRange(result));
                 }
                 _page = next;
                 if (result.Count < _pageSize)
@@ -960,11 +1097,68 @@ namespace InventoryManagementApp.ViewModels
 
         public void ResetWith(IList<T> items)
         {
-            Clear();
-            foreach (var item in items)
-                Add(item);
+            ReplaceAll(items);
             _page = items.Count > 0 ? 1 : 0;
             HasMoreItems = items.Count == _pageSize;
+        }
+
+        public void AddRange(IEnumerable<T> items)
+        {
+            var batch = items as IList<T> ?? items.ToList();
+            if (batch.Count == 0)
+                return;
+
+            var timer = Stopwatch.StartNew();
+            _deferNotifications = true;
+            try
+            {
+                foreach (var item in batch)
+                    Items.Add(item);
+            }
+            finally
+            {
+                _deferNotifications = false;
+            }
+            RaiseResetNotifications();
+            _batchApplied?.Invoke(batch.Count, timer.Elapsed);
+        }
+
+        private void ReplaceAll(IEnumerable<T> items)
+        {
+            var batch = items as IList<T> ?? items.ToList();
+            var timer = Stopwatch.StartNew();
+            _deferNotifications = true;
+            try
+            {
+                Items.Clear();
+                foreach (var item in batch)
+                    Items.Add(item);
+            }
+            finally
+            {
+                _deferNotifications = false;
+            }
+            RaiseResetNotifications();
+            _batchApplied?.Invoke(batch.Count, timer.Elapsed);
+        }
+
+        protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+        {
+            if (!_deferNotifications)
+                base.OnCollectionChanged(e);
+        }
+
+        protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            if (!_deferNotifications)
+                base.OnPropertyChanged(e);
+        }
+
+        private void RaiseResetNotifications()
+        {
+            base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Count)));
+            base.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+            base.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         public void TrimToWindow(int max)

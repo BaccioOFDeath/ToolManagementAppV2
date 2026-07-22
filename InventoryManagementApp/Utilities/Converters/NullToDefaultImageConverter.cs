@@ -140,10 +140,12 @@ namespace InventoryManagementApp.Utilities.Converters
 
                 if (isLocalFile)
                 {
+                    if (_invalidPaths.TryGetValue(path, out _))
+                        return false;
+
                     if (absPath == null || !File.Exists(absPath))
                     {
-                        if (!_invalidPaths.TryGetValue(path, out _))
-                            CacheInvalidPath(path);
+                        CacheInvalidPath(path);
                         return false;
                     }
 

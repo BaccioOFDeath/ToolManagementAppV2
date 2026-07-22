@@ -109,19 +109,21 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("<RowDefinition x:Name=\"ShellHeaderRow\" Height=\"Auto\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<RowDefinition x:Name=\"ShellMenuRow\" Height=\"Auto\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Frame Grid.Row=\"2\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<ContentControl Grid.Row=\"2\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("x:Name=\"PageHeaderBand\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("CurrentWorkflowPrimaryCommand", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
-        public void MainWindow_FrameKeepsNavigationChromeOutOfPageKeyboardFlow()
+        public void MainWindow_ContentHostAvoidsNavigationRelayoutAndStaysOutOfPageKeyboardFlow()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
 
             Assert.Contains("Name=\"MainFrame\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("NavigationUIVisibility=\"Hidden\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("JournalOwnership=\"OwnsJournal\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<Frame", xaml, StringComparison.Ordinal);
+            Assert.Contains("UseLayoutRounding=\"True\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("HorizontalContentAlignment=\"Stretch\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("VerticalContentAlignment=\"Stretch\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Focusable=\"False\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ClipToBounds=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("KeyboardNavigation.TabNavigation=\"Cycle\"", xaml, StringComparison.Ordinal);

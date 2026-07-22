@@ -88,16 +88,13 @@ namespace InventoryManagementApp.Views.Pages
 
             _loadedViewModel = vm;
 
-            if (vm.IsDirectoryBusy || vm.Items.Count > 0)
+            if (vm.IsDirectoryBusy)
                 return;
 
             try
             {
                 await System.Windows.Threading.Dispatcher.Yield(System.Windows.Threading.DispatcherPriority.Background);
-                await vm.InitializeAsync(_loadCts.Token);
-
-                if (!vm.IsDirectoryBusy && vm.Items.Count == 0 && vm.Items.HasMoreItems)
-                    await vm.LoadMoreAsync(_loadCts.Token);
+                await vm.EnsureLoadedAsync(_loadCts.Token);
             }
             catch (OperationCanceledException)
             {
@@ -110,11 +107,6 @@ namespace InventoryManagementApp.Views.Pages
         {
             _loadCts.Cancel();
             _loadedViewModel = null;
-            if (DataContext is ItemsViewModel vm)
-            {
-                vm.Dispose();
-                DataContext = null;
-            }
             _loadCts.Dispose();
             _loadCts = new CancellationTokenSource();
         }
