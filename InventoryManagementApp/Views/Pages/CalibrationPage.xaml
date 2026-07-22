@@ -3,16 +3,10 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource MainContentBackgroundBrush}">
     <Page.Resources>
-        <Style x:Key="CalibrationMetricCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="MinHeight" Value="76"/>
-            <Setter Property="MinWidth" Value="150"/>
-            <Setter Property="MaxWidth" Value="235"/>
-            <Setter Property="Margin" Value="0,0,8,8"/>
-        </Style>
+        <Style x:Key="CalibrationMetricCard" TargetType="Border" BasedOn="{StaticResource PageHeaderStatCard}"/>
     </Page.Resources>
 
-    <Grid Margin="0">
+    <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -20,7 +14,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Style="{StaticResource ToolbarCard}" Padding="12,10">
+        <Border Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderCalibrationBrush}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.15*" MinWidth="0"/>
@@ -28,37 +22,37 @@
                     <ColumnDefinition Width="2.85*" MinWidth="0"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Calibration Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left">
+                    <TextBlock Text="Calibration" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Track certificate readiness, overdue renewals, shelf-release status, and technician handoffs from one calibration register."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
                 </StackPanel>
 
-                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
+                <WrapPanel Grid.Column="2" Style="{StaticResource PageHeaderStatsPanel}">
                     <Border Style="{StaticResource CalibrationMetricCard}">
                         <StackPanel>
                             <TextBlock Text="REGISTER" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding CalibrationResultsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding CalibrationResultsSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource CalibrationMetricCard}">
                         <StackPanel>
                             <TextBlock Text="DUE STATE" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding CalibrationBacklogSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding CalibrationBacklogSummary}" FontSize="15" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource CalibrationMetricCard}">
                         <StackPanel>
                             <TextBlock Text="SELECTED" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding SelectedRecord.StatusDisplay, TargetNullValue='No certificate selected', FallbackValue='No certificate selected'}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding SelectedRecord.StatusDisplay, TargetNullValue='No certificate selected', FallbackValue='No certificate selected'}" FontSize="15" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource CalibrationMetricCard}">
                         <StackPanel>
                             <TextBlock Text="PRINT" Style="{StaticResource LabelTextBlock}"/>
-                            <TextBlock Text="{Binding CalibrationPrintStatus}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding CalibrationPrintStatus}" FontSize="15" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
                 </WrapPanel>
@@ -75,11 +69,6 @@
                     <TextBlock Text="Certificate actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
                         <Button Style="{StaticResource PrimaryButton}" Content="Add Record" Command="{Binding AddCalibrationCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCalibrationDetailsCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCalibrationCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Print Record" Command="{Binding PrintSelectedCalibrationCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCalibrationCommand}" Margin="0,0,4,4"/>
                     </WrapPanel>
                 </DockPanel>
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
@@ -307,13 +296,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Style="{StaticResource DesktopNoteCard}" Margin="0,0,0,10">
-                                <StackPanel>
-                                    <TextBlock Text="Shelf release checklist" Style="{StaticResource LabelTextBlock}" Margin="0,0,0,4"/>
-                                    <TextBlock Text="{Binding SelectedCalibrationBenchChecklist}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
-
                             <WrapPanel Margin="0,0,0,8">
                                 <Button Style="{StaticResource PrimaryButton}" Content="Details" Command="{Binding OpenCalibrationDetailsCommand}" Margin="0,0,4,4"/>
                                 <Button Style="{StaticResource PrimaryButton}" Content="Edit" Command="{Binding EditCalibrationCommand}" Margin="0,0,4,4"/>
@@ -333,17 +315,5 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,4,0,0">
-            <DockPanel LastChildFill="True">
-                <WrapPanel DockPanel.Dock="Right">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Copy Handoff" Command="{Binding CopySelectedCalibrationCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Due" Command="{Binding PrintCalibrationListCommand}" Margin="0,0,0,4"/>
-                </WrapPanel>
-                <StackPanel Margin="2,0,10,0">
-                    <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                    <TextBlock Text="{Binding CalibrationPrintStatus}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                </StackPanel>
-            </DockPanel>
-        </Border>
     </Grid>
 </Page>

@@ -87,7 +87,6 @@ namespace InventoryManagementApp
         {
             ShellHeader.Padding = compact ? new Thickness(6, 3, 6, 3) : new Thickness(8, 5, 8, 5);
             ShellMenu.Padding = compact ? new Thickness(4, 1, 4, 1) : new Thickness(4, 3, 4, 3);
-            PageHeaderBand.Padding = compact ? new Thickness(8, 3, 8, 3) : new Thickness(8, 6, 8, 6);
 
             ShellTitleButton.MaxWidth = compact ? 190 : 250;
             ShellTitleButton.MinWidth = 0;
@@ -96,7 +95,6 @@ namespace InventoryManagementApp
             ShellUserButton.MaxWidth = compact ? 176 : 196;
 
             ShellSubtitle.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
-            WorkflowGuideText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
 
             if (compact)
             {

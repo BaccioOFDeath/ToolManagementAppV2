@@ -103,18 +103,15 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
-        public void MainWindow_PageHeaderWrapsWorkflowActionsInBoundedArea()
+        public void MainWindow_UsesOneShellHeaderAndLeavesPageActionsToPageContent()
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "MainWindow.xaml");
 
-            Assert.Contains("MinHeight=\"44\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ColumnDefinition Width=\"Auto\" MinWidth=\"0\" MaxWidth=\"420\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<StackPanel VerticalAlignment=\"Center\" MinWidth=\"0\" Margin=\"0,0,12,0\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<WrapPanel Grid.Column=\"1\" Orientation=\"Horizontal\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" MaxWidth=\"420\">", xaml, StringComparison.Ordinal);
-            Assert.Equal(2, CountOccurrences(xaml, "MinWidth=\"96\"\n                            MaxWidth=\"180\""));
-            Assert.Contains("Margin=\"0,0,4,4\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Margin=\"0,0,0,4\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<RowDefinition x:Name=\"ShellHeaderRow\" Height=\"Auto\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<RowDefinition x:Name=\"ShellMenuRow\" Height=\"Auto\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Frame Grid.Row=\"2\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("x:Name=\"PageHeaderBand\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("CurrentWorkflowPrimaryCommand", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -193,9 +190,9 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("GlobalSearchCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("SwitchUserCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("CurrentPage", xaml, StringComparison.Ordinal);
-            Assert.Contains("CurrentWorkflowPrimaryCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("CurrentWorkflowSecondaryCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("CurrentWorkflowGuide", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("CurrentWorkflowPrimaryCommand", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("CurrentWorkflowSecondaryCommand", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("CurrentWorkflowGuide", xaml, StringComparison.Ordinal);
             Assert.Contains("CurrentUserRole", xaml, StringComparison.Ordinal);
         }
 

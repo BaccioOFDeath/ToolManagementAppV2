@@ -6,36 +6,24 @@
       xmlns:pages="clr-namespace:InventoryManagementApp.Views.Pages"
       Background="{DynamicResource MainContentBackgroundBrush}">
     <Page.Resources>
-        <Style x:Key="UserStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="MinHeight" Value="76"/>
-            <Setter Property="MinWidth" Value="160"/>
-            <Setter Property="MaxWidth" Value="250"/>
-            <Setter Property="Margin" Value="0,0,8,8"/>
-        </Style>
+        <Style x:Key="UserStatCard" TargetType="Border" BasedOn="{StaticResource PageHeaderStatCard}"/>
         <Style x:Key="UserDetailText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
         </Style>
-        <Style x:Key="UserStatValueText" TargetType="TextBlock" BasedOn="{StaticResource HeadingTextBlock}">
-            <Setter Property="TextWrapping" Value="NoWrap"/>
-            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-            <Setter Property="MinHeight" Value="24"/>
-        </Style>
+        <Style x:Key="UserStatValueText" TargetType="TextBlock" BasedOn="{StaticResource PageHeaderStatValueText}"/>
     </Page.Resources>
 
     <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="14,12">
-            <DockPanel LastChildFill="False">
+        <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderUsersBrush}">
+            <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,18,0" MinWidth="220" MaxWidth="460">
-                    <TextBlock Text="Users Workbench" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Users" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Manage account access, password recovery, profile photos, and audit-ready user directory output from one admin desk."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
@@ -46,49 +34,40 @@
                                TextWrapping="Wrap"
                                Margin="0,4,0,0"/>
                 </StackPanel>
-                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Add User" Command="{Binding AddUserCommand}" IsEnabled="{Binding CanUseUserActions}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Edit Access" Command="{Binding EditUserCommand}" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Reset Password" Click="ResetSelectedUser_Click" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Upload Photo" Command="{Binding UploadUserPhotoCommand}" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedUser_Click" IsEnabled="{Binding CanUseSelectedUserActions}" Margin="0,0,6,6"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintUsers_Click" IsEnabled="{Binding CanPrintUsers}" Margin="0,0,0,6"/>
+                <WrapPanel Style="{StaticResource PageHeaderStatsPanel}">
+                    <Border Style="{StaticResource UserStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="Visible Users" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding VisibleUserCount}" Style="{StaticResource UserStatValueText}"/>
+                            <TextBlock Text="{Binding UserWindowStatusText}" Style="{StaticResource UserDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource UserStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="Directory Filter" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding UserFilterStatusText}" Style="{StaticResource UserStatValueText}"/>
+                            <TextBlock Text="Search by ID, user, role, contact, lockout, or access summary before printing" Style="{StaticResource UserDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource UserStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="Selected Access" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding SelectedAccessStatusText}" Style="{StaticResource UserStatValueText}"/>
+                            <TextBlock Text="Review allowed app areas before editing permissions" Style="{StaticResource UserDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource UserStatCard}">
+                        <StackPanel>
+                            <TextBlock Text="Security State" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding SelectedSecurityStatusText}" Style="{StaticResource UserStatValueText}"/>
+                            <TextBlock Text="Password reset, lockout, and active-status context" Style="{StaticResource UserDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </Border>
                 </WrapPanel>
             </DockPanel>
         </Border>
 
-        <WrapPanel Grid.Row="1" Margin="0,0,0,6">
-            <Border Style="{StaticResource UserStatCard}">
-                <StackPanel>
-                    <TextBlock Text="Visible Users" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding VisibleUserCount}" Style="{StaticResource UserStatValueText}"/>
-                    <TextBlock Text="{Binding UserWindowStatusText}" Style="{StaticResource UserDetailText}"/>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource UserStatCard}">
-                <StackPanel>
-                    <TextBlock Text="Directory Filter" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding UserFilterStatusText}" Style="{StaticResource UserStatValueText}"/>
-                    <TextBlock Text="Search by ID, user, role, contact, lockout, or access summary before printing" Style="{StaticResource UserDetailText}"/>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource UserStatCard}">
-                <StackPanel>
-                    <TextBlock Text="Selected Access" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding SelectedAccessStatusText}" Style="{StaticResource UserStatValueText}"/>
-                    <TextBlock Text="Review allowed app areas before editing permissions" Style="{StaticResource UserDetailText}"/>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource UserStatCard}" Margin="0,0,0,8">
-                <StackPanel>
-                    <TextBlock Text="Security State" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding SelectedSecurityStatusText}" Style="{StaticResource UserStatValueText}"/>
-                    <TextBlock Text="Password reset, lockout, and active-status context" Style="{StaticResource UserDetailText}"/>
-                </StackPanel>
-            </Border>
-        </WrapPanel>
-
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.65*" MinWidth="0"/>
                 <ColumnDefinition Width="6"/>
@@ -342,13 +321,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Style="{StaticResource DesktopInsetCard}" Background="{DynamicResource TextBoxBackgroundBrush}">
-                                <StackPanel>
-                                    <TextBlock Text="Admin Next Step" Style="{StaticResource SectionHeader}"/>
-                                    <TextBlock Text="Reset the password when the user is blocked at login, edit access when a role changes, upload a current photo for quick visual confirmation, or print the filtered directory for an audit packet."
-                                               TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
                         </StackPanel>
                     </ScrollViewer>
 
@@ -364,22 +336,5 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="3"
-                Background="{DynamicResource SurfaceAltBrush}"
-                BorderBrush="{DynamicResource BorderBrushAlt}"
-                BorderThickness="1,0,1,1"
-                Padding="8,4">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Left"
-                           Text="{Binding UserDirectoryStatusText}"
-                           FontSize="11"
-                           VerticalAlignment="Center"/>
-                <TextBlock DockPanel.Dock="Right"
-                           Text="{Binding UserWindowStatusText}"
-                           Style="{StaticResource CaptionTextBlock}"
-                           VerticalAlignment="Center"
-                           TextWrapping="Wrap"/>
-            </DockPanel>
-        </Border>
     </Grid>
 </Page>

@@ -6,49 +6,30 @@
       Background="{DynamicResource MainContentBackgroundBrush}"
       Focusable="True">
     <Page.Resources>
-        <Style x:Key="DashboardMetricCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="MinWidth" Value="150"/>
-            <Setter Property="MaxWidth" Value="230"/>
-            <Setter Property="MinHeight" Value="72"/>
-            <Setter Property="Padding" Value="10,7"/>
-            <Setter Property="Margin" Value="0,0,6,6"/>
-        </Style>
-        <Style x:Key="DashboardMetricValueText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-        </Style>
+        <Style x:Key="DashboardMetricCard" TargetType="Border" BasedOn="{StaticResource PageHeaderStatCard}"/>
+        <Style x:Key="DashboardMetricValueText" TargetType="TextBlock" BasedOn="{StaticResource PageHeaderStatValueText}"/>
     </Page.Resources>
 
-    <Grid x:Name="DashboardRoot" Margin="0">
+    <Grid x:Name="DashboardRoot" Margin="4">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="10,6" Margin="0,0,0,6">
+        <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderDashboardBrush}">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Left" MinWidth="210" MaxWidth="320" Margin="0,0,14,0" VerticalAlignment="Center">
-                    <TextBlock Text="Dashboard Command Center" Style="{StaticResource PageTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Text="Live workload, demand, and exception signals for the next counter action."
+                    <TextBlock Text="Dashboard" Style="{StaticResource PageTitleTextBlock}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="Workload, demand, and exceptions requiring attention."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                MaxWidth="300"
                                Margin="0,1,0,0"/>
                 </StackPanel>
 
-                <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0">
-                    <TextBlock Text="Actions" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Open Items" Command="{Binding OpenItemsCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Open Rentals" Command="{Binding OpenRentalsCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource PrimaryButton}" Content="Print Snapshot" Command="{Binding PrintDashboardSnapshotCommand}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Import / Export" Command="{Binding OpenImportExportCommand}" Margin="0,0,0,4"/>
-                </WrapPanel>
-
+                <WrapPanel Style="{StaticResource PageHeaderStatsPanel}">
                 <ItemsControl ItemsSource="{Binding StatCards}" Margin="0,0,8,0" VerticalAlignment="Center">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -57,22 +38,41 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource DesktopSummaryCard}" MinWidth="92" MaxWidth="160" Margin="0,0,6,4" Padding="9,5">
+                            <Border Style="{StaticResource PageHeaderStatCard}">
                                 <StackPanel>
                                     <TextBlock Text="{Binding Value}"
-                                               FontSize="18"
-                                               FontWeight="Bold"
+                                               Style="{StaticResource PageHeaderStatValueText}"
                                                Foreground="{DynamicResource AccentBrush}"
-                                               TextTrimming="CharacterEllipsis"/>
+                                               />
                                     <TextBlock Text="{Binding Title}"
-                                               Style="{StaticResource CaptionTextBlock}"
-                                               TextWrapping="Wrap"
-                                               Margin="0,2,0,0"/>
+                                               Style="{StaticResource PageHeaderStatCaptionText}"/>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                    <Border Style="{StaticResource DashboardMetricCard}">
+                        <StackPanel>
+                            <TextBlock Text="Checked out" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding CheckedOutItems.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource AccentBrush}"/>
+                            <TextBlock Text="Return or inspect before shift end." Style="{StaticResource PageHeaderStatCaptionText}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DashboardMetricCard}">
+                        <StackPanel>
+                            <TextBlock Text="Items with issues" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding IncompleteItems.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource WarningBrush}"/>
+                            <TextBlock Text="Prioritize missing parts." Style="{StaticResource PageHeaderStatCaptionText}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource DashboardMetricCard}">
+                        <StackPanel>
+                            <TextBlock Text="Activity rows" Style="{StaticResource LabelTextBlock}"/>
+                            <TextBlock Text="{Binding RecentActivity.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource AccentBrush}"/>
+                            <TextBlock Text="Open latest audit rows." Style="{StaticResource PageHeaderStatCaptionText}"/>
+                        </StackPanel>
+                    </Border>
+                </WrapPanel>
             </DockPanel>
         </Border>
 
@@ -98,38 +98,7 @@
             </DockPanel>
         </Border>
 
-        <WrapPanel Grid.Row="2" Margin="0,0,0,6">
-            <Border Style="{StaticResource DashboardMetricCard}">
-                <StackPanel>
-                    <TextBlock Text="Checked out" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding CheckedOutItems.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource AccentBrush}"/>
-                    <TextBlock Text="Return or inspect before shift end." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource DashboardMetricCard}">
-                <StackPanel>
-                    <TextBlock Text="Active rentals" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding RentedItems.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource AccentBrush}"/>
-                    <TextBlock Text="Review due dates." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource DashboardMetricCard}">
-                <StackPanel>
-                    <TextBlock Text="Items with issues" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding IncompleteItems.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource WarningBrush}"/>
-                    <TextBlock Text="Prioritize missing parts." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource DashboardMetricCard}">
-                <StackPanel>
-                    <TextBlock Text="Activity rows" Style="{StaticResource LabelTextBlock}"/>
-                    <TextBlock Text="{Binding RecentActivity.Count}" Style="{StaticResource DashboardMetricValueText}" Foreground="{DynamicResource AccentBrush}"/>
-                    <TextBlock Text="Open latest audit rows." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
-                </StackPanel>
-            </Border>
-        </WrapPanel>
-
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1.65*" MinWidth="0"/>
                 <ColumnDefinition Width="6"/>
@@ -213,10 +182,12 @@
                                 <TextBlock Text="Away from shelf with holder context." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                             </StackPanel>
                             <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                                <Button Style="{StaticResource PrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" Margin="0,0,4,4"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Open" Command="{Binding OpenSelectedCheckedOutItemCommand}" IsEnabled="{Binding HasSelectedCheckedOutItem}" Margin="0,0,4,4"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Check In" Command="{Binding CheckInSelectedItemCommand}" IsEnabled="{Binding HasSelectedCheckedOutItem}" Margin="0,0,4,4"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Print All" Command="{Binding PrintCheckedOutItemsCommand}" Margin="0,0,4,4"/>
-                                <Button Style="{StaticResource GhostButton}" Content="Print Mine" Command="{Binding PrintMyCheckedOutItemsCommand}" Margin="0,0,0,4" ToolTip="Print only items checked out by the signed-in user."/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print Mine" Command="{Binding PrintMyCheckedOutItemsCommand}" Margin="0,0,4,4" ToolTip="Print only items checked out by the signed-in user."/>
+                                <Button Style="{StaticResource GhostButton}" Content="Print Snapshot" Command="{Binding PrintDashboardSnapshotCommand}" Margin="0,0,0,4"/>
                             </WrapPanel>
                         </DockPanel>
                     </Border>
@@ -440,7 +411,7 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="4" Style="{StaticResource ToolbarCard}" Padding="6,3" Margin="0,6,0,0">
+        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Padding="6,3" Margin="0,6,0,0">
             <DockPanel LastChildFill="True">
                 <TextBlock Text="{Binding OperationsSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,12,0" TextWrapping="Wrap"/>
                 <TextBlock Text="{Binding SelectedRecordSummary}" Style="{StaticResource CaptionTextBlock}" DockPanel.Dock="Right" VerticalAlignment="Center" TextWrapping="Wrap"/>

@@ -117,25 +117,43 @@ namespace InventoryManagementApp.Utilities.Converters
             image = null!;
             try
             {
-                var cacheKey = path;
+                string cacheKey;
                 string? absPath;
-                if (Uri.IsWellFormedUriString(path, UriKind.Absolute))
+                var isLocalFile = false;
+                if (Uri.TryCreate(path, UriKind.Absolute, out var absoluteUri))
                 {
-                    absPath = path;
+                    if (absoluteUri.IsFile)
+                    {
+                        absPath = absoluteUri.LocalPath;
+                        isLocalFile = true;
+                    }
+                    else
+                    {
+                        absPath = path;
+                    }
                 }
                 else
                 {
-                    if (_invalidPaths.TryGetValue(path, out _))
-                        return false;
-
                     absPath = Helpers.PathHelper.GetAbsolutePath(path, false);
+                    isLocalFile = true;
+                }
+
+                if (isLocalFile)
+                {
                     if (absPath == null || !File.Exists(absPath))
                     {
-                        CacheInvalidPath(path);
+                        if (!_invalidPaths.TryGetValue(path, out _))
+                            CacheInvalidPath(path);
                         return false;
                     }
 
-                    cacheKey = absPath;
+                    _invalidPaths.Remove(path);
+                    var file = new FileInfo(absPath);
+                    cacheKey = $"{file.FullName}|{file.LastWriteTimeUtc.Ticks}|{file.Length}";
+                }
+                else
+                {
+                    cacheKey = absPath!;
                 }
 
                 if (_imageCache.TryGetValue(cacheKey, out BitmapImage? cached) && cached != null)
@@ -149,9 +167,12 @@ namespace InventoryManagementApp.Utilities.Converters
                 loaded.CacheOption = BitmapCacheOption.OnLoad;
                 loaded.DecodePixelWidth = 256;
                 loaded.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                loaded.UriSource = new Uri(absPath, UriKind.Absolute);
+                loaded.UriSource = new Uri(absPath!, UriKind.Absolute);
                 loaded.EndInit();
                 loaded.Freeze();
+
+                if (_imageCache.Count >= MaxCacheEntries)
+                    _imageCache.Compact(0.1);
 
                 _imageCache.Set(cacheKey, loaded, new MemoryCacheEntryOptions
                 {

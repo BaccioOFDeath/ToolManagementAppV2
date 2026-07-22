@@ -13,7 +13,7 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             AssertContainsAll(
                 xaml,
-                "Data Operations Workbench",
+                "Text=\"Import / Export\"",
                 "DataOperationStatCard",
                 "Data Control Lanes",
                 "Session Handoff",
@@ -21,7 +21,6 @@ namespace InventoryManagementApp.Tests.ViewModels
                 "CustomerDataSummary",
                 "BackupSummary",
                 "ImageImportSummary",
-                "DataOperationStatus",
                 "DataOperationSummary");
         }
 

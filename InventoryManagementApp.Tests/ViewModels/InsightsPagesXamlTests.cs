@@ -11,7 +11,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ReportsPage.xaml");
 
-            Assert.Contains("Reports Workbench", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Reports\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ReportsStatCard", xaml, StringComparison.Ordinal);
             Assert.Contains("ReportLineCount", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedLineDestination", xaml, StringComparison.Ordinal);
@@ -56,10 +56,11 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "ActivityLogsPage.xaml");
 
-            Assert.Contains("Activity Audit Workbench", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Activity Logs\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ActivityStatCard", xaml, StringComparison.Ordinal);
             Assert.Contains("FilteredLogCount", xaml, StringComparison.Ordinal);
-            Assert.Contains("TotalLogCount", xaml, StringComparison.Ordinal);
+            Assert.Contains("MatchedLogCount", xaml, StringComparison.Ordinal);
+            Assert.Contains("OmittedLogCount", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedLogActionGroup", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedLogDestinationName", xaml, StringComparison.Ordinal);
             Assert.Contains("SearchText", xaml, StringComparison.Ordinal);

@@ -11,9 +11,8 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml");
 
-            Assert.Contains("<WrapPanel Grid.Column=\"2\" HorizontalAlignment=\"Right\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"230\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Grid.Column=\"2\" Style=\"{StaticResource PageHeaderStatsPanel}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"DataOperationStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("DataOperationStatValueText", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"1.15*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Grid.Column=\"2\" Columns=\"4\">", xaml, StringComparison.Ordinal);
@@ -76,10 +75,10 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"340\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
             Assert.Contains("HorizontalScrollBarVisibility=\"Disabled\" MaxHeight=\"260\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<TextBlock Text=\"{Binding LogSummary}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Text=\"{Binding DataOperationStatus}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Text=\"{Binding DataOperationSummary}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<ProgressBar Width=\"120\" Height=\"14\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Visibility=\"{Binding IsDataOperationBusy, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("IsDataOperationBusy", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Text=\"{Binding DataOperationStatus}\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<ProgressBar Width=\"120\" Height=\"14\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Text=\"Data desk ready\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Text=\"Item import running\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Border Grid.Row=\"2\" Width=\"360\"", xaml, StringComparison.Ordinal);
@@ -92,8 +91,8 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "ImportExportPage.xaml");
 
-            Assert.True(CountOccurrences(xaml, "IsEnabled=\"{Binding CanReviewSelectedLog}\"") >= 6);
-            Assert.True(CountOccurrences(xaml, "IsEnabled=\"{Binding CanPrintImportExportLogs}\"") >= 5);
+            Assert.True(CountOccurrences(xaml, "IsEnabled=\"{Binding CanReviewSelectedLog}\"") >= 5);
+            Assert.True(CountOccurrences(xaml, "IsEnabled=\"{Binding CanPrintImportExportLogs}\"") >= 4);
             Assert.Contains("<ContextMenu DataContext=\"{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<MenuItem Header=\"Open Log Detail\" Click=\"OpenSelectedLog_Click\" IsEnabled=\"{Binding CanReviewSelectedLog}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<MenuItem Header=\"Copy Selected Log\" Click=\"CopySelectedLog_Click\" IsEnabled=\"{Binding CanReviewSelectedLog}\"/>", xaml, StringComparison.Ordinal);

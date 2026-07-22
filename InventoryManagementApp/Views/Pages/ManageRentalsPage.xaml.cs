@@ -111,7 +111,6 @@ namespace InventoryManagementApp.Views.Pages
 
             _isCompactHeight = compactHeight;
             RentalStatsStrip.Visibility = compactHeight ? Visibility.Collapsed : Visibility.Visible;
-            RentalStatsRow.Height = compactHeight ? new GridLength(0) : GridLength.Auto;
             RentalMainRow.Height = compactHeight ? new GridLength(1.6, GridUnitType.Star) : new GridLength(1.55, GridUnitType.Star);
             RentalSplitterRow.Height = compactHeight ? new GridLength(6) : new GridLength(6);
             RequestQueueRow.Height = compactHeight ? new GridLength(1.15, GridUnitType.Star) : new GridLength(1.25, GridUnitType.Star);

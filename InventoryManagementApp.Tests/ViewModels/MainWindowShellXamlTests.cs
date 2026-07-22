@@ -7,16 +7,15 @@ namespace InventoryManagementApp.Tests.ViewModels
     public class MainWindowShellXamlTests
     {
         [Fact]
-        public void MainWindow_KeepsWorkflowGuidanceInThePageHeaderOnly()
+        public void MainWindow_LeavesWorkflowGuidanceToTheActivePage()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
 
             Assert.DoesNotContain("DesktopStatusFooter", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Workflow status", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("ShellWorkflowTicker", xaml, StringComparison.Ordinal);
-            Assert.Contains("CurrentWorkflowGuide", xaml, StringComparison.Ordinal);
-            Assert.Contains("TextTrimming=\"CharacterEllipsis\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("HorizontalAlignment=\"Stretch\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("CurrentWorkflowGuide", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("x:Name=\"PageHeaderBand\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("RepeatBehavior=\"Forever\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Storyboard.TargetProperty=\"(TextBlock.RenderTransform).(TranslateTransform.X)\"", xaml, StringComparison.Ordinal);
         }
@@ -38,15 +37,15 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("MinHeight=\"520\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"ShellHeader\"", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"ShellMenu\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("x:Name=\"PageHeaderBand\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("x:Name=\"WorkflowGuideText\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("x:Name=\"PageHeaderBand\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("x:Name=\"WorkflowGuideText\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("x:Name=\"ShellStatusFooter\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("x:Name=\"ShellFooterRow\"", xaml, StringComparison.Ordinal);
 
             Assert.Contains("CompactShellHeightThreshold = 820", codeBehind, StringComparison.Ordinal);
             Assert.Contains("SystemParameters.WorkArea.Height < CompactShellHeightThreshold", codeBehind, StringComparison.Ordinal);
             Assert.DoesNotContain("ShellStatusFooter.Visibility", codeBehind, StringComparison.Ordinal);
-            Assert.Contains("WorkflowGuideText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible", codeBehind, StringComparison.Ordinal);
+            Assert.DoesNotContain("WorkflowGuideText.Visibility", codeBehind, StringComparison.Ordinal);
             Assert.Contains("MainFrame.Margin = new Thickness(4)", codeBehind, StringComparison.Ordinal);
         }
 
@@ -80,20 +79,21 @@ namespace InventoryManagementApp.Tests.ViewModels
 
             Assert.DoesNotContain("CurrentNavSectionTitle", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Primary: ", xaml, StringComparison.Ordinal);
-            Assert.Contains("CurrentWorkflowPrimaryActionText", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("CurrentWorkflowPrimaryActionText", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("Next: ", xaml, StringComparison.Ordinal);
-            Assert.Contains("CurrentWorkflowSecondaryActionText", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("CurrentWorkflowSecondaryActionText", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
-        public void MainWindow_UsesPageSpecificHeaderBandBrushes()
+        public void MainWindow_DoesNotRenderASecondPageSpecificHeaderBand()
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");
 
-            Assert.Contains("CurrentPageHeaderKey", xaml, StringComparison.Ordinal);
-            Assert.Contains("PageHeaderDashboardBrush", xaml, StringComparison.Ordinal);
-            Assert.Contains("PageHeaderRentalsBrush", xaml, StringComparison.Ordinal);
-            Assert.Contains("PageHeaderSettingsBrush", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("CurrentPageHeaderKey", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("PageHeaderDashboardBrush", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("PageHeaderRentalsBrush", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("PageHeaderSettingsBrush", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Frame Grid.Row=\"2\"", xaml, StringComparison.Ordinal);
         }
 
         static string ReadRepositoryFile(params string[] relativePathParts)

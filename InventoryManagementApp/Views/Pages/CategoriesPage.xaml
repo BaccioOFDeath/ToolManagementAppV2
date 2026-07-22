@@ -5,20 +5,8 @@
       Background="{DynamicResource MainContentBackgroundBrush}"
       PreviewKeyDown="Page_PreviewKeyDown">
     <Page.Resources>
-        <Style x:Key="CategoryStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="MinHeight" Value="76"/>
-            <Setter Property="MinWidth" Value="150"/>
-            <Setter Property="MaxWidth" Value="235"/>
-            <Setter Property="Margin" Value="0,0,8,8"/>
-        </Style>
-        <Style x:Key="CategoryStatValueText" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlock}">
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-            <Setter Property="Margin" Value="0,3,0,0"/>
-        </Style>
+        <Style x:Key="CategoryStatCard" TargetType="Border" BasedOn="{StaticResource PageHeaderStatCard}"/>
+        <Style x:Key="CategoryStatValueText" TargetType="TextBlock" BasedOn="{StaticResource PageHeaderStatValueText}"/>
         <Style x:Key="CategoryDetailCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
             <Setter Property="Padding" Value="12"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
@@ -29,7 +17,7 @@
         </Style>
     </Page.Resources>
 
-    <Grid Margin="0">
+    <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -38,21 +26,21 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
+        <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderCategoriesBrush}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.15*" MinWidth="0"/>
                     <ColumnDefinition Width="14"/>
                     <ColumnDefinition Width="1.65*" MinWidth="0"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" MinWidth="0">
-                    <TextBlock Text="Category Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left" MinWidth="0">
+                    <TextBlock Text="Categories" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Shape the category language staff use for item setup, advisor search, printed directories, and clean handoffs between inventory areas."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
                 </StackPanel>
-                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
+                <WrapPanel Grid.Column="2" Style="{StaticResource PageHeaderStatsPanel}">
                     <Border Style="{StaticResource CategoryStatCard}">
                         <StackPanel>
                             <TextBlock Text="DIRECTORY" Style="{StaticResource LabelTextBlock}"/>
@@ -92,11 +80,6 @@
                     <WrapPanel>
                         <Button Style="{StaticResource PrimaryButton}" Content="New" Command="{Binding AddCommand}" Margin="0,0,4,4" ToolTip="Create and link a new category"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Save" Command="{Binding SaveCommand}" Margin="0,0,4,4" ToolTip="Save the selected category name"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Open" Click="OpenCategoryDetail_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopyCategory_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintCategories_Click" IsEnabled="{Binding IsDirectoryPrintAvailable}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Delete" Command="{Binding DeleteCommand}" Margin="0,0,4,4"/>
                     </WrapPanel>
                 </DockPanel>
                 <DockPanel Grid.Row="1" LastChildFill="True" Margin="0,4,0,0">
@@ -278,13 +261,6 @@
 
                             <Border Style="{StaticResource CategoryDetailCard}">
                                 <StackPanel>
-                                    <TextBlock Text="Setup Checklist" Style="{StaticResource SectionHeader}"/>
-                                    <TextBlock Text="{Binding SelectedCategoryChecklist}" Style="{StaticResource CategoryDetailText}"/>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource CategoryDetailCard}">
-                                <StackPanel>
                                     <TextBlock Text="Admin Handoff" Style="{StaticResource SectionHeader}"/>
                                     <TextBlock Text="{Binding SelectedCategoryHandoff}" Style="{StaticResource CategoryDetailText}"/>
                                 </StackPanel>
@@ -311,21 +287,6 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="3" Style="{StaticResource ToolbarCard}" Margin="0,6,0,0">
-            <DockPanel LastChildFill="True">
-                <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource PrimaryButton}" Content="Open" Click="OpenCategoryDetail_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Directory" Click="PrintCategories_Click" IsEnabled="{Binding IsDirectoryPrintAvailable}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Print Sheet" Click="PrintSelectedCategory_Click" IsEnabled="{Binding IsSelectedCategoryActionAvailable}" Margin="0,0,4,4"/>
-                    <Button Style="{StaticResource GhostButton}" Content="Clear Filter" Command="{Binding ClearSearchCommand}" Margin="0,0,0,4"/>
-                </WrapPanel>
-                <StackPanel MinWidth="0">
-                    <TextBlock Text="{Binding SelectedCategorySummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="2,0,10,0"/>
-                    <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="2,2,10,0"/>
-                    <TextBlock Text="{Binding CategoryPrintSummary}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" Margin="2,2,10,0"/>
-                </StackPanel>
-            </DockPanel>
-        </Border>
 
         <ProgressBar Grid.Row="4"
                      IsIndeterminate="True"

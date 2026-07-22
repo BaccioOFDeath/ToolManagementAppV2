@@ -508,6 +508,25 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public async Task EditItemCommand_ReplacesVisibleRowSoUpdatedImageAppearsImmediately()
+        {
+            var original = new ItemModel { ItemID = 1, ItemNumber = "T-1", ImagePath = "Assets/ItemImages/old.jpg" };
+            var updated = new ItemModel { ItemID = 1, ItemNumber = "T-1", ImagePath = "Assets/ItemImages/new.jpg" };
+            var dialog = new RecordingDialogService { EditItemDialogResult = updated };
+            var itemService = new RecordingItemService2();
+            using var memoryBudget = new MemoryBudget(TimeSpan.FromMinutes(1), long.MaxValue, long.MaxValue);
+            using var vm = new ItemsViewModel(itemService, memoryBudget, dialog, new DummyRentalService(), new DummySettingsService(), NullLogger<ItemsViewModel>.Instance);
+            vm.Items.Add(original);
+            vm.SelectedItem = original;
+
+            await vm.EditItemCommand.ExecuteAsync(null);
+
+            Assert.Same(updated, vm.Items[0]);
+            Assert.Same(updated, vm.SelectedItem);
+            Assert.Equal("Assets/ItemImages/new.jpg", vm.Items[0].ImagePath);
+        }
+
+        [Fact]
         public async Task EditItemCommand_HandlesCancellation()
         {
             var item = new ItemModel { ItemID = 1 };

@@ -11,12 +11,12 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");
 
-            Assert.Contains("<WrapPanel Grid.Row=\"2\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Style=\"{StaticResource PageHeaderStatsPanel}\">", xaml, StringComparison.Ordinal);
             Assert.Contains("DashboardMetricCard", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MinWidth\" Value=\"150\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"230\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("BasedOn=\"{StaticResource PageHeaderStatCard}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("DashboardMetricValueText", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<UniformGrid Columns=\"4\">", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<WrapPanel Grid.Row=\"2\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -67,7 +67,9 @@ namespace InventoryManagementApp.Tests
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml");
 
             Assert.Contains("<StackPanel DockPanel.Dock=\"Left\" MinWidth=\"210\" MaxWidth=\"320\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Border Style=\"{StaticResource DesktopSummaryCard}\" MinWidth=\"92\" MaxWidth=\"160\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Border Style=\"{StaticResource PageHeaderStatCard}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"New Item\" Command=\"{Binding NewItemCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Print Snapshot\" Command=\"{Binding PrintDashboardSnapshotCommand}\"", xaml, StringComparison.Ordinal);
             Assert.True(CountOccurrences(xaml, "<WrapPanel DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\">") >= 3);
             Assert.DoesNotContain("<StackPanel Orientation=\"Horizontal\" DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
         }
@@ -79,6 +81,7 @@ namespace InventoryManagementApp.Tests
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
 
             Assert.Contains("x:Name=\"DashboardRoot\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Grid x:Name=\"DashboardRoot\" Margin=\"4\">", xaml, StringComparison.Ordinal);
             Assert.Contains("x:Name=\"DashboardLoadStatusBanner\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Grid.Row=\"1\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Visibility=\"Collapsed\"", xaml, StringComparison.Ordinal);
@@ -247,9 +250,9 @@ namespace InventoryManagementApp.Tests
             var codeBehind = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "DashboardPage.xaml.cs");
 
             Assert.Contains("NewItemCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("OpenItemsCommand", xaml, StringComparison.Ordinal);
-            Assert.Contains("OpenRentalsCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintDashboardSnapshotCommand", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Command=\"{Binding OpenItemsCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Command=\"{Binding OpenRentalsCommand}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("PrintCheckedOutItemsCommand", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"Print Mine\" Command=\"{Binding PrintMyCheckedOutItemsCommand}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Header=\"Print My Checked-Out Items\"", xaml, StringComparison.Ordinal);

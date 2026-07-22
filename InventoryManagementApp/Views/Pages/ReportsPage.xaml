@@ -4,13 +4,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource MainContentBackgroundBrush}">
     <Page.Resources>
-        <Style x:Key="ReportsStatCard" TargetType="Border" BasedOn="{StaticResource DesktopSummaryCard}">
-            <Setter Property="Padding" Value="12,10"/>
-            <Setter Property="MinHeight" Value="78"/>
-            <Setter Property="MinWidth" Value="150"/>
-            <Setter Property="MaxWidth" Value="240"/>
-            <Setter Property="Margin" Value="0,0,8,8"/>
-        </Style>
+        <Style x:Key="ReportsStatCard" TargetType="Border" BasedOn="{StaticResource PageHeaderStatCard}"/>
         <Style x:Key="ReportsDetailCard" TargetType="Border" BasedOn="{StaticResource DesktopNoteCard}">
             <Setter Property="Padding" Value="12"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
@@ -21,7 +15,7 @@
         </Style>
     </Page.Resources>
 
-    <Grid Margin="0">
+    <Grid Margin="4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -29,28 +23,29 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Style="{StaticResource ToolbarCard}" Padding="12,10">
+        <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderReportsBrush}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.15*" MinWidth="0"/>
                     <ColumnDefinition Width="12"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" MinWidth="0">
-                    <TextBlock Text="Reports Workbench" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left" MinWidth="0">
+                    <TextBlock Text="Reports" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
                     <TextBlock Text="Run operational reports, inspect the highest-priority rows, then jump to the exact source page for follow-up."
                                Style="{StaticResource CaptionTextBlock}"
                                TextWrapping="Wrap"
                                Margin="0,3,0,0"/>
                 </StackPanel>
-                <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
+                <WrapPanel Grid.Column="2" Style="{StaticResource PageHeaderStatsPanel}">
                     <Border Style="{StaticResource ReportsStatCard}">
                         <StackPanel>
                             <TextBlock Text="REPORT" Style="{StaticResource LabelTextBlock}"/>
                             <TextBlock Text="{Binding SelectedReport, TargetNullValue=Select report, FallbackValue=Select report}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
-                                       TextWrapping="Wrap"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
@@ -60,7 +55,8 @@
                             <TextBlock Text="{Binding ReportLineWindowSummary}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
-                                       TextWrapping="Wrap"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
@@ -70,7 +66,8 @@
                             <TextBlock Text="{Binding SelectedLineDestination}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
-                                       TextWrapping="Wrap"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
@@ -80,7 +77,8 @@
                             <TextBlock Text="{Binding LastRunText}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
-                                       TextWrapping="Wrap"
+                                       TextWrapping="NoWrap"
+                                       TextTrimming="CharacterEllipsis"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
@@ -105,7 +103,6 @@
                                   ToolTip="Choose the report to run"
                                   Margin="0,0,6,4"/>
                         <Button Style="{StaticResource PrimaryButton}" Content="Run Report" Command="{Binding RunReportCommand}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Open Source Page" Click="OpenSourcePage_Click" IsEnabled="{Binding CanUseReportRows}" Margin="0,0,4,4"/>
                         <Button Style="{StaticResource GhostButton}" Content="Clear" Command="{Binding ClearReportCommand}" Margin="0,0,4,4"/>
                     </WrapPanel>
                 </DockPanel>
@@ -113,7 +110,6 @@
                     <TextBlock Text="Output actions" Style="{StaticResource LabelTextBlock}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <WrapPanel>
                         <Button Style="{StaticResource PrimaryButton}" Content="Print Report" Click="PrintReport_Click" IsEnabled="{Binding CanPrintCurrentReport}" Margin="0,0,4,4"/>
-                        <Button Style="{StaticResource GhostButton}" Content="Copy Handoff" Click="CopySelectedRow_Click" IsEnabled="{Binding CanUseReportRows}" Margin="0,0,4,4"/>
                         <TextBlock Text="{Binding ReportStatus}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="6,1,0,4"/>
                     </WrapPanel>
                 </DockPanel>
@@ -320,18 +316,5 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="3"
-                Style="{StaticResource ToolbarCard}"
-                Margin="0,6,0,0"
-                Padding="8,5">
-            <DockPanel LastChildFill="True">
-                <ProgressBar Width="140"
-                             Height="14"
-                             DockPanel.Dock="Right"
-                             IsIndeterminate="True"
-                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
-                <TextBlock Text="{Binding ReportStatus}" Style="{StaticResource CaptionTextBlock}" VerticalAlignment="Center" TextWrapping="Wrap"/>
-            </DockPanel>
-        </Border>
     </Grid>
 </Page>

@@ -11,7 +11,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml");
 
-            Assert.Contains("Admin Settings Workbench", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Settings\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Workstation Defaults", xaml, StringComparison.Ordinal);
             Assert.Contains("Item Detail Visibility", xaml, StringComparison.Ordinal);
             Assert.Contains("Email Reminder Channel", xaml, StringComparison.Ordinal);
@@ -20,7 +20,7 @@ namespace InventoryManagementApp.Tests.ViewModels
             Assert.Contains("Display contract", xaml, StringComparison.Ordinal);
             Assert.Contains("Sender directory", xaml, StringComparison.Ordinal);
             Assert.Contains("Messaging handoff", xaml, StringComparison.Ordinal);
-            Assert.Contains("Settings desk ready", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("Settings desk ready", xaml, StringComparison.Ordinal);
         }
 
         [Fact]

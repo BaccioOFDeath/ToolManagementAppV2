@@ -11,7 +11,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml");
 
-            Assert.Contains("Admin Settings Workbench", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Settings\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Text=\"Theme\"", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedItem=\"{Binding Theme}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ItemsSource=\"{Binding ThemeOptions}\"", xaml, StringComparison.Ordinal);

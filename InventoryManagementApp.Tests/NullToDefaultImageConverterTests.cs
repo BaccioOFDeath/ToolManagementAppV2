@@ -163,6 +163,45 @@ namespace InventoryManagementApp.Tests
         }
 
         [Fact]
+        public void Convert_FileChangedAtSamePath_ReloadsImageInsteadOfServingStaleCache()
+        {
+            Exception? threadEx = null;
+            var thread = new Thread(() =>
+            {
+                var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(tempDir);
+                try
+                {
+                    ClearImageCaches();
+                    var path = Path.Combine(tempDir, "item.png");
+                    var pngBytes = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAAC0lEQVQI12NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=");
+                    File.WriteAllBytes(path, pngBytes);
+                    var converter = new NullToDefaultImageConverter();
+                    var first = Assert.IsType<BitmapImage>(converter.Convert(path, typeof(BitmapImage), "item", CultureInfo.InvariantCulture));
+
+                    File.WriteAllBytes(path, pngBytes);
+                    File.SetLastWriteTimeUtc(path, DateTime.UtcNow.AddSeconds(2));
+                    var second = Assert.IsType<BitmapImage>(converter.Convert(path, typeof(BitmapImage), "item", CultureInfo.InvariantCulture));
+
+                    Assert.NotSame(first, second);
+                }
+                catch (Exception ex)
+                {
+                    threadEx = ex;
+                }
+                finally
+                {
+                    try { Directory.Delete(tempDir, true); } catch { }
+                    WpfTestHelper.ShutdownApplication();
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+            if (threadEx != null) throw threadEx;
+        }
+
+        [Fact]
         public void Convert_ItemWithoutImagePath_FallsBackToItemNumberImage()
         {
             Exception? threadEx = null;

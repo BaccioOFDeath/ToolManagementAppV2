@@ -11,7 +11,7 @@ namespace InventoryManagementApp.Tests.ViewModels
         {
             var xaml = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "KitManagementPage.xaml");
 
-            Assert.Contains("Kit Workbench", xaml, StringComparison.Ordinal);
+            Assert.Contains("Text=\"Kits\"", xaml, StringComparison.Ordinal);
             Assert.Contains("KitResultsSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("KitItemsSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("SelectedKitSummary", xaml, StringComparison.Ordinal);

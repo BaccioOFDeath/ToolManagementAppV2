@@ -26,7 +26,7 @@ namespace InventoryManagementApp.Tests
     public class ManageRentalsPageTests
     {
         [Fact]
-        public void ActionButtons_AreInToolbar_WithCorrectBindings()
+        public void SelectedRentalActionsStayInDetailPaneAndContextMenuWithCorrectBindings()
         {
             Exception? threadEx = null;
             var thread = new Thread(() =>
@@ -48,7 +48,7 @@ namespace InventoryManagementApp.Tests
                     page.DataContext = vm;
 
                     var grid = Assert.IsType<Grid>(page.Content);
-                    Assert.Equal(5, grid.RowDefinitions.Count);
+                    Assert.Equal(4, grid.RowDefinitions.Count);
 
                     var xamlPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "InventoryManagementApp", "Views", "Pages", "ManageRentalsPage.xaml"));
                     var xaml = File.ReadAllText(xamlPath);
@@ -56,15 +56,16 @@ namespace InventoryManagementApp.Tests
                     Assert.Contains("Content=\"Extend\" Command=\"{Binding ExtendCommand}\"", xaml);
                     Assert.Contains("Content=\"History\" Command=\"{Binding OpenHistoryCommand}\"", xaml);
                     Assert.Contains("Content=\"Print Rental\" Command=\"{Binding PrintRentalCommand}\"", xaml);
-                    Assert.Contains("Content=\"Delete\" Command=\"{Binding DeleteRentalCommand}\"", xaml);
-                    Assert.Contains("x:Name=\"RentalStatsRow\"", xaml);
+                    Assert.Contains("Header=\"Delete Rental\" Command=\"{Binding DeleteRentalCommand}\"", xaml);
+                    Assert.DoesNotContain("Content=\"Delete\" Command=\"{Binding DeleteRentalCommand}\"", xaml);
+                    Assert.DoesNotContain("x:Name=\"RentalStatsRow\"", xaml);
                     Assert.Contains("x:Name=\"RentalStatsStrip\"", xaml);
                     Assert.Contains("x:Name=\"RequestDetailColumn\"", xaml);
                     Assert.Contains("x:Name=\"RequestDetailPanel\"", xaml);
                     Assert.Contains("x:Key=\"RentalFilterDatePicker\"", xaml, StringComparison.Ordinal);
                     Assert.Contains("<Setter Property=\"Width\" Value=\"158\"/>", xaml, StringComparison.Ordinal);
                     Assert.Contains("<Setter Property=\"Height\" Value=\"34\"/>", xaml, StringComparison.Ordinal);
-                    Assert.Contains("<Setter Property=\"MinHeight\" Value=\"48\"/>", xaml, StringComparison.Ordinal);
+                    Assert.Contains("<Style x:Key=\"RentalStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
                     Assert.Contains("Style=\"{StaticResource RentalFilterDatePicker}\"", xaml, StringComparison.Ordinal);
                     Assert.DoesNotContain("Width=\"132\"", xaml, StringComparison.Ordinal);
 

@@ -11,15 +11,15 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml");
 
-            Assert.Contains("<WrapPanel Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MinWidth\" Value=\"160\"/>", xaml, StringComparison.Ordinal);
-            Assert.Contains("<Setter Property=\"MaxWidth\" Value=\"250\"/>", xaml, StringComparison.Ordinal);
+            Assert.Contains("<WrapPanel Style=\"{StaticResource PageHeaderStatsPanel}\">", xaml, StringComparison.Ordinal);
+            Assert.Contains("<Style x:Key=\"CustomerStatCard\" TargetType=\"Border\" BasedOn=\"{StaticResource PageHeaderStatCard}\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("CustomerStatValueText", xaml, StringComparison.Ordinal);
             Assert.Contains("CustomerDirectoryVisibleCount", xaml, StringComparison.Ordinal);
             Assert.Contains("CustomerDirectoryMatchCount", xaml, StringComparison.Ordinal);
             Assert.Contains("CustomerVisibleWindowSummary", xaml, StringComparison.Ordinal);
             Assert.Contains("CustomerPrintSummary", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<Grid Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
+            Assert.DoesNotContain("<WrapPanel Grid.Row=\"1\" Margin=\"0,0,0,6\">", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<ColumnDefinition Width=\"1.35*\"/>", xaml, StringComparison.Ordinal);
         }
 
@@ -84,13 +84,13 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml");
 
-            Assert.Contains("Content=\"Add\" Command=\"{Binding AddCustomerCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Add Customer\" Command=\"{Binding AddCustomerCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryActionAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"Details\" Command=\"{Binding OpenCustomerDetailsCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"Edit\" Command=\"{Binding EditCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Content=\"Copy Contact\" Command=\"{Binding CopySelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Content=\"Print Sheet\" Command=\"{Binding PrintSelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Content=\"Directory\" Command=\"{Binding PrintCustomerDirectoryCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryPrintAvailable}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Content=\"Delete\" Command=\"{Binding DeleteCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Copy\" Command=\"{Binding CopySelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Print\" Command=\"{Binding PrintSelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Print Directory\" Command=\"{Binding PrintCustomerDirectoryCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryPrintAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Delete Customer\" Command=\"{Binding DeleteCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("IsEnabled=\"{Binding IsCustomerDirectoryActionAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("IsEnabled=\"{Binding IsCustomerDirectoryPrintAvailable}\"", xaml, StringComparison.Ordinal);
         }
@@ -106,8 +106,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Header=\"Print Customer Sheet\" Command=\"{Binding PrintSelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Header=\"Print Customer Directory\" Command=\"{Binding PrintCustomerDirectoryCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryPrintAvailable}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Header=\"Delete Customer\" Command=\"{Binding DeleteCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Content=\"Copy Contact\" Command=\"{Binding CopySelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Content=\"Clear Search\" Command=\"{Binding ClearCustomerSearchCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Copy\" Command=\"{Binding CopySelectedCustomerCommand}\" IsEnabled=\"{Binding IsSelectedCustomerActionAvailable}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Content=\"Clear\" Command=\"{Binding ClearCustomerSearchCommand}\" IsEnabled=\"{Binding IsCustomerDirectoryActionAvailable}\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]
