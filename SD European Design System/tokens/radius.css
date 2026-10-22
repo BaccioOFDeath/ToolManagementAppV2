@@ -1,0 +1,9 @@
+:root{
+--radius-none:0;
+--radius-xs:2px;
+--radius-sm:4px;   /* default for inputs, tags, small controls */
+--radius-md:6px;   /* cards, dialogs */
+--radius-lg:10px;  /* feature/media cards */
+--radius-pill:999px; /* badges + filter chips only */
+--radius-circle:50%; /* the SD symbol, avatars, icon buttons */
+}

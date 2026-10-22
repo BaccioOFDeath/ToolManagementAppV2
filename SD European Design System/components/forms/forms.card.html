@@ -1,0 +1,21 @@
+<!-- @dsCard group="Components" viewport="700x360" name="Forms — Input, Select, Checkbox, Radio, Switch" subtitle="Field styling, states and the rego/VIN mono variant" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css"><script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script><script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script><script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script><script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.js"></script><script src="../../_ds_bundle.js"></script><style>body{padding:20px;background:var(--surface-page)}.row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}.col{display:grid;gap:14px}.lbl{font:var(--type-label);letter-spacing:var(--ls-wide);text-transform:uppercase;color:var(--text-muted)}</style></head><body><div id="root"></div><script type="text/babel">
+const {Input,Select,Checkbox,Radio,Switch,Icon}=window.SDEuropeanDesignSystem_614674||{};
+function App(){const [c,setC]=React.useState('new');return <div className="col">
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:14,alignItems:'start'}}>
+<Input label="Rego" mono placeholder="ABC123" hint="We'll match your VIN."/>
+<Select label="Make" options={['Audi','BMW','Mercedes-Benz','Mini','Skoda','Volkswagen']}/>
+<Input label="Email" type="email" defaultValue="not-an-email" error="Enter a valid email address."/>
+</div>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,alignItems:'start'}}>
+<Input label="Search parts" placeholder="e.g. E90 window regulator" prefix={<Icon name="search" size={20}/>}/>
+<Input label="Disabled" placeholder="Unavailable" disabled/>
+</div>
+<div className="row" style={{gap:28,alignItems:'flex-start'}}>
+<div className="col" style={{gap:10}}><Checkbox label="In stock only" defaultChecked/><Checkbox label="Include used parts"/></div>
+<div className="col" style={{gap:10}}><Radio name="c" label="New aftermarket" description="12 month warranty" checked={c==='new'} onChange={()=>setC('new')}/><Radio name="c" label="Used / dismantled" checked={c==='used'} onChange={()=>setC('used')}/></div>
+<div className="col" style={{gap:10}}><Switch label="Overnight delivery" defaultChecked/><Switch label="Fit at our workshop"/></div>
+</div>
+</div>}
+const m=()=>{if(!window.SDEuropeanDesignSystem_614674)return setTimeout(m,60);ReactDOM.createRoot(document.getElementById('root')).render(<App/>);};m();
+</script></body></html>

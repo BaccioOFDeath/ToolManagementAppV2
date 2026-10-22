@@ -1,0 +1,11 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Core — Card surfaces" subtitle="Default, subtle, inverse and accent" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css"><script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script><script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script><script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script><script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.js"></script><script src="../../_ds_bundle.js"></script><style>body{padding:20px;background:var(--surface-page)}.row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}.col{display:grid;gap:14px}.lbl{font:var(--type-label);letter-spacing:var(--ls-wide);text-transform:uppercase;color:var(--text-muted)}</style></head><body><div id="root"></div><script type="text/babel">
+const {Card,Button,Badge}=window.SDEuropeanDesignSystem_614674||{};
+function App(){return <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14,alignItems:'stretch'}}>
+<Card meta="BMW · Genuine" title="Water Pump — N20" interactive footer={<Button size="sm" fullWidth>Add to Cart</Button>}>Fits F20/F30 2011–2016. Ships overnight.</Card>
+<Card variant="subtle" meta="Servicing" title="WOF Inspection">Booked in and out the same day at Te Rapa.</Card>
+<Card variant="inverse" meta="30+ Years" title="NZ's Home of European Cars">Over 350 vehicles dismantling right now.</Card>
+<Card variant="accent" meta="Promo" title="Free Shipping over $175" footer={<Badge tone="dark">Nationwide</Badge>}>Order before 2pm for overnight delivery.</Card>
+</div>}
+const m=()=>{if(!window.SDEuropeanDesignSystem_614674)return setTimeout(m,60);ReactDOM.createRoot(document.getElementById('root')).render(<App/>);};m();
+</script></body></html>

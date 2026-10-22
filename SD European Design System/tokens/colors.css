@@ -1,0 +1,70 @@
+:root{
+/* --- Brand core (Brand Guidelines p.6) --- */
+--brand-black:#010101;   /* CMYK 0,0,0,100 */
+--brand-yellow:#FFC326;  /* CMYK 0,24,85,0 */
+--brand-white:#FFFFFF;
+--brand-grey:#D8D8D8;    /* CMYK 0,0,0,15 */
+
+/* --- Yellow ramp (derived from #FFC326 for states + tints only) --- */
+--yellow-50:#FFF8E6;
+--yellow-100:#FFEEBF;
+--yellow-200:#FFE092;
+--yellow-300:#FFD25E;
+--yellow-400:#FFC326;
+--yellow-500:#F2B211;
+--yellow-600:#D2990A;
+--yellow-700:#A87A06;
+
+/* --- Neutral ramp (anchored on #010101 and #D8D8D8) --- */
+--neutral-0:#FFFFFF;
+--neutral-50:#FAFAFA;
+--neutral-100:#F2F2F2;
+--neutral-200:#D8D8D8;
+--neutral-300:#BDBDBD;
+--neutral-400:#949494;
+--neutral-500:#6B6B6B;
+--neutral-600:#4A4A4A;
+--neutral-700:#2E2E2E;
+--neutral-800:#1A1A1A;
+--neutral-900:#0D0D0D;
+--neutral-1000:#010101;
+
+/* --- Semantic status (workshop/parts UI: stock, warranty, faults) --- */
+--status-success:#1E7A3C;
+--status-success-surface:#E7F3EB;
+--status-warning:#B36A00;
+--status-warning-surface:#FFF3DE;
+--status-danger:#B3261E;
+--status-danger-surface:#FBEAE9;
+--status-info:#1F5C8C;
+--status-info-surface:#E8F0F6;
+
+/* --- Semantic aliases --- */
+--text-primary:var(--neutral-1000);
+--text-secondary:var(--neutral-600);
+--text-muted:var(--neutral-500);
+--text-inverse:var(--brand-white);
+--text-on-accent:var(--brand-black);
+--text-link:var(--neutral-1000);
+--text-link-hover:var(--yellow-600);
+
+--surface-page:var(--brand-white);
+--surface-subtle:var(--neutral-100);
+--surface-card:var(--brand-white);
+--surface-inverse:var(--brand-black);
+--surface-accent:var(--brand-yellow);
+--surface-accent-subtle:var(--yellow-50);
+--surface-overlay:rgba(1,1,1,.72);
+
+--border-default:var(--neutral-200);
+--border-strong:var(--neutral-400);
+--border-inverse:rgba(255,255,255,.18);
+--border-accent:var(--brand-yellow);
+
+--focus-ring:var(--brand-yellow);
+--focus-ring-inverse:var(--brand-white);
+
+/* Protection scrim for type over photography (see readme VISUAL FOUNDATIONS) */
+--scrim-bottom:linear-gradient(to top,rgba(1,1,1,.82) 0%,rgba(1,1,1,.55) 38%,rgba(1,1,1,0) 100%); /* @kind color */
+--scrim-left:linear-gradient(to right,rgba(1,1,1,.80) 0%,rgba(1,1,1,0) 62%); /* @kind color */
+}

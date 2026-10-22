@@ -1,0 +1,10 @@
+<!-- @dsCard group="Components" viewport="700x180" name="Navigation — Tabs" subtitle="Underline and segmented variants" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css"><script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script><script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script><script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script><script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.js"></script><script src="../../_ds_bundle.js"></script><style>body{padding:20px;background:var(--surface-page)}.row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}.col{display:grid;gap:14px}.lbl{font:var(--type-label);letter-spacing:var(--ls-wide);text-transform:uppercase;color:var(--text-muted)}</style></head><body><div id="root"></div><script type="text/babel">
+const {Tabs}=window.SDEuropeanDesignSystem_614674||{};
+const items=[{value:'desc',label:'Description'},{value:'fit',label:'Fitment',count:14},{value:'del',label:'Delivery'}];
+function App(){const [a,setA]=React.useState('desc');const [b,setB]=React.useState('fit');return <div className="col" style={{gap:26}}>
+<Tabs items={items} value={a} onChange={setA}/>
+<Tabs items={items} variant="segmented" value={b} onChange={setB}/>
+</div>}
+const m=()=>{if(!window.SDEuropeanDesignSystem_614674)return setTimeout(m,60);ReactDOM.createRoot(document.getElementById('root')).render(<App/>);};m();
+</script></body></html>

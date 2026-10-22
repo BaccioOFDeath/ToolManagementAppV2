@@ -1,0 +1,7 @@
+/* SD European webfonts.
+   SUBSTITUTION NOTICE: the brand's licensed body face is Frutiger (Linotype).
+   No licensed files were supplied, so Source Sans 3 (Google Fonts) is used as the
+   nearest open humanist sans — same tall x-height, open apertures, squarish bowls.
+   Swap the --font-body stack the moment Frutiger WOFF2 files are provided.
+   Headings use League Spartan, which IS the brand face and is available on Google Fonts. */
+@import url("https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700;800;900&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap");

@@ -1,0 +1,15 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Feedback — Toast, Tooltip, Dialog" subtitle="Confirmations, hints and modals" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css"><script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script><script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script><script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script><script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.js"></script><script src="../../_ds_bundle.js"></script><style>body{padding:20px;background:var(--surface-page)}.row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}.col{display:grid;gap:14px}.lbl{font:var(--type-label);letter-spacing:var(--ls-wide);text-transform:uppercase;color:var(--text-muted)}</style></head><body><div id="root"></div><script type="text/babel">
+const {Toast,Tooltip,Dialog,Button,Input,Icon}=window.SDEuropeanDesignSystem_614674||{};
+function App(){const [o,setO]=React.useState(false);return <div className="col">
+<Toast tone="success" title="Added to cart" message="Water Pump — N20 · $189.00" onDismiss={()=>{}} icon={<Icon name="check" size={20}/>}/>
+<Toast tone="danger" title="Couldn't confirm fitment" message="Send us your rego and we'll check it." onDismiss={()=>{}}/>
+<div className="row" style={{gap:24}}>
+<Tooltip label="Warrant of Fitness"><span style={{borderBottom:'1px dotted var(--neutral-400)',cursor:'help'}}>WOF</span></Tooltip>
+<Tooltip label="Direct-Shift Gearbox" placement="right"><span style={{borderBottom:'1px dotted var(--neutral-400)',cursor:'help'}}>DSG</span></Tooltip>
+<Button size="sm" variant="secondary" onClick={()=>setO(true)}>Open Dialog</Button>
+</div>
+<Dialog open={o} title="Book a Service" description="Tell us your rego and we'll find your car." onClose={()=>setO(false)} footer={<><Button variant="ghost" size="sm" onClick={()=>setO(false)}>Cancel</Button><Button size="sm" onClick={()=>setO(false)}>Confirm Booking</Button></>}><Input label="Rego" mono placeholder="ABC123"/></Dialog>
+</div>}
+const m=()=>{if(!window.SDEuropeanDesignSystem_614674)return setTimeout(m,60);ReactDOM.createRoot(document.getElementById('root')).render(<App/>);};m();
+</script></body></html>
