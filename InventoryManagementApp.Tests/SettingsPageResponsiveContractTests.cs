@@ -39,7 +39,7 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "SettingsPage.xaml");
 
-            Assert.True(CountOccurrences(xaml, "VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Auto\"") >= 7);
+            Assert.True(CountOccurrences(xaml, "VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\"") >= 8);
             Assert.True(CountOccurrences(xaml, "MinWidth=\"0\"") >= 20);
             Assert.Contains("<ColumnDefinition Width=\"2*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<ColumnDefinition Width=\"1.45*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);

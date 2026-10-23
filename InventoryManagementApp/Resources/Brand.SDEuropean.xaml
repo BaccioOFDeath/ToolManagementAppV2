@@ -1,0 +1,258 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Production translation of the SD European design-system foundations. -->
+    <FontFamily x:Key="BrandBodyFontFamily">pack://application:,,,/InventoryManagementApp;component/Resources/Fonts/#Source Sans 3</FontFamily>
+    <FontFamily x:Key="BrandHeadingFontFamily">pack://application:,,,/InventoryManagementApp;component/Resources/Fonts/#League Spartan</FontFamily>
+
+    <SolidColorBrush x:Key="BrandBlackBrush" Color="#FF010101"/>
+    <SolidColorBrush x:Key="BrandYellowBrush" Color="#FFFFC326"/>
+    <SolidColorBrush x:Key="BrandYellowHoverBrush" Color="#FFF2B211"/>
+    <SolidColorBrush x:Key="BrandWhiteBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="BrandGreyBrush" Color="#FFD8D8D8"/>
+    <SolidColorBrush x:Key="BrandInverseMutedBrush" Color="#FFBDBDBD"/>
+    <SolidColorBrush x:Key="BrandDarkSurfaceBrush" Color="#FF1A1A1A"/>
+
+    <Style x:Key="Card" TargetType="Border" BasedOn="{StaticResource {x:Type Border}}">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushBase}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="{DynamicResource CardPadding}"/>
+        <Setter Property="Effect" Value="{x:Null}"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+    </Style>
+
+    <Style x:Key="ToolbarCard" TargetType="Border" BasedOn="{StaticResource Card}">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="MinHeight" Value="36"/>
+    </Style>
+
+    <Style x:Key="PageHeaderBand" TargetType="Border" BasedOn="{StaticResource ToolbarCard}">
+        <Setter Property="Height" Value="104"/>
+        <Setter Property="MinHeight" Value="104"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="Margin" Value="0,0,0,8"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrandYellowBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,4"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="ClipToBounds" Value="True"/>
+    </Style>
+
+    <Style x:Key="PageHeaderStatCard" TargetType="Border" BasedOn="{StaticResource Card}">
+        <Setter Property="Width" Value="132"/>
+        <Setter Property="Height" Value="66"/>
+        <Setter Property="MinWidth" Value="132"/>
+        <Setter Property="MinHeight" Value="66"/>
+        <Setter Property="Padding" Value="10,7"/>
+        <Setter Property="Margin" Value="0,0,6,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="ClipToBounds" Value="True"/>
+    </Style>
+
+    <Style x:Key="HeadingTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontFamily" Value="{StaticResource BrandHeadingFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeTitleFontSize}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="PageTitleTextBlock" TargetType="TextBlock" BasedOn="{StaticResource HeadingTextBlock}">
+        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+
+    <Style x:Key="SubheadingTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontFamily" Value="{StaticResource BrandHeadingFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeSectionFontSize}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+
+    <Style x:Key="SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource SubheadingTextBlock}">
+        <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+
+    <Style x:Key="LabelTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontFamily" Value="{StaticResource BrandHeadingFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeCaptionFontSize}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundMutedBrush}"/>
+    </Style>
+
+    <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="MinWidth" Value="84"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="Background" Value="{StaticResource BrandYellowBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrandYellowBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource BrandBlackBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource BrandHeadingFontFamily}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+
+    <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource BrandHeadingFontFamily}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="MinWidth" Value="84"/>
+    </Style>
+
+    <Style x:Key="SectionMenuItem" TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{StaticResource BrandBlackBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0,0,0,3"/>
+        <Setter Property="Padding" Value="14,8"/>
+        <Setter Property="MinHeight" Value="42"/>
+        <Setter Property="MinWidth" Value="82"/>
+        <Setter Property="FontFamily" Value="{StaticResource BrandHeadingFontFamily}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Style.Triggers>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter Property="Background" Value="#FFFFEEBF"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BrandYellowBrush}"/>
+            </Trigger>
+            <Trigger Property="IsSubmenuOpen" Value="True">
+                <Setter Property="Background" Value="#FFFFEEBF"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BrandYellowBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Keep tab states identical across dashboard, workflows, and admin pages. -->
+    <Style TargetType="TabItem">
+        <Setter Property="Background" Value="{DynamicResource SurfaceAltBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushAlt}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeControlMinHeight}"/>
+        <Setter Property="Margin" Value="0,0,2,0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border x:Name="TabChrome"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4,4,0,0"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter x:Name="HeaderContent"
+                                          ContentSource="Header"
+                                          RecognizesAccessKey="True"
+                                          TextElement.FontFamily="{StaticResource BrandHeadingFontFamily}"
+                                          TextElement.FontSize="{DynamicResource ThemeBodyFontSize}"
+                                          TextElement.FontWeight="SemiBold"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="TabChrome" Property="Background" Value="#FFFFEEBF"/>
+                            <Setter TargetName="TabChrome" Property="BorderBrush" Value="{StaticResource BrandYellowBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="TabChrome" Property="Background" Value="{StaticResource BrandYellowBrush}"/>
+                            <Setter TargetName="TabChrome" Property="BorderBrush" Value="{StaticResource BrandYellowBrush}"/>
+                            <Setter Property="Foreground" Value="{StaticResource BrandBlackBrush}"/>
+                            <Setter TargetName="HeaderContent" Property="TextElement.FontWeight" Value="Bold"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Background" Value="{StaticResource BrandBlackBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource BrandWhiteBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource BrandHeadingFontFamily}"/>
+        <Setter Property="FontSize" Value="{DynamicResource ThemeBodyFontSize}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="BorderBrush" Value="#FF2E2E2E"/>
+        <Setter Property="BorderThickness" Value="0,0,1,0"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="MinHeight" Value="{DynamicResource ThemeDataGridHeaderHeight}"/>
+        <Setter Property="Height" Value="{DynamicResource ThemeDataGridHeaderHeight}"/>
+        <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
+        <Setter Property="TextBlock.TextWrapping" Value="NoWrap"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridColumnHeader">
+                    <Grid>
+                        <Border x:Name="HeaderChrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <TextBlock Text="{TemplateBinding Content}"
+                                           Margin="0,0,14,0"
+                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                           Foreground="{StaticResource BrandWhiteBrush}"
+                                           FontFamily="{StaticResource BrandHeadingFontFamily}"
+                                           FontSize="{DynamicResource ThemeBodyFontSize}"
+                                           FontWeight="Bold"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <Path x:Name="SortArrow"
+                                      HorizontalAlignment="Right"
+                                      VerticalAlignment="Center"
+                                      Fill="{StaticResource BrandYellowBrush}"
+                                      Data="M 0 4 L 4 0 L 8 4 Z"
+                                      Visibility="Collapsed"/>
+                            </Grid>
+                        </Border>
+                        <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Width="8" Background="Transparent" Cursor="SizeWE">
+                            <Thumb.Template>
+                                <ControlTemplate TargetType="Thumb">
+                                    <Border Background="Transparent"/>
+                                </ControlTemplate>
+                            </Thumb.Template>
+                        </Thumb>
+                        <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Width="8" Background="Transparent" Cursor="SizeWE">
+                            <Thumb.Template>
+                                <ControlTemplate TargetType="Thumb">
+                                    <Border Background="Transparent"/>
+                                </ControlTemplate>
+                            </Thumb.Template>
+                        </Thumb>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="HeaderChrome" Property="Background" Value="#FF1A1A1A"/>
+                        </Trigger>
+                        <Trigger Property="SortDirection" Value="Ascending">
+                            <Setter TargetName="SortArrow" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="SortDirection" Value="Descending">
+                            <Setter TargetName="SortArrow" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="SortArrow" Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                            <Setter TargetName="SortArrow" Property="RenderTransform">
+                                <Setter.Value>
+                                    <RotateTransform Angle="180"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

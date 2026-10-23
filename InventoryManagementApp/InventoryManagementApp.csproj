@@ -10,9 +10,9 @@
     <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <Company>Equipment Rentals</Company>
-    <Product>Inventory Management Application</Product>
-    <Copyright>Copyright © 2025</Copyright>
+    <Company>SD European</Company>
+    <Product>SD European Inventory Management</Product>
+    <Copyright>Copyright © 2026 SD European</Copyright>
     <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -108,6 +108,13 @@
     <Resource Include="Resources\DefaultItemImage.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Resources\BrandLogoBlack.png" />
+    <Resource Include="Resources\BrandLogoWhite.png" />
+    <Resource Include="Resources\BrandSymbol.png" />
+    <Resource Include="Resources\Fonts\LeagueSpartan.ttf" />
+    <Resource Include="Resources\Fonts\SourceSans3.ttf" />
+    <None Include="Resources\Fonts\OFL-LeagueSpartan.txt" />
+    <None Include="Resources\Fonts\OFL-SourceSans3.txt" />
     <Content Include="Resources\AppIcon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -128,6 +135,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Resource>
     <Resource Include="Resources\Theme.Customization.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Generator>MSBuild:Compile</Generator>
+    </Resource>
+    <Resource Include="Resources\Brand.SDEuropean.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Generator>MSBuild:Compile</Generator>
     </Resource>

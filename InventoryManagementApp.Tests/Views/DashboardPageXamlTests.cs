@@ -68,7 +68,8 @@ namespace InventoryManagementApp.Tests.Views
             Assert.Contains("Style=\"{StaticResource PageTitleTextBlock}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Style=\"{StaticResource PageHeaderStatCard}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Style=\"{StaticResource PageHeaderStatValueText}\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Content=\"New Item\" Command=\"{Binding NewItemCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("StringFormat='New {0}'", xaml, StringComparison.Ordinal);
+            Assert.Contains("Command=\"{Binding NewItemCommand}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Padding=\"6,3\"", xaml, StringComparison.Ordinal);
         }
 

@@ -20,20 +20,20 @@
 
     <CornerRadius x:Key="ThemeCardCornerRadius">6</CornerRadius>
     <CornerRadius x:Key="ThemePanelCornerRadius">4</CornerRadius>
-    <CornerRadius x:Key="ThemeButtonCornerRadius">5</CornerRadius>
+    <CornerRadius x:Key="ThemeButtonCornerRadius">4</CornerRadius>
     <CornerRadius x:Key="ThemeInputCornerRadius">4</CornerRadius>
     <CornerRadius x:Key="ThemeFooterCornerRadius">0,0,6,6</CornerRadius>
 
-    <FontFamily x:Key="ThemeFontFamily">Segoe UI</FontFamily>
+    <FontFamily x:Key="ThemeFontFamily">pack://application:,,,/InventoryManagementApp;component/Resources/Fonts/#Source Sans 3</FontFamily>
     <sys:Double x:Key="ThemeFontScale">1</sys:Double>
     <sys:Double x:Key="ThemeHeadingFontScale">1</sys:Double>
-    <sys:Double x:Key="ThemeCaptionFontSize">11</sys:Double>
-    <sys:Double x:Key="ThemeBodyFontSize">13</sys:Double>
-    <sys:Double x:Key="ThemeSectionFontSize">14</sys:Double>
-    <sys:Double x:Key="ThemeTitleFontSize">18</sys:Double>
-    <sys:Double x:Key="ThemeControlMinHeight">28</sys:Double>
-    <sys:Double x:Key="ThemeDataGridRowHeight">30</sys:Double>
-    <sys:Double x:Key="ThemeDataGridHeaderHeight">30</sys:Double>
+    <sys:Double x:Key="ThemeCaptionFontSize">12</sys:Double>
+    <sys:Double x:Key="ThemeBodyFontSize">14</sys:Double>
+    <sys:Double x:Key="ThemeSectionFontSize">15.5</sys:Double>
+    <sys:Double x:Key="ThemeTitleFontSize">20</sys:Double>
+    <sys:Double x:Key="ThemeControlMinHeight">32</sys:Double>
+    <sys:Double x:Key="ThemeDataGridRowHeight">38</sys:Double>
+    <sys:Double x:Key="ThemeDataGridHeaderHeight">38</sys:Double>
     <sys:Double x:Key="ThemeInteractionIntensity">1</sys:Double>
     <sys:Double x:Key="ThemeMotionIntensity">1</sys:Double>
     <sys:Double x:Key="ThemeFocusVisualStrokeThickness">2</sys:Double>
@@ -42,17 +42,17 @@
     <sys:Double x:Key="ThemeDividerOpacity">1</sys:Double>
     <sys:Double x:Key="ThemeSurfaceShadowScale">1</sys:Double>
     <sys:Double x:Key="ThemeControlShadowScale">1</sys:Double>
-    <sys:Double x:Key="ThemeDisabledOpacity">0.55</sys:Double>
+    <sys:Double x:Key="ThemeDisabledOpacity">0.45</sys:Double>
 
     <SolidColorBrush x:Key="ThemeTransparentBrush" Color="#00000000"/>
     <SolidColorBrush x:Key="ThemeGlassSurfaceBrush" Color="#DFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeGlassSurfaceAltBrush" Color="#BFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeAppBackgroundOverlayBrush" Color="#00FFFFFF"/>
     <SolidColorBrush x:Key="MainContentBackgroundBrush" Color="#00000000"/>
-    <SolidColorBrush x:Key="ThemeShellHeaderBrush" Color="#FFFFFFFF"/>
+    <SolidColorBrush x:Key="ThemeShellHeaderBrush" Color="#FF010101"/>
     <SolidColorBrush x:Key="SearchBarBackgroundBrush" Color="#FFFFFFFF"/>
-    <SolidColorBrush x:Key="SearchBarBorderBrush" Color="#FF2563EB"/>
-    <SolidColorBrush x:Key="SearchBarInnerBorderBrush" Color="#FF2563EB"/>
+    <SolidColorBrush x:Key="SearchBarBorderBrush" Color="#FFFFC326"/>
+    <SolidColorBrush x:Key="SearchBarInnerBorderBrush" Color="#FFD8D8D8"/>
     <SolidColorBrush x:Key="PageHeaderDashboardBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="PageHeaderSearchBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="PageHeaderManageItemsBrush" Color="#FFFFFFFF"/>
@@ -68,7 +68,7 @@
     <SolidColorBrush x:Key="PageHeaderImportExportBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="PageHeaderUsersBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="PageHeaderSettingsBrush" Color="#FFFFFFFF"/>
-    <SolidColorBrush x:Key="ThemeShellMenuBrush" Color="#FFE8EDF3"/>
+    <SolidColorBrush x:Key="ThemeShellMenuBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeShellFooterBrush" Color="#BFFFFFFF"/>
     <SolidColorBrush x:Key="ThemeDialogSurfaceBrush" Color="#FFFFFFFF"/>
     <SolidColorBrush x:Key="ThemePopupSurfaceBrush" Color="#FFE8EDF3"/>

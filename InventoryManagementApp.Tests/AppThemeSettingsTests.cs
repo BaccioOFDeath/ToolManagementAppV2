@@ -83,21 +83,21 @@ public class AppThemeSettingsTests
     }
 
     [Fact]
-    public void SdEuropeanDefaults_UseDistinctPageHeaderColors()
+    public void SdEuropeanDefaults_UseWorkshopCleanAlternatingPageHeaders()
     {
         var light = AppThemeSettings.CreateDefault("SD European Light");
         var dark = AppThemeSettings.CreateDefault("SD European Dark");
 
-        Assert.Equal("#FFEAF4FF", light.DashboardHeaderColor);
-        Assert.Equal("#FFFFE8CC", light.RentalsHeaderColor);
-        Assert.Equal("#FFECEFF3", light.SettingsHeaderColor);
-        Assert.NotEqual(light.SurfaceColor, light.DashboardHeaderColor);
+        Assert.Equal("#FFFFFFFF", light.DashboardHeaderColor);
+        Assert.Equal("#FFFAFAFA", light.RentalsHeaderColor);
+        Assert.Equal("#FFFFFFFF", light.SettingsHeaderColor);
+        Assert.Equal(light.SurfaceColor, light.DashboardHeaderColor);
         Assert.NotEqual(light.RentalsHeaderColor, light.SettingsHeaderColor);
 
-        Assert.Equal("#FF12324A", dark.DashboardHeaderColor);
-        Assert.Equal("#FF4A2A14", dark.RentalsHeaderColor);
-        Assert.Equal("#FF2B3038", dark.SettingsHeaderColor);
-        Assert.NotEqual(dark.SurfaceColor, dark.DashboardHeaderColor);
+        Assert.Equal("#FF1A1A1A", dark.DashboardHeaderColor);
+        Assert.Equal("#FF0D0D0D", dark.RentalsHeaderColor);
+        Assert.Equal("#FF1A1A1A", dark.SettingsHeaderColor);
+        Assert.Equal(dark.SurfaceColor, dark.DashboardHeaderColor);
         Assert.NotEqual(dark.RentalsHeaderColor, dark.SettingsHeaderColor);
     }
 
@@ -115,10 +115,10 @@ public class AppThemeSettingsTests
         settings.Normalize();
 
         Assert.Equal("#60A5FA", settings.AccentColor);
-        Assert.Equal("#FFDC2626", settings.ErrorColor);
-        Assert.Equal("#FFC99500", settings.WarningColor);
+        Assert.Equal("#FFB3261E", settings.ErrorColor);
+        Assert.Equal("#FFB36A00", settings.WarningColor);
         Assert.Equal("#112233", settings.SearchBarBackgroundColor);
-        Assert.Equal("#FFF5B700", settings.SearchBarBorderColor);
+        Assert.Equal("#FFFFC326", settings.SearchBarBorderColor);
         Assert.Equal("#445566", settings.SearchBarInnerBorderColor);
     }
 

@@ -85,10 +85,12 @@ namespace InventoryManagementApp.Services
                 var hoverOpacity = Math.Clamp(0.08 + (settings.InteractionIntensity * 0.08), 0, 0.28);
                 var selectedOpacity = Math.Clamp(0.14 + (settings.InteractionIntensity * 0.13), 0, 0.42);
                 var pressedOpacity = Math.Clamp(0.18 + (settings.InteractionIntensity * 0.12), 0, 0.48);
-                var bodyFontSize = Math.Round(13 * settings.FontScale, 1);
-                var captionFontSize = Math.Round(11 * settings.FontScale, 1);
-                var sectionFontSize = Math.Round(14 * settings.FontScale * settings.HeadingFontScale, 1);
-                var titleFontSize = Math.Round(18 * settings.FontScale * settings.HeadingFontScale, 1);
+                // Keep the default desktop hierarchy comfortably readable at 100% display scale.
+                // Theme FontScale remains the user-controlled multiplier for compact or larger text.
+                var bodyFontSize = Math.Round(14 * settings.FontScale, 1);
+                var captionFontSize = Math.Round(12 * settings.FontScale, 1);
+                var sectionFontSize = Math.Round(15.5 * settings.FontScale * settings.HeadingFontScale, 1);
+                var titleFontSize = Math.Round(20 * settings.FontScale * settings.HeadingFontScale, 1);
 
                 Set(resources, "BackgroundBrush", CreateBackgroundBrush(settings));
                 Set(resources, "ThemeAppBackgroundOverlayBrush", CreateBrush(settings.BackgroundOverlayColor, settings.BackgroundOverlayOpacity));

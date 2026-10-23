@@ -78,8 +78,8 @@
         <Border Grid.Row="0" Style="{StaticResource PageHeaderBand}" Background="{DynamicResource PageHeaderManageItemsBrush}">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="220" MaxWidth="460">
-                    <TextBlock Text="Manage Items" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
-                    <TextBlock Text="Maintain the item directory, review current availability, and save inline stock/location edits before staff use live records." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding ItemLabelPlural, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Manage {0}'}" Style="{StaticResource PageTitleTextBlock}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Maintain the {0} directory, review current availability, and save inline stock/location edits before staff use live records.'}" Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                 </StackPanel>
                 <WrapPanel Style="{StaticResource PageHeaderStatsPanel}" Margin="12,0,0,0">
             <Border Style="{StaticResource DirectoryStatCard}">
@@ -119,7 +119,7 @@
             </Border>
             <Border Style="{StaticResource DirectoryStatCard}">
                 <StackPanel>
-                    <TextBlock Text="Selected Item" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBlock Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Selected {0}'}" Style="{StaticResource LabelTextBlock}"/>
                     <TextBlock Text="{Binding SelectedItem.Name, TargetNullValue=No item selected}" Style="{StaticResource DirectoryStatValueText}"/>
                     <TextBlock Text="{Binding SelectedItem.AvailabilityDetail, TargetNullValue='Select a row to review availability and next actions.'}" Style="{StaticResource DirectoryDetailText}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                 </StackPanel>
@@ -292,7 +292,9 @@
                         <StackPanel>
                             <TextBlock Text="No matching items" Style="{StaticResource SectionHeader}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
                             <TextBlock Text="Adjust the filter or create a new item to begin building the directory." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,4,0,8"/>
-                            <Button Style="{StaticResource LoadingAwarePrimaryButton}" Content="New Item" Command="{Binding NewItemCommand}" HorizontalAlignment="Center"/>
+                            <Button Style="{StaticResource LoadingAwarePrimaryButton}" Command="{Binding NewItemCommand}" HorizontalAlignment="Center">
+                                <TextBlock Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='New {0}'}"/>
+                            </Button>
                         </StackPanel>
                     </Border>
                     <Border Grid.Row="2" MaxWidth="360" MinHeight="120" Margin="12" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsDirectoryBusy, Converter={StaticResource BoolToVis}}" IsHitTestVisible="False">
@@ -330,7 +332,7 @@
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Style="{StaticResource DesktopPaneHeader}">
                         <StackPanel>
-                            <TextBlock Text="Selected Item Handoff" Style="{StaticResource SectionHeader}" Margin="0" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ItemLabelSingular, Source={x:Static helpers:LabelProvider.Instance}, StringFormat='Selected {0} handoff'}" Style="{StaticResource SectionHeader}" Margin="0" TextWrapping="Wrap"/>
                             <TextBlock Text="Confirm before editing or opening history." Style="{StaticResource CaptionTextBlock}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>

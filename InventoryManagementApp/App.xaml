@@ -28,10 +28,11 @@
                 <ResourceDictionary Source="Resources/Theme.PopupChromeOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.TextHierarchyOverrides.xaml"/>
                 <ResourceDictionary Source="Resources/Theme.AdornerValidationOverrides.xaml"/>
+                <ResourceDictionary Source="Resources/Brand.SDEuropean.xaml"/>
                 <ResourceDictionary Source="Resources/Converters.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/InventoryManagementApp;component/Resources/Templates.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <media:BitmapImage x:Key="WindowIcon" UriSource="pack://application:,,,/Resources/DefaultLogo.png"/>
+            <media:BitmapImage x:Key="WindowIcon" UriSource="pack://application:,,,/Resources/BrandSymbol.png"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

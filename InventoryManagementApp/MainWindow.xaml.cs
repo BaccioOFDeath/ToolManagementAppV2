@@ -85,8 +85,8 @@ namespace InventoryManagementApp
 
         void ApplyShellLayout(bool compact)
         {
-            ShellHeader.Padding = compact ? new Thickness(6, 3, 6, 3) : new Thickness(8, 5, 8, 5);
-            ShellMenu.Padding = compact ? new Thickness(4, 1, 4, 1) : new Thickness(4, 3, 4, 3);
+            ShellHeader.Padding = compact ? new Thickness(10, 7, 10, 7) : new Thickness(18, 9, 18, 9);
+            ShellMenu.Padding = compact ? new Thickness(8, 0, 8, 0) : new Thickness(14, 0, 14, 0);
 
             ShellTitleButton.MaxWidth = compact ? 190 : 250;
             ShellTitleButton.MinWidth = 0;

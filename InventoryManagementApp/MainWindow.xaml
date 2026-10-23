@@ -31,6 +31,11 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="ShellUserButtonStyle" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+            <Setter Property="Foreground" Value="{StaticResource BrandWhiteBrush}"/>
+            <Setter Property="BorderBrush" Value="#4DFFFFFF"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -45,20 +50,29 @@
 
         <Border x:Name="ShellHeader"
                 Grid.Row="0"
-                Background="{DynamicResource ThemeShellHeaderBrush}"
-                BorderBrush="{DynamicResource BorderBrushBase}"
-                BorderThickness="0,0,0,1"
+                Background="{StaticResource BrandBlackBrush}"
+                BorderBrush="{StaticResource BrandYellowBrush}"
+                BorderThickness="0,0,0,4"
                 Effect="{DynamicResource ThemeSurfaceShadow}"
-                Padding="8,5">
+                Padding="18,9">
             <Grid VerticalAlignment="Center" ClipToBounds="True">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="190" MinWidth="150" MaxWidth="220"/>
                     <ColumnDefinition Width="Auto" MinWidth="0" MaxWidth="260"/>
                     <ColumnDefinition Width="*" MinWidth="0"/>
                     <ColumnDefinition Width="Auto" MinWidth="0" MaxWidth="210"/>
                 </Grid.ColumnDefinitions>
 
+                <Image Grid.Column="0"
+                       Source="pack://application:,,,/InventoryManagementApp;component/Resources/BrandLogoWhite.png"
+                       Stretch="Uniform"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center"
+                       MaxHeight="34"
+                       Margin="0,0,18,0"/>
+
                 <Button x:Name="ShellTitleButton"
-                        Grid.Column="0"
+                        Grid.Column="1"
                         Style="{StaticResource ShellTitleButton}"
                         Command="{Binding OpenDashboardCommand}"
                         ToolTip="Open dashboard"
@@ -66,15 +80,15 @@
                         MinWidth="0"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Center"
-                        Margin="0,0,12,0">
+                        Margin="0,0,20,0">
                     <StackPanel MinWidth="0">
-                        <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" TextTrimming="CharacterEllipsis"/>
-                        <TextBlock x:Name="ShellSubtitle" Text="Workshop inventory and rental control" Style="{StaticResource CaptionTextBlock}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding WindowTitle}" Style="{StaticResource HeadingTextBlock}" Foreground="{StaticResource BrandWhiteBrush}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="ShellSubtitle" Text="INVENTORY | RENTALS | WORKSHOP" FontFamily="{StaticResource BrandHeadingFontFamily}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrandYellowBrush}" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Button>
 
                 <pages:SearchBar x:Name="ShellSearchBar"
-                                 Grid.Column="1"
+                                 Grid.Column="2"
                                  MinWidth="180"
                                  MaxWidth="720"
                                  HorizontalAlignment="Stretch"
@@ -86,8 +100,8 @@
                                  Visibility="{Binding CanShowShellSearch, Converter={StaticResource BoolToVis}}"/>
 
                 <Button x:Name="ShellUserButton"
-                        Grid.Column="2"
-                        Style="{StaticResource GhostButton}"
+                        Grid.Column="3"
+                        Style="{StaticResource ShellUserButtonStyle}"
                         Command="{Binding SwitchUserCommand}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
@@ -102,10 +116,10 @@
                                                   FontSize="13"/>
                         </Border>
                         <StackPanel MaxWidth="126" MinWidth="0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding CurrentUserName}" Foreground="{StaticResource BrandWhiteBrush}" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding CurrentUserRole}" Style="{StaticResource CaptionTextBlock}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
-                                <TextBlock Text=" | Log out" Style="{StaticResource CaptionTextBlock}" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding CurrentUserRole}" Foreground="{StaticResource BrandInverseMutedBrush}" FontSize="{DynamicResource ThemeCaptionFontSize}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text=" | Log out" Foreground="{StaticResource BrandYellowBrush}" FontSize="{DynamicResource ThemeCaptionFontSize}" FontWeight="SemiBold"/>
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
@@ -115,11 +129,11 @@
 
         <Border x:Name="ShellMenu"
                 Grid.Row="1"
-                Background="{DynamicResource ThemeShellMenuBrush}"
-                BorderBrush="{DynamicResource BorderBrushBase}"
+                Background="{StaticResource BrandWhiteBrush}"
+                BorderBrush="{StaticResource BrandGreyBrush}"
                 BorderThickness="0,0,0,1"
                 Effect="{DynamicResource ThemeRaisedShadow}"
-                Padding="4,2">
+                Padding="14,0">
             <ScrollViewer HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Disabled"
                           CanContentScroll="True"

@@ -26,10 +26,10 @@
                     <ColumnDefinition Width="*" MinWidth="420"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Background="{DynamicResource SurfaceAltBrush}"
-                        BorderBrush="{DynamicResource AccentBrush}"
-                        BorderThickness="0,0,2,0"
-                        Padding="24">
+                <Border Background="{StaticResource BrandBlackBrush}"
+                        BorderBrush="{StaticResource BrandYellowBrush}"
+                        BorderThickness="0,0,4,0"
+                        Padding="30">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -38,50 +38,57 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel>
-                            <Border Width="72" Height="72"
-                                    HorizontalAlignment="Left"
-                                    Background="{DynamicResource SurfaceBrush}"
-                                    BorderBrush="{DynamicResource BorderBrushAlt}"
-                                    BorderThickness="1"
-                                    Padding="10">
-                                <Image Source="{Binding CompanyLogo}" Stretch="Uniform"/>
-                            </Border>
+                            <Image Source="pack://application:,,,/InventoryManagementApp;component/Resources/BrandLogoWhite.png"
+                                   Width="220"
+                                   Height="48"
+                                   HorizontalAlignment="Left"
+                                   Stretch="Uniform"/>
+                            <Border Width="56" Height="4" HorizontalAlignment="Left" Background="{StaticResource BrandYellowBrush}" Margin="0,22,0,0"/>
                             <TextBlock Text="{Binding WindowTitle}"
                                        Style="{StaticResource HeadingTextBlock}"
+                                       Foreground="{StaticResource BrandWhiteBrush}"
                                        FontSize="22"
                                        TextWrapping="Wrap"
-                                       Margin="0,18,0,0"/>
-                            <TextBlock Text="Secure workstation access for item inventory, rentals, service work, and admin tasks."
-                                       Style="{StaticResource DialogMessageTextBlock}"
-                                       Foreground="{DynamicResource ForegroundMutedBrush}"
+                                       Margin="0,20,0,0"/>
+                            <TextBlock Text="Your workshop inventory, rentals, and service work in one place."
+                                       FontFamily="{StaticResource BrandBodyFontFamily}"
+                                       FontSize="14"
+                                       Foreground="{StaticResource BrandInverseMutedBrush}"
                                        Margin="0,8,0,0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,24">
-                            <Border Style="{StaticResource DesktopSummaryCard}" Margin="0,0,0,10">
+                            <Border Background="{StaticResource BrandDarkSurfaceBrush}" BorderBrush="#FF4A4A4A" BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,0,0,10">
                                 <StackPanel>
                                     <TextBlock Text="Role based access"
-                                               Style="{StaticResource SectionHeader}"/>
+                                               Style="{StaticResource SectionHeader}"
+                                               Foreground="{StaticResource BrandWhiteBrush}"/>
                                     <TextBlock Text="Choose your profile to load the pages, shortcuts, and guarded actions available for your role."
-                                               Style="{StaticResource CaptionTextBlock}"/>
+                                               FontSize="12"
+                                               Foreground="{StaticResource BrandInverseMutedBrush}"/>
                                 </StackPanel>
                             </Border>
-                            <Border Style="{StaticResource DesktopNoteCard}">
+                            <Border Background="{StaticResource BrandDarkSurfaceBrush}" BorderBrush="#FF4A4A4A" BorderThickness="1" CornerRadius="6" Padding="14">
                                 <StackPanel>
-                                    <TextBlock Text="Ready for handoff"
-                                               Style="{StaticResource SectionHeader}"/>
-                                    <TextBlock Text="Profiles keep repeated counter, bench, data, and admin work separated without changing the workstation setup."
-                                               Style="{StaticResource CaptionTextBlock}"/>
+                                    <TextBlock Text="Quality work, clearly controlled"
+                                               Style="{StaticResource SectionHeader}"
+                                               Foreground="{StaticResource BrandWhiteBrush}"/>
+                                    <TextBlock Text="Profiles keep counter, workshop, data, and admin tasks safely separated."
+                                               FontSize="12"
+                                               Foreground="{StaticResource BrandInverseMutedBrush}"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
 
                         <StackPanel Grid.Row="2">
-                            <TextBlock Text="Inventory Management"
-                                       Style="{StaticResource CaptionTextBlock}"
-                                       FontWeight="SemiBold"/>
-                            <TextBlock Text="Select a user card to continue."
-                                       Style="{StaticResource CaptionTextBlock}"
+                            <TextBlock Text="FAMILY | DRIVEN | INNOVATION | QUALITY"
+                                       FontFamily="{StaticResource BrandHeadingFontFamily}"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="{StaticResource BrandYellowBrush}"/>
+                            <TextBlock Text="Your European vehicle experts"
+                                       FontSize="11"
+                                       Foreground="{StaticResource BrandInverseMutedBrush}"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Grid>

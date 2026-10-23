@@ -68,7 +68,8 @@ namespace InventoryManagementApp.Tests
 
             Assert.Contains("<StackPanel DockPanel.Dock=\"Left\" MinWidth=\"210\" MaxWidth=\"320\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border Style=\"{StaticResource PageHeaderStatCard}\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("Content=\"New Item\" Command=\"{Binding NewItemCommand}\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("StringFormat='New {0}'", xaml, StringComparison.Ordinal);
+            Assert.Contains("Command=\"{Binding NewItemCommand}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"Print Snapshot\" Command=\"{Binding PrintDashboardSnapshotCommand}\"", xaml, StringComparison.Ordinal);
             Assert.True(CountOccurrences(xaml, "<WrapPanel DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\">") >= 3);
             Assert.DoesNotContain("<StackPanel Orientation=\"Horizontal\" DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);

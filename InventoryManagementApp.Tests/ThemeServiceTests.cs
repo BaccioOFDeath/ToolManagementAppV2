@@ -136,8 +136,8 @@ namespace InventoryManagementApp.Tests
                 Assert.Equal(new Thickness(0), (Thickness)app.Resources["SearchBarBorderThickness"]);
                 Assert.Equal(new Thickness(0), (Thickness)app.Resources["SearchBarInnerBorderThickness"]);
                 Assert.Equal("Aptos", ((FontFamily)app.Resources["ThemeFontFamily"]).Source);
-                Assert.Equal(15.6, (double)app.Resources["ThemeBodyFontSize"]);
-                Assert.Equal(23.8, (double)app.Resources["ThemeTitleFontSize"]);
+                Assert.Equal(16.8, (double)app.Resources["ThemeBodyFontSize"]);
+                Assert.Equal(26.4, (double)app.Resources["ThemeTitleFontSize"]);
                 Assert.Equal(0x40, ((SolidColorBrush)app.Resources["SurfaceBrush"]).Color.A);
                 Assert.Equal(0x59, ((SolidColorBrush)app.Resources["BtnBg"]).Color.A);
                 Assert.Same(Brushes.Transparent, app.Resources["BtnBorder"]);
@@ -256,7 +256,7 @@ namespace InventoryManagementApp.Tests
                 var service = new ThemeService();
                 service.ApplyTheme(theme);
                 Assert.Contains(resourceName, app.Resources.MergedDictionaries[0].Source.OriginalString);
-                Assert.Equal(Color.FromRgb(0xF5, 0xB7, 0x00), (Color)app.Resources["Col.Accent"]);
+                Assert.Equal(Color.FromRgb(0xFF, 0xC3, 0x26), (Color)app.Resources["Col.Accent"]);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });
@@ -396,10 +396,10 @@ namespace InventoryManagementApp.Tests
                 service.ApplyCustomTheme(settings);
 
                 Assert.Contains("Colors.SDEuropeanDark.xaml", app.Resources.MergedDictionaries[0].Source.OriginalString);
-                Assert.Equal(Color.FromRgb(0x0F, 0x0F, 0x0F), ((SolidColorBrush)app.Resources["BackgroundBrush"]).Color);
-                Assert.Equal(Color.FromRgb(0xF5, 0xB7, 0x00), ((SolidColorBrush)app.Resources["AccentBrush"]).Color);
-                Assert.Equal(Color.FromRgb(0x24, 0x24, 0x26), ((SolidColorBrush)app.Resources["TextBoxBackgroundBrush"]).Color);
-                Assert.Equal(new CornerRadius(8), (CornerRadius)app.Resources["ThemeInputCornerRadius"]);
+                Assert.Equal(Color.FromRgb(0x01, 0x01, 0x01), ((SolidColorBrush)app.Resources["BackgroundBrush"]).Color);
+                Assert.Equal(Color.FromRgb(0xFF, 0xC3, 0x26), ((SolidColorBrush)app.Resources["AccentBrush"]).Color);
+                Assert.Equal(Color.FromRgb(0x2E, 0x2E, 0x2E), ((SolidColorBrush)app.Resources["TextBoxBackgroundBrush"]).Color);
+                Assert.Equal(new CornerRadius(4), (CornerRadius)app.Resources["ThemeInputCornerRadius"]);
                 WpfTestHelper.ShutdownApplication();
                 await Task.CompletedTask;
             });
