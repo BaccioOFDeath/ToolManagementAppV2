@@ -156,8 +156,8 @@
                         <DockPanel LastChildFill="True">
                             <WrapPanel DockPanel.Dock="Left" VerticalAlignment="Center">
                                 <TextBlock Text="Filter" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,6,4"/>
-                                <pages:SearchBar Width="240"
-                                                 MinWidth="180"
+                                <pages:SearchBar Width="300"
+                                                 MinWidth="260"
                                                  IsEnabled="{Binding IsDirectoryBusy, Converter={StaticResource InverseBooleanConverter}}"
                                                  Text="{Binding Filter}"
                                                  SearchCommand="{Binding SearchCommand}"

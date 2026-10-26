@@ -95,10 +95,10 @@
                                       SelectionMode="Single"
                                       Style="{StaticResource VirtualizedDataGridStyle}">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="82"/>
-                                    <DataGridTextColumn Header="Shelf" Binding="{Binding ItemLocation}" Width="70"/>
-                                    <DataGridTextColumn Header="Due" Binding="{Binding DueDate, StringFormat={}{0:MM-dd HH:mm}}" Width="86"/>
-                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="72"/>
+                                    <DataGridTextColumn Header="Item #" Binding="{Binding ItemNumber}" Width="1.2*" MinWidth="82"/>
+                                    <DataGridTextColumn Header="Shelf" Binding="{Binding ItemLocation}" Width="*" MinWidth="70"/>
+                                    <DataGridTextColumn Header="Due" Binding="{Binding DueDate, StringFormat={}{0:MM-dd HH:mm}}" Width="1.25*" MinWidth="86"/>
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="*" MinWidth="72"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </DockPanel>

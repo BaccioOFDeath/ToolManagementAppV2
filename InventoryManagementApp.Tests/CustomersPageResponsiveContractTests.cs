@@ -57,8 +57,8 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "CustomersPage.xaml");
 
-            Assert.Contains("<pages:SearchBar Width=\"300\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"220\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<pages:SearchBar Width=\"390\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"320\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"330\" MinHeight=\"120\" Margin=\"12\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\" Visibility=\"{Binding IsCustomerEmptyStateVisible, Converter={StaticResource BoolToVis}}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("CustomerEmptyStateMessage", xaml, StringComparison.Ordinal);
             Assert.Contains("<ScrollViewer Grid.Row=\"1\" VerticalScrollBarVisibility=\"Auto\" HorizontalScrollBarVisibility=\"Disabled\">", xaml, StringComparison.Ordinal);

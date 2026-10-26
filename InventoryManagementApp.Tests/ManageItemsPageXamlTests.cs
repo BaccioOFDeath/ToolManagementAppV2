@@ -124,7 +124,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<ColumnDefinition Width=\"0.65*\" MinWidth=\"260\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<GridSplitter Grid.Column=\"1\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ResizeBehavior=\"PreviousAndNext\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("<pages:SearchBar Width=\"240\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<pages:SearchBar Width=\"300\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"New\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Content=\"Mobile Capture\"", xaml, StringComparison.Ordinal);
         }

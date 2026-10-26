@@ -31,8 +31,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("Content=\"Mobile Capture\" Command=\"{Binding OpenMobileCaptureCommand}\" Margin=\"0,0,4,4\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel DockPanel.Dock=\"Left\" VerticalAlignment=\"Center\">", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel DockPanel.Dock=\"Right\" VerticalAlignment=\"Center\" HorizontalAlignment=\"Right\" Margin=\"12,0,0,0\">", xaml, StringComparison.Ordinal);
-            Assert.Contains("<pages:SearchBar Width=\"240\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"180\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<pages:SearchBar Width=\"300\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"260\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<StackPanel DockPanel.Dock=\"Right\" Orientation=\"Horizontal\"", xaml, StringComparison.Ordinal);
             Assert.DoesNotContain("<StackPanel DockPanel.Dock=\"Left\" Orientation=\"Horizontal\"", xaml, StringComparison.Ordinal);
         }

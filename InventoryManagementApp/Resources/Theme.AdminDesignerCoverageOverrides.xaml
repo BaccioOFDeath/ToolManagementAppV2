@@ -272,6 +272,9 @@
         <Setter Property="ColumnHeaderHeight" Value="{DynamicResource ThemeDataGridHeaderHeight}"/>
         <Setter Property="CanUserResizeRows" Value="False"/>
         <Setter Property="HeadersVisibility" Value="Column"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="ColumnWidth" Value="*"/>
         <Setter Property="Effect" Value="{x:Null}"/>
     </Style>
 

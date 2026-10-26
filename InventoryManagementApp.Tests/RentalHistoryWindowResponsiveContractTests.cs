@@ -32,8 +32,8 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("<ColumnDefinition Width=\"*\" MinWidth=\"0\"/>", xaml, StringComparison.Ordinal);
             Assert.Contains("<WrapPanel Grid.Column=\"1\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<pages:SearchBar x:Name=\"HistorySearchBar\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Width=\"300\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"220\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Width=\"390\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"320\"", xaml, StringComparison.Ordinal);
             Assert.Contains("SearchCommand=\"{Binding SearchCommand}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ClearCommand=\"{Binding ClearSearchCommand}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("Text=\"{Binding SearchStatus}\" Style=\"{StaticResource CaptionTextBlock}\" VerticalAlignment=\"Center\" TextWrapping=\"Wrap\" MaxWidth=\"360\"", xaml, StringComparison.Ordinal);
@@ -56,7 +56,7 @@ namespace InventoryManagementApp.Tests
             Assert.Contains("ScrollViewer.CanContentScroll=\"True\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.HorizontalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
             Assert.Contains("ScrollViewer.VerticalScrollBarVisibility=\"Auto\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("Header=\"Location\" Binding=\"{Binding ItemLocation}\" Width=\"140\" MinWidth=\"90\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("Header=\"Location\" Binding=\"{Binding ItemLocation}\" Width=\"*\" MinWidth=\"140\"", xaml, StringComparison.Ordinal);
         }
 
         [Fact]

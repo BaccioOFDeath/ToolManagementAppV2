@@ -34,6 +34,22 @@ public class SDEuropeanBrandingContractTests
     }
 
     [Fact]
+    public void SharedTableAndTabChrome_PreservesAvailableWidthAndReadableHeaders()
+    {
+        var brand = ReadRepositoryFile("InventoryManagementApp", "Resources", "Brand.SDEuropean.xaml");
+        var controls = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.ControlCustomizationOverrides.xaml");
+        var grids = ReadRepositoryFile("InventoryManagementApp", "Resources", "Theme.AdminDesignerCoverageOverrides.xaml");
+        var search = ReadRepositoryFile("InventoryManagementApp", "Views", "Pages", "SearchBar.xaml");
+
+        Assert.Contains("<Setter Property=\"HorizontalContentAlignment\" Value=\"Stretch\"/>", brand, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"VerticalContentAlignment\" Value=\"Stretch\"/>", brand, StringComparison.Ordinal);
+        Assert.Contains("HorizontalAlignment=\"Center\"", controls, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"ColumnWidth\" Value=\"*\"/>", grids, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"SearchTextBox\"", search, StringComparison.Ordinal);
+        Assert.Contains("MinWidth=\"80\"", search, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ShellAndLogin_UseApprovedLogoAssetsAndBrandBands()
     {
         var shell = ReadRepositoryFile("InventoryManagementApp", "MainWindow.xaml");

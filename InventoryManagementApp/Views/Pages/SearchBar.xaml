@@ -27,7 +27,7 @@
             </TextBlock>
             <TextBox x:Name="SearchTextBox"
                      Grid.Column="1"
-                     MinWidth="180"
+                     MinWidth="80"
                      HorizontalAlignment="Stretch"
                      Margin="0"
                      Background="{DynamicResource SearchBarBackgroundBrush}"

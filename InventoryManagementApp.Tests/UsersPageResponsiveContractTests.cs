@@ -52,8 +52,8 @@ namespace InventoryManagementApp.Tests
         {
             var xaml = ReadRepoFile("InventoryManagementApp", "Views", "Pages", "UsersPage.xaml");
 
-            Assert.Contains("<pages:SearchBar Width=\"300\"", xaml, StringComparison.Ordinal);
-            Assert.Contains("MinWidth=\"220\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("<pages:SearchBar Width=\"390\"", xaml, StringComparison.Ordinal);
+            Assert.Contains("MinWidth=\"320\"", xaml, StringComparison.Ordinal);
             Assert.Contains("IsEnabled=\"{Binding CanUseUserActions}\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<Border Grid.Row=\"2\" MaxWidth=\"330\" MinHeight=\"120\" Margin=\"12\"", xaml, StringComparison.Ordinal);
             Assert.Contains("<MultiDataTrigger>", xaml, StringComparison.Ordinal);

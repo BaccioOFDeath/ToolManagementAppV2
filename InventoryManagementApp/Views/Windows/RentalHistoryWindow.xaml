@@ -103,8 +103,8 @@
                     <WrapPanel VerticalAlignment="Center">
                         <TextBlock Text="Find" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,8,6"/>
                         <pages:SearchBar x:Name="HistorySearchBar"
-                                         Width="300"
-                                         MinWidth="220"
+                                         Width="390"
+                                         MinWidth="320"
                                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                          SearchCommand="{Binding SearchCommand}"
                                          ClearCommand="{Binding ClearSearchCommand}"
@@ -153,7 +153,7 @@
                         <DataGrid.Columns>
                             <StaticResource ResourceKey="RentalIdColumn"/>
                             <StaticResource ResourceKey="RentalItemNumberColumn"/>
-                            <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="140" MinWidth="90"/>
+                            <DataGridTextColumn Header="Location" Binding="{Binding ItemLocation}" Width="*" MinWidth="140"/>
                             <StaticResource ResourceKey="RentalCustomerColumn"/>
                             <StaticResource ResourceKey="RentalOutColumn"/>
                             <StaticResource ResourceKey="RentalDueColumn"/>
